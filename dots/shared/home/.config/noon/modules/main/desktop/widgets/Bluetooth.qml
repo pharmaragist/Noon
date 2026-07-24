@@ -1,0 +1,69 @@
+import QtQuick
+import QtQuick.Layouts
+import qs.services
+import qs.common
+import qs.common.widgets
+
+WidgetContainer {
+    id: root
+
+    readonly property var currentDevice: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices)[0]
+
+    ColumnLayout {
+        id: columnLayout
+
+        anchors.centerIn: parent
+        spacing: Padding.small
+
+        RowLayout {
+            id: header
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            spacing: Padding.normal
+
+            Symbol {
+                fill: 1
+                font.weight: Font.Medium
+                text: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices).length > 0 ? BluetoothService.getDeviceIcon(root.currentDevice) : "bluetooth"
+                font.pixelSize: Fonts.sizes.large
+                color: Colors.m3.m3onSurfaceVariant
+            }
+
+            StyledText {
+                text: root.currentDevice?.name || "No Current Device"
+                color: Colors.m3.m3onSurfaceVariant
+                truncate: true
+                Layout.maximumWidth: 100
+                Layout.fillWidth: true
+                font: Fonts.request("main", "small", { weight: Font.Medium })
+            }
+
+            Spacer {}
+        }
+
+        StyledText {
+            text: root.currentDevice?.battery ? Math.round(root.currentDevice.battery * 100) + " %" : "100 %"
+
+            font: Fonts.request("numbers", "title")
+        }
+
+        RowLayout {
+            spacing: 5
+            Layout.fillWidth: true
+
+            Symbol {
+                icon: BluetoothService.getDeviceStatusIcon(root.currentDevice)
+                color: Colors.m3.m3onSurfaceVariant
+                font.pixelSize: Fonts.sizes.large
+            }
+
+            StyledText {
+                text: {
+                    BluetoothService.getDeviceStatus(root.currentDevice);
+                }
+                color: Colors.m3.m3onSurfaceVariant
+                truncate: true
+            }
+        }
+    }
+}

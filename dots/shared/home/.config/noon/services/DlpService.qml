@@ -1,0 +1,56 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import Quickshell.Io
+
+import qs.common
+import qs.common.utils
+import qs.common.widgets
+import qs.common.functions
+
+Singleton {
+    id: root
+
+    readonly property list<string> cmd: ["uv", "run", Directories.scriptsDir + "/dlpHelper.py"]
+
+    function toast(info) {
+        NoonUtils.toast({
+            id: 0,
+            header: "Download Started",
+            content: (info.query || info.url) + " to " + info.directory
+        });
+    }
+
+    function request(info) {
+        if (!info)
+            return;
+
+        let final = [...root.cmd];
+        const query = (info.artist ?? "") + (info?.title ?? "");
+
+        if (query.length > 0)
+            final = final.concat(["--search", `"${query}"` ?? ""]);
+        else if (info.url)
+            final = final.concat(["--url", `"${info.url}"`]);
+
+        if (info.audio)
+            final.push("--audio");
+        else if (info.video)
+            final.push("--video");
+
+        if (info.quality)
+            final = final.concat(["--quality", info.quality]);
+
+        if (info.directory)
+            final = final.concat(["-d", Directories.methods.trim(info.directory)]);
+
+        if (info.debug)
+            console.log(final.join(' '));
+
+        if (info.toast)
+            root.toast(info);
+
+        NoonUtils.execDetached(final);
+    }
+}

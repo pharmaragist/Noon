@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# SDDM
+sddm/theme.conf
+dots/.config/hypr/colors.lua
+dots/.config/hypr/hyprtoolkit.conf

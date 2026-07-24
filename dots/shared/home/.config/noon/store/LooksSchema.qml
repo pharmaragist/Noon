@@ -1,0 +1,23 @@
+import qs.common
+import qs.common.utils
+
+/*
+    Separated for Adapter for global access
+*/
+
+JsonAdapter {
+    property bool showMatugenSmartScheme: false
+    property bool autoTransparencySelection: true
+    property bool autoSchemeSelection: false
+    property bool autoShellMode: false
+    property string mode: "dark"
+    property string scheme: "scheme-rainbow"
+    property string extractedColor: "808080"
+    property bool isLive: true
+    property bool isBright: false
+    property string currentBg: ""
+    property string currentFolder: Directories.standard.home + "/Pictures/Wallpapers"
+    property real contrast: 0
+    property real darkness: 0
+    property real lightness: 0
+}

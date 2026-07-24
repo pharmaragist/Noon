@@ -1,0 +1,82 @@
+import qs.common
+import qs.common.widgets
+import qs.services
+import qs.store
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+
+BarGroup {
+    id: root
+
+    property bool expanded: true
+    implicitWidth: rowLayout.implicitWidth + Padding.huge
+
+    RowLayout {
+        id: rowLayout
+        spacing: Padding.small
+        anchors.centerIn: parent
+
+        Item {
+            width: 24
+            Layout.fillHeight: true
+
+            ClippedFilledCircularProgress {
+                anchors.centerIn: parent
+                value: BeatsService.currentTrackProgressRatio()
+                lineWidth: 2
+                implicitSize: 20
+            }
+
+            Symbol {
+                z: 999
+                anchors.centerIn: parent
+                fill: 1
+                animateChange: true
+                icon: BeatsService._playing ? "pause" : "music_note"
+                iconSize: 14
+                color: Colors.colOnSecondary
+            }
+        }
+
+        StyledText {
+            visible: root.expanded
+            font: Fonts.request("title", "normal")
+            truncate: true
+            color: Colors.colOnLayer1
+            Layout.fillWidth: true
+            Layout.maximumWidth: 200
+            horizontalAlignment: Text.AlignHCenter
+            text: BeatsService.title
+        }
+    }
+
+    MediaPopup {
+        id: mediaPopup
+        hoverTarget: mouse
+    }
+
+    MouseArea {
+        id: mouse
+        anchors.fill: parent
+        acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
+        hoverEnabled: true
+
+        onPressed: event => {
+            const activePlayer = BeatsService.player;
+            switch (event.button) {
+            case Qt.MiddleButton:
+            case Qt.BackButton:
+                activePlayer.previous();
+                break;
+            case Qt.ForwardButton:
+            case Qt.RightButton:
+                activePlayer.next();
+                break;
+            case Qt.LeftButton:
+                activePlayer.togglePlaying();
+                break;
+            }
+        }
+    }
+}

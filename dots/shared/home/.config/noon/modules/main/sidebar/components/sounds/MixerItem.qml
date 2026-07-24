@@ -1,0 +1,69 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Services.Pipewire
+import qs.common
+import qs.common.widgets
+import qs.services
+
+StyledRect {
+    id: root
+
+    required property var modelData
+    required property int index
+    required property var list
+    readonly property PwNode node: modelData
+
+    implicitHeight: rowLayout.implicitHeight + Padding.massive
+    color: Colors.colLayer2
+
+    PwObjectTracker {
+        objects: [node]
+    }
+
+    RowLayout {
+        id: rowLayout
+
+        anchors.leftMargin: Padding.huge
+        anchors.rightMargin: Padding.huge + Padding.huge
+        spacing: Padding.huge
+
+        anchors.fill: parent
+
+        StyledIconImage {
+            visible: source != ""
+            Layout.alignment: Qt.AlignVCenter
+            implicitSize: 50
+            source: {
+                let icon;
+                icon = AppSearch.guessIcon(root.node.properties["application.icon-name"]);
+                if (AppSearch.iconExists(icon))
+                    return NoonUtils.iconPath(icon);
+
+                icon = AppSearch.guessIcon(root.node.properties["node.name"]);
+                return NoonUtils.iconPath(icon);
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: -Padding.tiny
+
+            StyledText {
+                Layout.fillWidth: true
+                font: Fonts.request("main", Fonts.sizes.normal)
+                truncate: true
+                text: {
+                    const app = root.node.properties["application.name"] ?? (root.node.description != "" ? root.node.description : root.node.name);
+                    const media = root.node.properties["media.name"];
+                    return media != undefined ? `${app} • ${media}` : app;
+                }
+            }
+            StyledSlider {
+                value: root.node.audio.volume
+                onMoved: root.node.audio.volume = value
+            }
+        }
+    }
+}

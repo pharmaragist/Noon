@@ -1,0 +1,53 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Wayland
+import qs.common
+import qs.common.widgets
+import qs.common.functions
+
+LazyLoader {
+    id: root
+
+    property Item hoverTarget
+    default property Item contentItem
+    property bool extraVisibilityCondition: true
+    property var window: root.hoverTarget ? root.hoverTarget.QsWindow : null
+    active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
+
+    component: PopupWindow {
+        id: popupWindow
+
+        color: "transparent"
+        implicitWidth: popupBackground.implicitWidth + Padding.massive * 2
+        implicitHeight: popupBackground.implicitHeight + Padding.massive * 2
+
+        anchor {
+            window: root.window || null
+            adjustment: PopupAdjustment.SlideY
+            gravity: Edges.Bottom | Edges.Right
+            edges: Edges.Bottom | Edges.Right
+            rect {
+                x: root.hoverTarget.mapToItem(null, root.hoverTarget.width, 0).x
+                y: root.hoverTarget.mapToItem(null, 0, 0).y
+            }
+        }
+
+        StyledRectangularShadow {
+            target: popupBackground
+        }
+
+        ShaderRect {
+            id: popupBackground
+            anchors {
+                fill: parent
+                margins: Padding.massive
+            }
+            implicitWidth: root.contentItem.implicitWidth + Padding.massive
+            implicitHeight: root.contentItem.implicitHeight + Padding.massive
+            enableBorders: true
+            radius: Rounding.verylarge
+            children: [root.contentItem]
+        }
+    }
+}

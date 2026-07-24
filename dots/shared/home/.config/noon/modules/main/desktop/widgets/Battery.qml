@@ -1,0 +1,101 @@
+import QtQuick
+import QtQuick.Layouts
+import qs.services
+import qs.common
+import qs.common.widgets
+
+WidgetContainer {
+    id: root
+    clip: true
+
+    // Progress Bg
+    StyledRect {
+        visible: false
+        z: 2
+        anchors {
+            top: parent.top
+            left: parent.left
+            bottom: parent.bottom
+        }
+        opacity: 0.3
+        color: Colors.colPrimaryContainer
+        implicitWidth: BatteryService.percentage * parent.width
+    }
+
+    ColumnLayout {
+        id: columnLayout
+        anchors.margins: Padding.massive
+        anchors.fill: parent
+        spacing: -10
+
+        StyledText {
+            text: "Battery"
+            horizontalAlignment: Text.AlignLeft
+            color: Colors.colSubtext
+            font: Fonts.request("title", "verylarge")
+        }
+
+        Spacer {}
+
+        StyledText {
+            Layout.topMargin: Padding.normal
+            Layout.preferredHeight: 50
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            text: Math.round(BatteryService.percentage * 100) + " %"
+
+            font: Fonts.request("numbers", 78)
+        }
+        RowLayout {
+            id: statusRow
+            Layout.alignment: Qt.AlignBottom
+
+            function formatTime(seconds) {
+                var h = Math.floor(seconds / 3600);
+                var m = Math.floor((seconds % 3600) / 60);
+                if (h > 0)
+                    return `${h}h, ${m}m`;
+                else
+                    return `${m}m`;
+            }
+            states: [
+                State {
+                    name: "charging"
+                    when: BatteryService.isCharging
+                    PropertyChanges {
+                        target: description
+                        text: "Maxing in "
+                    }
+                    PropertyChanges {
+                        target: value
+                        text: statusRow.formatTime(BatteryService.timeToFull)
+                    }
+                },
+                State {
+                    name: "draining"
+                    when: !BatteryService.isCharging
+                    PropertyChanges {
+                        target: description
+                        text: "Draining in "
+                    }
+                    PropertyChanges {
+                        target: value
+                        text: statusRow.formatTime(BatteryService.timeToEmpty)
+                    }
+                }
+            ]
+            StyledText {
+                id: description
+                color: Colors.m3.m3onSurfaceVariant
+                truncate: true
+                Layout.fillWidth: true
+            }
+
+            StyledText {
+                id: value
+                horizontalAlignment: Text.AlignRight
+                color: Colors.m3.m3onSurfaceVariant
+            }
+        }
+    }
+}
