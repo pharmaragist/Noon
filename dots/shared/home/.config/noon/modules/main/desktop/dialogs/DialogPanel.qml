@@ -37,7 +37,7 @@ Scope {
                 id: mainContainer
                 anchors.fill: parent
 
-                ShaderRect {
+                PanelRect {
                     id: bg
 
                     anchors {

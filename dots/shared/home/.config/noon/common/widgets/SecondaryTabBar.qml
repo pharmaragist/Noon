@@ -8,7 +8,7 @@ ColumnLayout {
     id: root
     spacing: 0
     clip: true
-    required property var tabButtonList // Something like [{"icon": "notifications", "name": qsTr("Notifications")}, {"icon": "volume_up", "name": qsTr("Volume mixer")}]
+    required property var tabButtonList 
     property var externalTrackedTab
 
     property bool enableIndicatorAnimation: false
@@ -52,7 +52,7 @@ ColumnLayout {
         }
     }
 
-    Item { // Tab indicator
+    Item { 
         id: tabIndicator
         Layout.fillWidth: false
         height: 3
@@ -68,20 +68,20 @@ ColumnLayout {
         Rectangle {
             id: indicator
             property int tabCount: root.tabButtonList.length
-            property real fullTabSize: root.width / Math.max(tabCount, 1) // Prevent division by zero
+            property real fullTabSize: root.width / Math.max(tabCount, 1) 
 
-            // Safe property access with fallback values
+            
             property real targetWidth: {
                 if (!tabBar.contentItem || !tabBar.contentItem.children || !tabBar.contentItem.children[0] || !tabBar.contentItem.children[0].children || tabBar.currentIndex < 0 || tabBar.currentIndex >= tabBar.contentItem.children[0].children.length) {
-                    return 60; // Default width fallback
+                    return 60; 
                 }
 
                 var currentTab = tabBar.contentItem.children[0].children[tabBar.currentIndex];
                 if (!currentTab) {
-                    return 60; // Default width fallback
+                    return 60; 
                 }
 
-                // Try to get the tab content width, with multiple fallback options
+                
                 if (currentTab.tabContentWidth !== undefined) {
                     return currentTab.tabContentWidth;
                 } else if (currentTab.contentWidth !== undefined) {
@@ -91,7 +91,7 @@ ColumnLayout {
                 } else if (currentTab.width !== undefined) {
                     return currentTab.width;
                 } else {
-                    return 60; // Final fallback
+                    return 60; 
                 }
             }
 
@@ -102,11 +102,11 @@ ColumnLayout {
                 bottom: parent.bottom
             }
 
-            // Safe x position calculation
+            
             x: {
                 var safeCurrentIndex = Math.max(0, Math.min(tabBar.currentIndex, tabCount - 1));
                 var xPos = safeCurrentIndex * fullTabSize + (fullTabSize - targetWidth) / 2;
-                return Math.max(0, xPos); // Ensure x is never negative
+                return Math.max(0, xPos); 
             }
 
             color: root.colIndicator

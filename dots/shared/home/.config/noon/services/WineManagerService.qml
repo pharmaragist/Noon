@@ -1,4 +1,4 @@
-// TODO: REWORK
+
 pragma Singleton
 pragma ComponentBehavior: Bound
 import qs.store

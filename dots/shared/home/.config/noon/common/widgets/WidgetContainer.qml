@@ -4,18 +4,36 @@ import qs.common
 import qs.common.widgets
 import qs.common.functions
 
-ShaderRect {
+StyledRect {
     id: root
     property var window
-    property bool pinned: false
-    property bool pill: false
-    property bool expanded: false
+    property var widgetData
+    readonly property bool pinned: widgetData?.pin ?? false
+    readonly property bool pill: widgetData?.pill ?? false
+    readonly property string size: widgetData?.size ?? "normal"
+    readonly property bool isSmall: size === "small"
+    readonly property bool isNormal: size === "normal"
+    readonly property bool isLarge: size === "large"
+    readonly property bool isXLarge: size === "xlarge"
+    readonly property Component currentComponent: root[root?.size]
+
+    
+    property Component small: null
+    property Component normal: null
+    property Component large: null
+    property Component xlarge: null
 
     clip: true
-    enableBorders: true
-    implicitWidth: Sizes.sidebar.widgetSize
-    implicitHeight: Sizes.sidebar.widgetSize
-    radius: pill ? 99 : Rounding.verylarge
+    color: colors.colLayer2
+    radius: (pill && isSmall) ? 99 : Rounding.huge
+    onWidgetDataChanged: contentLoader.reload()
+
+    StyledLoader {
+        id: contentLoader
+        anchors.fill: parent
+        sourceComponent: root.currentComponent ?? null
+        active: true
+    }
 
     Symbol {
         z: 999
@@ -25,7 +43,7 @@ ShaderRect {
         anchors.right: parent.right
         anchors.margins: Padding.large
         opacity: 0.6
-        color: Colors.colOnLayer0
+        color: colors.colOnLayer0
         text: "push_pin"
         rotation: 45
     }

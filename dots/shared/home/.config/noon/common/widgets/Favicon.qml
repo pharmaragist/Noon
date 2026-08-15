@@ -16,7 +16,7 @@ IconImage {
     property real size: 32
     property string downloadUserAgent: Mem.options.networking.userAgent ?? ""
     property string faviconDownloadPath: Directories.favicons
-    property string domainName: url.includes("vertexaisearch") ? displayText : StringUtils.getDomain(url)
+    property string domainName: url.includes("vertexaisearch") ? displayText : TextUtils.getDomain(url)
     property string faviconUrl: `https://www.google.com/s2/favicons?domain=${domainName}&sz=32`
     property string fileName: `${domainName}.ico`
     property string faviconFilePath: `${faviconDownloadPath}/${fileName}`

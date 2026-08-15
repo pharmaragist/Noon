@@ -23,6 +23,7 @@ Item {
         spacing: opts.spacing
         BarModulesFactory {
             model: opts.leftArea
+            panel: barRoot
         }
     }
 
@@ -35,6 +36,7 @@ Item {
         spacing: opts.spacing
         BarModulesFactory {
             model: opts.centerArea
+            panel: barRoot
         }
     }
     RLayout {
@@ -46,6 +48,8 @@ Item {
         spacing: opts.spacing
         BarModulesFactory {
             model: opts.rightArea
+            panel: barRoot
         }
     }
+
 }

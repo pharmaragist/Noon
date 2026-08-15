@@ -23,7 +23,6 @@ RowLayout {
             MouseArea {
                 anchors.fill: parent
                 onPressed: DesktopEntries.byId(modelData).execute();
-
             }
         }
     }

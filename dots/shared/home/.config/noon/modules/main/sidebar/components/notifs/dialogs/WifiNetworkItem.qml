@@ -22,7 +22,7 @@ StyledRect {
 
     MouseArea {
         z: 0
-        // enabled: network?.active ?? false
+        
         propagateComposedEvents: true
         anchors.fill: parent
         onClicked: root.expanded = !root.expanded

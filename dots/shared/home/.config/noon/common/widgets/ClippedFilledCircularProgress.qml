@@ -6,20 +6,20 @@ import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
-    property QtObject colors: Colors
+    property var colors: Colors
     property int implicitSize: 18
     property int lineWidth: 2
     property real value: 0
     property color colSecondary: colors.colSecondaryContainer
     property color colPrimary: colors.colPrimary
-    property real gapAngle: 360 / 18
+    property real gapDistance: 4 
     property bool fill: true
     property int fillOverflow: 2
     property bool enableAnimation: true
     property int animationDuration: 800
     property var easingType: Easing.OutCubic
     property bool accountForLightBleeding: true
-    property bool showText: false //text.length > 0
+    property bool showText: false 
     property string text: Math.round(root.value * 100)
     default property Item textMask: Item {
         width: implicitSize
@@ -39,6 +39,7 @@ Item {
     property real centerX: root.width / 2
     property real centerY: root.height / 2
     property real arcRadius: root.implicitSize / 2 - root.lineWidth / 2 - (0.5 * root.accountForLightBleeding)
+    property real gapAngle: (gapDistance / (2 * Math.PI * arcRadius)) * 360
     property real startAngle: -90
 
     Behavior on degree {

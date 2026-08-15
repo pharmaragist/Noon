@@ -8,7 +8,7 @@ Menu {
     id: root
 
     required property var content
-    property QtObject colors: Colors
+    property var colors: Colors
     width: 240
     Material.theme: Colors.m3.darkmode ? Material.Dark : Material.Light
     Material.primary: colors.colPrimaryContainer

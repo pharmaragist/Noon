@@ -1,6 +1,6 @@
 import QtQuick
 
-MouseArea { // Right side | scroll to change volume
+MouseArea { 
     id: root
 
     signal scrollUp(delta: int)
@@ -30,7 +30,7 @@ MouseArea { // Right side | scroll to change volume
             root.scrollDown(event.angleDelta.y);
         else if (event.angleDelta.y > 0)
             root.scrollUp(event.angleDelta.y);
-        // Store the mouse position and start tracking
+        
         root.lastScrollX = event.x;
         root.lastScrollY = event.y;
         root.trackingScroll = true;

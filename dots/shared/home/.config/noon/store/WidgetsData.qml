@@ -27,7 +27,7 @@ Singleton {
             id: "simple_clock",
             expandable: false,
             name: "Simple Clock",
-            component: "Clock_Simple",
+            component: "ClockSimple",
             icon: "schedule"
         },
         {
@@ -69,7 +69,7 @@ Singleton {
             id: "weather",
             expandable: false,
             name: "Simple Weather",
-            component: "Weather_Simple",
+            component: "WeatherSimple",
             icon: "cloud"
         },
         {
@@ -82,21 +82,24 @@ Singleton {
     ]
 
     readonly property var mem: Mem.states.sidebar.widgets
-    readonly property var plugins: Object.values(PluginsManager.desktopWidgetsPlugins)
+    readonly property var plugins: Object.values(PluginsManager.desktopWidgetsPlugins ?? {})
     readonly property var db: [...stock, ...plugins]
     readonly property var desktopWidgets: {
-        return mem.desktop.map(widgetId => {
-            const widgetData = root.db.find(item => item.id === widgetId);
-            if (widgetData.enabled ?? true)
-                return {
-                    id: widgetId,
-                    entry: widgetData?.entry ?? false,
-                    isPlugin: widgetData?.isPlugin ?? false,
-                    component: widgetData?.component || "",
-                    expandable: widgetData?.expandable,
-                    expanded: mem.expanded.find(item => item === widgetId),
-                    pilled: mem.pilled.find(item => item === widgetId)
-                };
-        });
+        const items = mem?.items ?? [];
+        return items.filter(w => w.desktop).map(w => {
+            const widgetData = root.db.find(item => item.id === w.id);
+            if (!widgetData || !(widgetData.enabled ?? true))
+                return null;
+            return {
+                id: w.id,
+                entry: widgetData.entry ?? false,
+                isPlugin: widgetData.isPlugin ?? false,
+                component: widgetData.component || "",
+                expandable: widgetData.expandable,
+                size: w.size ?? "normal",
+                pin: w.pin,
+                pill: w.pill
+            };
+        }).filter(w => w !== null);
     }
 }

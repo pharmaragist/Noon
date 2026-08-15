@@ -33,13 +33,13 @@ Item {
             sourceComponent: info_component
         }
 
-        // MouseArea {
-        //     id: event_area
-        //     anchors.fill: parent
-        //     acceptedButtons: Qt.NoButton
-        //     propagateComposedEvents: true
-        //     hoverEnabled: true
-        // }
+        
+        
+        
+        
+        
+        
+        
 
     }
 
@@ -105,7 +105,7 @@ Item {
                     horizontalAlignment: Text.AlignLeft
 
                     background: null
-                    text: pdf_view.currentPage + 1 // To Count from 1
+                    text: pdf_view.currentPage + 1 
                     onAccepted: pdf_view.goToPage(text - 1)
                 }
             }

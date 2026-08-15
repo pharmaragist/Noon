@@ -11,7 +11,7 @@ Item {
     id: root
 
     property var bar
-    property int iconSize: BarData.currentBarExclusiveSize / 2.5
+    property int iconSize: BarData.currentBarExclusiveSize / 3
     property bool verticalMode: Mem.options.bar.behavior.position === "left" || Mem.options.bar.behavior.position === "right"
     readonly property var model: SystemTray.items
 
@@ -52,8 +52,7 @@ Item {
             SysTrayItem {
                 required property SystemTrayItem modelData
 
-                implicitHeight: implicitWidth
-                implicitWidth: root.iconSize
+                implicitSize: root.iconSize
                 item: modelData
             }
         }

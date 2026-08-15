@@ -14,7 +14,7 @@ StyledPanel {
     shell: "noon"
     exclusiveZone: bg.implicitWidth
     fill: true
-    _layer: "Top"
+    _layer: "Bottom"
     readonly property string pos: Mem.options.bar.behavior.position
     readonly property bool isRight: bg.side === "right"
 

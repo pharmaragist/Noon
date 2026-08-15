@@ -13,7 +13,7 @@ SidebarItemContainer {
 
     readonly property bool playing: BeatsService.player?.playbackState === MprisPlaybackState.Playing
     readonly property bool displayingLyrics: activeLyrics.showContent && Mem.beats.options.showLyrics
-    readonly property QtObject colors: BeatsService?.colors ?? Colors
+    readonly property var colors: BeatsService?.colors ?? Colors
 
     Keys.onPressed: event => {
         const ctrl = event.modifiers & Qt.ControlModifier;
@@ -80,7 +80,7 @@ SidebarItemContainer {
             StyledLoader {
                 id: bigCover
                 anchors.centerIn: parent
-                anchors.verticalCenterOffset: -100
+                anchors.verticalCenterOffset: -135
                 width: parent.width - Padding.massive - (root.playing ? Padding.normal : Padding.massive)
                 height: width
                 fade: true
@@ -99,9 +99,11 @@ SidebarItemContainer {
 
             ColumnLayout {
                 spacing: Padding.massive
-                anchors.fill: parent
+                anchors.top: bigCover?.bottom ?? parent.top
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                anchors.left: parent.left
                 anchors.margins: Padding.huge
-                Spacer {}
                 PlayerSelector {}
                 MediaPlayerControls {
                     hasLyrics: root.displayingLyrics
@@ -109,21 +111,21 @@ SidebarItemContainer {
             }
         }
 
-        Item {
-            visible: root.expanded
+        StyledLoader {
+            shown: root.expanded
+            fade: true
             Layout.maximumWidth: 340
             Layout.rightMargin: root.detached ? Padding.massive : 0
             Layout.fillWidth: true
             Layout.fillHeight: true
+            binds: ({
+                    "colors": () => root.colors
+                })
 
-            TracksQueue {
+            sourceComponent: TracksQueue {
                 id: queue
                 anchors.fill: parent
                 colors: root.colors
-            }
-
-            StyledRectangularShadow {
-                target: queue
             }
         }
     }

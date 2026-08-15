@@ -11,7 +11,7 @@ import Quickshell.Widgets
 import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
-Item { // Notification item area
+Item { 
     id: root
     property var notificationObject
     property bool expanded: false
@@ -19,9 +19,9 @@ Item { // Notification item area
     property real fontSize: Fonts.sizes.small
     property real padding: onlyNotification ? 0 : 8
 
-    property real dragConfirmThreshold: 70 // Drag further to discard notification
-    property real dismissOvershoot: notificationIcon.implicitWidth + 20 // Account for gaps and bouncy animations
-    property var qmlParent: root?.parent?.parent // There's something between this and the parent ListView
+    property real dragConfirmThreshold: 70 
+    property real dismissOvershoot: notificationIcon.implicitWidth + 20 
+    property var qmlParent: root?.parent?.parent 
     property var parentDragIndex: qmlParent?.dragIndex ?? -1
     property var parentDragDistance: qmlParent?.dragDistance ?? 0
     property var dragIndexDiff: Math.abs(parentDragIndex - index)
@@ -32,7 +32,7 @@ Item { // Notification item area
     function processNotificationBody(body, appName) {
         let processedBody = body;
 
-        // Clean Chromium-based browsers notifications - remove first line
+        
         if (appName) {
             const lowerApp = appName.toLowerCase();
             const chromiumBrowsers = ["brave", "chrome", "chromium", "vivaldi", "opera", "microsoft edge"];
@@ -51,11 +51,11 @@ Item { // Notification item area
 
     function destroyWithAnimation() {
         root.qmlParent.resetDrag();
-        background.anchors.leftMargin = background.anchors.leftMargin; // Break binding
+        background.anchors.leftMargin = background.anchors.leftMargin; 
         destroyAnimation.running = true;
     }
 
-    SequentialAnimation { // Drag finish animation
+    SequentialAnimation { 
         id: destroyAnimation
         running: false
 
@@ -69,7 +69,7 @@ Item { // Notification item area
         }
     }
 
-    DragManager { // Drag manager
+    DragManager { 
         id: dragManager
         anchors.fill: root
         anchors.leftMargin: root.expanded ? -notificationIcon.implicitWidth : 0
@@ -101,7 +101,7 @@ Item { // Notification item area
         }
     }
 
-    NotificationAppIcon { // App icon
+    NotificationAppIcon { 
         id: notificationIcon
         opacity: (!onlyNotification && notificationObject.image != "" && expanded) ? 1 : 0
         visible: opacity > 0
@@ -116,7 +116,7 @@ Item { // Notification item area
         anchors.rightMargin: 10
     }
 
-    Rectangle { // Background of notification item
+    Rectangle { 
         id: background
         width: parent.width
         anchors.left: parent.left
@@ -135,7 +135,7 @@ Item { // Notification item area
             Anim {}
         }
 
-        ColumnLayout { // Content column
+        ColumnLayout { 
             id: contentColumn
             anchors.fill: parent
             anchors.margins: expanded ? root.padding : 0
@@ -145,12 +145,12 @@ Item { // Notification item area
                 Anim {}
             }
 
-            RowLayout { // Summary row
+            RowLayout { 
                 id: summaryRow
                 visible: !root.onlyNotification || !root.expanded
                 Layout.fillWidth: true
                 implicitHeight: summaryText.implicitHeight
-                // Layout.fillWidth: true
+                
                 StyledText {
                     id: summaryText
                     visible: !root.onlyNotification
@@ -169,7 +169,7 @@ Item { // Notification item area
                     font.pixelSize: root.fontSize
                     color: Colors.colSubtext
                     elide: Text.ElideRight
-                    wrapMode: Text.Wrap // Needed for proper eliding????
+                    wrapMode: Text.Wrap 
                     maximumLineCount: 1
                     textFormat: Text.StyledText
                     text: {
@@ -179,12 +179,12 @@ Item { // Notification item area
             }
 
             ColumnLayout {
-                // Expanded content
+                
                 Layout.fillWidth: true
                 opacity: root.expanded ? 1 : 0
                 visible: opacity > 0
 
-                StyledText { // Notification body (expanded)
+                StyledText { 
                     id: notificationBodyText
                     Behavior on opacity {
                         Anim {}
@@ -207,7 +207,7 @@ Item { // Notification item area
                     PointingHandLinkHover {}
                 }
 
-                StyledFlickable { // Notification actions
+                StyledFlickable { 
                     id: actionsFlickable
                     Layout.fillWidth: true
                     implicitHeight: actionRowLayout.implicitHeight

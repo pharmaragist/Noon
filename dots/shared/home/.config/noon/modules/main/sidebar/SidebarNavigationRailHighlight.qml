@@ -13,13 +13,19 @@ Item {
     height: navRailList.currentItem ? navRailList.currentItem.height : 0
     y: navRailList.currentItem ? navRailList.currentItem.y : 0
     z: -2
-
     Behavior on y {
-        Anim {}
+        Anim {
+            duration: Animations.durations.large
+        }
     }
 
     Anim on opacity {
         from: 0
+        to: 1
+    }
+
+    Anim on scale {
+        from: -0.98
         to: 1
     }
 
@@ -46,6 +52,7 @@ Item {
         }
         readonly property Component pillComponent: Item {
             StyledRect {
+                id: pillBg
                 anchors.left: highlight.rightMode ? undefined : parent.left
                 anchors.right: !highlight.rightMode ? undefined : parent.right
                 anchors.margins: Padding.tiny
@@ -53,6 +60,23 @@ Item {
                 width: 5
                 radius: Rounding.small
                 color: root.colors.colPrimary
+                Connections {
+                    target: highlight
+                    function onYChanged() {
+                        expand.running = true
+                    }
+                }
+                SequentialAnimation {
+                    id: expand
+                    PropertyAnimation {
+                        target: pillBg
+                        property: "height"
+                        to: highlight?.height - Padding.large
+                        from: highlight?.height + Padding.verylarge
+                        duration: Animations.durations.large
+                        easing.type: Easing.OutQuad
+                    }
+                }
                 Anim on height {
                     from: 0
                     to: highlight?.height - Padding.large

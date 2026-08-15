@@ -28,14 +28,14 @@ GridView {
             spacing: verticalMode ? 4 : 8
 
             Symbol {
-                icon: weatherData.currentEmoji
+                icon: weatherData.material_icon
                 iconSize: verticalMode ? Fonts.sizes.large : Fonts.sizes.normal
                 color: Colors.colOnLayer1
                 fill: 1
             }
 
             StyledText {
-                text: weatherData.currentTemp
+                text: weatherData.current_temp
                 font: Fonts.request("main", "normal")
                 color: Colors.colOnLayer1
             }
@@ -46,7 +46,7 @@ GridView {
             hoverEnabled: true
             StyledToolTip {
                 extraVisibleCondition: parent.containsMouse
-                content: weatherData.currentCondition
+                content: weatherData.current_condition
             }
         }
     }

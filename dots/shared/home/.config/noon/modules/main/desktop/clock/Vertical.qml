@@ -43,9 +43,8 @@ Item {
                 required property int index
                 text: modelData
                 font.pixelSize: 100 * root.clockScale
-                font.family: Fonts.family.clock
                 color: root.hovered ? ((Math.floor(index / 2) + index) % 2 === 0 ? Colors.colPrimary : Colors.colSecondaryContainer) : Colors.colOnBackground
-
+                font.family: Fonts.family.variable
                 font.variableAxes: {
                     "wdth": root.wdth,
                     "wght": root.wght
@@ -58,7 +57,7 @@ Item {
         }
     }
 
-    // Animations
+    
     Behavior on wght {
         Anim {}
     }

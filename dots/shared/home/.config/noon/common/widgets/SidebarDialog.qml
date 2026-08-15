@@ -27,7 +27,7 @@ StyledRect {
     }
     radius: Rounding.verylarge
 
-    // Clicking outside the dialog should dismiss
+    
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.AllButtons
@@ -42,12 +42,12 @@ StyledRect {
 
         anchors.horizontalCenter: parent.horizontalCenter
         radius: parent.radius
-        color: Colors.m3.m3surfaceContainerHigh // Use opaque version of layer3
+        color: Colors.m3.m3surfaceContainerHigh 
         y: root.show ? targetY : (targetY - root.backgroundAnimationMovementDistance)
         anchors.fill: parent
         anchors.margins: Padding.large
 
-        // So clicking inside the dialog won't dismiss
+        
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.AllButtons

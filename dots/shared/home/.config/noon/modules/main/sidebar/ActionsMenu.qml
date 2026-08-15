@@ -43,7 +43,7 @@ PopupWindow {
         target: bg
     }
 
-    ShaderRect {
+    PanelRect {
         id: bg
         anchors {
             fill: parent

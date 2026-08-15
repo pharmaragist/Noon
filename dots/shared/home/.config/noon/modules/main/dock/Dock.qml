@@ -52,7 +52,7 @@ Scope {
                 states: [
                     State {
                         name: "revealed"
-                        when: dockRoot.reveal && !Globals.main.showBeam && !Globals.main.showOsdValues
+                        when: dockRoot.reveal && !Globals.main.beam.show && !Globals.main.showOsdValues
                         PropertyChanges {
                             target: mouseArea
                             anchors.topMargin: 5
@@ -68,7 +68,7 @@ Scope {
                 StyledRectangularShadow {
                     target: bg
                 }
-                ShaderRect {
+                PanelRect {
                     id: bg
                     width: content.implicitWidth
                     height: content.implicitHeight

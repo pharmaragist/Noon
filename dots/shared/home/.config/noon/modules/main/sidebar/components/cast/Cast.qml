@@ -18,7 +18,7 @@ SidebarItemContainer {
     readonly property string windowDataPath: "/var/tmp/cast-window-data"
     readonly property var allScreens: Quickshell.screens
     readonly property var allWindows: ToplevelManager?.toplevels?.values ?? []
-    property var portalWindows: []  // [{handle, class, title}] from XDPH_WINDOW_SHARING_LIST
+    property var portalWindows: []  
 
     Process {
         id: writer

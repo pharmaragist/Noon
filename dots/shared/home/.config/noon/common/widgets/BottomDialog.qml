@@ -26,7 +26,7 @@ Item {
     readonly property bool reveal: show || bg.visible
     readonly property int targetHeight: show ? (expand && enableStagedReveal ? expandedHeight : collapsedHeight) : 0
     property var finishAction
-    property QtObject colors: Colors
+    property var colors: Colors
     property alias color: bg.color
     onRevealChanged: {
         if (!reveal && finishAction)

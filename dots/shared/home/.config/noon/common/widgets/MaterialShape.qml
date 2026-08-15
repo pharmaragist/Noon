@@ -1,5 +1,5 @@
-import qs.common.widgets.shapes
-import "shapes/material-shapes.js" as MaterialShapes
+import qs.vendors.shapes
+import "./../../vendors/shapes/material-shapes.js" as MaterialShapes
 
 ShapeCanvas {
     id: root
@@ -49,7 +49,14 @@ ShapeCanvas {
     implicitWidth: implicitSize
     polygonIsNormalized: true
     roundedPolygon: {
-        const dict = {
+        return dict[root.shape] ?? MaterialShapes.getClover4Leaf();
+    }
+    function random() {
+        const idx = Math.floor(Math.random() * (Object.keys(shapes).length - 1));
+        return shapes[idx];
+    }
+    readonly property var shapes: ["Circle", "Square", "Slanted", "Arch", "Fan", "Arrow", "SemiCircle", "Oval", "Pill", "Triangle", "Diamond", "ClamShell", "Pentagon", "Gem", "Sunny", "VerySunny", "Cookie4Sided", "Cookie6Sided", "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "Ghostish", "Clover4Leaf", "Clover8Leaf", "Burst", "SoftBurst", "Boom", "SoftBoom", "Flower", "Puffy", "PuffyDiamond", "PixelCircle", "PixelTriangle", "Bun", "Heart"]
+    readonly property var dict: ({
             [MaterialShape.Shape.Circle]: MaterialShapes.getCircle(),
             [MaterialShape.Shape.Square]: MaterialShapes.getSquare(),
             [MaterialShape.Shape.Slanted]: MaterialShapes.getSlanted(),
@@ -85,7 +92,5 @@ ShapeCanvas {
             [MaterialShape.Shape.PixelTriangle]: MaterialShapes.getPixelTriangle(),
             [MaterialShape.Shape.Bun]: MaterialShapes.getBun(),
             [MaterialShape.Shape.Heart]: MaterialShapes.getHeart()
-        };
-        return dict[root.shape] || MaterialShapes.getClover4Leaf();
-    }
+        })
 }

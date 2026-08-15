@@ -14,7 +14,7 @@ RippleButton {
     id: root
     property real mainScale: 1
     property string iconSource
-    property QtObject colors: Colors
+    property var colors: Colors
     property bool active: toggled
     property int shapePadding: 6
     property var shape: MaterialShape.Shape.Cookie6Sided
@@ -33,7 +33,7 @@ RippleButton {
     colBackgroundHover: colors.colPrimaryContainerHover
     colBackgroundToggledHover: colors.colPrimaryContainerHover
     colBackground: colors.colLayer3
-    // buttonRadius: Rounding.large
+    
     Loader {
         id: iconLoader
         active: visible
@@ -82,7 +82,7 @@ RippleButton {
         }
     }
 
-    // Wrapper Item to handle anchors
+    
     Item {
         visible: expanded
         anchors {

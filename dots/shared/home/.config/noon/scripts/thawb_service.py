@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-# ── directories ──────────────────────────────────────────────────────────────
+
 
 HOME = os.path.expanduser("~")
 
@@ -44,18 +44,18 @@ PLASMAPKG_TYPE_MAP = {
 FALLBACK_DIR = os.path.join(HOME, ".local", "share", "thawb")
 
 
-# ── parse ─────────────────────────────────────────────────────────────────────
+
 
 
 def parse_ocs_url(raw: str) -> dict:
-    # strip scheme — ocs:// or xdg://
+    
     if "?" not in raw:
         raise ValueError(f"No query string in URL: {raw}")
 
     query = raw[raw.index("?") + 1 :]
     params = urllib.parse.parse_qs(query, keep_blank_values=True)
 
-    # parse_qs returns lists, grab first value
+    
     def get(key):
         return params.get(key, [None])[0]
 
@@ -75,7 +75,7 @@ def parse_ocs_url(raw: str) -> dict:
     }
 
 
-# ── download ──────────────────────────────────────────────────────────────────
+
 
 
 def download(url: str, dest_path: str):
@@ -88,7 +88,7 @@ def download(url: str, dest_path: str):
     print(f"[thawb] saved to {dest_path}")
 
 
-# ── extract ───────────────────────────────────────────────────────────────────
+
 
 
 def extract(archive_path: str, target_dir: str):
@@ -111,7 +111,7 @@ def extract(archive_path: str, target_dir: str):
     print(f"[thawb] extraction complete")
 
 
-# ── plasmapkg2 ────────────────────────────────────────────────────────────────
+
 
 
 def install_plasma_pkg(archive_path: str, pkg_type: str):
@@ -127,7 +127,7 @@ def install_plasma_pkg(archive_path: str, pkg_type: str):
     os.remove(archive_path)
 
 
-# ── main ──────────────────────────────────────────────────────────────────────
+
 
 
 def install(raw_url: str):

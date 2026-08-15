@@ -26,8 +26,8 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             color: "transparent"
 
-            // Properties
-            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode // New config toggle for depth mode
+            
+            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode 
             readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
             property string wallpaper: WallpaperService.currentWallpaper
             property var workspaceList: Hyprland.workspaces.values.filter(ws => ws.id >= 0).sort((a, b) => a.id - b.id)

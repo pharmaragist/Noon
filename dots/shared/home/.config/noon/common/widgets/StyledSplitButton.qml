@@ -6,16 +6,16 @@ import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
 
-/**
- * Material 3 expressive split button with primary and secondary actions
- */
+
+
+
 Item {
     id: root
 
-    // Public properties
+    
     property bool enabled: true
     property bool toggled: false
-    property bool autoToggle: true // Whether primary button toggles itself on click
+    property bool autoToggle: true 
     property string primaryText: "Primary"
     property string primaryIcon: "expand_more"
     property string secondaryIcon: "expand_more"
@@ -25,7 +25,7 @@ Item {
     property int transitionDuration: 200
     property int buttonWide: 100
     property int buttonShrinked: buttonHeight
-    // State properties
+    
     property bool primaryPressed: false
     property bool secondaryPressed: false
     property color secondaryBgColor: {
@@ -41,16 +41,16 @@ Item {
         return Colors.colSecondaryContainer;
     }
 
-    // Signals
+    
     signal primaryClicked()
     signal secondaryClicked()
 
-    // Size binding
+    
     implicitWidth: content.width
     implicitHeight: buttonHeight
-    // Opacity based on enabled state
+    
     opacity: enabled ? 1 : 0.38
-    // Focus handling
+    
     focus: true
     Keys.onPressed: {
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Space) {
@@ -61,7 +61,7 @@ Item {
             event.accepted = true;
         }
     }
-    // Accessibility
+    
     Accessible.role: Accessible.ButtonMenu
     Accessible.name: primaryText
     Accessible.description: "Split button with primary action: " + primaryText + " and secondary action"
@@ -73,12 +73,12 @@ Item {
         anchors.fill: parent
         spacing: 3
 
-        // Primary button (left side)
+        
         Rectangle {
             id: primaryButton
 
             Layout.fillHeight: true
-            Layout.preferredWidth: !secondaryPressed ? buttonWide : buttonShrinked // Square button
+            Layout.preferredWidth: !secondaryPressed ? buttonWide : buttonShrinked 
             height: buttonHeight
             topLeftRadius: buttonRadius
             bottomLeftRadius: buttonRadius
@@ -100,7 +100,7 @@ Item {
             StyledRectangularShadow {
                 target: parent
             }
-            // Color states based on mouse area state
+            
 
             RowLayout {
                 anchors.centerIn: parent
@@ -121,7 +121,7 @@ Item {
                     }
 
                 }
-                // Primary button text
+                
 
                 StyledText {
                     id: primaryTextLabel
@@ -142,7 +142,7 @@ Item {
 
             }
 
-            // Primary button mouse area
+            
             MouseArea {
                 id: primaryMouseArea
 
@@ -165,9 +165,9 @@ Item {
                 }
 
             }
-            // Rounded corners - left side only
+            
 
-            // Smooth color transitions
+            
             Behavior on color {
                 ColorAnimation {
                     duration: transitionDuration
@@ -177,18 +177,18 @@ Item {
 
         }
 
-        // Secondary button (right side)
+        
         Rectangle {
             id: secondaryButton
 
             Layout.fillHeight: true
-            Layout.preferredWidth: secondaryPressed ? buttonWide : buttonShrinked // Square button
+            Layout.preferredWidth: secondaryPressed ? buttonWide : buttonShrinked 
             height: buttonHeight
             topLeftRadius: buttonSmallRadius
             bottomLeftRadius: buttonSmallRadius
             topRightRadius: buttonRadius
             bottomRightRadius: buttonRadius
-            // Color states based on mouse area state
+            
             color: {
                 if (!enabled)
                     return Colors.colSecondaryContainer;
@@ -206,7 +206,7 @@ Item {
                 target: parent
             }
 
-            // Secondary button icon with rotation effect
+            
             Symbol {
                 id: secondaryIconLabel
 
@@ -214,7 +214,7 @@ Item {
                 text: root.secondaryIcon
                 color: Colors.colOnSecondaryContainer
                 font.pixelSize: buttonHeight * 0.5
-                // Rotation based on interaction state
+                
                 rotation: {
                     if (secondaryPressed)
                         return 180;
@@ -225,7 +225,7 @@ Item {
                     return 0;
                 }
 
-                // Smooth rotation animation
+                
                 Behavior on rotation {
                     NumberAnimation {
                         duration: transitionDuration
@@ -243,7 +243,7 @@ Item {
 
             }
 
-            // Secondary button mouse area
+            
             MouseArea {
                 id: secondaryMouseArea
 
@@ -263,9 +263,9 @@ Item {
                 }
 
             }
-            // Rounded corners - right side only
+            
 
-            // Smooth color transitions
+            
             Behavior on color {
                 CAnim {
                 }

@@ -6,9 +6,9 @@ import qs.common.functions
 import qs.common.widgets
 import Qt.labs.folderlistmodel
 
-/*
-    Simple Wrapper for Shaders..
-*/
+
+
+
 Singleton {
     id: root
 
@@ -19,7 +19,7 @@ Singleton {
     readonly property var opts: Mem.options.appearance.effects
 
     readonly property Component currentShaderComp: {
-        const path = Qt.resolvedUrl(`widgets/${StringUtils.capitalizeFirstLetter(currentShaderName)}Shader.qml`);
+        const path = Qt.resolvedUrl(`widgets/${TextUtils.capitalizeFirstLetter(currentShaderName)}Shader.qml`);
         return Qt.createComponent(path);
     }
 

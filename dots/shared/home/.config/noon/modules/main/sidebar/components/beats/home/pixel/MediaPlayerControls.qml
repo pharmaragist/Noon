@@ -6,7 +6,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Mpris
 
-ColumnLayout {
+Item {
     id: root
 
     property bool hasLyrics: false
@@ -14,200 +14,209 @@ ColumnLayout {
     readonly property bool isPlaying: player.playbackState === MprisPlaybackState.Playing
     readonly property var trackColors: BeatsService.colors
 
-    spacing: Padding.veryhuge
     Layout.fillWidth: true
+    height: children[0]?.implicitHeight
 
-    RowLayout {
-        Layout.alignment: Qt.AlignBottom | Qt.AlignLeft
-        Layout.preferredHeight: 100
-        Layout.fillWidth: true
-        spacing: Padding.massive
-
-        Revealer {
-            reveal: root?.hasLyrics
-            implicitWidth: reveal ? 75 : 0
-            implicitHeight: 75
-
-            Item {
-                visible: root?.hasLyrics
-                anchors.fill: parent
-
-                CroppedImage {
-                    anchors.centerIn: parent
-                    radius: Rounding.large
-                    source: BeatsService.artUrl
-                    implicitSize: 75
-                    tint: true
-                    tintLevel: 0.8
-                    tintColor: root.trackColors.colSecondaryContainer
-                }
-            }
-        }
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: -2
-
-            StyledText {
-                Layout.fillWidth: true
-                font: Fonts.request("title", 32)
-                color: root.trackColors.colOnLayer0
-                elide: Text.ElideRight
-                text: root.player.trackTitle || "No Title"
-                horizontalAlignment: Text.AlignLeft
-                truncate: true
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                font: Fonts.request("main", "large")
-                color: root.trackColors.colSubtext
-                elide: Text.ElideRight
-                truncate: true
-                text: root.player.trackArtist || "No Artist"
-                horizontalAlignment: Text.AlignLeft
-            }
-        }
-
-        GroupButtonWithIcon {
-            baseSize: 55
-            toggled: root.hasLyrics
-            materialIcon: "lyrics"
-            onClicked: Mem.beats.options.showLyrics = !Mem.beats.options.showLyrics
-        }
-    }
-    Item {
-        Layout.fillWidth: true
-        implicitHeight: 55
-
-        StyledProgressBar {
-            id: progressBar
-            // sperm: true
-
-            anchors.right: parent.right
-            anchors.left: parent.left
-
-            value: root.player ? Math.max(0, Math.min(1, (root.player.position ?? 0) / Math.max(1, root.player.length ?? 1))) : 0
-            highlightColor: root.trackColors.colPrimary
-            trackColor: root.trackColors.colSecondaryContainer
-            highlightHeight: 36
-            showDot: true
-            valueBarHeight: 12
-            valueBarGap: 10
-            wavelength: 40
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: root.player?.canSeek && root.player?.length > 0
-                hoverEnabled: true
-
-                property bool isDragging: false
-
-                onPressed: mouse => {
-                    isDragging = true;
-                    seekTo(mouse.x);
-                }
-
-                onPositionChanged: mouse => {
-                    if (isDragging)
-                        seekTo(mouse.x);
-                }
-
-                onReleased: isDragging = false
-
-                function seekTo(x) {
-                    if (!root.player?.canSeek || !root.player?.length)
-                        return;
-                    const ratio = Math.max(0, Math.min(1, x / width));
-                    root.player.position = ratio * root.player.length;
-                }
-            }
-        }
+    ColumnLayout {
+        spacing: Padding.veryhuge
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
+        anchors.right: parent.right
 
         RowLayout {
-            anchors.left: progressBar.left
-            anchors.right: progressBar.right
-            anchors.top: progressBar.bottom
-            anchors.topMargin: Padding.large
+            Layout.alignment: Qt.AlignBottom | Qt.AlignLeft
+            Layout.preferredHeight: 100
+            Layout.fillWidth: true
+            spacing: Padding.massive
 
-            StyledText {
-                text: BeatsService.formatTime(root.player?.position)
-                color: root.trackColors.colSecondary
-                font: Fonts.request("main", 15)
+            Revealer {
+                reveal: root?.hasLyrics
+                implicitWidth: reveal ? 75 : 0
+                implicitHeight: 75
+
+                Item {
+                    visible: root?.hasLyrics
+                    anchors.fill: parent
+
+                    CroppedImage {
+                        anchors.centerIn: parent
+                        radius: Rounding.large
+                        source: BeatsService.artUrl
+                        implicitSize: 75
+                        tint: true
+                        tintLevel: 0.8
+                        tintColor: root.trackColors.colSecondaryContainer
+                    }
+                }
             }
-            Spacer {}
-            StyledText {
-                text: BeatsService.formatTime(root.player?.length)
-                color: root.trackColors.colSecondary
-                font: Fonts.request("main", 15)
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: -2
+
+                StyledText {
+                    Layout.fillWidth: true
+                    font: Fonts.request("title", 32)
+                    color: root.trackColors.colOnLayer0
+                    elide: Text.ElideRight
+                    text: root.player.trackTitle || "No Title"
+                    horizontalAlignment: Text.AlignLeft
+                    truncate: true
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    font: Fonts.request("main", "large")
+                    color: root.trackColors.colSubtext
+                    elide: Text.ElideRight
+                    truncate: true
+                    text: root.player.trackArtist || "No Artist"
+                    horizontalAlignment: Text.AlignLeft
+                }
             }
-        }
-    }
-    // Media controls
-    ButtonGroup {
-        spacing: Padding.normal
-        Layout.alignment: Qt.AlignHCenter
 
-        MediaButton {
-            materialIcon: "skip_previous"
-            enabled: root.player?.canGoPrevious
-            releaseAction: () => root.player?.previous()
-        }
-
-        MediaButton {
-            id: playButton
-            toggled: true
-            enabled: !!root.player
-            onClicked: root.player.togglePlaying()
-            buttonRadius: Rounding.huge
-            buttonRadiusPressed: Rounding.silly
-            materialIcon: root.isPlaying ? "pause" : "play_arrow"
-            materialIconFill: 1
-        }
-
-        MediaButton {
-            materialIcon: "skip_next"
-            enabled: root.player?.canGoNext
-            releaseAction: () => root.player?.next()
-        }
-    }
-
-    ButtonGroup {
-        Layout.alignment: Qt.AlignHCenter
-        color: Colors.colLayer2Hover
-        spacing: Padding.verysmall + 1
-        padding: 8
-
-        ControlButton {
-            symbol.anchors.horizontalCenterOffset: 2
-            rightRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
-            materialIcon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
-            enabled: root.player && root.player.canControl
-            toggled: root.player?.loopState !== MprisLoopState.None
-            releaseAction: () => BeatsService.cycleRepeat()
-        }
-
-        ControlButton {
-            leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
-            rightRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
-
-            materialIcon: "shuffle"
-            enabled: root.player?.canControl
-            toggled: root.player?.shuffle ?? false
-            releaseAction: () => {
-                if (root.player)
-                    root.player.shuffle = !root.player.shuffle;
+            GroupButtonWithIcon {
+                baseSize: 55
+                colors: root.trackColors
+                buttonRadius: implicitSize / 2
+                toggled: root.hasLyrics
+                materialIcon: "lyrics"
+                onClicked: Mem.beats.options.showLyrics = !Mem.beats.options.showLyrics
             }
         }
+        Item {
+            Layout.fillWidth: true
+            implicitHeight: 55
 
-        ControlButton {
-            readonly property string currentTrackPath: Mem.beats.players.main.musicDirectory + "/" + BeatsService.currentTrackIndexedInfo.file
-            leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
-            symbol.anchors.horizontalCenterOffset: -2
-            materialIcon: "delete"
-            enabled: Directories.methods.exists(currentTrackPath)
-            toggled: false
-            releaseAction: () => deleteConfirmDialog.request(currentTrackPath)
+            StyledProgressBar {
+                id: progressBar
+                
+
+                anchors.right: parent.right
+                anchors.left: parent.left
+
+                value: root.player ? Math.max(0, Math.min(1, (root.player.position ?? 0) / Math.max(1, root.player.length ?? 1))) : 0
+                highlightColor: root.trackColors.colPrimary
+                trackColor: root.trackColors.colSecondaryContainer
+                highlightHeight: 36
+                showDot: true
+                valueBarHeight: 12
+                valueBarGap: 10
+                wavelength: 40
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: root.player?.canSeek && root.player?.length > 0
+                    hoverEnabled: true
+
+                    property bool isDragging: false
+
+                    onPressed: mouse => {
+                        isDragging = true;
+                        seekTo(mouse.x);
+                    }
+
+                    onPositionChanged: mouse => {
+                        if (isDragging)
+                            seekTo(mouse.x);
+                    }
+
+                    onReleased: isDragging = false
+
+                    function seekTo(x) {
+                        if (!root.player?.canSeek || !root.player?.length)
+                            return;
+                        const ratio = Math.max(0, Math.min(1, x / width));
+                        root.player.position = ratio * root.player.length;
+                    }
+                }
+            }
+
+            RowLayout {
+                anchors.left: progressBar.left
+                anchors.right: progressBar.right
+                anchors.top: progressBar.bottom
+                anchors.topMargin: Padding.large
+
+                StyledText {
+                    text: this.methods.friendlyTimeForSeconds(root.player?.position)
+                    color: root.trackColors.colSecondary
+                    font: Fonts.request("main", 15)
+                }
+                Spacer {}
+                StyledText {
+                    text: this.methods.friendlyTimeForSeconds(root.player?.length)
+                    color: root.trackColors.colSecondary
+                    font: Fonts.request("main", 15)
+                }
+            }
+        }
+        
+        ButtonGroup {
+            spacing: Padding.normal
+            Layout.alignment: Qt.AlignHCenter
+
+            MediaButton {
+                materialIcon: "skip_previous"
+                enabled: root.player?.canGoPrevious
+                releaseAction: () => root.player?.previous()
+            }
+
+            MediaButton {
+                id: playButton
+                toggled: !!root.player
+                enabled: !!root.player
+                onClicked: root.player.togglePlaying()
+                buttonRadius: Rounding.huge
+                buttonRadiusPressed: Rounding.silly
+                materialIcon: root.isPlaying ? "pause" : "play_arrow"
+                materialIconFill: 1
+            }
+
+            MediaButton {
+                materialIcon: "skip_next"
+                enabled: root.player?.canGoNext
+                releaseAction: () => root.player?.next()
+            }
+        }
+
+        ButtonGroup {
+            Layout.alignment: Qt.AlignHCenter
+            color: root.trackColors.colLayer2Hover
+            spacing: Padding.verysmall + 1
+            padding: 8
+
+            ControlButton {
+                symbol.anchors.horizontalCenterOffset: 2
+                rightRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
+                materialIcon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
+                enabled: root.player && root.player.canControl
+                toggled: root.player?.loopState !== MprisLoopState.None
+                releaseAction: () => BeatsService.cycleRepeat()
+            }
+
+            ControlButton {
+                leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
+                rightRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
+
+                materialIcon: "shuffle"
+                enabled: root.player?.canControl
+                toggled: root.player?.shuffle ?? false
+                releaseAction: () => {
+                    if (root.player)
+                        root.player.shuffle = !root.player.shuffle;
+                }
+            }
+
+            ControlButton {
+                readonly property string currentTrackPath: Mem.beats.players.main.musicDirectory + "/" + BeatsService.currentTrackIndexedInfo.file
+                leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
+                symbol.anchors.horizontalCenterOffset: -2
+                materialIcon: "delete"
+                enabled: Directories.methods.exists(currentTrackPath)
+                toggled: false
+                releaseAction: () => deleteConfirmDialog.request(currentTrackPath)
+            }
         }
     }
     BottomDialog {
@@ -219,6 +228,8 @@ ColumnLayout {
             this.show = true;
             this.currentFile = path;
         }
+        colors: root.trackColors
+        scrim: false
         collapsedHeight: 165
         revealOnWheel: false
         enableStagedReveal: false
@@ -230,22 +241,26 @@ ColumnLayout {
 
             PageHeader {
                 title: "Delete " + decodeURIComponent(Directories.methods.getEscapedFileNameWithoutExtension(deleteConfirmDialog.currentFile))
+                colors:root.trackColors
             }
 
             ButtonGroup {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
                 GroupButtonWithIcon {
+                    colors:root.trackColors
                     toggled: true
                     materialIcon: "delete"
                     Layout.fillWidth: true
                     baseSize: 60
                     releaseAction: () => {
-                        NoonUtils.deleteFile(deleteConfirmDialog.currentFile);
+                        NoonUtils.trash(deleteConfirmDialog.currentFile);
                         deleteConfirmDialog.show = false;
                     }
                 }
                 GroupButtonWithIcon {
+                    colors:root.trackColors
                     materialIcon: "close"
                     Layout.fillWidth: true
                     baseSize: 60

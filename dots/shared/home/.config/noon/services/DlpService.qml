@@ -2,6 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 import qs.common
@@ -30,9 +31,9 @@ Singleton {
         const query = (info.artist ?? "") + (info?.title ?? "");
 
         if (query.length > 0)
-            final = final.concat(["--search", `"${query}"` ?? ""]);
+            final = final.concat(["--search", `${query}`]);
         else if (info.url)
-            final = final.concat(["--url", `"${info.url}"`]);
+            final = final.concat(["--url", `${info.url}`]);
 
         if (info.audio)
             final.push("--audio");
@@ -42,15 +43,16 @@ Singleton {
         if (info.quality)
             final = final.concat(["--quality", info.quality]);
 
-        if (info.directory)
-            final = final.concat(["-d", Directories.methods.trim(info.directory)]);
+        const dir = Directories.methods.trim(info.directory || Directories.standard.downloads);
+        if (dir.length > 0)
+            final = final.concat(["-d", dir]);
 
         if (info.debug)
             console.log(final.join(' '));
 
         if (info.toast)
             root.toast(info);
-
-        NoonUtils.execDetached(final);
+        console.error(final)
+        Quickshell.execDetached(final);
     }
 }

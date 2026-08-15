@@ -41,7 +41,7 @@ StyledMenu {
             "materialIcon": "delete",
             "action": () => {
                 if (trackPath) {
-                    NoonUtils.deleteFile(trackPath);
+                    NoonUtils.trash(trackPath);
                 }
             }
         }

@@ -21,7 +21,7 @@ StyledRect {
     radius: Rounding.verylarge
     color: colors.colLayer2
     signal gameStarted
-    property QtObject colors: Colors
+    property var colors: Colors
 
     BlurImage {
         id: coverImageBackdrop

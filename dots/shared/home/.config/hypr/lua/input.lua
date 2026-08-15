@@ -33,5 +33,4 @@ hl.gesture({
     direction = "up",
     action = mission_control,
     workspace_name = "scratchpad",
-    disable_inhibit = true
 })

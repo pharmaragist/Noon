@@ -11,7 +11,7 @@ Item {
     required property var window
     required property var player
     property bool show: false
-    property int seekOffset: 10000 // milliseconds
+    property int seekOffset: 10000 
     implicitWidth: controlsRow.implicitWidth + 2 * Padding.large
     anchors {
         bottom: parent.bottom

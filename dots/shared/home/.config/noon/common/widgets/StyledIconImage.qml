@@ -1,29 +1,24 @@
-import Qt5Compat.GraphicalEffects
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Effects
-import QtQuick.Layouts
-import Quickshell
-import Quickshell.Hyprland
-import Quickshell.Widgets
+import Qt5Compat.GraphicalEffects
 import qs.common
-import qs.common.functions
-import qs.services
+import org.kde.kirigami as Kirigami
 
-IconImage {
+Kirigami.Icon {
     id: root
 
     property real tint: 0.6
     property bool colorize: Mem.options.appearance.icons.tint
     property color tintColor: Colors.m3.m3surfaceTint
-    property bool cache: false
-    property string _source
+    property int implicitSize: 24
+    property string _source: ""
 
-    source: NoonUtils.iconPath(_source.toLowerCase()) || ""
-    backer.cache: cache
-    smooth: true
-    antialiasing: true
-    mipmap: true
+    implicitWidth: implicitSize
+    implicitHeight: implicitSize
+
+    roundToIconSize: false
+    animated: true
+    source: NoonUtils.iconPath(_source.toLowerCase()) ?? ""
 
     Loader {
         opacity: 1 - root.tint

@@ -5,7 +5,7 @@ import Quickshell
 import QtQuick
 
 Singleton {
-    // Utility functions
+    
     function min2(a, b) {
         return a < b ? a : b;
     }
@@ -22,7 +22,7 @@ Singleton {
         return max2(a, max2(b, c));
     }
 
-    // Levenshtein distance algorithm
+    
     function levenshteinDistance(s1, s2) {
         const len1 = s1.length;
         const len2 = s2.length;
@@ -47,9 +47,9 @@ Singleton {
             curr[0] = i;
             for (let j = 1; j <= s2.length; j++) {
                 const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
-                curr[j] = min3(prev[j] + 1       // deletion
-                , curr[j - 1] + 1   // insertion
-                , prev[j - 1] + cost // substitution
+                curr[j] = min3(prev[j] + 1       
+                , curr[j - 1] + 1   
+                , prev[j - 1] + cost 
                 );
             }
             [prev, curr] = [curr, prev];
@@ -58,7 +58,7 @@ Singleton {
         return prev[s2.length];
     }
 
-    // Fuzzy partial ratio (substring match)
+    
     function partialRatio(shortS, longS) {
         const lenS = shortS.length;
         const lenL = longS.length;
@@ -78,7 +78,7 @@ Singleton {
         return best;
     }
 
-    // Balanced full + partial fuzzy score
+    
     function computeScore(s1, s2) {
         if (s1 === s2)
             return 1.0;
@@ -118,7 +118,7 @@ Singleton {
         return Math.max(0.0, Math.min(1.0, score));
     }
 
-    // Text match score optimized for search ranking
+    
     function computeTextMatchScore(s1, s2) {
         if (s1 === s2)
             return 1.0;

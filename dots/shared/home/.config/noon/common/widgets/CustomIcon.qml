@@ -9,7 +9,7 @@ Item {
     property bool colorize: false
     property color color
     property string source: ""
-    property string iconFolder: Qt.resolvedUrl(Quickshell.shellPath("assets/icons")) // The folder to check first
+    property string iconFolder: Qt.resolvedUrl(Quickshell.shellPath("assets/icons")) 
     property int implicitSize: 30
 
     implicitWidth: implicitSize

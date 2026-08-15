@@ -17,6 +17,8 @@ Singleton {
     property var registry: ({})
     readonly property QtObject sizes: Sizes.sidebar
     readonly property list<string> appearanceModes: ["float", "sharp", "convex", "concave"]
+    readonly property var contentOptions:Mem.options.sidebar.content
+
     readonly property var shellReg: {
         "Apps": {
             icon: "rocket",
@@ -27,13 +29,13 @@ Singleton {
             searchable: true,
             expandSize: sizes.half,
             shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.apps
+            enabled: contentOptions.apps
         },
         "ScreenTime": {
             icon: "supervisor_account",
             activeIcon: "person",
             componentPath: "etc/ScreenTime",
-            enabled: Mem.options.sidebar.content.screenTime
+            enabled: contentOptions.screenTime
         },
         "API": {
             icon: "cognition",
@@ -43,7 +45,7 @@ Singleton {
             incubatable: true,
             detachable: true,
             shape: "PixelCircle",
-            enabled: Mem.options.sidebar.content.apis
+            enabled: contentOptions.apis
         },
         "Notifs": {
             icon: "notifications",
@@ -51,7 +53,7 @@ Singleton {
             shell: "main",
             componentPath: "notifs/Notifs",
             expandSize: sizes.quarter,
-            enabled: Mem.options.sidebar.content.notifs
+            enabled: contentOptions.notifs
         },
         "Walls": {
             icon: "gallery_thumbnail",
@@ -61,7 +63,7 @@ Singleton {
             expandSize: sizes.threeQuarter,
             searchable: true,
             shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.wallpapers
+            enabled: contentOptions.wallpapers
         },
         "Tasks": {
             icon: "task_alt",
@@ -79,27 +81,29 @@ Singleton {
             incubatable: true,
             detachable: true,
             shape: "Slanted",
-            enabled: Mem.options.sidebar.content.notes
+            enabled: contentOptions.notes
         },
         "Beats": {
             icon: "music_note",
             activeIcon: "music_cast",
             shell: "main",
             componentPath: "beats/Beats",
+            navRailMode: "sharp",
             expandable: true,
             incubatable: true,
             detachable: true,
             shape: "Bun",
-            enabled: Mem.options.sidebar.content.beats,
+            padding: 0,
+            enabled: contentOptions.beats,
             colors: BeatsService.colors
         },
         "Games": {
-            enabled: Mem.options.sidebar.content.games,
+            enabled: contentOptions.games,
             expandable: true,
             componentPath: "games/Games",
             icon: "joystick",
             searchable: true,
-            shape: "Ghostish",
+            shape: "Ghostish"
         },
         "History": {
             icon: "content_paste",
@@ -108,15 +112,7 @@ Singleton {
             componentPath: "etc/History",
             searchable: true,
             shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.history
-        },
-        "Bookmarks": {
-            icon: "bookmark",
-            activeIcon: "bookmark_heart",
-            componentPath: "etc/Bookmarks",
-            searchable: true,
-            shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.bookmarks
+            enabled: contentOptions.history
         },
         "Emojis": {
             icon: "sentiment_calm",
@@ -124,29 +120,37 @@ Singleton {
             expandable: true,
             searchable: true,
             shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.emojis
+            enabled: contentOptions.emojies
+        },
+        "Bookmarks": {
+            icon: "bookmark",
+            activeIcon: "bookmark_heart",
+            componentPath: "etc/Bookmarks",
+            searchable: true,
+            shape: "Ghostish",
+            enabled: contentOptions.bookmarks
         },
         "Shelf": {
             icon: "shelves",
             activeIcon: "book_ribbon",
             incubatable: true,
             componentPath: "shelf/Shelf",
-            enabled: Mem.options.sidebar.content.shelf
+            enabled: contentOptions.shelf
         },
         "Widgets": {
             icon: "ripples",
             expandable: true,
-            baseSize: sizes.largerQuarter,
+            lazy: false,
             expandSize: sizes.widgetsExpanded,
             componentPath: "widgets/Widgets",
-            enabled: Mem.options.sidebar.content.widgets
+            enabled: contentOptions.widgets
         },
         "Sounds": {
             icon: "graphic_eq",
             componentPath: "sounds/Sounds",
             detachable: true,
             shape: "Gem",
-            enabled: Mem.options.sidebar.content.sounds
+            enabled: contentOptions.sounds
         },
         "Timers": {
             icon: "timer",
@@ -154,7 +158,7 @@ Singleton {
             detachable: true,
             incubatable: true,
             shape: "Cookie4Sided",
-            enabled: Mem.options.sidebar.content.timers
+            enabled: contentOptions.timers
         },
         "Tweaks": {
             icon: "settings",
@@ -163,20 +167,21 @@ Singleton {
             componentPath: "settings/Tweaks",
             searchable: true,
             shape: "Ghostish",
-            enabled: Mem.options.sidebar.content.tweaks
+            enabled: contentOptions.tweaks
         },
         "View": {
             icon: "workspaces",
             incubatable: true,
             componentPath: "view/Overview",
             baseSize: sizes.overviewExpanded,
-            stealth: !Mem.options.sidebar.content.overview
+            stealth: !contentOptions.overview
         },
         "Session": {
+            lazy: false,
             icon: "power_settings_new",
             componentPath: "etc/Session",
             baseSize: sizes.session,
-            enabled: Mem.options.sidebar.content.session
+            enabled: contentOptions.session
         },
         "Plugins": {
             icon: "extension",
@@ -209,6 +214,10 @@ Singleton {
         "Auth": {
             componentPath: "etc/Polkit",
             stealth: true
+        },
+        "Packages": {
+            componentPath: "etc/Packages",
+            stealth: true
         }
     }
 
@@ -237,6 +246,9 @@ Singleton {
         return Object.assign({}, shellReg, PluginsManager.sidebarPlugins);
     }
 
+    function getPadding(id) {
+        return _get(id)?.padding ?? Padding.huge;
+    }
     function getColors(id) {
         return _get(id)?.colors ?? Colors;
     }
@@ -262,6 +274,9 @@ Singleton {
         return _get(id)?.preloadData ?? "";
     }
 
+    function isLazy(id) {
+        return _get(id)?.lazy ?? true;
+    }
     function isSearchable(id) {
         return !!_get(id)?.searchable;
     }
@@ -282,9 +297,6 @@ Singleton {
     }
     function isStealth(id) {
         return !!_get(id)?.stealth;
-    }
-    function isDynamic(id) {
-        return _get(id)?.dynamic || true;
     }
     function isDetached(id) {
         return SidebarData.detachedContent.includes(id);

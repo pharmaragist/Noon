@@ -16,7 +16,7 @@ Rectangle {
         Mem.options.desktop.timerOverlayMode = !Mem.options.desktop.timerOverlayMode;
     }
 
-    // Auto-hide when no timers
+    
     visible: TimerService.timers.length >= 1 && extraVisibleCondition
     width: visible ? contentWidth : 0
     height: 55
@@ -48,12 +48,12 @@ Rectangle {
 
                         spacing: 12
 
-                        // Timer info column
+                        
                         Column {
                             spacing: 2
                             Layout.alignment: Qt.AlignLeft
 
-                            // Timer name
+                            
                             StyledText {
                                 text: modelData.name
                                 font: Fonts.request("main", Fonts.sizes.small, { weight: 500 })
@@ -77,9 +77,9 @@ Rectangle {
                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                             lineWidth: 4
                             value: (modelData.originalDuration - modelData.remainingTime) / modelData.originalDuration
-                            size: 40
-                            secondaryColor: Colors.m3.m3secondaryContainer
-                            primaryColor: modelData.color || Colors.m3.m3secondary
+                            implicitSize: 40
+                            colSecondary: Colors.m3.m3secondaryContainer
+                            colPrimary: modelData.color || Colors.m3.m3secondary
 
                             Symbol {
                                 anchors.centerIn: parent
@@ -89,14 +89,14 @@ Rectangle {
                                 color: Colors.m3.m3onSecondaryContainer
                             }
 
-                            // Smooth progress animation to reduce flickering
+                            
                             Behavior on value {
                                 Anim {}
                             }
                         }
                     }
 
-                    // Individual timer click area for pause/resume/delete
+                    
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
@@ -117,7 +117,7 @@ Rectangle {
                     }
                 }
 
-                // Separator - only show if not the last item
+                
                 Rectangle {
                     visible: index < TimerService.timers.length - 1
                     Layout.fillHeight: true
@@ -133,7 +133,7 @@ Rectangle {
         }
     }
 
-    // Pulsing animation when any timer is about to finish (last 10 seconds)
+    
     SequentialAnimation {
         running: {
             for (let i = 0; i < TimerService.timers.length; i++) {
@@ -159,10 +159,10 @@ Rectangle {
         }
     }
 
-    // Optional: Click handler for the dock background (if clicking outside individual timers)
+    
     MouseArea {
         anchors.fill: parent
-        z: -1 // Behind the timer elements
+        z: -1 
         hoverEnabled: true
         onClicked: {
             timerDock.requestOverlayMode();
@@ -175,7 +175,7 @@ Rectangle {
         }
     }
 
-    // Smooth width animation
+    
     Behavior on width {
         Anim {}
     }

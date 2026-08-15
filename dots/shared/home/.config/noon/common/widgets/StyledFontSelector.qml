@@ -9,6 +9,6 @@ RippleButtonWithIcon {
     materialIconFill: true
     releaseAction: () => {
         NoonUtils.callIpc("sidebar hide");
-        NoonUtils.pickGlobalFont();
+        Fonts.pickGlobalFont();
     }
 }

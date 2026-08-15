@@ -31,7 +31,7 @@ Scope {
 
                 readonly property string _pos: pos.toLowerCase()
                 readonly property string pos: Mem.options.desktop.popups?.notifications ?? "TopCenter"
-                // readonly property list<string> positions: ["TopLeft", "TopRight", "TopCenter", "BottomLeft", "BottomRight", "BottomCenter"]
+                
 
                 anchors.top: _pos.includes("top") ? parent.top : undefined
                 anchors.left: _pos.includes("left") ? parent.left : undefined

@@ -8,7 +8,7 @@ import qs.common.widgets
 
 Button {
     id: root
-    property QtObject colors: XColors.colors
+    property var colors: XColors.colors
     property color colBackground: colors.colTertiary
     property color colBackgroundHover: colors.colTertiary
     property color colBackgroundActive: colors.colTertiary

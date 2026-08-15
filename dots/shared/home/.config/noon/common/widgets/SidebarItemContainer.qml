@@ -7,7 +7,7 @@ StyledRect {
     color: "transparent"
     property bool detached: false
     property bool expanded: false
-    property QtObject colors: Colors
+    property var colors: Colors
     property string searchQuery: ""
     property string debouncedQuery: ""
     property StyledPanel panelWindow: null

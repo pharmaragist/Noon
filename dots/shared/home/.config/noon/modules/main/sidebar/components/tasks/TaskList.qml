@@ -145,7 +145,7 @@ Rectangle {
                             if (targetList === null) {
                                 delegateItem.isDragged = false;
                             } else if (targetList === root) {
-                                // same list, reorder
+                                
                                 var localX = listView.mapFromItem(overlay, centerX, centerY).x;
                                 var localY = listView.mapFromItem(overlay, centerX, centerY).y;
                                 var dropIndex = listView.indexAt(localX, localY);

@@ -361,7 +361,7 @@ Item {
             icon.name: "user-trash"
             Material.foreground: "#ff6b6b"
             onTriggered: {
-                NoonUtils.deleteFile(icon.modelData.filePath);
+                NoonUtils.trash(icon.modelData.filePath);
                 console.log(icon.modelData.filePath);
                 root.removePosition(icon.fileKey);
             }

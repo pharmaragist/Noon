@@ -6,7 +6,7 @@ Item {
 
     required property Item target
     property real fadeSize: Colors.m3.darkmode ? 40 : 20
-    property color color: Colors.methods.transparentize(Colors.colShadow, Colors.m3.darkmode ? 0 : 0.7)
+    property color color: Colors.colLayer0
     property bool vertical: true
 
     z: 99

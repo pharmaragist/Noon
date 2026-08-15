@@ -6,7 +6,6 @@ RedunduntMultiViewPanel {
     id: root
     path: Qt.resolvedUrl("./")
 
-    lazy: false
     tabButtonList: [
         {
             "icon": "window",

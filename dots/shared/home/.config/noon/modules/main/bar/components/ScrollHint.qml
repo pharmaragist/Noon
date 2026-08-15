@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 
-// Scroll hint
+
 Revealer {
     id: root
 

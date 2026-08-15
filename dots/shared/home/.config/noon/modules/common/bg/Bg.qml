@@ -1,4 +1,7 @@
 import QtQuick
+import QtQuick.Layouts
+import qs.store
+import qs.services
 import qs.common
 import qs.common.utils
 import qs.common.widgets
@@ -21,6 +24,103 @@ Scope {
             fill: true
 
             BgView {}
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
         }
     }
 }

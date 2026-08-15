@@ -1,50 +1,63 @@
 import QtQuick
+import QtGraphs
 import qs.common
 
-/*
- * Simple one value line graph
- */
-Canvas {
+
+
+
+
+GraphsView {
     id: root
 
-    enum Alignment { Left, Right }
-
-    required property list<real> values
-    property int points: values.length
     property color color: Colors.colPrimary
     property real fillOpacity: 0.5
-    property var alignment: Graph.Alignment.Left
+    property alias series: line
 
-    onValuesChanged: root.requestPaint()
-    onPaint: {
-        var ctx = getContext("2d")
-        ctx.clearRect(0, 0, width, height)
-        if (!root.values || root.values.length < 2)
-            return
+    antialiasing: true
+    marginTop: 0
+    marginBottom: 0
+    marginLeft: 0
+    marginRight: 0
+    panStyle: GraphsView.PanStyle.None
+    zoomStyle: GraphsView.ZoomStyle.None
 
-        var n = root.points
-        var dx = width / (n - 1)
-        ctx.strokeStyle = root.color
-        ctx.fillStyle = Colors.methods.transparentize(root.color, 1 - root.fillOpacity)
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        for (var i = 0; i < n; ++i) {
-            var valueIndex = (root.alignment === Graph.Alignment.Right) ? root.values.length - n + i : i
-            if (valueIndex < 0 || valueIndex >= root.values.length) {
-                continue; // No data for this point
-            }
-            var x = i * dx
-            var norm = root.values[valueIndex] // already in 0-1 range
-            var y = height - norm * height
-            if (valueIndex === 0) {
-                ctx.moveTo(x, height)
-                ctx.lineTo(x, y)
-            } else {
-                ctx.lineTo(x, y)
-            }
-        }
-        ctx.stroke()
-        ctx.lineTo(width, height)
-        ctx.fill()
+    theme: GraphsTheme {
+        backgroundVisible: false
+        plotAreaBackgroundVisible: false
+        gridVisible: true
+        labelsVisible: true
+    }
+
+    axisX: ValueAxis {
+        min: 0
+        max: Math.max(1, line.count - 1)
+        visible: false
+        lineVisible: false
+        labelsVisible: false
+        gridVisible: false
+        subGridVisible: false
+    }
+
+    axisY: ValueAxis {
+        min: 0
+        max: 1
+        visible: false
+        lineVisible: false
+        labelsVisible: false
+        gridVisible: false
+        subGridVisible: false
+    }
+
+    
+    AreaSeries {
+        borderWidth: 0
+        upperSeries: line
+        color: Colors.methods.transparentize(root.color, 1 - root.fillOpacity)
+    }
+
+    LineSeries {
+        id: line
+        color: root.color
+        width: 2
     }
 }

@@ -107,7 +107,7 @@ StyledRect {
                 "materialIcon": "delete",
                 "action": function () {
                     if (wallpaperItem.fileUrl)
-                        NoonUtils.deleteFile(wallpaperItem.fileUrl);
+                        NoonUtils.trash(wallpaperItem.fileUrl);
                 }
             }
         ]

@@ -46,11 +46,11 @@ StyledPopup {
             spacing: Padding.massive
 
             CircularProgress {
-                size: 40
+                implicitSize: 40
                 value: BeatsService.currentTrackProgressRatio(root.player)
-                fill: true
+                sperm: true
                 lineWidth: 4
-                secondaryColor: "transparent"
+                colSecondary: "transparent"
                 Symbol {
                     iconSize: 16
                     fill: 1

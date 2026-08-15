@@ -36,7 +36,7 @@ Item {
 
             anchors.centerIn: parent
             text: root.text
-            font: Fonts.request("main", Fonts.sizes.verysmall ?? 14, { "hintingPreference": Font.PreferNoHinting }) // Prevent shaky text
+            font: Fonts.request("main", Fonts.sizes.verysmall ?? 14, { "hintingPreference": Font.PreferNoHinting }) 
             color: Colors.colOnTooltip ?? "#FFFFFF"
             wrapMode: Text.Wrap
         }

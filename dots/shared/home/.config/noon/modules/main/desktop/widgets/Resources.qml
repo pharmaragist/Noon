@@ -6,7 +6,10 @@ import qs.common.widgets
 
 WidgetContainer {
     id: root
-    readonly property int implicitCircSize: 72
+
+    readonly property int implicitCircSize: root.isSmall ? 40 : (root.isXLarge ? 83 : 64)
+    readonly property int columns: root.isLarge || root.isXLarge ? 4 : 2
+    readonly property int rows: root.isLarge || root.isXLarge ? 2 : 1
     readonly property var resourcesModel: [
         {
             iconName: "memory",
@@ -25,12 +28,15 @@ WidgetContainer {
             percentage: ResourcesService.stats.cpu_temp / 100
         }
     ]
-    GridLayout {
-        columns: expanded ? 4 : 2
-        rows: expanded ? 2 : 1
-        rowSpacing: expanded ? Padding.huge : Padding.normal
-        columnSpacing: expanded ? Padding.huge : Padding.normal
-        anchors.centerIn: parent
+
+    normal: GridLayout {
+        columns: root.columns
+        rows: root.rows
+        rowSpacing: root.isSmall ? 2 : Padding.normal
+        columnSpacing: root.isSmall ? 2 : Padding.normal
+        anchors.leftMargin: root.isSmall ? 0 : Padding.massive
+        anchors.right: root.isSmall ? 0 : Padding.massive
+        anchors.fill: parent
         Repeater {
             model: ScriptModel {
                 values: resourcesModel
@@ -38,7 +44,7 @@ WidgetContainer {
             delegate: ColumnLayout {
                 spacing: Padding.small
                 Item {
-                    Layout.topMargin: expanded ? Padding.huge : 0
+                    Layout.topMargin: (root.isLarge || root.isXLarge) ? Padding.huge : 0
                     implicitHeight: root.implicitCircSize
                     implicitWidth: root.implicitCircSize
                     ClippedFilledCircularProgress {
@@ -55,8 +61,8 @@ WidgetContainer {
                     }
                 }
                 StyledText {
-                    visible: expanded
-                    text: 100 * modelData.percentage.toFixed(1) + (modelData.iconName === "thermometer" ? "°C" : "%")
+                    visible: root.isLarge || root.isXLarge
+                    text: Math.round(modelData.percentage * 100) + (modelData.iconName === "thermometer" ? "°C" : "%")
                     color: Colors.colOnSurface
                     font: Fonts.request("numbers", Fonts.sizes.huge)
                     Layout.alignment: Qt.AlignHCenter
@@ -64,4 +70,7 @@ WidgetContainer {
             }
         }
     }
+    small: normal
+    large: normal
+    xlarge: normal
 }

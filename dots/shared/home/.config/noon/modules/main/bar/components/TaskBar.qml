@@ -21,7 +21,7 @@ BarGroup {
         orientation: root.vertical ? ListView.Vertical : ListView.Horizontal
 
         anchors.fill: parent
-        // anchors.margins: Padding.tiny
+        
 
         model: ScriptModel {
             values: {

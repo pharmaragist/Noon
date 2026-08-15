@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.common
@@ -9,6 +10,7 @@ import qs.common.widgets
 import qs.common.functions
 import qs.services
 import qs.store
+import qs.modules.main.desktop.widgets
 
 Item {
     id: root
@@ -41,55 +43,156 @@ Item {
 
     readonly property real bgParallaxX: verticalParallaxMode ? calculateWidgetMargin() : -effectiveMovableXSpace - (parallaxFactor - 0.5) * 2 * effectiveMovableXSpace
     readonly property real bgParallaxY: verticalParallaxMode ? -effectiveMovableYSpace - (parallaxFactor - 0.5) * 2 * effectiveMovableYSpace : 0
-
+    readonly property bool showOverview: Globals.main?.showBgOverview ?? false
+    readonly property size controlsSize: Sizes?.beam?.appearance
     Component.onCompleted: bgLayer.load(wallpaper)
-
-    onWallpaperChanged: {
-        bgLayer.load(wallpaper);
-    }
+    onWallpaperChanged: bgLayer.load(wallpaper)
 
     anchors.fill: parent
 
-    StyledLoader {
-        fade: true
-        shown: NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
-        anchors.fill: parent
-        sourceComponent: VidLayer {}
-    }
-
-    BgLayer {
-        id: bgLayer
+    BlurImage {
         z: 0
         anchors.fill: parent
-        enableParallax: root.enableParallax
-        effectiveWallpaperScale: root.effectiveWallpaperScale
-        effectiveMovableXSpace: root.effectiveMovableXSpace
-        effectiveMovableYSpace: root.effectiveMovableYSpace
-        bgParallaxX: root.bgParallaxX
-        bgParallaxY: root.bgParallaxY
-        Behavior on bgParallaxX {
-            Anim {}
+        blur: true
+        source: Qt.resolvedUrl(root.wallpaper)
+        opacity: root.showOverview ? 1 : 0
+
+        Rectangle {
+            anchors.fill: parent
+            color: Colors.m3.m3scrim
+            opacity: 0.45
         }
 
-        Behavior on bgParallaxY {
+        Behavior on opacity {
             Anim {}
         }
     }
 
-    Loader {
-        id: layerClock
-        active: fgLoader.item && fgLoader.item.status === Image.Ready && root.enableDepthMode
-        sourceComponent: LayerClock {}
-        asynchronous: true
+    function getMargin(direction) {
+        if (!root.showOverview)
+            return 0;
+        let _margin = 0;
+        const base = 100;
+        const bar = BarData?.currentBarExclusiveSize;
+        const pos = BarData?.position;
+        const controls = (controlsSize?.height ?? 100) + Padding.huge;
+
+        
+        
+
+        if (pos === direction)
+            _margin += (base + bar);
+        else
+            _margin += base;
+
+        return _margin;
     }
 
-    StyledLoader {
-        id: fgLoader
+    StyledRectangularShadow {
+        z: 1
+        target: clipRect
+        show: root.showOverview
+        transparency: 0.25
+    }
+
+    DesktopWidgets {
+        z: 9999
+        function mg(d) {
+            let bd = d === BarData.position ? BarData.currentBarExclusiveSize + Padding.huge : Sizes.elevationMargin;
+            return Math.max(root.getMargin(d), bd);
+        }
+        anchors {
+            topMargin: mg("top")
+            bottomMargin: mg("bottom")
+            leftMargin: mg("left")
+            rightMargin: mg("right")
+        }
+        Behavior on anchors.topMargin {
+            Anim {}
+        }
+        Behavior on anchors.leftMargin {
+            Anim {}
+        }
+        Behavior on anchors.rightMargin {
+            Anim {}
+        }
+        Behavior on anchors.bottomMargin {
+            Anim {}
+        }
+    }
+
+    ClippingRectangle {
+        id: clipRect
+        z: 1
         anchors.fill: parent
-        visible: active
-        fade: true
-        asynchronous: true
-        active: WallpaperService.fgReady && root.enableDepthMode
-        sourceComponent: FgLayer {}
+        anchors {
+            topMargin: root.getMargin("top")
+            bottomMargin: root.getMargin("bottom")
+            leftMargin: root.getMargin("left")
+            rightMargin: root.getMargin("right")
+        }
+        color: "transparent"
+        radius: !root.showOverview ? 0 : Rounding.silly
+        border.width: root.showOverview ? 1 : 0
+        border.color: Colors.colOutline
+        clip: true
+
+        Behavior on anchors.topMargin {
+            Anim {}
+        }
+        Behavior on anchors.leftMargin {
+            Anim {}
+        }
+        Behavior on anchors.rightMargin {
+            Anim {}
+        }
+        Behavior on anchors.bottomMargin {
+            Anim {}
+        }
+
+        StyledLoader {
+            fade: true
+            shown: NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
+            anchors.fill: parent
+            sourceComponent: VidLayer {}
+        }
+
+        BgLayer {
+            id: bgLayer
+            z: 1
+            anchors.fill: parent
+            enableParallax: root.enableParallax
+            effectiveWallpaperScale: root.effectiveWallpaperScale
+            effectiveMovableXSpace: root.effectiveMovableXSpace
+            effectiveMovableYSpace: root.effectiveMovableYSpace
+            bgParallaxX: root.bgParallaxX
+            bgParallaxY: root.bgParallaxY
+            Behavior on bgParallaxX {
+                Anim {}
+            }
+
+            Behavior on bgParallaxY {
+                Anim {}
+            }
+        }
+
+        Loader {
+            id: layerClock
+            z: 1
+            active: fgLoader.item && fgLoader.item.status === Image.Ready && root.enableDepthMode
+            sourceComponent: LayerClock {}
+            asynchronous: true
+        }
+
+        StyledLoader {
+            id: fgLoader
+            z: 2
+            anchors.fill: parent
+            visible: active
+            fade: true
+            asynchronous: true
+            active: WallpaperService.fgReady && root.enableDepthMode
+            sourceComponent: FgLayer {}
+        }
     }
 }

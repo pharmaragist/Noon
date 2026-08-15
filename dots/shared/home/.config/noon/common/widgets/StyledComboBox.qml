@@ -10,7 +10,21 @@ ComboBox {
     id: root
     implicitHeight: 45
     implicitWidth: 110
-    Material.theme: Material.System
+    Material.theme: Material[Colors.mode]
+    property var _model: []
+    property bool showDisplayIcon: true
+
+    readonly property var currentInfo: {
+        if (!Array.isArray(_model) || _model.length === 0) return null;
+        if (typeof _model[0] === "object")
+            return _model.find(i => i.name === displayText);
+        else
+            return _model.find(i => i === displayText);
+    }
+    function processText(text) {
+        return Fonts.methods.separateCamelCase(text);
+    }
+    model: _model
 
     delegate: ItemDelegate {
         id: delegated
@@ -26,12 +40,14 @@ ComboBox {
                 text: isSelected ? "check" : modelData?.icon ?? ""
                 font.pixelSize: 24
                 color: delegated.highlighted ? Colors.m3.m3onPrimary : Colors.colOnSurface
+                fill: delegated.highlighted ? 1 : 0
             }
 
             StyledText {
                 Layout.fillWidth: true
-                text: modelData?.name ?? modelData ?? ""
-                font.pixelSize: 14
+                property string candidate: modelData?.name ?? modelData ?? ""
+                text: root.processText(candidate)
+                font: Fonts.request("main", 14)
                 truncate: true
                 color: delegated.highlighted ? Colors.m3.m3onPrimary : Colors.colOnSurface
             }
@@ -43,20 +59,29 @@ ComboBox {
         }
     }
 
-    contentItem: StyledText {
+    contentItem: RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        font: Fonts.request("main", Fonts.sizes.small)
-        text: root.displayText
-        color: Colors.colOnLayer2
-        leftPadding: Padding.huge
-        rightPadding: Padding.huge
-        truncate: true
+        anchors.margins: Padding.huge
+
+        Symbol {
+            visible: !!currentInfo?.icon && root.showDisplayIcon
+            icon: currentInfo?.icon || ""
+            iconSize: 16
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            font: Fonts.request("main", 14)
+            text: root.processText(root.displayText)
+            color: Colors.colOnLayer2
+            truncate: true
+        }
     }
 
     background: Rectangle {
-        color: Colors.colLayer3
-        radius: Rounding.small
+        color: Colors.colLayer4
+        radius: height / 2
     }
 
     MouseArea {
@@ -67,17 +92,19 @@ ComboBox {
     popup: Popup {
         id: popup
         padding: Padding.normal
-        implicitWidth: root.width + padding * 4
+        implicitWidth: Math.max(root.width + padding * 6, 180)
         implicitHeight: Math.min(contentItem.implicitHeight + padding, 300)
         height: 0
         opacity: 0
+        scale: 0.95
         x: (root.width - width) / 2
-        y: root.height + 1.5 * padding
+        y: -padding
         closePolicy: Popup.NoAutoClose
 
         onAboutToShow: {
             height = 0;
             opacity = 0;
+            scale = 0.95;
             openAnim.restart();
         }
 
@@ -86,9 +113,8 @@ ComboBox {
         }
 
         background: StyledRect {
-            color: Colors.colSurfaceContainerHigh
+            color: Colors.colLayer4
             radius: Rounding.verylarge
-            // enableBorders: true
         }
 
         contentItem: StyledListView {
@@ -105,17 +131,24 @@ ComboBox {
             id: openAnim
             PropertyAnimation {
                 target: popup
-                property: "opacity"
-                to: 1
-                duration: 180
+                property: "height"
+                to: popup.implicitHeight
+                duration: 220
                 easing.type: Easing.OutCubic
             }
             PropertyAnimation {
                 target: popup
-                property: "height"
-                to: popup.implicitHeight
-                duration: 180
+                property: "opacity"
+                to: 1
+                duration: 160
                 easing.type: Easing.OutCubic
+            }
+            PropertyAnimation {
+                target: popup
+                property: "scale"
+                to: 1
+                duration: 220
+                easing.type: Easing.OutBack
             }
         }
 
@@ -125,20 +158,25 @@ ComboBox {
                 target: popup
                 property: "opacity"
                 to: 0
-                duration: 150
+                duration: 140
+                easing.type: Easing.InCubic
+            }
+            PropertyAnimation {
+                target: popup
+                property: "scale"
+                to: 0.96
+                duration: 140
                 easing.type: Easing.InCubic
             }
             PropertyAnimation {
                 target: popup
                 property: "y"
-                from: popup.y
-                to: popup.y + 2 * popup.padding
-                duration: 150
+                to: popup.y + 6
+                duration: 140
                 easing.type: Easing.InCubic
             }
             onStopped: {
                 popup.visible = false;
-                popup.y = Qt.binding(() => root.height + 1.5 * popup.padding);
             }
         }
     }

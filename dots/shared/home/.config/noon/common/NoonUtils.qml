@@ -1,22 +1,18 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtMultimedia
 import Quickshell
 import Quickshell.Io
-import qs.services
 import qs.common
 import qs.common.utils
-import qs.common.functions
 import qs.common.widgets
-import Noon.Utils.Dialogs
-import QtMultimedia
+import qs.services
 
-/* Bundled Custom Functions For Noon */
+
 
 Singleton {
     id: root
-    readonly property var avilableSystemCommands: Mem.store.misc.systemCommands
-    readonly property var avilableIpcCommands: Mem.store.misc.ipcCommands
 
     property bool ipcReady: false
     property bool commandsReady: false
@@ -29,7 +25,7 @@ Singleton {
         Globals.main.sysDialogs.mode = dialog;
     }
 
-    function clearSysDialogs() {
+    function clearDialogs() {
         Globals.main.sysDialogs.pendingData = null;
         Globals.main.sysDialogs.mode = "";
     }
@@ -43,31 +39,35 @@ Singleton {
             "startpage": "https://www.startpage.com/do/dsearch?query="
         };
         const prefix = dict[Mem.options.networking.searchEngine] ?? dict["google"];
-        execDetached(["gio", "open", `"${prefix + query}"`]);
+        open(`"${prefix + query}"`);
     }
 
-    function deleteFile(path) {
+    function trash(path) {
         const f = Directories.methods.trim(path);
         execDetached(["gio", "trash", `"${f}"`]);
     }
 
-    function openFile(path) {
-        const f = Directories.methods.trim(path);
-        execDetached(["gio", "open", `"${f}"`]);
+    function open(sth) {
+        let thing = sth;
+
+        if (sth.startsWith("file://"))
+            thing = Directories.methods.trim(thing);
+
+        execDetached(["gio", "open", `${thing}`]);
     }
 
     function iconPath(icon, fallback = "image-missing-symbolic") {
         const noon_icon = `noon-${Mem.looks.mode}.png`;
         const qs = ({
-            "org.quickshell": noon_icon
-        });
+                "org.quickshell": noon_icon
+            });
         const subs = Object.assign({}, qs, Mem.options.desktop.icons.substitutions);
         const lookup = subs[icon] ?? DesktopEntries.heuristics(icon)?.icon ?? icon;
         return Quickshell.iconPath(lookup, fallback);
     }
 
-    function sudoExec(content: var) {
-        execDetached(["pkexec", content]);
+    function sudoExec(...args) {
+        execDetached(["pkexec", ...content]);
     }
 
     function stopPlayer() {
@@ -114,7 +114,7 @@ Singleton {
             canCancel: false,
             onAccepted: () => {
                 stopPlayer();
-                clearSysDialogs();
+                clearDialogs();
             }
         });
     }
@@ -144,10 +144,10 @@ Singleton {
         Globals.common.toasts.data = currentData;
     }
 
-    function notify(content, title) {
+    function notify(content, title, urgency = "normal") {
         let icon = Directories.assets + "/icons/noon-symbolic.svg";
         let titleStr = title ?? "Noon";
-        execDetached(["notify-send", "-i", icon, "-a", titleStr, content]);
+        Quickshell.execDetached(["notify-send", "-i", icon, "-a", titleStr, "-u", urgency, content]);
     }
 
     function notifyPhone(content) {
@@ -155,41 +155,23 @@ Singleton {
     }
 
     function callIpc(request) {
-        execDetached(["qs", "-c", Directories.shellDir, "ipc", "call", request]);
+        NoonUtils.execDetached(["qs", "-c", Directories.shellDir, "ipc", "call", request]);
     }
 
-    function execDetached(command, log = false) {
-        if (log) {
-            console.log(command);
-        }
+    function execDetached(cmd) {
+        let command = cmd;
+        if (typeof cmd !== "string")
+            command = cmd.join(" ").toString();
 
-        let effectiveCommand = "";
-        if (Array.isArray(command))
-            effectiveCommand = command.join(" ").toString();
-        else
-            effectiveCommand = command;
-
-        Quickshell.execDetached(["bash", "-c", effectiveCommand]);
-    }
-
-    // Atomic Changes
-    function setHyprKey(key, value) {
-        Mem.hypr[key] = value;
+        Quickshell.execDetached(["bash", "-c", command]);
     }
 
     function runInTerminal(command) {
         execDetached(["kitty", "-e", "fish", "-c", command]);
     }
 
-    function setSidebarUrl(url) {
-        if (!url.startsWith("http"))
-            return;
-        GlobalState.web_session.url = url;
-    }
-
     function checkIfDlp(url) {
         const avList = ["youtube.com", "youtu.be", "facebook.com", "twitter.com", "x.com", "instagram.com", "tiktok.com", "twitch.tv", "reddit.com", "soundcloud.com", "spotify.com", "archive.org", "pornhub.com", "crunchyroll.com", "plex.tv", "imgur.com", "streamable.com", "udemy.com", "coursera.org", "khan academy.org"];
-
         return avList.some(domain => url.toLowerCase().includes(domain));
     }
 
@@ -204,7 +186,7 @@ Singleton {
         proc.onExited.connect(() => proc.distroy());
     }
 
-    function inlineTimer(callback, delay) {
+    function inlineTimer(callback, delay = Mem.options.hacks.arbitraryRaceConditionDelay) {
         let timer = Qt.createQmlObject("import QtQml; Timer {}", root);
         timer.interval = delay;
         timer.repeat = false;
@@ -215,12 +197,12 @@ Singleton {
         timer.start();
     }
 
-    function isOnline(url) {
+    function isOnlineUrl(url) {
         return url.startsWith("http") || url.startsWith("https" || url.contains("www"));
     }
 
     function runDownloader(url) {
-        if (isOnline(url)) {
+        if (isOnlineUrl(url)) {
             if (checkIfDlp(url)) {
                 Globals.main.sysDialogs.pendingData = url;
                 Globals.main.sysDialogs.mode = "dlp";
@@ -233,30 +215,9 @@ Singleton {
             commandLoader.running = true;
     }
 
-    function fetchIpcCommands() {
-        if (!ipcReady)
-            ipcCommands.running = true;
-    }
-    function pickGlobalFont() {
-        fontDialog.open();
-    }
-
-    function changeGlobalFont(fontVar) {
-        if (typeof fontVar === "string") {
-            execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar, "--size", Fonts.sizes.small]);
-            setHyprKey("font_main", fontVar);
-            Mem.options.appearance.fonts.main = fontVar;
-        } else {
-            Quickshell.execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", fontVar.size]);
-            setHyprKey("font_main", fontVar.family);
-            Mem.options.appearance.fonts.main = fontVar.family;
-            Mem.options.appearance.fonts.sizes.scale = fontVar.size / 10;
-        }
-    }
-
     Process {
         id: ipcCommands
-        running: false
+        running: Mem.ready && Mem.store.misc.ipcCommands.length === 0
         command: ["bash", "-c", `qs -c ${Directories.methods.trim(Directories.standard.config)}/noon  ipc  show`]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -284,6 +245,21 @@ Singleton {
         }
     }
 
+    Process {
+        id: commandLoader
+        running: Mem.ready && Mem.store.misc.systemCommands.length === 0
+        command: ["bash", "-c", "compgen -c | sort -u "]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const out = text.trim();
+                const all = out.split("\n");
+                Mem.store.misc.systemCommands = all;
+                root.commandsReady = true;
+                console.log("[Noon] fetched Bash commands");
+            }
+        }
+    }
+
     MediaPlayer {
         id: player
         audioOutput: AudioOutput {
@@ -296,30 +272,6 @@ Singleton {
             remainingRepeats--;
             player.play();
         }
-    }
-
-    Process {
-        id: commandLoader
-        running: false
-        command: ["bash", "-c", "compgen -c | sort -u "]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const out = text.trim();
-                if (out.length === 0) {
-                    Mem.store.misc.systemCommands = [];
-                    root.commandsReady = true;
-                    return;
-                }
-                Mem.store.misc.systemCommands = out.split("\n");
-                root.commandsReady = true;
-                console.log("[Noon] fetched Bash commands");
-            }
-        }
-    }
-
-    FontDialog {
-        id: fontDialog
-        onSelectedFontChanged: NoonUtils.changeGlobalFont(fontDialog.selectedFont)
     }
 
     Connections {

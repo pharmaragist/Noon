@@ -29,11 +29,11 @@ Singleton {
         nameFilters: ["*.lua"]
     }
 
-    onKeyboardLayoutShortNameChanged: NoonUtils.toast({
-        id: 7,
-        content: "Keyboard layout changed to " + root.keyboardLayoutShortName,
-        icon: "keyboard_command_key"
-    })
+    
+    
+    
+    
+    
 
     BatchBinding {
         target: Mem.hypr

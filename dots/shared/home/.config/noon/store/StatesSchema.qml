@@ -1,7 +1,7 @@
 import qs.common.utils
 
 JsonAdapter {
-    // Todo create own fileview for those
+    
     property JO applications: JO {
         property JO settings: JO {
             property string cat: ""
@@ -89,6 +89,10 @@ JsonAdapter {
             property int nextTimerId: 1
         }
 
+        property JO beam: JO {
+            property string revealReason: ""
+        }
+
         property JO beats: JO {
             property int pageIndex: 0
             property var previewData: ({})
@@ -103,8 +107,8 @@ JsonAdapter {
     property JO fonts: JO {
         property JO variableAxes: JO {
             property JO display: JO {
+                property int wdth: 118
                 property int wght: 100
-                property int wdth: 100
                 property int ital: 100
                 property int slnt: 100
                 property int opsz: 100
@@ -122,12 +126,19 @@ JsonAdapter {
         }
 
         property JO widgets: JO {
-            property list<string> order: []
-            property list<string> enabled: []
-            property list<string> desktop: ["cal", "resources", "dino"]
-            property list<string> pilled: ["dino"]
-            property list<string> pinned: []
-            property list<string> expanded: []
+            property var items: [
+                { id: "cal", enabled: true, desktop: true, pin: true, pill: false, size: "large" },
+                { id: "resources", enabled: true, desktop: true, pin: false, pill: true, size: "large" },
+                { id: "battery", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
+                { id: "bluetooth", enabled: true, desktop: false, pin: true, pill: true, size: "normal" },
+                { id: "dino", enabled: true, desktop: true, pin: true, pill: true, size: "normal" },
+                { id: "combo", enabled: true, desktop: false, pin: false, pill: false, size: "normal" },
+                { id: "media", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
+                { id: "net", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
+                { id: "simple_clock", enabled: true, desktop: false, pin: false, pill: true, size: "normal" },
+                { id: "weather", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
+                { id: "screentime", enabled: true, desktop: false, pin: false, pill: false, size: "normal" }
+            ]
         }
 
         property JO apis: JO {

@@ -14,7 +14,7 @@ MenuItem {
     property color colContent: colors.colOnLayer2
     property color colContentActive: colors.colOnLayer2
     property alias materialIcon: symbol.text
-    property QtObject colors: Colors
+    property var colors: Colors
 
     height: 40
 

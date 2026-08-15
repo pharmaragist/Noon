@@ -13,23 +13,53 @@ SidebarItemContainer {
     property bool _pendingFocus: false
     readonly property int totalTabs: tabButtonList.length
     property var _currentChild: null
+    property int padding: 0
     readonly property var item: _currentChild
     required property var tabButtonList
     required property string path
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.margins: padding
         spacing: Padding.normal
 
-        Toolbar {
+        StyledLoader {
+            readonly property string currentMode : Mem.options.sidebar.appearance.toolbarStyle.toLowerCase().toString();
+            Layout.fillWidth: currentMode !== "tool"
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: Padding.large
-            ToolbarTabBar {
-                id: tabBar
-                Layout.alignment: Qt.AlignHCenter
-                tabButtonList: root.tabButtonList
-                currentIndex: root.selectedTabIndex
-                onCurrentIndexChanged: root.selectedTabIndex = currentIndex
+            sourceComponent: {
+                let map = {
+                    "tool": toolBarComponent,
+                    "tab": tabBarComponent
+                };
+                return map[currentMode] ?? toolbarComponent;
+            }
+
+            Component {
+                id: tabBarComponent
+                PrimaryTabBar {
+                    colors: root.colors
+                    tabButtonList: root.tabButtonList
+                    currentIndex: root.selectedTabIndex
+                    externalTrackedTab: root.selectedTabIndex
+                    onCurrentIndexChanged: root.selectedTabIndex = currentIndex
+                }
+            }
+            Component {
+                id: toolBarComponent
+
+                Toolbar {
+                    colors: root.colors
+                    ToolbarTabBar {
+                        id: tabBar
+                        colors: root.colors
+                        Layout.alignment: Qt.AlignHCenter
+                        tabButtonList: root.tabButtonList
+                        currentIndex: root.selectedTabIndex
+                        onCurrentIndexChanged: root.selectedTabIndex = currentIndex
+                    }
+                }
             }
         }
 
@@ -109,9 +139,11 @@ SidebarItemContainer {
             }
         }
     }
-
+    
     Connections {
         target: root.item
+        ignoreUnknownSignals: true
+
         function onSearchFocusRequested() {
             root.searchFocusRequested();
         }

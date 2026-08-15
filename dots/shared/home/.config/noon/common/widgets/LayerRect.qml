@@ -9,6 +9,6 @@ StyledRect {
     property bool toggled: false
     property color colBackground: Colors.colLayer1
     property color activeColor: toggled ? Colors.colPrimary : Colors.colLayer1
-    color: !Shaders.enabled ? colBackground : Colors.t(activeColor, 0.3)
-    // enableBorders: Shaders.enabled
+    color: !Shaders.enabled ? activeColor : Colors.t(activeColor, 0.3)
+    
 }

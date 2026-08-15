@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.common
+import qs.common.functions
 
 Text {
     id: root
@@ -10,7 +11,7 @@ Text {
     property real animationDistanceY: 6
     property bool truncate: false
     property int animationDuration: Animations.durations.normal
-
+    readonly property var methods: TextUtils
     visible: !!font
     font: Fonts.request("main","small")
 
@@ -20,6 +21,7 @@ Text {
 
     renderType: Text.NativeRendering
     verticalAlignment: Text.AlignVCenter
+    horizontalAlignment: Text.AlignLeft
 
     color: Colors.m3.m3onBackground ?? "black"
     linkColor: Colors.m3.m3primary
@@ -60,7 +62,7 @@ Text {
                     easing.type: Easing.InSine
                 }
             }
-            // Tie the text update to this point (we don't want it to happen during the first slide+fade)
+            
 
             PropertyAction {}
 

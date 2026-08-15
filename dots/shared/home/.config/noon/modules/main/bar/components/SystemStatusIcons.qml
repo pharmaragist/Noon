@@ -57,7 +57,7 @@ Rectangle {
         }
     }
 
-    // Helper logic kept separate to keep the UI tree clean
+    
     function getNetIcon() {
         if ((NetworkService.manager.networkName || "") !== "" && NetworkService.manager.networkName !== "lo") {
             const s = NetworkService.manager.networkStrength ?? 0;

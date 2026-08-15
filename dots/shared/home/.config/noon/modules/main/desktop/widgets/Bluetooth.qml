@@ -8,62 +8,163 @@ WidgetContainer {
     id: root
 
     readonly property var currentDevice: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices)[0]
+    readonly property int connectedCount: BluetoothService.connectedDevices.length
 
-    ColumnLayout {
-        id: columnLayout
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: BluetoothService.togglePower()
+    }
 
-        anchors.centerIn: parent
+    small: Item {
+        anchors.fill: parent
+        MaterialShapeWrappedSymbol {
+            anchors.centerIn: parent
+            shape: MaterialShape.Shape.Pentagon
+            color: BluetoothService.enabled ? Colors.colPrimaryContainer : Colors.colSurfaceContainerHigh
+            colSymbol: BluetoothService.enabled ? Colors.colOnPrimaryContainer : Colors.colOnSurfaceVariant
+            text: BluetoothService.enabled ? (root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth") : "bluetooth_disabled"
+            iconSize: Fonts.sizes.verylarge
+            fill: 1
+            padding: Padding.normal
+            implicitSize: Fonts.sizes.verylarge + Padding.massive
+        }
+    }
+
+    normal: ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Padding.massive
         spacing: Padding.small
 
         RowLayout {
-            id: header
-            Layout.fillHeight: true
             Layout.fillWidth: true
             spacing: Padding.normal
 
-            Symbol {
+            MaterialShapeWrappedSymbol {
+                shape: MaterialShape.Shape.Pentagon
+                color: BluetoothService.enabled ? Colors.colPrimaryContainer : Colors.colSurfaceContainerHigh
+                colSymbol: BluetoothService.enabled ? Colors.colOnPrimaryContainer : Colors.colOnSurfaceVariant
+                text: BluetoothService.enabled ? (root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth") : "bluetooth_disabled"
+                iconSize: Fonts.sizes.verylarge
                 fill: 1
-                font.weight: Font.Medium
-                text: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices).length > 0 ? BluetoothService.getDeviceIcon(root.currentDevice) : "bluetooth"
-                font.pixelSize: Fonts.sizes.large
-                color: Colors.m3.m3onSurfaceVariant
-            }
-
-            StyledText {
-                text: root.currentDevice?.name || "No Current Device"
-                color: Colors.m3.m3onSurfaceVariant
-                truncate: true
-                Layout.maximumWidth: 100
-                Layout.fillWidth: true
-                font: Fonts.request("main", "small", { weight: Font.Medium })
+                padding: Padding.normal
+                implicitSize: Fonts.sizes.verylarge + Padding.massive
+                Layout.alignment: Qt.AlignVCenter
             }
 
             Spacer {}
         }
 
-        StyledText {
-            text: root.currentDevice?.battery ? Math.round(root.currentDevice.battery * 100) + " %" : "100 %"
-
-            font: Fonts.request("numbers", "title")
-        }
+        Spacer {}
 
         RowLayout {
-            spacing: 5
             Layout.fillWidth: true
+            spacing: Padding.normal
 
             Symbol {
-                icon: BluetoothService.getDeviceStatusIcon(root.currentDevice)
-                color: Colors.m3.m3onSurfaceVariant
-                font.pixelSize: Fonts.sizes.large
+                text: BluetoothService.getDeviceIcon(root.currentDevice)
+                color: Colors.colPrimary
+                fill: 1
+                iconSize: Fonts.sizes.large
+                Layout.alignment: Qt.AlignVCenter
             }
 
             StyledText {
-                text: {
-                    BluetoothService.getDeviceStatus(root.currentDevice);
-                }
-                color: Colors.m3.m3onSurfaceVariant
+                Layout.fillWidth: true
+                text: root.currentDevice?.name || (BluetoothService.enabled ? "No Device Connected" : "Bluetooth Off")
+                color: Colors.colOnLayer0
+                font: Fonts.request("main", "small", {
+                    weight: Font.Medium
+                })
                 truncate: true
             }
         }
     }
+
+    large: ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Padding.massive
+        spacing: Padding.small
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Padding.normal
+
+            MaterialShapeWrappedSymbol {
+                shape: MaterialShape.Shape.Pentagon
+                color: BluetoothService.enabled ? Colors.colPrimaryContainer : Colors.colSurfaceContainerHigh
+                colSymbol: BluetoothService.enabled ? Colors.colOnPrimaryContainer : Colors.colOnSurfaceVariant
+                text: BluetoothService.enabled ? (root.connectedCount > 0 ? "bluetooth_connected" : "bluetooth") : "bluetooth_disabled"
+                iconSize: Fonts.sizes.verylarge
+                fill: 1
+                padding: Padding.normal
+                implicitSize: Fonts.sizes.verylarge + Padding.massive
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Spacer {}
+
+            StyledText {
+                text: BluetoothService.enabled ? (root.connectedCount > 0 ? `${root.connectedCount} connected` : "Discovering…") : "Disabled"
+                color: BluetoothService.enabled ? Colors.colPrimary : Colors.colOnSurfaceVariant
+                font: Fonts.request("main", "verysmall", {
+                    weight: Font.Medium
+                })
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+
+        Spacer {}
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Padding.verysmall
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Padding.normal
+
+                Symbol {
+                    text: BluetoothService.getDeviceIcon(root.currentDevice)
+                    color: Colors.colPrimary
+                    fill: 1
+                    iconSize: Fonts.sizes.large
+                    Layout.alignment: Qt.AlignVCenter
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    StyledText {
+                        text: root.currentDevice?.name || (BluetoothService.enabled ? "No Device Connected" : "Bluetooth Off")
+                        color: Colors.colOnLayer0
+                        font: Fonts.request("main", "small", {
+                            weight: Font.Medium
+                        })
+                        truncate: true
+                    }
+
+                    StyledText {
+                        text: root.currentDevice ? BluetoothService.getDeviceStatus(root.currentDevice) : "Click to toggle"
+                        color: Colors.colOnSurfaceVariant
+                        font: Fonts.request("main", "verysmall")
+                    }
+                }
+            }
+
+            ClippedProgressBar {
+                Layout.fillWidth: true
+                visible: root.currentDevice?.battery !== undefined
+                value: root.currentDevice?.battery ?? 0
+                valueBarHeight: 4
+                showEndPoint: false
+                highlightColor: Colors.colSecondary
+                trackColor: Colors.colSurfaceContainerHigh
+            }
+        }
+    }
+
+    xlarge: large
 }

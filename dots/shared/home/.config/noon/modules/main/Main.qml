@@ -10,14 +10,13 @@ import "lock"
 import "notificationPopup"
 import "osd"
 import "sidebar"
-import "screenshot"
-import "toolbar"
 import "desktop"
+import "clipboard"
 
 Scope {
     Desktop {}
     NIPC {}
-    // NotifPanel {}
+
     WidgetLoader {
         enabled: Notifications.popupAppNameList.length > 0
         NotificationPopup {}
@@ -54,7 +53,7 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: Globals.main.showScreenshot
-        Screenshot {}
+        enabled: Globals.main.clipboard.mode.length > 0
+        ClipboardPanel {}
     }
 }

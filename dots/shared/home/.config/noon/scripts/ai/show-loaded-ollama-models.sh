@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# From strikeoncmputrz/LLM_Scripts
-# License: Apache-2.0, can be found in the same folder as this script
 
-# Global Vars
+
+
+
 ollama_url=http://localhost
 port="11434"
 blobs=()
 model_name_paths=()
 
 
-#Parse arguments
+
 while [ "$#" -gt 0 ]; do
   case $1 in
     -h|--help)
@@ -51,11 +51,11 @@ compare_running_models_and_modelfiles() {
     json_output=()
     local matching_models=()
     OLDIFS=$IFS
-    for ((i=0; i<${#model_name_paths[@]}; i++)); do  # Iterate over the array of modelname,blob-path
+    for ((i=0; i<${
         for blob in "${blobs[@]}"; do
-            IFS=',', read -ra fields <<< "${model_name_paths[i]}"    # Split the string into parts
-            if [ "${fields[1]}" == "$blob" ]; then  # Check if current 'field' matches a blob
-                matching_models+=( '{ "model": "'"${fields[0]}"'", "path": "'"${fields[1]}"'"}') # Add to list of matching models
+            IFS=',', read -ra fields <<< "${model_name_paths[i]}"    
+            if [ "${fields[1]}" == "$blob" ]; then  
+                matching_models+=( '{ "model": "'"${fields[0]}"'", "path": "'"${fields[1]}"'"}') 
             fi
         done
     done

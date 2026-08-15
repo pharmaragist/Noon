@@ -1,17 +1,17 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-// From https://git.outfoxxed.me/outfoxxed/nixnew
-// It does not have a license, but the author is okay with redistribution.
+
+
 
 import QtQml.Models
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 
-/**
- * A service that provides easy access to the active Mpris player.
- */
+
+
+
 Singleton {
     id: root
     property MprisPlayer trackedPlayer: null
@@ -65,10 +65,10 @@ Singleton {
         }
 
         function onTrackArtUrlChanged() {
-            // root.updateTrack();
+            
             if (root.activePlayer.uniqueId == root.activeTrack.uniqueId && root.activePlayer.trackArtUrl != root.activeTrack.artUrl) {
-                // cantata likes to send cover updates *BEFORE* updating the track info.
-                // as such, art url changes shouldn't be able to break the reverse animation
+                
+                
                 const r = root.__reverse;
                 root.updateTrack();
                 root.__reverse = r;
@@ -138,7 +138,7 @@ Singleton {
         if (targetPlayer && this.activePlayer) {
             this.__reverse = Mpris.players.indexOf(targetPlayer) < Mpris.players.indexOf(this.activePlayer);
         } else {
-            // always animate forward if going to null
+            
             this.__reverse = false;
         }
 

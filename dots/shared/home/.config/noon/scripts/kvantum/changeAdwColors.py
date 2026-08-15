@@ -43,7 +43,7 @@ if __name__ == "__main__":
         xdg_state_home, "noon", "user", "generated", "material_colors.scss"
     )
 
-    # Define your mappings here
+    
     mappings = {
         "window.color": "background",
         "base.color": "background",
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         "text.press.color": "onsecondarycontainer",
         "text.toggle.color": "onsecondarycontainer",
         "text.disabled.color": "surfaceDim",
-        # Add more mappings as needed
+        
     }
 
     colors = get_colors_from_scss(scss_file)

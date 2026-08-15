@@ -17,7 +17,7 @@ Item {
     signal canceled();
     signal selected(var result);
 
-    Rectangle { // Scrim
+    Rectangle { 
         id: scrimOverlay
         anchors.fill: parent
         radius: Rounding.small
@@ -30,14 +30,14 @@ Item {
         }
     }
 
-    Rectangle { // The dialog
+    Rectangle { 
         id: dialog
         color: Colors.colSurfaceContainerHigh
         radius: Rounding.normal
         anchors.fill: parent
         anchors.margins: dialogMargin
         implicitHeight: dialogColumnLayout.implicitHeight
-        
+
         ColumnLayout {
             id: dialogColumnLayout
             anchors.fill: parent

@@ -3,7 +3,7 @@ import Quickshell
 import qs.common
 import qs.common.widgets
 
-ShaderRect {
+PanelRect {
     id: bg
 
     readonly property string side: Mem.options.bar.behavior.position
@@ -18,8 +18,8 @@ ShaderRect {
     color: useBg ? Colors.colBackground : "transparent"
     anchors.fill: parent
     enableBorders: false
-    extraShaderCondition: useBg
     state: Mem.options.bar.appearance?.style ?? "float"
+    animationDuration: 200
 
     function getGapsValue(anchor) {
         if (!anchor)

@@ -4,7 +4,7 @@ import qs.services
 import QtQuick
 import QtQuick.Layouts
 
-Item { // Model indicator
+Item { 
     id: root
     property string icon: "api"
     property string text: ""
@@ -40,7 +40,7 @@ Item { // Model indicator
             StyledToolTip {
                 id: toolTip
                 extraVisibleCondition: false
-                alternativeVisibleCondition: mouseArea.containsMouse // Show tooltip when hovered
+                alternativeVisibleCondition: mouseArea.containsMouse 
                 text: root.tooltipText
             }
         }

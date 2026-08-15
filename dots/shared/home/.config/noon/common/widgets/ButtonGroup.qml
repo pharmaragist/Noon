@@ -4,10 +4,10 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 
-/**
- * A container that supports GroupButton children for bounciness.
- * See https://m3.material.io/components/button-groups/overview
- */
+
+
+
+
 Rectangle {
     id: root
 

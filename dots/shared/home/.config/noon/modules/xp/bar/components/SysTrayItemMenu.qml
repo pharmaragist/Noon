@@ -14,7 +14,7 @@ PopupWindow {
     property real padding: Sizes.elevationMargin
 
     signal menuClosed()
-    signal menuOpened(var qsWindow) // Correct type is QsWindow, but QML does not like that
+    signal menuOpened(var qsWindow) 
 
     function open() {
         root.visible = true;
@@ -47,20 +47,20 @@ PopupWindow {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.BackButton | Qt.RightButton
         onPressed: (event) => {
-            // Handle back/right button for navigation
+            
             if ((event.button === Qt.BackButton || event.button === Qt.RightButton) && stackView.depth > 1) {
                 stackView.pop();
                 event.accepted = true;
                 return ;
             }
-            // Handle left click - close if outside popup
+            
             if (event.button === Qt.LeftButton) {
                 let clickPos = mapToItem(popupBackground, event.x, event.y);
                 if (clickPos.x < 0 || clickPos.y < 0 || clickPos.x > popupBackground.width || clickPos.y > popupBackground.height) {
                     root.close();
                     event.accepted = true;
                 } else {
-                    event.accepted = false; // Let the click through to menu items
+                    event.accepted = false; 
                 }
             }
         }

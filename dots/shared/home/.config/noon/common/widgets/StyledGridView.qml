@@ -10,7 +10,7 @@ GridView {
     property bool hint: false
     property int radius: Rounding.large
     property color colBackground: "transparent"
-    // Scroll behavior properties
+    
     property real touchpadScrollFactor: Mem.options.interactions.scrolling.touchpadScrollFactor ?? 100
     property real mouseScrollFactor: Mem.options.interactions.scrolling.mouseScrollFactor ?? 50
     property real mouseScrollDeltaThreshold: Mem.options.interactions.scrolling.mouseScrollDeltaThreshold ?? 120
@@ -33,7 +33,7 @@ GridView {
             target: root
         }
     }
-    // GridView properties
+    
     maximumFlickVelocity: 3500
     boundsBehavior: Flickable.DragOverBounds
     layer.enabled: root.clip
@@ -43,7 +43,7 @@ GridView {
         anchors.fill: root
         color: root.colBackground
     }
-    // Custom mouse area for accelerated scrolling
+    
 
     MouseArea {
         visible: Mem.options.interactions.scrolling.fasterTouchpadScroll ?? true
@@ -52,8 +52,8 @@ GridView {
         propagateComposedEvents: false
         onWheel: function (wheelEvent) {
             const delta = wheelEvent.angleDelta.y / root.mouseScrollDeltaThreshold;
-            // The angleDelta.y of a touchpad is usually small and continuous,
-            // while that of a mouse wheel is typically in multiples of ±120.
+            
+            
             var scrollFactor = Math.abs(wheelEvent.angleDelta.y) >= root.mouseScrollDeltaThreshold ? root.mouseScrollFactor : root.touchpadScrollFactor;
             const maxY = Math.max(0, root.contentHeight - root.height);
             const base = root.contentY;
@@ -64,8 +64,8 @@ GridView {
         }
     }
 
-    // ponytail: scale animations in add/remove cause visual overlap in tiled grids
-    // (adjacent cells appear to overlap as items grow/shrink). opacity + displace only.
+    
+    
     add: Transition {
         Anim {
             property: "opacity"

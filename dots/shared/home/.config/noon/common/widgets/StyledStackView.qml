@@ -2,9 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import qs.common
 
-/**
- * A Stack with animations.
- */
+
+
+
 
 StackView {
     id: root
@@ -14,18 +14,10 @@ StackView {
     replaceEnter: Transition {
         ParallelAnimation {
             PropertyAnimation {
-                property: "y"
-                from: -root.slideDirection * root.height
-                to: 0
-                duration: Animations.durations.large
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedDecel
-            }
-            PropertyAnimation {
                 property: "scale"
                 from: 0.65
                 to: 1
-                duration: Animations.durations.huge
+                duration: Animations.durations.large
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: Animations.curves.emphasized
             }
@@ -35,27 +27,19 @@ StackView {
                 to: 1
                 duration: Animations.durations.small
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
+                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }
     replaceExit: Transition {
         ParallelAnimation {
             PropertyAnimation {
-                property: "y"
-                from: 0
-                to: root.slideDirection * root.height
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedAccel
-                duration: Animations.durations.large
-            }
-            PropertyAnimation {
                 property: "scale"
                 from: 1
                 to: 0.65
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: Animations.curves.emphasized
-                duration: Animations.durations.huge
+                duration: Animations.durations.large
             }
             PropertyAnimation {
                 property: "opacity"
@@ -63,7 +47,7 @@ StackView {
                 to: 0
                 duration: Animations.durations.small
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
+                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }

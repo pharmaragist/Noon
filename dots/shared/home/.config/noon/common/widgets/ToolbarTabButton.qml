@@ -7,7 +7,7 @@ import qs.common.widgets
 
 RippleButton {
     id: root
-
+    property var colors: Colors
     required property string materialSymbol
     required property bool current
 
@@ -15,9 +15,9 @@ RippleButton {
     implicitHeight: 40
     implicitWidth: implicitContentWidth + horizontalPadding * 2
     buttonRadius: height / 2
-    colBackground: Colors.methods.transparentize(Colors.colSurfaceContainer)
-    colBackgroundHover: Colors.methods.transparentize(Colors.colOnSurface, current ? 1 : 0.95)
-    colRipple: Colors.methods.transparentize(Colors.colOnSurface, 0.95)
+    colBackground: Colors.methods.transparentize(colors.colSurfaceContainer)
+    colBackgroundHover: Colors.methods.transparentize(colors.colOnSurface, current ? 1 : 0.95)
+    colRipple: Colors.methods.transparentize(colors.colOnSurface, 0.95)
 
     contentItem: Row {
         id: contentRow

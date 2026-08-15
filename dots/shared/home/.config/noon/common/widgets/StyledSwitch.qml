@@ -4,15 +4,15 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.common
 
-/**
- * Material 3 switch. See https://m3.material.io/components/switch/overview
- */
+
+
+
 Switch {
     id: root
 
-    property QtObject colors: Colors
-    property real scale: 0.85 // Default in m3 spec is huge af
-    // Color properties - standardized across components
+    property var colors: Colors
+    property real scale: 0.85 
+    
     property color activeColor: colors.colPrimary ?? "#685496"
     property color inactiveColor: colors.colSurfaceContainerHigh ?? "#45464F"
     property color activeBorderColor: colors.colPrimary ?? "#685496"
@@ -26,7 +26,7 @@ Switch {
 
     PointingHandInteraction {}
     text: ""
-    // Custom track styling
+    
     background: Rectangle {
         width: parent.width
         height: parent.height
@@ -44,7 +44,7 @@ Switch {
         }
     }
 
-    // Custom thumb styling
+    
     indicator: StyledRect {
         width: (root.pressed || root.down) ? (28 * root.scale) : root.checked ? (24 * root.scale) : (16 * root.scale)
         height: (root.pressed || root.down) ? (28 * root.scale) : root.checked ? (24 * root.scale) : (16 * root.scale)

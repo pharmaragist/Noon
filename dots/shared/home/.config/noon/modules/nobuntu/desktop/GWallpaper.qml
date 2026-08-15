@@ -28,7 +28,7 @@ Scope {
             color: "transparent"
             readonly property bool _overview_enabled: true
             readonly property bool _overview: Globals.nobuntu.overview.show
-            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode // New config toggle for depth mode
+            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode 
             readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
             readonly property string wallpaper: WallpaperService.currentWallpaper
             readonly property real currentWorkspace: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1

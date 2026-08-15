@@ -11,11 +11,11 @@ import Quickshell.Widgets
 import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
-/**
- * A group of notifications from the same app.
- * Similar to Android's notifications
- */
-Item { // Notification group area
+
+
+
+
+Item { 
     id: root
     property var notificationGroup
     property var notifications: notificationGroup?.notifications ?? []
@@ -28,9 +28,9 @@ Item { // Notification group area
     property color color: Colors.colLayer2
     implicitHeight: background.implicitHeight
 
-    property real dragConfirmThreshold: 70 // Drag further to discard notification
-    property real dismissOvershoot: 20 // Account for gaps and bouncy animations
-    property var qmlParent: root.parent.parent // There's something between this and the parent ListView
+    property real dragConfirmThreshold: 70 
+    property real dismissOvershoot: 20 
+    property var qmlParent: root.parent.parent 
     property var parentDragIndex: qmlParent.dragIndex
     property var parentDragDistance: qmlParent.dragDistance
     property var dragIndexDiff: Math.abs(parentDragIndex - index)
@@ -38,11 +38,11 @@ Item { // Notification group area
 
     function destroyWithAnimation() {
         root.qmlParent.resetDrag();
-        background.anchors.leftMargin = background.anchors.leftMargin; // Break binding
+        background.anchors.leftMargin = background.anchors.leftMargin; 
         destroyAnimation.running = true;
     }
 
-    SequentialAnimation { // Drag finish animation
+    SequentialAnimation { 
         id: destroyAnimation
         running: false
 
@@ -68,7 +68,7 @@ Item { // Notification group area
         root.expanded = !root.expanded;
     }
 
-    DragManager { // Drag manager
+    DragManager { 
         id: dragManager
         anchors.fill: parent
         interactive: !expanded
@@ -105,7 +105,7 @@ Item { // Notification group area
         visible: popup
     }
 
-    Rectangle { // Background of the notification
+    Rectangle { 
         id: background
         anchors.left: parent.left
         width: parent.width
@@ -129,7 +129,7 @@ Item { // Notification group area
             Anim {}
         }
 
-        RowLayout { // Left column for icon, right column for content
+        RowLayout { 
             id: row
             anchors.top: parent.top
             anchors.left: parent.left
@@ -138,7 +138,7 @@ Item { // Notification group area
             spacing: 10
 
             NotificationAppIcon {
-                // Icons
+                
                 Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: false
                 image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
@@ -147,17 +147,17 @@ Item { // Notification group area
             }
 
             ColumnLayout {
-                // Content
+                
                 Layout.fillWidth: true
                 spacing: expanded ? (root.multipleNotifications ? (notificationGroup?.notifications[root.notificationCount - 1].image != "") ? 35 : 5 : 0) : 0
-                // spacing: 00
+                
                 Behavior on spacing {
                     Anim {}
                 }
 
-                Item { // App name (or summary when there's only 1 notif) and time
+                Item { 
                     id: topRow
-                    // spacing: 0
+                    
                     Layout.fillWidth: true
                     property real fontSize: Fonts.sizes.verysmall
                     property bool showAppName: root.multipleNotifications
@@ -179,7 +179,7 @@ Item { // Notification group area
                         }
                         StyledText {
                             id: timeText
-                            // Layout.fillWidth: true
+                            
                             Layout.rightMargin: 10
                             horizontalAlignment: Text.AlignLeft
                             text: NotificationUtils.getFriendlyNotifTimeString(notificationGroup?.time)
@@ -200,12 +200,12 @@ Item { // Notification group area
                     }
                 }
 
-                StyledListView { // Notification body (expanded)
+                StyledListView { 
                     id: notificationsColumn
                     implicitHeight: contentHeight
                     Layout.fillWidth: true
                     spacing: expanded ? 5 : 3
-                    // clip: true
+                    
                     interactive: false
                     Behavior on spacing {
                         Anim {}

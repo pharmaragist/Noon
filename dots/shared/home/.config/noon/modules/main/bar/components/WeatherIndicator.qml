@@ -1,12 +1,12 @@
 import QtQuick
+import qs.common
 import qs.services
 
 BarRevealerIndicator {
     readonly property var weatherData: WeatherService.weatherData
     expanded: true
-    icon: weatherData.currentEmoji
-    text: weatherData.currentTemp.slice(0, -1)
-    popup: WeatherPopup {}
-    altAction: () => WeatherService.loadWeather()
+    icon: weatherData?.material_icon ?? ""
+    text: weatherData?.current_temp?.slice(0, -1)
+    releaseAction: () => NoonUtils.callIpc("noon reveal_beam weather")
     Component.onCompleted: WeatherService.loadWeather()
 }

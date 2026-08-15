@@ -19,6 +19,7 @@ Singleton {
     readonly property bool isBusy: mainProc.running
     readonly property bool hasRegion: regionW > 0 && regionH > 0
     readonly property Process sattyProc: Process {}
+
     property bool isSelecting: false
     property real regionX: 0
     property real regionY: 0
@@ -90,13 +91,16 @@ Singleton {
         const r = n => Math.round(n);
         execute(path, ["grim", "-g", `${r(root.regionX)},${r(root.regionY)} ${r(root.regionW)}x${r(root.regionH)}`, path]);
     }
-
+    function hideUI() {
+        Globals.main.showScreenshot = false;
+        Globals.main.beam.show = false;
+        Globals.main.beam.reason = "default";
+    }
     function request(obj): void {
         if (!obj)
             return;
 
-        Globals.main.showScreenshot = false;
-
+        hideUI()
         const outPath = obj.temp ? root.tempPath : root.mainDir + "/screenshot-" + new Date().toISOString().replace(/[:.]/g, "-") + ".png";
         const actions = {
             [ScreenShotService.Regions.Full]: () => root.takeFullScreenshot(outPath),
@@ -106,7 +110,7 @@ Singleton {
 
         NoonUtils.inlineTimer(() => {
             actions[obj.region]();
-        }, 50);
+        }, 500);
 
         if (!obj.temp)
             root.screenshotCompleted.connect(path => {

@@ -81,7 +81,9 @@ LayerRect {
                 return items;
         }
     }
-
+    ScrollEdgeFade {
+        target: gridView
+    }
     StyledGridView {
         id: gridView
         anchors.fill: parent

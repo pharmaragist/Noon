@@ -13,7 +13,7 @@ StyledRect {
     radius: Rounding.small
 
     property alias listView: messageListView
-    // Usage of ScriptModel - StyledListView Adds Overhead and messes Wheel Behavior
+    
     ListView {
         id: messageListView
         z: 0

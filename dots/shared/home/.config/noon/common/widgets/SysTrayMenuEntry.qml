@@ -59,7 +59,7 @@ RippleButton {
         spacing: 8
         visible: !root.menuEntry.isSeparator
 
-        // Interaction: checkbox or radio button
+        
         Item {
             visible: root.hasSpecialInteraction || root.forceSpecialInteractionColumn
             implicitWidth: 20
@@ -87,7 +87,7 @@ RippleButton {
             }
         }
 
-        // Button icon
+        
         Item {
             visible: root.hasIcon || root.forceIconColumn
             implicitWidth: 20

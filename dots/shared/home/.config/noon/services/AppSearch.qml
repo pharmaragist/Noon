@@ -5,10 +5,10 @@ import qs.common
 import qs.common.functions
 import Quickshell
 
-/**
- * - Eases fuzzy searching for applications by name
- * - Guesses icon name for window class name
- */
+
+
+
+
 Singleton {
     id: root
     property bool sloppySearch: Mem.options.services.search.sloppy ?? false
@@ -28,7 +28,7 @@ Singleton {
                 entry: a
             }))
 
-    function fuzzyQuery(search: string): var { // Idk why list<DesktopEntry> doesn't work
+    function fuzzyQuery(search: string): var { 
         if (root.sloppySearch) {
             const results = list.map(obj => ({
                         entry: obj,
@@ -63,13 +63,13 @@ Singleton {
         if (!str || str.length == 0)
             return "image-missing";
 
-        // Normal substitutions
+        
         if (substitutions[str])
             return substitutions[str];
         if (substitutions[str.toLowerCase()])
             return substitutions[str.toLowerCase()];
 
-        // Regex substitutions
+        
         for (let i = 0; i < regexSubstitutions.length; i++) {
             const substitution = regexSubstitutions[i];
             const replacedName = str.replace(substitution.regex, substitution.replace);
@@ -77,11 +77,11 @@ Singleton {
                 return replacedName;
         }
 
-        // Icon exists -> return as is
+        
         if (iconExists(str))
             return str;
 
-        // Simple guesses
+        
         const lowercased = str.toLowerCase();
         if (iconExists(lowercased))
             return lowercased;
@@ -98,7 +98,7 @@ Singleton {
         if (iconExists(kebabNormalizedGuess))
             return kebabNormalizedGuess;
 
-        // Search in desktop entries
+        
         const iconSearchResults = Fuzzy.go(str, preppedIcons, {
             all: true,
             key: "name"
@@ -118,7 +118,66 @@ Singleton {
                 return guess;
         }
 
-        // Give up
+        
         return str;
+    }
+    function genericSymbolFor(cls) {
+        if (!cls)
+            return "";
+        const rules = [
+            {
+                pattern: /brave|firefox|zen|chromium|chrome|opera|vivaldi/i,
+                icon: "globe"
+            },
+            {
+                pattern: /dolphin|nautilus|files|thunar|nemo|pcmanfm|ranger/i,
+                icon: "folder"
+            },
+            {
+                pattern: /steam|heroic|lutris|gamescope|bottles/i,
+                icon: "joystick"
+            },
+            {
+                pattern: /kitty|ghostty|alacritty|foot|wezterm|konsole|xterm/i,
+                icon: "terminal_2"
+            },
+            {
+                pattern: /code|zed|antigravity|cursor|windsurf/i,
+                icon: "data_object"
+            },
+            {
+                pattern: /discord|slack|telegram|whatsapp|signal|element|hexchat/i,
+                icon: "chat"
+            },
+            {
+                pattern: /thunderbird|evolution|mailspring/i,
+                icon: "mail"
+            },
+            {
+                pattern: /spotify|vlc|mpv|audacious|rhythmbox|cmus|strawberry/i,
+                icon: "music_note"
+            },
+            {
+                pattern: /gimp|krita|inkscape|pinta|photoshop|illustrator/i,
+                icon: "palette"
+            },
+            {
+                pattern: /libreoffice|onlyoffice|wps/i,
+                icon: "description"
+            },
+            {
+                pattern: /zoom|meet|teams|webex/i,
+                icon: "videocam"
+            },
+            {
+                pattern: /systemsettings|gnome-control|xfce4-settings|kdeconnect/i,
+                icon: "settings"
+            },
+            {
+                pattern: /obsidian|notion|todoist|joplin/i,
+                icon: "checklist"
+            },
+        ];
+        return rules.find(r => r.pattern.test(cls))?.icon ?? "";
     }
 }

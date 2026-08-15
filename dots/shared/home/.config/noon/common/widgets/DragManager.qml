@@ -4,9 +4,9 @@ import QtQuick.Layouts
 import qs.common
 import qs.services
 
-/**
- * A convenience MouseArea for handling drag events.
- */
+
+
+
 MouseArea {
     id: root
 

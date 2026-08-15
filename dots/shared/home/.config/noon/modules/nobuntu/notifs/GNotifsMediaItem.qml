@@ -25,9 +25,9 @@ StyledRect {
         z: 999
         anchors.fill: parent
         hoverEnabled: true
-        // propagateComposedEvents: true
+        
         acceptedButtons: Qt.NoButton
-        // preventStealing: true
+        
     }
 
     StyledRectangularShadow {

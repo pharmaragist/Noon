@@ -19,7 +19,7 @@ StyledRect {
     radius: active ? Rounding.verylarge : Rounding.large
     visible: opacity > 0
     clip: true
-    // Initial state
+    
     x: startX
     y: startY
     width: startW

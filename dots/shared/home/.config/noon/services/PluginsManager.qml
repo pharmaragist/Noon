@@ -49,7 +49,6 @@ Singleton {
     PluginExtractor {
         id: beam
         group: "beam"
-        onPluginsChanged: BeamData.buildPlugins()
     }
 
     PluginExtractor {

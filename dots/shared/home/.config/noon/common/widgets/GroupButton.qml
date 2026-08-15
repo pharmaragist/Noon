@@ -6,21 +6,21 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
 
-/**
- * Material 3 button with expressive bounciness.
- * See https://m3.material.io/components/button-groups/overview
- */
+
+
+
+
 Button {
     id: root
     property bool toggled
     property string buttonText
     property real buttonRadius: Rounding.small ?? 8
     property real buttonRadiusPressed: Rounding.small ?? 6
-    property var downAction // When left clicking (down)
-    property var releaseAction // When left clicking (release)
-    property var altAction // When right clicking
-    property var holdAction // When pressed and hold
-    property var middleClickAction // When middle clicking
+    property var downAction 
+    property var releaseAction 
+    property var altAction 
+    property var holdAction 
+    property var middleClickAction 
     property bool bounce: true
     property int buttonTextPadding
     property real baseWidth: baseSize
@@ -35,7 +35,7 @@ Button {
     Layout.fillHeight: (clickIndex - 1 <= parentGroup.children.indexOf(root) && parentGroup.children.indexOf(root) <= clickIndex + 1)
     implicitWidth: (root.down && bounce) ? clickedWidth : baseWidth
     implicitHeight: (root.down && bounce) ? clickedHeight : baseHeight
-    property QtObject colors: Colors
+    property var colors: Colors
     property int layerNumber: 1
     readonly property string colorName: "colLayer" + layerNumber
     property color colBackground: colors[(colorName + "Hover")] ?? "transparent"
@@ -98,7 +98,7 @@ Button {
                 return;
             if (root.releaseAction)
                 root.releaseAction();
-            root.click(); // Because the MouseArea already consumed the event
+            root.click(); 
         }
         onCanceled: event => {
             root.down = false;

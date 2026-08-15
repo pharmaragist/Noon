@@ -8,7 +8,7 @@ StyledPopup {
     id: root
 
     property var currentDevice: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices)[0]
-    // extraVisibilityCondition: BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices).length > 0
+    
     contentMargins: 0
     contentItem: StyledRect {
         id: bg
@@ -38,21 +38,21 @@ StyledPopup {
                 color: Colors.colOnPrimary
             }
 
-            // MaterialShape {
-            //     z: shape.z + 1
-            //     color: Colors.colSecondaryContainer
-            //     _shape: "Oval"
-            //     anchors.top: shape.top
-            //     anchors.left: shape.right
-            //     anchors.leftMargin: -15
-            //     implicitSize: 34
-            //     StyledText {
-            //         color: Colors.colOnSecondaryContainer
-            //         font: Fonts.request("numbers", 14)
-            //         anchors.centerIn: parent
-            //         text: root.currentDevice?.battery ? Math.round(root.currentDevice.battery * 100) : 100
-            //     }
-            // }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
 
             MaterialShape {
                 id: shape

@@ -20,12 +20,19 @@ Singleton {
                     "key": "appearance.effects.shaders"
                 },
                 {
+                    "icon": "animation",
+                    "name": "Animation Curve",
+                    "type": "combobox",
+                    "values": Object.keys(Animations.curves),
+                    "key": "appearance.animations.curve"
+                },
+                {
                     "icon": "blur_on",
                     "name": "Shader Type",
                     "hint": "Effect Style by Shaders",
                     "key": "appearance.effects.currentShader",
                     "type": "combobox",
-                    "comboBoxValues": Shaders.available
+                    "values": Shaders.available
                 },
                 {
                     "icon": "rounded_corner",
@@ -33,24 +40,22 @@ Singleton {
                     "hint": "Global rounding scale for all shell widgets",
                     "key": "appearance.rounding.scale",
                     "type": "slider",
-                    "minValue": 0,
-                    "maxValue": 2.45
+                    "minValue": 0.25,
+                    "maxValue": 2
                 },
                 {
-                    "icon": "tune",
-                    "name": "Border",
-                    "hint": "Thickness of the background border around screen",
-                    "key": "desktop.bg.borderMultiplier",
-                    "type": "slider",
-                    "minValue": 0,
-                    "maxValue": 1
+                    "icon": "rounded_corner",
+                    "name": "Screen Borders",
+                    "hint": "Adds Frame Arround Desktop",
+                    "key": "desktop.enableFrame"
                 },
                 {
                     "icon": "rounded_corner",
                     "name": "Screen Corners",
-                    "hint": "Dark rounded overlays on screen corners, 0 to disable",
+                    "hint": "Dark rounded overlays on screen corners",
                     "key": "desktop.screenCorners",
-                    "type": "spin"
+                    "type": "combobox",
+                    "values": ["Disabled", "Top", "Overlay"]
                 },
                 {
                     "icon": "stars_2",
@@ -61,7 +66,7 @@ Singleton {
                     "reloadOnChange": true,
                     "canRefresh": true,
                     "refreshAction": () => IconThemesService.reload(),
-                    "comboBoxValues": IconThemesService.availableIconThemeIds
+                    "values": IconThemesService.availableIconThemeIds
                 },
                 {
                     "icon": "arrow_selector_tool",
@@ -71,7 +76,7 @@ Singleton {
                     "type": "combobox",
                     "canRefresh": true,
                     "refreshAction": () => CursorsService.reload(),
-                    "comboBoxValues": CursorsService.cursors
+                    "values": CursorsService.cursors
                 },
                 {
                     "icon": "ads_click",
@@ -92,7 +97,7 @@ Singleton {
                     "name": "Shell Mode",
                     "type": "combobox",
                     "hint": "Shell Presets Overhaul by Noon",
-                    "comboBoxValues": ["main", "zen", "xp", "nobuntu"],
+                    "values": ["main", "zen", "xp", "nobuntu"],
                     "key": "desktop.shell.mode"
                 },
                 {
@@ -114,7 +119,7 @@ Singleton {
                     "hint": "Logo of the system",
                     "key": "desktop.branding.logo",
                     "type": "combobox",
-                    "comboBoxValues": ["distro", "symbol"]
+                    "values": ["distro", "symbol"]
                 },
                 {
                     "icon": "palette",
@@ -122,7 +127,7 @@ Singleton {
                     "hint": "Desktop Widgets Bg Style (Non-Shader)",
                     "key": "desktop.widgets.mode",
                     "type": "combobox",
-                    "comboBoxValues": ["col", "grad"]
+                    "values": ["col", "grad"]
                 }
             ]
         },
@@ -135,7 +140,7 @@ Singleton {
                     "icon": "animation",
                     "name": "Beam Animation Style",
                     "type": "combobox",
-                    "comboBoxValues": BeamData.availableAnimationStyles,
+                    "values": BeamData.availableAnimationStyles,
                     "hint": "Transition style for beam animations",
                     "key": "beam.appearance.animationStyle"
                 },
@@ -179,7 +184,7 @@ Singleton {
                     "hint": "Font family for the layer clock",
                     "key": "desktop.clock.font",
                     "type": "combobox",
-                    "comboBoxValues": Fonts.family.preferredLayerClockFonts
+                    "values": Fonts.family.preferredLayerClockFonts
                 },
                 {
                     "icon": "notifications_active",
@@ -187,7 +192,7 @@ Singleton {
                     "hint": "Where popup notifications appear",
                     "key": "desktop.popups.notifications",
                     "type": "combobox",
-                    "comboBoxValues": ["TopCenter", "TopRight", "TopLeft", "BottomCenter", "BottomRight", "bottomLeft"]
+                    "values": ["TopCenter", "TopRight", "TopLeft", "BottomCenter", "BottomRight", "bottomLeft"]
                 },
                 {
                     "store": "states",
@@ -375,7 +380,7 @@ Singleton {
                     "name": "Tiling Layout",
                     "type": "combobox",
                     "store": "hypr",
-                    "comboBoxValues": ["master", "dwindle", "scrolling", "monocle"],
+                    "values": ["master", "dwindle", "scrolling", "monocle"],
                     "key": "layout"
                 },
                 {
@@ -384,7 +389,7 @@ Singleton {
                     "type": "combobox",
                     "store": "hypr",
                     "key": "animation_style",
-                    "comboBoxValues": HyprlandService?.availableAnimations ?? []
+                    "values": HyprlandService?.availableAnimations ?? []
                 },
                 {
                     "icon": "blur_on",
@@ -399,7 +404,7 @@ Singleton {
                     "type": "combobox",
                     "store": "hypr",
                     "key": "external_monitor_mode",
-                    "comboBoxValues": MonitorsInfo?.availableResolutions ?? []
+                    "values": MonitorsInfo?.availableResolutions ?? []
                 }
             ]
         },
@@ -412,14 +417,14 @@ Singleton {
                     "icon": "height",
                     "name": "Vertical Mode Style",
                     "type": "combobox",
-                    "comboBoxValues": BarData.verticalBarModes,
+                    "values": BarData.verticalBarModes,
                     "key": "bar.verticalLayout"
                 },
                 {
                     "icon": "width",
                     "name": "Horizontal Mode Style",
                     "type": "combobox",
-                    "comboBoxValues": BarData.horizontalBarModes,
+                    "values": BarData.horizontalBarModes,
                     "key": "bar.horizontalLayout"
                 },
                 {
@@ -439,7 +444,7 @@ Singleton {
                     "name": "Separator Style",
                     "key": "bar.appearance.separatorsMode",
                     "type": "combobox",
-                    "comboBoxValues": BarData.separatorStyles
+                    "values": BarData.separatorStyles
                 },
                 {
                     "icon": "border_all",
@@ -452,7 +457,7 @@ Singleton {
                     "name": "Style",
                     "key": "bar.appearance.style",
                     "type": "combobox",
-                    "comboBoxValues": BarData.appearanceModes
+                    "values": BarData.appearanceModes
                 },
                 {
                     "icon": "width_full",
@@ -487,11 +492,16 @@ Singleton {
                     "key": BarData.isVertical ? "bar.vMap.spacing" : "bar.hMap.spacing"
                 },
                 {
+                    "icon": "font_download",
+                    "name": "Show Text When Available",
+                    "key": "bar.statusIcons.showTextWhenAvailable"
+                },
+                {
                     "icon": "battery_full",
                     "name": "Battery Style",
                     "key": "bar.statusIcons.batteryMode",
                     "type": "combobox",
-                    "comboBoxValues": ["text", "symbol", "both"]
+                    "values": ["text", "symbol", "both"]
                 },
                 {
                     "icon": "123",
@@ -503,7 +513,7 @@ Singleton {
                     "icon": "graphic_eq",
                     "name": "Ws Mode",
                     "type": "combobox",
-                    "comboBoxValues": WorkspaceLabelManager.availableModes,
+                    "values": WsData.availableModes,
                     "key": "bar.workspaces.displayMode"
                 }
             ]
@@ -532,7 +542,7 @@ Singleton {
                     "name": "Style",
                     "key": "dock.appearance.style",
                     "type": "combobox",
-                    "comboBoxValues": ["float", "convex", "sharp"]
+                    "values": ["float", "convex", "sharp"]
                 }
             ]
         },
@@ -552,7 +562,7 @@ Singleton {
                     "name": "OSD Mode",
                     "key": "desktop.osd.mode",
                     "type": "combobox",
-                    "comboBoxValues": ["Pixel", "BottomPill", "CenterIsland", "SideBay"]
+                    "values": ["Pixel", "BottomPill", "CenterIsland", "SideBay"]
                 }
             ]
         },
@@ -565,7 +575,14 @@ Singleton {
                     "icon": "tune",
                     "name": "Style",
                     "key": "sidebar.appearance.style",
-                    "comboBoxValues": SidebarData.appearanceModes,
+                    "values": SidebarData.appearanceModes,
+                    "type": "combobox"
+                },
+                {
+                    "icon": "tune",
+                    "name": "ToolBar Style",
+                    "key": "sidebar.appearance.toolbarStyle",
+                    "values": ["tab", "tool"],
                     "type": "combobox"
                 },
                 {
@@ -584,7 +601,7 @@ Singleton {
                     "icon": "tune",
                     "name": "Navigation Rail Style",
                     "key": "sidebar.navRail.style",
-                    "comboBoxValues": ["sidebar", "clear", ...SidebarData.appearanceModes],
+                    "values": ["sidebar", "clear", ...SidebarData.appearanceModes],
                     "type": "combobox"
                 },
                 {
@@ -597,7 +614,7 @@ Singleton {
                     "icon": "text_fields",
                     "name": "Navigation Rail Indicator Style",
                     "key": "sidebar.navRail.indicatorStyle",
-                    "comboBoxValues": ["shape", "pill", "button"],
+                    "values": ["shape", "pill", "badge", "button"],
                     "type": "combobox"
                 },
                 {
@@ -688,7 +705,7 @@ Singleton {
                     "name": "Home Page Style",
                     "type": "combobox",
                     "store": "beats",
-                    "comboBoxValues": ["PixelPlayer", "MaterialNoon"],
+                    "values": ["PixelPlayer", "MaterialNoon"],
                     "key": "options.homePageStyle"
                 },
                 {
@@ -702,7 +719,7 @@ Singleton {
                     "name": "Visualizer Mode",
                     "type": "combobox",
                     "store": "beats",
-                    "comboBoxValues": ["Filled", "Bars", "Waveform", "CapsuleWaves", "LineGlow"],
+                    "values": ["Filled", "Bars", "Waveform", "CapsuleWaves", "LineGlow"],
                     "key": "options.visualizerMode"
                 },
                 {
@@ -761,7 +778,7 @@ Singleton {
                     "icon": "globe",
                     "name": "Search Engine",
                     "type": "combobox",
-                    "comboBoxValues": ["google", "duckduckgo", "yandex", "brave", "startpage"],
+                    "values": ["google", "duckduckgo", "yandex", "brave", "startpage"],
                     "key": "networking.searchEngine"
                 },
                 {
@@ -770,6 +787,16 @@ Singleton {
                     "hint": "Default location for weather services",
                     "key": "services.location",
                     "type": "text"
+                },
+                {
+                    "icon": "cloud_download",
+                    "name": "System Dependencies",
+                    "hint": "Manage Required Dependencies",
+                    "type": "action",
+                    "actionIcon": "download",
+                    "releaseAction": () => {
+                        NoonUtils.callIpc("sidebar reveal Packages");
+                    }
                 }
             ]
         },

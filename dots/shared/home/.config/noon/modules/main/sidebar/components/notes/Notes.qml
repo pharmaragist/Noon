@@ -9,143 +9,53 @@ import qs.services
 SidebarItemContainer {
     id: root
 
-    property bool editing: false
-    property int autoSaveInterval: 5000
-
-    Component.onCompleted: {
-        textArea.text = NotesService.content;
-        textArea.forceActiveFocus();
-    }
-
-    // Auto-save timer
-    Timer {
-        id: autoSaveTimer
-
-        interval: root.autoSaveInterval
-        running: NotesService.isDirty
-        repeat: false
-        onTriggered: NotesService.save()
-    }
-
-    // Timer to update relative time display
-    Timer {
-        interval: 1000
-        running: NotesService.lastSaved !== ""
-        repeat: true
-        onTriggered: {
-            if (!NotesService.isDirty && NotesService.lastSaved)
-                statusLabel.text = "Saved " + DateTimeService.getRelativeTime(NotesService.lastSaved);
-        }
-    }
-
-    // Sync content changes from service
-    Connections {
-        function onContentChanged() {
-            if (textArea.text !== NotesService.content)
-                textArea.text = NotesService.content;
-        }
-
-        target: NotesService
-    }
-
-    // Background watermark
-    StyledText {
-        z: 0
-        visible: true
-        font.pixelSize: 500
-        text: "text_snippet"
-        font.family: Fonts.family.iconMaterial
-        color: Colors.colLayer0
-
-        anchors {
-            left: parent.left
-            leftMargin: 200
-            bottom: parent.bottom
-            bottomMargin: -120
-        }
-
-        transform: Rotation {
-            angle: 45
-        }
-    }
-
-    // Main layout
-    ColumnLayout {
+    StyledStackView {
+        id: stack
         anchors.fill: parent
-        anchors.margins: Rounding.verylarge
-        spacing: Padding.massive
+        initialItem: listView
+    }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 50
-            spacing: 0
+    function openNote(name) {
+        NotesService.openNote(name);
+        stack.push(editor);
+    }
 
-            StyledText {
-                text: NotesService.fileName.replace(/.md/g, "")
-                Layout.fillWidth: true
-                color: Colors.colOnLayer1
-                font: Fonts.request("main", Fonts.sizes.title)
-            }
+    Component {
+        id: listView
 
-            StyledText {
-                id: statusLabel
-                text: NotesService.isDirty ? "Editing..." : (NotesService.lastSaved ? "Saved " + DateTimeService.getRelativeTime(NotesService.lastSaved) : "Ready")
-                color: !NotesService.isDirty ? Colors.colTertiary : Colors.colPrimary
-                Layout.fillWidth: true
-                font.pixelSize: Fonts.sizes.small
-            }
-        }
+        Item {
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: Padding.huge
 
-        ScrollView {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
+                spacing: Padding.large
 
-            TextArea {
-                id: textArea
+                PageHeader {
+                    title: "Notes"
+                    subTitle: Directories.methods.collapsePath(NotesService.folderPath)
+                }
 
-                color: Colors.m3.m3onSurface
-                font: Fonts.request("main", Fonts.sizes.normal + 2)
-                selectByMouse: root.editing
-                wrapMode: TextArea.Wrap
-                readOnly: !root.editing
-                focus: true
-                textFormat: root.editing ? TextEdit.PlainText : TextEdit.MarkdownText
-                selectedTextColor: Colors.m3.m3onSecondaryContainer
-                selectionColor: Colors.colSecondaryContainer
-                placeholderText: root.editing ? "Start typing your notes here..." : "Switch to edit mode to start writing..."
-                placeholderTextColor: Colors.m3.m3onSurfaceVariant
-                background: null
-                onTextChanged: {
-                    if (root.editing && text !== NotesService.content) {
-                        NotesService.content = text;
-                        NotesService.isDirty = true;
-                        autoSaveTimer.restart();
+                StyledListView {
+                    hinter.anchors.margins: -Padding.huge
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    spacing: Padding.normal
+                    _model: NotesService.cards
+                    delegate: NoteCard {
+                        anchors.right: parent?.right
+                        anchors.left: parent?.left
+                        onClicked: root.openNote(modelData?.name)
                     }
-                }
-                onLinkActivated: link => {
-                    return Qt.openUrlExternally(link);
-                }
-                Keys.onPressed: event => {
-                    if (event.modifiers === Qt.ControlModifier) {
-                        if (event.key === Qt.Key_S) {
-                            NotesService.save();
-                            event.accepted = true;
-                        } else if (event.key === Qt.Key_E) {
-                            root.editing = !root.editing;
-                            event.accepted = true;
-                        }
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    hoverEnabled: true
-                    cursorShape: parent.hoveredLink !== "" ? Qt.PointingHandCursor : root.editing ? Qt.IBeamCursor : Qt.ArrowCursor
                 }
             }
         }
     }
-    NotesControls {}
+
+    Component {
+        id: editor
+
+        NoteEditor {
+            onBack: stack.pop()
+        }
+    }
 }

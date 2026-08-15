@@ -39,7 +39,7 @@ BarGroup {
         maximumFlickVelocity: 2000
         flickDeceleration: 3500
         interactive: false
-        model: BeatsService.meaningfulPlayers
+        model: BeatsService.players
 
         delegate: Disc {
             required property var modelData
@@ -100,7 +100,7 @@ BarGroup {
     component Disc: StyledRect {
         id: root
         required property var player
-        readonly property QtObject colors: palette?.colors || Colors
+        readonly property var colors: palette?.colors || Colors
         readonly property PaletteGenerator palette: PaletteGenerator {
             active: true
             source: root.player?.trackArtUrl || ""

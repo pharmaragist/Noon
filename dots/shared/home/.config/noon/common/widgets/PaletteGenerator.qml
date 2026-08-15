@@ -3,9 +3,9 @@ import QtQuick
 import qs.common.utils
 import qs.common
 
-/*
-    Palette Generator Takes source and return a colorPalette
-*/
+
+
+
 
 Item {
     id: root
@@ -15,7 +15,7 @@ Item {
     property alias depth: quantizer.depth
     property alias rescaleSize: quantizer.rescaleSize
     property bool active: source.length > 0
-    // TODO: MAKE real decoding
+    
     readonly property bool isBase64: source.startsWith("data:") || source.length > 512
 
     ColorQuantizer {
@@ -29,5 +29,7 @@ Item {
         id: palette
         active: !isBase64 && root.active
         keyColor: quantizer?.colors[0] ?? "black"
+        dark: Mem.looks.mode !== "light"
+        scheme: Mem.looks.scheme
     }
 }

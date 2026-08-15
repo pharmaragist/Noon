@@ -16,11 +16,11 @@ Item {
     readonly property var appData: ToplevelManager.toplevels
     Layout.fillHeight: true
     Layout.fillWidth: true
-    // Layout.leftMargin: XPadding.small
+    
     clip: true
     ScrollView {
         anchors.fill: parent
-        contentWidth: 100 // Scrolling per time
+        contentWidth: 100 
         contentHeight: childrenRect.height
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
         RowLayout {
@@ -68,7 +68,7 @@ Item {
 
                         StyledIconImage {
                             implicitSize: 24
-                            source: NoonUtils.iconPath(modelData.appId)
+                            _source: modelData?.appId ?? ""
                         }
                         StyledText {
                             truncate: true

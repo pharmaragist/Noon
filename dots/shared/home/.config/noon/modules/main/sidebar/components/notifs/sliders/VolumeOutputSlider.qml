@@ -29,7 +29,7 @@ Item {
     StyledProgressBar {
         id: volumeSlider
         z: 1
-        // sperm: true
+        
 
         anchors.right: parent.right
         anchors.left: parent.left

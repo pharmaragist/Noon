@@ -66,7 +66,6 @@ StyledRect {
 
     StyledIconImage {
         z: 999
-        mipmap: true
         _source: AppSearch.guessIcon(root.windowData?.class)
         implicitSize: Math.sqrt(Math.pow(parent.width, 2) + Math.pow(parent.height, 2)) * 0.11
         anchors {

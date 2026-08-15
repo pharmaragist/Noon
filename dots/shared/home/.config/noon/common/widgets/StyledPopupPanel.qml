@@ -37,7 +37,7 @@ LazyLoader {
             target: popupBackground
         }
 
-        ShaderRect {
+        PanelRect {
             id: popupBackground
             anchors {
                 fill: parent

@@ -81,7 +81,7 @@ StyledPopup {
                 }
 
                 ResourceBar {
-                    title: modelData.mount   // + " (" + modelData.device + ")"
+                    title: modelData.mount   
                     value: modelData.total > 0 ? modelData.used / modelData.total : 0
                     valueText: (modelData.used / 1073741824).toFixed(1) + " GB / " + (modelData.total / 1073741824).toFixed(1) + " GB"
                 }

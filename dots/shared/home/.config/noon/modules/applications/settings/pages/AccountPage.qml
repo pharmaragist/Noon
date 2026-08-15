@@ -49,7 +49,7 @@ StyledRect {
                 Layout.fillWidth: true
                 spacing: -Padding.normal
                 StyledText {
-                    text: StringUtils.capitalizeFirstLetter(SysInfoService.username)
+                    text: TextUtils.capitalizeFirstLetter(SysInfoService.username)
                     color: Colors.colOnLayer3
                     font: Fonts.request("main", Fonts.sizes.title)
                     Layout.fillWidth: true
@@ -92,7 +92,7 @@ StyledRect {
     component AccountAuthSection: StyledRect {
         required property var modelData
         required property int index
-        readonly property bool isAuth: AuthManager?.isAuth(modelData.authId) ?? false // false
+        readonly property bool isAuth: AuthManager?.isAuth(modelData.authId) ?? false 
         color: Colors.colLayer3
         radius: Rounding.huge
         anchors.right: parent?.right

@@ -11,71 +11,56 @@ Singleton {
     id: root
 
     property string query: ""
-    property string activeState: "ai"
-    property string modelName: Ai?.currentModelId ?? ""
-    property string activeSubState: ""
-    property var suggestedApp: null
-    readonly property string cleanQuery: {
-        if (query.length === 0)
-            return "";
-        const prefix = config?.prefix || "";
-        return prefix !== "" ? query.substring(prefix.length).trim() : query.trim();
-    }
-
-    readonly property var config: registry[activeState]
-    readonly property var subConfig: {
-        if (!activeSubState || !config.subStates)
-            return null;
-        return config.subStates[activeSubState] || null;
-    }
     property string activeHint: ""
-
+    property var suggestedApp: null
+    property string activeState: defaultState
+    property string activeSubState: ""
     property var registry: rebuildRegistry()
-    readonly property var pluginsContent: PluginsManager?.beamPlugins
+
+    readonly property string defaultState: Mem.options.beam.behavior?.defaultState ?? "launch"
+    readonly property string cleanQuery: query.substring(activeState === defaultState ? 0 : config?.prefix?.length)
+    readonly property var config: registry[activeState]
+    readonly property var subConfig: config?.subStates ? config.subStates[activeSubState] : null
     readonly property var rawBeamPlugins: PluginsManager?.beamPlugins
-    readonly property list<string> availableAnimationStyles: ["slidebottom", "overshoot", "expo", "springPop"]
+    readonly property list<string> availableAnimationStyles: ["slidebottom", "expo", "springPop", "glide"]
+    readonly property int dynamicWidth: Math.max(getHint().length, query.length) > 25 ? Sizes.beam.expanded.width : Sizes.beam.normal.width
+
+    onQueryChanged: {
+        if (query && query.length === 0) {
+            reset();
+            return;
+        }
+        const pair = Object.entries(registry).find(([, c]) => c.prefix === query[0]) ?? [];
+        const [key, cfg] = pair;
+        const remainder = query.substring(1);
+        activeState = key || defaultState;
+        activeSubState = !cfg?.subStates || !remainder ? "" : Object.keys(cfg.subStates).find(k => cfg.subStates[k].prefix && remainder.startsWith(cfg.subStates[k].prefix)) ?? Object.keys(cfg.subStates)[0] ?? "";
+    }
+
     onRawBeamPluginsChanged: rebuildRegistry()
 
     readonly property var mainContent: {
         "ai": {
-            prefix: "",
+            prefix: "^",
+            description: "Sends Query to AI",
             icon: "thread_unread",
             shape: "Ghostish",
-            placeholder: "Ask " + root.modelName + " Any Thing ..",
+            placeholder: "You Can Ask Me Any Thing ..",
             showHint: false,
-            showOsrButton: true,
             hinter: () => "",
             executor: () => {
                 Ai.sendUserMessage(query);
-                NoonUtils.callIpc("sidebar reveal API");
+                revealSidebar("API");
             }
-        },
-        "commands": {
-            prefix: ";",
-            icon: "keyboard_return",
-            shape: "Oval",
-            placeholder: "Command Master ..",
-            showHint: true,
-            showOsrButton: false,
-            hinter: () => {
-                if (NoonUtils.avilableSystemCommands.length < 1)
-                    NoonUtils.fetchCommands();
-                const q = cleanQuery.toLowerCase();
-                for (let cmd of NoonUtils.avilableSystemCommands) {
-                    if (cmd.toLowerCase().startsWith(q))
-                        return cmd;
-                }
-                return "";
-            },
-            executor: () => Quickshell.execDetached(["bash", "-c", cleanQuery])
         },
         "calc": {
             prefix: "=",
             icon: "calculate",
+            description: "Calculate math expressions",
             shape: "Hexagon",
             placeholder: "Calculate ..",
             showHint: true,
-            showOsrButton: false,
+            autoComplete: true,
             hinter: () => {
                 if (cleanQuery.length > 0) {
                     QalcService.calculate(cleanQuery, result => {
@@ -93,23 +78,24 @@ Singleton {
         "note": {
             prefix: ",",
             icon: "stylus",
+            description: "Note Query",
             shape: "Slanted",
             placeholder: "Note ..",
             showHint: false,
-            showOsrButton: false,
             hinter: () => "",
             executor: () => {
                 const separator = Mem.options.beam.behavior.addSeparatorForNotes ? "\n - - - " : "";
                 NotesService.note(cleanQuery + separator);
+                revealSidebar("Notes");
             }
         },
         "launch": {
             prefix: ".",
             icon: "rocket_launch",
             shape: "Pentagon",
+            description: "Launch An Application",
             placeholder: "Launch App ..",
             showHint: true,
-            showOsrButton: false,
             hinter: () => {
                 if (cleanQuery === "") {
                     suggestedApp = null;
@@ -154,9 +140,9 @@ Singleton {
             prefix: "~",
             icon: "hourglass",
             shape: "Clover8Leaf",
+            description: "Creates a timer in friendly format, eg: 10m",
             placeholder: "How Long ..",
             showHint: false,
-            showOsrButton: false,
             hinter: () => "",
             executor: () => {
                 const parts = cleanQuery.trim().split(/\s+/);
@@ -169,45 +155,29 @@ Singleton {
                 else if (cleanQuery.includes(":"))
                     TimerService.wake(parts[0], rest);
 
-                NoonUtils.callIpc("sidebar reveal Timers");
+                revealSidebar("Timers");
             }
         },
         "todo": {
             prefix: "/",
+            description: "Create New task",
             icon: "task_alt",
             shape: "Cookie4Sided",
             placeholder: "Any plans ..?",
             showHint: false,
-            showOsrButton: false,
             hinter: () => "",
-            executor: () => TodoService.addTask(cleanQuery)
-        },
-        "ipc": {
-            prefix: "!",
-            icon: "moon_stars",
-            shape: "Pentagon",
-            placeholder: "Just Order ..?",
-            showHint: true,
-            showOsrButton: false,
-            hinter: () => {
-                if (NoonUtils.avilableIpcCommands.length < 1)
-                    NoonUtils.fetchIpcCommands();
-                const q = cleanQuery.toLowerCase();
-                for (let cmd of NoonUtils.avilableIpcCommands) {
-                    if (cmd.toLowerCase().startsWith(q))
-                        return cmd;
-                }
-                return "";
-            },
-            executor: () => NoonUtils.callIpc(cleanQuery)
+            executor: () => {
+                TodoService.addTask(cleanQuery);
+                revealSidebar("Todo");
+            }
         },
         "search": {
             prefix: "?",
+            description: "Search Online with Query",
             icon: "search",
             shape: "PixelCircle",
             placeholder: "Wanna Search Google ..?",
             showHint: true,
-            showOsrButton: false,
             hinter: () => {
                 if (!subConfig && BookmarksService.bookmarkTitles.length > 0) {
                     const q = cleanQuery.toLowerCase();
@@ -235,41 +205,106 @@ Singleton {
                 },
                 "yt_music": {
                     prefix: "m",
+                    description: "Search In Youtube Music Directly",
                     icon: "music_note",
                     shape: "Bun",
                     exec: query => {
                         BeatsHitsService.search(query);
                         Globals.main.sidebar.setTab(2);
-                        NoonUtils.callIpc("sidebar reveal Beats");
+                        revealSidebar("Beats");
                     }
                 },
                 "spotify": {
                     prefix: "s",
+                    description: "Search In Spotify Directly",
                     icon: "music_cast",
                     searchQuery: "https://open.spotify.com/search/",
                     shape: "Cookie7Sided"
-                },
-                "m3": {
-                    prefix: "i",
-                    icon: "glyphs",
-                    searchQuery: "https://fonts.google.com/icons?icon.query=",
-                    shape: "Cookie12Sided"
-                },
-                "github": {
-                    prefix: "g",
-                    icon: "commit",
-                    searchQuery: "https://github.com/search?q=",
-                    shape: "Oval"
                 }
             }
+        },
+        "download": {
+            prefix: "-",
+            description: "Downloads with yt-dlp",
+            icon: "download",
+            shape: "Arrow",
+            placeholder: "Download ..?",
+            showHint: false,
+            hinter: () => "",
+            executor: () => {
+                const raw = cleanQuery.trim();
+                const prefix = subConfig?.prefix ?? "";
+                const query = prefix && raw.startsWith(prefix + " ") ? raw.substring(prefix.length).trim() : raw;
+                if (subConfig?.exec)
+                    subConfig.exec(query);
+            },
+            subStates: {
+                "video": {
+                    prefix: "v",
+                    description: "handle video links",
+                    icon: "play_arrow",
+                    shape: "PixelCircle",
+                    exec: query => DlpService.request({
+                        url: query,
+                        video: true,
+                        directory: Directories.standard.downloads,
+                        toast: true
+                    })
+                },
+                "audio": {
+                    prefix: "m",
+                    description: "handle music links",
+                    icon: "music_note",
+                    shape: "PixelCircle",
+                    exec: query => DlpService.request({
+                        url: query,
+                        audio: true,
+                        directory: BeatsService.tracksDir,
+                        toast: true
+                    })
+                },
+                "audio_search": {
+                    prefix: "?m",
+                    description: "search and match query for audio",
+                    icon: "music_note",
+                    shape: "PixelCircle",
+                    exec: query => DlpService.request({
+                        title: query,
+                        audio: true,
+                        directory: BeatsService.tracksDir
+                    })
+                }
+            }
+        }
+    }
+    readonly property var oldContent: {
+        "commands": {
+            prefix: ";",
+            description: "Execute Bash Commands",
+            icon: "keyboard_return",
+            shape: "Oval",
+            placeholder: "Command Master ..",
+            showHint: true,
+            hinter: () => {
+                if (Mem.store.misc.systemCommands.length < 1)
+                    NoonUtils.fetchCommands();
+                const q = cleanQuery.toLowerCase();
+                for (let cmd of Mem.store.misc.systemCommands) {
+                    if (cmd.toLowerCase().startsWith(q))
+                        return cmd;
+                }
+                return "";
+            },
+            executor: () => Quickshell.execDetached(["bash", "-c", cleanQuery])
         },
         "translate": {
             prefix: ">",
             icon: "translate",
+            description: "Translate Query",
             shape: "Arrow",
             placeholder: "Translate ..?",
             showHint: true,
-            showOsrButton: false,
+            autoComplete: true,
             hinter: () => {
                 if (cleanQuery.length > 0) {
                     TranslatorService.translate(cleanQuery, result => {
@@ -284,103 +319,94 @@ Singleton {
                     ClipboardService.copy(TranslatorService.translatedText);
             }
         },
-        "download": {
-            prefix: "-",
-            icon: "download",
-            shape: "Arrow",
-            placeholder: "Download ..?",
-            showHint: false,
-            showOsrButton: false,
-            hinter: () => "",
-            executor: () => {
-                const query = subConfig ? cleanQuery.substring(subConfig.prefix.length).trim() : cleanQuery.trim();
-                const info = subConfig?.isSearch ? {
-                    title: query
-                } : {
-                    url: query
-                };
-                if (subConfig?.audio)
-                    info.audio = true;
-                else if (subConfig?.video)
-                    info.video = true;
-                if (subConfig?.directory)
-                    info.directory = subConfig.directory;
-                DlpService.request(info);
+        "ipc": {
+            prefix: "!",
+            description: "Launch ipc command",
+            icon: "moon_stars",
+            shape: "Pentagon",
+            placeholder: "Just Order ..?",
+            showHint: true,
+            hinter: () => {
+                if (Mem.store.misc.ipcCommands.length < 1)
+                    NoonUtils.fetchIpcCommands();
+                const q = cleanQuery.toLowerCase();
+                for (let cmd of Mem.store.misc.ipcCommands) {
+                    if (cmd.toLowerCase().startsWith(q))
+                        return cmd;
+                }
+                return "";
             },
-            subStates: {
-                "video": {
-                    prefix: "v",
-                    icon: "play_arrow",
-                    video: true,
-                    shape: "PixelCircle"
-                },
-                "audio": {
-                    prefix: "m",
-                    icon: "music_note",
-                    audio: true,
-                    directory: BeatsService.tracksDir,
-                    shape: "PixelCircle"
-                },
-                "audio_search": {
-                    prefix: "?m",
-                    icon: "music_note",
-                    audio: true,
-                    directory: BeatsService.tracksDir,
-                    isSearch: true,
-                    shape: "PixelCircle"
-                }
-            }
+            executor: () => NoonUtils.callIpc(cleanQuery)
         }
     }
-    function updateStateFromQuery(fullQuery) {
-        query = fullQuery;
 
-        if (fullQuery.length === 0) {
-            activeState = "ai";
-            activeSubState = "";
-            return;
+    
+    readonly property var applets: [
+        {
+            name: "music",
+            visible: BeatsService.players.length > 0,
+            path: "applets/Music"
+        },
+        {
+            name: "weather",
+            visible: WeatherService.isReady,
+            path: "applets/Weather"
         }
-
-        const firstChar = fullQuery[0];
-
-        for (let key in registry) {
-            const stateConfig = registry[key];
-            if (stateConfig.prefix === firstChar && firstChar !== "") {
-                activeState = key;
-                if (stateConfig.subStates) {
-                    updateSubState(fullQuery.substring(1), stateConfig.subStates);
-                } else {
-                    activeSubState = "";
-                }
-                return;
-            }
+    ]
+    readonly property var sizes: Sizes.beam
+    readonly property var contentMap: {
+        "default": {
+            size: Qt.size(root.dynamicWidth, Sizes.beam.normal.height),
+            component: "BeamContentView"
+        },
+        "dictate": {
+            timeout: false,
+            size: sizes.dictate,
+            overlay: "DictationOverlay",
+            component: "DictationContentView"
+        },
+        "shot": {
+            timeout: false,
+            size: sizes.screenshot,
+            overlay: "ScreenShotOverlay",
+            component: "ScreenShotContentView"
+        },
+        "drop": {
+            dim: true,
+            radius: 64,
+            size: sizes.drop,
+            component: "DropContentView"
+        },
+        "music": {
+            dim: true,
+            transparent: true,
+            radius: 0,
+            timeout: false,
+            size: sizes.music,
+            component: "MusicContentView"
+        },
+        "weather": {
+            dim: true,
+            radius: 48,
+            size: sizes.weather,
+            component: "WeatherContentView"
+        },
+        "appearance": {
+            dim: Globals.topLevel?.activated,
+            radius: Rounding.full,
+            timeout: false,
+            size: sizes.appearance,
+            target: "Globals.main.showBgOverview",
+            when: !Globals.topLevel?.activated && Globals.main.beam.show && Globals.main.beam.reason === "appearance",
+            component: "AppearanceContentView"
         }
-
-        activeState = "ai";
-        activeSubState = "";
     }
 
-    function updateSubState(remainder, subStates) {
-        if (!remainder) {
-            activeSubState = "";
-            return;
-        }
-
-        for (let subKey in subStates) {
-            const subPrefix = subStates[subKey].prefix;
-            if (subPrefix !== "" && remainder.startsWith(subPrefix)) {
-                activeSubState = subKey;
-                return;
-            }
-        }
-
-        activeSubState = Object.keys(subStates)[0] || "";
-    }
     function reset() {
         query = "";
-        activeState = "ai";
         activeSubState = "";
         suggestedApp = null;
+        activeState = defaultState;
     }
 
     function getIcon() {
@@ -391,7 +417,7 @@ Singleton {
 
     function getShape() {
         if (subConfig)
-            return subConfig.shape;
+            return MaterialShape.Shape[subConfig?.shape];
         return MaterialShape.Shape[config?.shape];
     }
 
@@ -400,44 +426,10 @@ Singleton {
             activeHint = "";
             return "";
         }
-        debounceTimer.restart();
+        NoonUtils.inlineTimer(() => {
+            activeHint = config?.hinter ? config.hinter() : "";
+        }, 50);
         return activeHint;
-    }
-
-    Timer {
-        id: debounceTimer
-        interval: config?.debounce ?? 120
-        onTriggered: activeHint = config?.hinter ? config.hinter() : ""
-    }
-
-    Process {
-        id: shellRunner
-
-        property string data: ""
-        property var pendingCb: null
-        property string lastQuery: ""
-
-        function run(cmd, cb) {
-            if (running)
-                running = false;
-            data = "";
-            pendingCb = cb ?? null;
-            command = ["bash", "-c", cmd.replace(/\$q/g, root.cleanQuery)];
-            running = true;
-        }
-
-        stdout: SplitParser {
-            onRead: data => shellRunner.data += data + "\n"
-        }
-
-        onExited: {
-            const out = data.trim();
-            root.activeHint = out;
-            if (pendingCb)
-                pendingCb(out);
-            pendingCb = null;
-            data = "";
-        }
     }
 
     function buildPlugins() {
@@ -484,14 +476,20 @@ Singleton {
     }
 
     function rebuildRegistry() {
-        registry = Object.assign({}, mainContent, buildPlugins());
+        let plugins = buildPlugins();
+        let original = [mainContent, plugins];
+        if (Mem.options.beam.behavior.enableOldContent)
+            original.push(root.oldContent);
+        registry = Object.assign({}, ...original);
     }
 
     function executeCommand() {
-        if (cleanQuery.length === 0 && activeState !== "ai")
-            return;
-        if (config?.executor)
+        if (cleanQuery.length > 0 && !!config?.executor)
             config.executor();
+    }
+
+    function revealSidebar(cat) {
+        NoonUtils.callIpc(`sidebar reveal '${cat}'`);
     }
 
     function autocomplete(hintText) {
@@ -500,10 +498,39 @@ Singleton {
 
         const prefix = config?.prefix || "";
 
-        const resultStates = ["calc", "translate"];
-        if (resultStates.includes(activeState))
+        if (config?.autoComplete ?? false)
             return query;
 
         return prefix + hintText;
+    }
+
+    Process {
+        id: shellRunner
+
+        property string data: ""
+        property var pendingCb: null
+        property string lastQuery: ""
+
+        function run(cmd, cb) {
+            if (running)
+                running = false;
+            data = "";
+            pendingCb = cb ?? null;
+            command = ["bash", "-c", cmd.replace(/\$q/g, root.cleanQuery)];
+            running = true;
+        }
+
+        stdout: SplitParser {
+            onRead: data => shellRunner.data += data + "\n"
+        }
+
+        onExited: {
+            const out = data.trim();
+            root.activeHint = out;
+            if (pendingCb)
+                pendingCb(out);
+            pendingCb = null;
+            data = "";
+        }
     }
 }

@@ -2,11 +2,11 @@ import QtQuick
 import QtQuick.Shapes
 import Quickshell
 import qs.common
-import qs.common.widgets.shapes
-import "shapes/geometry/offset.js" as Offset
-import "shapes/material-shapes.js" as MaterialShapes
-import "shapes/shapes/corner-rounding.js" as CornerRounding
-import "shapes/shapes/rounded-polygon.js" as RoundedPolygon
+import qs.vendors.shapes
+import "./../../vendors/shapes/geometry/offset.js" as Offset
+import "./../../vendors/shapes/material-shapes.js" as MaterialShapes
+import "./../../vendors/shapes/shapes/corner-rounding.js" as CornerRounding
+import "./../../vendors/shapes/shapes/rounded-polygon.js" as RoundedPolygon
 
 Item {
     id: root

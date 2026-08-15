@@ -33,7 +33,7 @@ Singleton {
         NoonUtils.playSound("device_unlocked");
         ScreenTimeService.tracker.init(root);
         TimerService.reload();
-        ClipboardService.refresh()
+        ClipboardService.refresh();
         console.log(mode.toUpperCase() + " Initialized");
     }
 
@@ -77,14 +77,25 @@ Singleton {
         property bool locked: false
         property bool exposeView: false
         property bool showOsdValues: false
-        property bool showBeam: false
+        property bool showBgOverview: false
         property bool showScreenshot: false
         property bool canNotify: sidebar?.hoverMode ?? true
+
+        property QtObject beam: QtObject {
+            property bool show: false
+            property bool showCheats: false
+            property string reason: "default"
+        }
+
+        property QtObject clipboard: QtObject {
+            property string mode: ""
+        }
 
         property QtObject dmenu: QtObject {
             property var items
             property var action
         }
+
         property QtObject sysDialogs: QtObject {
             property string mode
             property var pendingData

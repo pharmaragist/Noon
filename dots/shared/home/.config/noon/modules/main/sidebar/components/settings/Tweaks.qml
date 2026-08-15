@@ -11,33 +11,36 @@ SidebarItemContainer {
     ScriptModel {
         id: itemsModel
         values: {
-            if (!searchQuery)
-                return TweaksData.tweaks;
+            var data = TweaksData.tweaks;
 
-            return TweaksData.tweaks.reduce((acc, entry) => {
-                const filter = q => {
-                    return q && q.toLowerCase().includes(searchQuery.toLowerCase());
-                };
+            if (root.currentCategory.length > 0) {
+                data = data.filter(cat => cat.section === root.currentCategory);
+                if (data.length === 0) return data;
+            }
 
-                const matchingItems = entry.items.filter(item => {
-                    const mComboBox = item?.comboBoxValues && item?.comboBoxValues.some(i => filter(i)) || false;
-                    const roles = ["name", "type", "store"];
-                    return mComboBox || roles.some(role => filter(item[role]));
-                });
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const filter = s => s && s.toLowerCase().includes(q);
+                data = data.reduce((acc, entry) => {
+                    const matchingItems = entry.items.filter(item => {
+                        const mComboBox = item?.values?.some(i => filter(i)) || false;
+                        const roles = ["name", "type", "store"];
+                        return mComboBox || roles.some(role => filter(item[role]));
+                    });
+                    if (filter(entry.section)) {
+                        acc.push(entry);
+                    } else if (matchingItems.length > 0) {
+                        acc.push(Object.assign({}, entry, { items: matchingItems }));
+                    }
+                    return acc;
+                }, []);
+            }
 
-                if (filter(entry.section)) {
-                    acc.push(entry);
-                } else if (matchingItems.length > 0) {
-                    acc.push(Object.assign({}, entry, {
-                        items: matchingItems
-                    }));
-                }
-
-                return acc;
-            }, []);
+            return data;
         }
     }
-
+    property string currentCategory: ""
+    property bool showCategories: false
     ColumnLayout {
         anchors.fill: parent
 
@@ -62,9 +65,9 @@ SidebarItemContainer {
             hint: true
             popin: false
             animateAppearance: false
-            model: itemsModel
             reuseItems: false
             spacing: Padding.veryhuge
+            model: itemsModel
             delegate: StyledRect {
                 required property var modelData
                 required property int index
@@ -72,13 +75,14 @@ SidebarItemContainer {
                 anchors.left: parent?.left
                 implicitHeight: sectionContent.implicitHeight + Padding.massive
                 radius: Rounding.veryhuge
-                color: "transparent" //Colors.colLayer1
+                color: "transparent"
 
                 ColumnLayout {
                     id: sectionContent
                     spacing: 3
                     anchors.fill: parent
                     anchors.margins: Padding.large
+
                     StyledRect {
                         id: sectionHeaderBackground
                         implicitWidth: children[1]?.implicitWidth + (Padding.huge * 2)
@@ -91,6 +95,14 @@ SidebarItemContainer {
                         RowLayout {
                             anchors.centerIn: parent
                             spacing: Padding.small
+
+                            Symbol {
+                                id: backArrow
+                                icon: "arrow_back"
+                                iconSize: 18
+                                color: Colors.colOnPrimaryContainer
+                                visible: root.currentCategory.length > 0
+                            }
 
                             Symbol {
                                 icon: modelData?.icon ?? ""
@@ -106,12 +118,39 @@ SidebarItemContainer {
                                 Layout.alignment: Qt.AlignVCenter
                             }
                         }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: (mouse) => {
+                                if (root.currentCategory.length > 0) {
+                                    var pos = mapToItem(backArrow, mouse.x, mouse.y);
+                                    if (pos.x >= -4 && pos.x < backArrow.width + 4 && pos.y >= -4 && pos.y < backArrow.height + 4) {
+                                        root.currentCategory = "";
+                                        root.showCategories = false;
+                                        return;
+                                    }
+                                    root.currentCategory = "";
+                                    root.showCategories = true;
+                                    return;
+                                }
+
+                                if (root.showCategories) {
+                                    if (!!modelData.section) {
+                                        root.currentCategory = modelData.section;
+                                        root.showCategories = false;
+                                    }
+                                    return;
+                                }
+
+                                root.showCategories = true;
+                            }
+                        }
                     }
 
                     Repeater {
                         id: itemsRepeater
                         model: ScriptModel {
-                            values: modelData.items
+                            values: !root.showCategories ? modelData.items : []
                         }
                         delegate: SettingsItem {
                             required property var modelData
@@ -133,13 +172,15 @@ SidebarItemContainer {
                             canRefresh: modelData?.canRefresh ?? false
                             reloadOnChange: modelData?.reloadOnChange ?? false
                             refreshAction: () => modelData?.refreshAction() ?? null
+                            releaseAction: () => modelData?.releaseAction() ?? null
+                            actionIcon: modelData?.actionIcon ?? ""
 
                             minValue: modelData?.minValue ?? 0.0
                             maxValue: modelData?.maxValue ?? 100.0
                             actionName: modelData?.actionName ?? ""
                             stepValue: modelData?.stepValue ?? 0.1
 
-                            comboBoxValues: modelData?.comboBoxValues ?? []
+                            values: modelData?.values ?? []
                             fillHeight: modelData?.fillHeight ?? false
                             visible: modelData?.visible ?? true
                             colors: root.colors

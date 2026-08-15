@@ -4,6 +4,10 @@ m_bind("CTRL+Period", hl.dsp.exec_cmd("wl-paste -p | xargs -0 " .. ipc .. " noon
 m_bind("L", hl.dsp.exec_cmd(ipc .. " global lock"))
 m_bind("SHIFT+R", hl.dsp.exec_cmd(ipc .. " global pick_random_wall"))
 m_bind("ALT+D", hl.dsp.exec_cmd(ipc .. " global toggle_dormant_state"))
+m_bind("SHIFT+S", hl.dsp.exec_cmd(ipc .. " noon reveal_beam shot"))
+m_bind("ALT+M", hl.dsp.exec_cmd(ipc .. " noon reveal_beam music"))
+m_bind("ALT+W", hl.dsp.exec_cmd(ipc .. " noon reveal_beam weather"))
+m_bind("S", hl.dsp.exec_cmd(ipc .. " noon reveal_beam appearance"))
 
 -- Media
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd(ipc .. " global toggle_playing"))
@@ -30,29 +34,30 @@ hl.bind(
 local sidebar = {
     Apps = "Space",
     Walls = "W",
-    View = "Tab",
+    View = "CTRL+Tab",
     Downloads = "J",
     Beats = "M",
     API = "A",
     Sounds = "grave",
-    Widgets = "Escape",
+    Widgets = "Tab",
     Shelf = "Z",
     Tweaks = "I",
     Notifs = "N",
-    History = "V",
-    Emojis = "Period",
     Bookmarks = "ALT+B",
     Web = "ALT+W",
-    Plugins = "ALT+P",
+    Plugins = "P",
     Tasks = "CTRL+T",
     Notes = "CTRL+N",
     Games = "CTRL+G" ,
-    Session = "CTRL+ALT+delete"
+    Session = "Escape"
 }
 
 local noon_actions = {
+    toggle_zen = "CTRL+SHIFT+X",
     toggle_beam = "Super_L" ,
     toggle_bar_mode = "CTRL+X" ,
+    toggle_history = "V",
+    toggle_emoji = "Period",
     swap_bar_position = "ALT+X",
     toggle_dock_pin = "ALT+P"
 }

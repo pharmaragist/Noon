@@ -24,6 +24,7 @@ Item {
 
         spacing: opts.spacing
         BarModulesFactory {
+            panel: barRoot
             vertical: true
             model: opts.topArea
         }
@@ -37,6 +38,7 @@ Item {
         }
         spacing: opts.spacing
         BarModulesFactory {
+            panel: barRoot
             vertical: true
             model: opts.centerArea
         }
@@ -50,6 +52,7 @@ Item {
 
         spacing: opts.spacing
         BarModulesFactory {
+            panel: barRoot
             vertical: true
             model: opts.bottomArea
         }

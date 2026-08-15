@@ -3,9 +3,9 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import "fuzzysort.js" as FuzzySort
 
-/**
- * Wrapper for FuzzySort to play nicely with Quickshell's imports
- */
+
+
+
 
 Singleton {
     function go(...args) {

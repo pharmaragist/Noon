@@ -19,6 +19,7 @@ Singleton {
     readonly property alias games: gamesView.data
     readonly property alias colors: colorsView.data
     readonly property alias beats: beatsView.data
+    readonly property alias pkgs: pkgsView.data
 
     readonly property alias hypr: hyprView.variables
     readonly property alias env: envView.data
@@ -102,5 +103,14 @@ Singleton {
         parentDir: "user/"
         fileName: "looks"
         LooksSchema {}
+    }
+
+    ConfigFileView {
+        id: pkgsView
+
+        state: false
+        parentDir: "user/"
+        fileName: "packages"
+        PackagesSchema {}
     }
 }

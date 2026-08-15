@@ -6,7 +6,7 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-// Material 3 stops slider. See [https://m3.material.io/components/sliders/overview](https://m3.material.io/components/sliders/overview)
+
 Slider {
     id: root
 
@@ -22,7 +22,7 @@ Slider {
     property real trackRadius: Rounding.verysmall * scale
     property real unsharpenRadius: Rounding.tiny
     property real stopIndicatorSize: 4 * scale
-    // Color properties
+    
     property color highlightColor: Colors.colPrimary
     property color trackColor: Colors.colSecondaryContainer
     property color handleColor: Colors.m3.m3onSecondaryContainer
@@ -32,7 +32,7 @@ Slider {
     property real limitedHandleRangeWidth: (root.availableWidth - handleWidth - root.handleLimit * 2)
     property real fixedTrackWidth: root.availableWidth - (5 * scale) - root.handleLimit * 2
     property string tooltipContent: `${Math.round(value * 100)}%`
-    // Wheel handler properties
+    
     property real wheelStepSize: 0.05
     property bool showBackgroundDot: true
     Layout.fillWidth: true
@@ -55,7 +55,7 @@ Slider {
             return mouse.accepted = false;
         }
         cursorShape: root.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-        // Add wheel event handler
+        
         onWheel: wheel => {
             var delta = wheel.angleDelta.y / 120;
             var newValue = root.value + (delta * root.step);
@@ -78,7 +78,7 @@ Slider {
         anchors.verticalCenter: parent.verticalCenter
         implicitHeight: trackHeight
 
-        // Fill left (active/highlighted portion)
+        
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -91,7 +91,7 @@ Slider {
             bottomRightRadius: root.unsharpenRadius
         }
 
-        // Fill right (inactive/track portion)
+        
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
@@ -104,7 +104,7 @@ Slider {
             bottomRightRadius: root.trackRadius
         }
 
-        // Stop indicators
+        
         Repeater {
             model: Math.floor((root.to - root.from) / root.step) + 1
 
@@ -123,7 +123,7 @@ Slider {
             }
         }
 
-        // Dot at the end
+        
         Rectangle {
             visible: root.showBackgroundDot
             anchors.verticalCenter: parent.verticalCenter

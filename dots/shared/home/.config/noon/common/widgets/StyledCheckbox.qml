@@ -4,7 +4,7 @@ import Quickshell
 import qs.common
 
 CheckBox {
-    Material.theme: Material.System
+    Material.theme: Material[Colors.mode]
     Material.accent: Colors.colPrimaryContainer
     Material.primary: Colors.colPrimary
     Material.roundedScale: Rounding.normal

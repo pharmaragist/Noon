@@ -1,45 +1,51 @@
-import qs.store
-import qs.services
-import qs.common
-import qs.common.widgets
-import qs.common.functions
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Wayland
-import Quickshell.Widgets
-import Qt5Compat.GraphicalEffects
+
+import qs.store
+import qs.services
+import qs.common
+import qs.common.widgets
 
 BarGroup {
     id: root
     property var bar
-
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(bar.screen)
-    readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
-    readonly property int workspaceGroup: Math.floor((monitor.activeWorkspace?.id - 1) / number)
-    readonly property int workspaceIndexInGroup: (monitor.activeWorkspace?.id - 1) % number
-
-    // Workspace configuration
-    property int number: Mem.options.bar.workspaces.number
     property list<bool> workspaceOccupied: []
 
-    // Visual properties - centralized
+    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(bar?.screen)
+    readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - 1) / number)
+    readonly property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - 1) % number
+
+    
+    readonly property int number: Mem.options.bar.workspaces.number
+    readonly property bool showBigAppOnly: Mem.options.bar.workspaces.showBigAppOnly ?? false
+    readonly property bool genericSymbols: Mem.options.bar.workspaces.genericSymbols ?? false
+
     readonly property int workspaceButtonWidth: 26
     readonly property real baseIconSize: workspaceButtonWidth * 0.69
     readonly property real shrinkedIconSize: workspaceButtonWidth * 0.55
     readonly property real shrinkedIconMargin: -4
     readonly property int buttonMargin: 2
-    readonly property real previewScale: 0.2
-    readonly property size previewMaxSize: Qt.size((bar.screen?.width ?? 1920) * previewScale, (bar.screen?.height ?? 1080) * previewScale)
-    readonly property real previewIconScale: 0.15
-    readonly property bool borders: Mem.options.bar.appearance.modulesBg
-    readonly property int positionMultiplier: Mem.options.bar.behavior.position === "left" ? -1 : 1
+    readonly property real iconSpacing: 3
+    readonly property int buttonHPadding: 4
+    readonly property real bgPadding: Padding.large
+    readonly property real bgVPadding: Padding.normal
+
     vertical: false
-    // Layout.leftMargin: Padding.normal
-    // Layout.rightMargin: Padding.normal
+    implicitWidth: buttonsRow.implicitWidth + 2 * bgVPadding
+    implicitHeight: buttonsRow.implicitHeight
+
+    function xAt(i) {
+        if (i <= 0)
+            return buttonsRow.x + (buttonsRepeater.itemAt(0)?.x ?? 0);
+        const k = Math.min(Math.floor(i), number - 1);
+        const btn = buttonsRepeater.itemAt(k);
+        if (!btn)
+            return 0;
+        return buttonsRow.x + btn.x + (i - k) * btn.width;
+    }
 
     function updateWorkspaceOccupied() {
         workspaceOccupied = Array.from({
@@ -47,15 +53,25 @@ BarGroup {
         }, (_, i) => Hyprland.workspaces.values.some(ws => ws.id === workspaceGroup * number + i + 1));
     }
 
-    function findToplevelForWindow(hyprlandWindow) {
-        if (!hyprlandWindow?.address)
-            return null;
-
-        return ToplevelManager.toplevels.values.find(toplevel => {
-            if (!toplevel.HyprlandToplevel)
-                return false;
-            return `0x${toplevel.HyprlandToplevel.address}` === hyprlandWindow.address;
-        }) ?? null;
+    function genericSymbolFor(cls) {
+        if (!cls)
+            return "";
+        const rules = [
+            { pattern: /brave|firefox|zen|chromium|chrome|opera|vivaldi/i, icon: "globe" },
+            { pattern: /dolphin|nautilus|files|thunar|nemo|pcmanfm|ranger/i, icon: "folder" },
+            { pattern: /steam|heroic|lutris|gamescope|bottles/i, icon: "joystick" },
+            { pattern: /kitty|ghostty|alacritty|foot|wezterm|konsole|xterm/i, icon: "terminal_2" },
+            { pattern: /code|zed|antigravity|cursor|windsurf/i, icon: "data_object" },
+            { pattern: /discord|slack|telegram|whatsapp|signal|element|hexchat/i, icon: "chat" },
+            { pattern: /thunderbird|evolution|mailspring/i, icon: "mail" },
+            { pattern: /spotify|vlc|mpv|audacious|rhythmbox|cmus|strawberry/i, icon: "music_note" },
+            { pattern: /gimp|krita|inkscape|pinta|photoshop|illustrator/i, icon: "palette" },
+            { pattern: /libreoffice|onlyoffice|wps/i, icon: "description" },
+            { pattern: /zoom|meet|teams|webex/i, icon: "videocam" },
+            { pattern: /systemsettings|gnome-control|xfce4-settings|kdeconnect/i, icon: "settings" },
+            { pattern: /obsidian|notion|todoist|joplin/i, icon: "checklist" },
+        ];
+        return rules.find(r => r.pattern.test(cls))?.icon ?? "";
     }
 
     Component.onCompleted: updateWorkspaceOccupied()
@@ -67,9 +83,6 @@ BarGroup {
         }
     }
 
-    implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 2
-    implicitHeight: rowLayout.implicitHeight
-
     WheelHandler {
         onWheel: event => HyprlandService.focusWs(`r${event.angleDelta.y < 0 ? '+' : '-'}1`)
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -78,61 +91,44 @@ BarGroup {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.BackButton
-        onPressed: event => {
-            if (event.button === Qt.BackButton) {
-                HyprlandService.focusWs("special");
-            }
+        onPressed: HyprlandService.focusWs("special")
+    }
+
+    Repeater {
+        model: root.number
+
+        StyledRect {
+            readonly property var targetButton: buttonsRepeater?.itemAt(index ?? 0)
+            readonly property int workspaceId: root.workspaceGroup * root.number + index + 1
+            readonly property bool isOccupied: HyprlandService.windowList.some(w => w.workspace?.id === workspaceId)
+            readonly property bool adjacentOccupiedLeft: index === 0 ? false : HyprlandService.windowList.some(w => w.workspace?.id === workspaceId - 1)
+            readonly property bool adjacentOccupiedRight: index === root.number - 1 ? false : HyprlandService.windowList.some(w => w.workspace?.id === workspaceId + 1)
+
+            z: 1
+            height: 34 * 0.8
+            x: targetButton ? buttonsRow.x + targetButton.x : 0
+            width: targetButton ? targetButton.width : 0
+            anchors.verticalCenter: parent.verticalCenter
+            color: Colors.colLayer3Hover
+            opacity: isOccupied ? 1 : 0
+            leftRadius: adjacentOccupiedLeft ? 0 : Rounding.full
+            rightRadius: adjacentOccupiedRight ? 0 : Rounding.full
         }
     }
 
-    // Background workspace indicators
-    RowLayout {
-        id: rowLayout
-        z: 1
-        spacing: 0
-        anchors.fill: parent
-        implicitHeight: 40
-
-        Repeater {
-            model: number
-
-            StyledRect {
-                readonly property bool isActiveWorkspace: monitor.activeWorkspace?.id === index + 1
-                readonly property bool isOccupied: workspaceOccupied[index] && !(isActiveWorkspace && !activeWindow?.activated)
-                readonly property bool adjacentOccupiedLeft: workspaceOccupied[index - 1] && !isActiveWorkspace
-                readonly property bool adjacentOccupiedRight: workspaceOccupied[index + 1] && !(!activeWindow?.activated && monitor.activeWorkspace?.id === index + 2)
-
-                z: 1
-                opacity: isOccupied ? 1 : 0
-                implicitWidth: workspaceButtonWidth
-                implicitHeight: workspaceButtonWidth
-                color: Colors.colLayer3Hover
-                leftRadius: adjacentOccupiedLeft ? 0 : Rounding.full
-                rightRadius: adjacentOccupiedRight ? 0 : Rounding.full
-            }
-        }
-    }
-
-    // Active workspace indicator
     Rectangle {
-        readonly property real computedWidth: Math.abs(idx1 - idx2) * workspaceButtonWidth + workspaceButtonWidth - margin * 2
-        readonly property real computedX: Math.min(idx1, idx2) * workspaceButtonWidth + margin
-
         z: 2
-        property real margin: buttonMargin
-        property real idx1: workspaceIndexInGroup
-        property real idx2: workspaceIndexInGroup
-
-        implicitHeight: workspaceButtonWidth - margin * 2
-        implicitWidth: computedWidth
+        height: root.workspaceButtonWidth - root.buttonMargin * 2
         anchors.verticalCenter: parent.verticalCenter
-        x: computedX
+
+        property real idx1: root.workspaceIndexInGroup
+        property real idx2: root.workspaceIndexInGroup
+
+        x: root.xAt(Math.min(idx1, idx2)) + root.buttonMargin
+        width: Math.max(0, root.xAt(Math.max(idx1, idx2) + 1) - root.xAt(Math.min(idx1, idx2)) - root.buttonMargin * 2)
         radius: Rounding.full
         color: Colors.colPrimary
 
-        Behavior on margin {
-            Anim {}
-        }
         Behavior on idx1 {
             Anim {
                 duration: Animations.durations.small
@@ -145,54 +141,78 @@ BarGroup {
         }
     }
 
-    // Workspace buttons with icons and popups
     RowLayout {
-        id: rowLayoutNumbers
+        id: buttonsRow
         z: 3
         spacing: 0
-        anchors.fill: parent
         implicitHeight: 40
 
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            left: parent.left
+            right: parent.right
+            leftMargin: root.bgVPadding
+            rightMargin: root.bgVPadding
+        }
+
         Repeater {
-            model: number
+            id: buttonsRepeater
+            model: root.number
 
             Button {
                 id: button
-
-                readonly property int workspaceValue: workspaceGroup * number + index + 1
-                readonly property string displayText: WorkspaceLabelManager.getDisplayText(workspaceValue)
-                readonly property string currentMode: WorkspaceLabelManager.currentMode
+                readonly property int workspaceValue: root.workspaceGroup * root.number + index + 1
+                readonly property string displayText: WsData.getDisplayText(workspaceValue)
+                readonly property string currentMode: WsData.currentMode
                 readonly property bool isActive: monitor.activeWorkspace?.id === workspaceValue
 
-                readonly property var biggestWindow: {
-                    const windows = HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue);
-                    return windows.reduce((maxWin, win) => {
-                        const maxArea = (maxWin?.size?.[0] ?? 0) * (maxWin?.size?.[1] ?? 0);
-                        const winArea = (win?.size?.[0] ?? 0) * (win?.size?.[1] ?? 0);
-                        return winArea > maxArea ? win : maxWin;
-                    }, null);
+                readonly property var windows: {
+                    const inWs = HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue && w.class);
+                    if (root.showBigAppOnly) {
+                        const counts = {};
+                        for (const w of inWs)
+                            counts[w.class] = (counts[w.class] ?? 0) + 1;
+                        let bestClass = null, bestCount = 0;
+                        for (const cls in counts)
+                            if (counts[cls] > bestCount) { bestClass = cls; bestCount = counts[cls]; }
+                        if (!bestClass)
+                            return [];
+                        return inWs.filter(w => w.class === bestClass).slice(0, 1);
+                    }
+                    const out = [];
+                    const perClass = {};
+                    for (const w of inWs) {
+                        const n = perClass[w.class] ?? 0;
+                        if (n >= 3)
+                            continue;
+                        perClass[w.class] = n + 1;
+                        out.push(w);
+                    }
+                    return out;
                 }
 
-                readonly property var windowToplevel: root.findToplevelForWindow(biggestWindow)
-                readonly property string appIconSource: biggestWindow?.class ? NoonUtils.iconPath(DesktopEntries?.byId(biggestWindow.class).icon) : ""
-                readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || !biggestWindow
+                readonly property int windowCount: windows.length
+                readonly property var windowCountFor: (cls) => cls ? HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue && w.class === cls).length : 0
+                readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || windowCount === 0
+                readonly property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
+                readonly property real buttonWidth: Math.max(root.workspaceButtonWidth, windowCount * iconSize + Math.max(0, windowCount - 1) * (showNumber ? 0 : root.iconSpacing) + root.buttonHPadding) + (windowCount > 1 ? root.bgPadding : 0)
 
                 Layout.fillHeight: true
-                width: workspaceButtonWidth
+                width: buttonWidth
                 onPressed: HyprlandService.focusWs(workspaceValue)
 
                 background: Item {
-                    implicitWidth: workspaceButtonWidth
-                    implicitHeight: workspaceButtonWidth
+                    implicitWidth: button.buttonWidth
+                    implicitHeight: root.workspaceButtonWidth
 
-                    // Workspace number
-                    StyledText {
-                        readonly property color textColor: button.isActive ? Colors.colOnPrimary : (workspaceOccupied[index] ? Colors.colOnSecondaryContainer : Colors.colOnLayer1Inactive)
+                    Symbol {
+                        readonly property color textColor: button.isActive ? Colors.colOnPrimary : (root.workspaceOccupied[index] ? Colors.colOnSecondaryContainer : Colors.colOnLayer1Inactive)
 
+                        fill: 1
                         opacity: button.showNumber ? 0.8 : 0
                         anchors.centerIn: parent
-                        font: Fonts.request("numbers", WorkspaceLabelManager.getFontPixelSize(button.currentMode, button.displayText))
-
+                        font: Fonts.request("numbers", WsData.getFontPixelSize(button.currentMode, button.displayText))
                         text: button.displayText
                         color: textColor
                         horizontalAlignment: Qt.AlignCenter
@@ -202,34 +222,86 @@ BarGroup {
                         }
                     }
 
-                    StyledIconImage {
-                        id: mainAppIcon
+                    Item {
+                        readonly property real offsetMultiplier: button.showNumber ? 2 * root.shrinkedIconMargin : 0
 
-                        readonly property int offsetMultiplier: button.showNumber ? 2 * root.shrinkedIconMargin : 0
+                        implicitWidth: iconsRow.implicitWidth
+                        implicitHeight: iconsRow.implicitHeight
 
                         anchors {
                             centerIn: parent
                             verticalCenterOffset: button.showNumber ? -offsetMultiplier : 0
                             horizontalCenterOffset: button.showNumber ? -offsetMultiplier : 0
                         }
-                        asynchronous: true
-                        source: button.appIconSource
-                        implicitSize: button.showNumber ? root.shrinkedIconSize : root.baseIconSize
-                        tint: 0.4
-                        opacity: button.biggestWindow ? 1 : 0
+                        opacity: button.windowCount > 0 ? 1 : 0
                         visible: opacity > 0
 
                         Behavior on opacity {
                             Anim {}
                         }
-                        Behavior on anchors.verticalCenterOffset {
-                            Anim {}
-                        }
-                        Behavior on anchors.horizontalCenterOffset {
-                            Anim {}
-                        }
-                        Behavior on implicitSize {
-                            Anim {}
+
+                        RowLayout {
+                            id: iconsRow
+                            anchors.fill: parent
+                            spacing: button.showNumber ? 0 : root.iconSpacing
+
+                            Repeater {
+                                model: button.windows
+
+                                Item {
+                                    readonly property var windowData: modelData
+                                    readonly property int windowCount: button.windowCountFor(windowData.class)
+                                    readonly property bool isLastOfClass: {
+                                        for (let i = index + 1; i < button.windows.length; i++)
+                                            if (button.windows[i].class === windowData.class)
+                                                return false;
+                                        return true;
+                                    }
+                                    readonly property real badgeSize: Math.max(10, button.iconSize * 0.62)
+                                    readonly property string genericSymbol: root.genericSymbols ? root.genericSymbolFor(windowData.class) : ""
+                                    readonly property var desktopEntry: DesktopEntries?.byId(windowData.class)
+
+                                    implicitWidth: button.iconSize
+                                    implicitHeight: button.iconSize
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    StyledIconImage {
+                                        anchors.fill: parent
+                                        visible: genericSymbol === ""
+                                        source: windowData?.class ? NoonUtils.iconPath(desktopEntry?.genericIcon || desktopEntry?.icon || "applications-system") : ""
+                                        tint: 0.4
+                                    }
+
+                                    Symbol {
+                                        anchors.fill: parent
+                                        visible: genericSymbol !== ""
+                                        text: genericSymbol
+                                        iconSize: button.iconSize * 0.72
+                                        color: button.isActive ? Colors.colOnPrimary : Colors.colOnSecondaryContainer
+                                        horizontalAlignment: Qt.AlignHCenter
+                                        verticalAlignment: Qt.AlignVCenter
+                                    }
+
+                                    Rectangle {
+                                        visible: !root.showBigAppOnly && windowCount > 3 && isLastOfClass
+                                        anchors.right: parent.right
+                                        anchors.bottom: parent.bottom
+                                        width: badgeSize
+                                        height: badgeSize
+                                        radius: badgeSize / 2
+                                        color: Colors.colPrimary
+
+                                        Symbol {
+                                            anchors.fill: parent
+                                            text: "more_horiz"
+                                            iconSize: badgeSize * 0.7
+                                            color: Colors.colOnPrimary
+                                            horizontalAlignment: Qt.AlignHCenter
+                                            verticalAlignment: Qt.AlignVCenter
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         MouseArea {

@@ -22,14 +22,8 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: opts.screenCorners > 0
+        enabled: opts.screenCorners !== "Disabled"
         ScreenCorners {}
-    }
-
-    WidgetLoader {
-        enabled: opts.widgets.enabled
-        reloadOn: Mem.options.bar.behavior.position
-        DesktopWidgets {}
     }
 
     WidgetLoader {

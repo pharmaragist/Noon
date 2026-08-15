@@ -21,7 +21,7 @@ args = parser.parse_args()
 content_lines = []
 reading_line = 0
 
-# Little Parser made for hyprland keybindings conf file
+
 Variables: Dict[str, str] = {}
 
 
@@ -153,9 +153,9 @@ def get_keybind_at_line(line_number, line_start=0):
     mods, key, dispatcher, *params = list(map(str.strip, keys.split(",", 4)))
     params = "".join(map(str.strip, params))
 
-    # Remove empty spaces
+    
     comment = list(map(str.strip, comment))
-    # Add comment if it exists, else generate it
+    
     if comment:
         comment = comment[0]
         if comment.startswith("[hidden]"):
@@ -166,7 +166,7 @@ def get_keybind_at_line(line_number, line_start=0):
     if mods:
         modstring = (
             mods + MOD_SEPARATORS[0]
-        )  # Add separator at end to ensure last mod is read
+        )  
         mods = []
         p = 0
         for index, char in enumerate(modstring):
@@ -183,23 +183,23 @@ def get_keybind_at_line(line_number, line_start=0):
 def get_binds_recursive(current_content, scope):
     global content_lines
     global reading_line
-    # print("get_binds_recursive({0}, {1}) [@L{2}]".format(current_content, scope, reading_line + 1))
-    while reading_line < len(content_lines):  # TODO: Adjust condition
+    
+    while reading_line < len(content_lines):  
         line = content_lines[reading_line]
         heading_search_result = re.search(TITLE_REGEX, line)
-        # print("Read line {0}: {1}\tisHeading: {2}".format(reading_line + 1, content_lines[reading_line], "[{0}, {1}, {2}]".format(heading_search_result.start(), heading_search_result.start() == 0, ((heading_search_result != None) and (heading_search_result.start() == 0))) if heading_search_result != None else "No"))
+        
         if (heading_search_result != None) and (
             heading_search_result.start() == 0
-        ):  # Found title
-            # Determine scope
+        ):  
+            
             heading_scope = line.find("!")
-            # Lower? Return
+            
             if heading_scope <= scope:
                 reading_line -= 1
                 return current_content
 
             section_name = line[(heading_scope + 1) :].strip()
-            # print("[[ Found h{0} at line {1} ]] {2}".format(heading_scope, reading_line+1, content_lines[reading_line]))
+            
             reading_line += 1
             current_content["children"].append(
                 get_binds_recursive(Section([], [], section_name), heading_scope)
@@ -212,10 +212,10 @@ def get_binds_recursive(current_content, scope):
             if keybind != None:
                 current_content["keybinds"].append(keybind)
 
-        elif line == "" or not line.lstrip().startswith("bind"):  # Comment, ignore
+        elif line == "" or not line.lstrip().startswith("bind"):  
             pass
 
-        else:  # Normal keybind
+        else:  
             keybind = get_keybind_at_line(reading_line)
             if keybind != None:
                 current_content["keybinds"].append(keybind)

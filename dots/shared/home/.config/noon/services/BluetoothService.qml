@@ -195,7 +195,7 @@ Singleton {
         return devices.filter(dev => dev && dev.connected);
     }
 
-    // Aproximity
+    
     property var _ignored: ({})
     property var _popupDevice: null
 

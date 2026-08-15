@@ -2,7 +2,20 @@
 * GTK Colors
 * Generated with Matugen
 */
-
+/* window headerbar, */
+/* window .titlebar, */
+/* window headerbar .title, */
+/* window headerbar button { */
+/*     margin: 0; */
+/*     padding: 0; */
+/*     min-height: 0; */
+/*     height: 0; */
+/*     border: none; */
+/*     background: none; */
+/*     box-shadow: none; */
+/*     opacity: 0; */
+/*     visibility: hidden; */
+/* } */
 @media (prefers-color-scheme: light) {
     /* Accents */
     @define-color accent_color {{colors.primary.light.hex}};

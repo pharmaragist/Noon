@@ -6,9 +6,9 @@ JsonAdapter {
 
     property JO options: JO {
         property int fetchLimit: 24
-        property bool adaptiveTheme: false
+        property bool adaptiveTheme: true
         property string visualizerMode: "Filled"
-        property list<string> excludedPlayers: ["playerctld", "mpv", "firefox", "chromium", "kdeconnect"]
+        property list<string> excludedPlayers: ["playerctld", "kdeconnect"]
         property bool showLyrics: true
         property string homePageStyle: "PixelPlayer"
     }

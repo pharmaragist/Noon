@@ -10,12 +10,12 @@ import qs.modules.main.sidebar.components.settings
 AppWindow {
     id: root
 
-    /*
-        - [ ] titleBar
-        - [ ] Controls Row
-        - [ ] Explorer Style Navigation
+    
 
-    */
+
+
+
+
 
     function dismiss() {
         root.visible = false;

@@ -8,7 +8,7 @@ RectangularShadow {
     required property var target
     property bool show: true
     property real transparency: 0.2
-    z: -9999
+    z: Math.min(target?.z, -9999)
     blur: 25
     spread: 0.25
     cached: true

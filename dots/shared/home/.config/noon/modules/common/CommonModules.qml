@@ -15,7 +15,7 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: Mem.options.desktop.bg.borderMultiplier > 0
+        enabled: Mem.options.desktop.enableFrame
         Border {}
     }
 

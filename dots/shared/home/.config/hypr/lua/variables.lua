@@ -8,7 +8,7 @@ mainMod = "SUPER"
 
 -- Apps
 terminal = "kitty"
-terminal_alt = "foot"
+terminal_alt = "kitty"
 terminal_opacity = 1
 browser = "firefox"
 browser_alt = "firefox"
@@ -18,10 +18,10 @@ task_manager = ipc .. "sidebar reveal TaskManager"
 task_manager_alt = terminal .. ' fish -c "nvtop"'
 
 -- Decoration & Layout
-blur = true
+blur = false
 unblur_apps = true
-blur_size = 4
-blur_passes = 3
+blur_size = 6
+blur_passes = 2
 noise = 3
 xray = true
 ignore_opacity = true
@@ -30,19 +30,19 @@ shadows = true
 shadows_power = 5
 shadows_range = 30
 gaps_in = 5
-gaps_out = 10
+gaps_out = 20
 gaps_special = 40
 borders = 0
-rounding = 20
+rounding = 27
 rounding_power = 2
 layers_alpha = 0.4
 applications_opacity = 1
 hypr_col_alpha = 50
-font_main = "SF Compact Rounded"
+font_main = "Roboto"
 layout = "master"
 vertical = true
 debug_overlay = false
-cursor_theme = "Breeze Light"
+cursor_theme = "GoogleDot-White"
 cursor_size = 24
 animation_style = "springs"
 animation_scale = 0.5
@@ -50,8 +50,8 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "left"
-bar_width = 50
+bar_location = "right"
+bar_width = 52
 -- Monitors
 active_monitor = hl.get_active_monitor()
 m_width = active_monitor and active_monitor.width or 1920

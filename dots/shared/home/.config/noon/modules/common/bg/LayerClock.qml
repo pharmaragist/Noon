@@ -99,14 +99,14 @@ Rectangle {
 
             RowLayout {
                 Symbol {
-                    text: weatherData.currentEmoji
+                    text: weatherData.material_icon
                     font.pixelSize: dateText.font.pixelSize * 0.85
                     color: dateText.color
                     fill: 1
                 }
 
                 StyledText {
-                    text: weatherData.currentTemp
+                    text: weatherData.current_temp
                     font.pixelSize: dateText.font.pixelSize
                     font.family: dateText.font.family
                     font.weight: root.activeFontInfo.weight ?? 700

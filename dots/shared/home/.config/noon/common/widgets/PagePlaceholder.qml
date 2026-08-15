@@ -18,7 +18,7 @@ Item {
     property alias colBackground: shapeWidget.color
     property alias colOnBackground: shapeWidget.colSymbol
     property int spacing: Padding.large
-    property QtObject colors: Colors
+    property var colors: Colors
 
     opacity: shown ? 1 : 0
     visible: opacity > 0

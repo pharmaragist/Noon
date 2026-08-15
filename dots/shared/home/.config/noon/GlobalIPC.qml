@@ -32,9 +32,8 @@ Scope {
         }
 
         function trigger_autostart_apps(): void {
-            const apps = Mem.options.services.autoExecAppsList;
-            apps.forEach(app => {
-                NoonUtils.execDetached([app]);
+            Mem.options.services.autoExecAppsList.forEach(cmd => {
+                NoonUtils.execDetached(["bash", "-c", cmd]);
             });
         }
 
@@ -162,6 +161,9 @@ Scope {
 
         function volume_up(): void {
             AudioService.sink.audio.volume += 0.1;
+        }
+        function install_pkg(name:string) {
+            PackagesService.install(name)
         }
     }
 

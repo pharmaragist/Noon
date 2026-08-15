@@ -11,18 +11,19 @@ Item {
     id: panel
     visible: category.length > 0
     anchors.fill: parent
-    anchors.margins: Padding.huge
 
     required property string category
-    required property QtObject colors
-    readonly property bool effectiveSearchable: SidebarData.isSearchable(category)
+    required property var colors
+
     property string previousCategory: ""
     property bool _detached: false
-    property bool _expanded: parentRoot?.expanded
+    property bool _expanded: parentRoot?.expanded ?? false
     property bool _aux: false
-    property alias searchInput: searchBar.searchInput
     property int selectedTabIndex: 0
     property var parentRoot: Globals.main.sidebar
+
+    readonly property bool effectiveSearchable: SidebarData.isSearchable(category)
+    readonly property var focusItem: effectiveSearchable ? searchBar.searchInput : (contentItem?.focusItem ?? contentItem)
     readonly property var contentItem: contentStack.currentItem
 
     signal contentFocusRequested
@@ -39,6 +40,12 @@ Item {
         previousCategory = category;
     }
 
+    Behavior on anchors.margins {
+        Anim {
+            _duration: "small"
+        }
+    }
+
     RippleButtonWithIcon {
         z: 999
         visible: panel._aux
@@ -51,6 +58,7 @@ Item {
         opacity: this.hovered ? 1 : 0.45
         onClicked: NoonUtils.callIpc("sidebar dismiss_aux")
     }
+
     ColumnLayout {
         spacing: Padding.large
         clip: true

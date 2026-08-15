@@ -10,7 +10,7 @@ Item {
         bottom: parent.bottom
         right: parent.right
         left: parent.left
-        margins: -Padding.large // To Overcome the content padding set by the ApplicationSkeleton
+        margins: -Padding.large 
     }
 
     height: 5

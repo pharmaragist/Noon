@@ -11,7 +11,7 @@ GAME_NAME=""
 GAME_ID=""
 COVER_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/game_covers"
 
-while [[ $# -gt 0 ]]; do
+while [[ $
     case "$1" in
         --name) GAME_NAME="$2"; shift 2 ;;
         --id)   GAME_ID="$2";   shift 2 ;;

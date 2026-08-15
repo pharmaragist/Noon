@@ -15,13 +15,47 @@ Scope {
         function toggle_expose() {
             Globals.main.exposeView = !Globals.main.exposeView;
         }
-        function toggle_beam() {
-            Globals.main.showBeam = !Globals.main.showBeam;
+
+        function reveal_beam(mode: string) {
+            const opts = Globals.main.beam;
+            if (opts.reason === mode) {
+                opts.show = false;
+                opts.reason = "default";
+                return;
+            }
+            opts.show = true;
+            opts.reason = mode;
         }
+
+        function toggle_beam() {
+            const opts = Globals.main.beam;
+            opts.show = !opts.show;
+            Qt.callLater(() => {
+                if (opts.reason !== "default")
+                    opts.reason = "default";
+            });
+        }
+
+        function toggle_history() {
+            Globals.main.clipboard.mode === "history" ? Globals.main.clipboard.mode = "" : Globals.main.clipboard.mode = "history";
+        }
+
+        function toggle_emoji() {
+            Globals.main.clipboard.mode === "emoji" ? Globals.main.clipboard.mode = "" : Globals.main.clipboard.mode = "emoji";
+        }
+
         function translate(query: string): string {
             BeamData.query = "< " + query;
             toggle_beam();
         }
+
+        function toggle_zen() {
+            if (BarData.isVertical)
+                Mem.options.bar.verticalLayout !== "VSleek" ? Mem.options.bar.verticalLayout = "VSleek" : Mem.options.bar.verticalLayout = "VDynamic";
+            else
+                Mem.options.bar.horizontalLayout !== "Sleek" ? Mem.options.bar.horizontalLayout = "Sleek" : Mem.options.bar.horizontalLayout = "Dynamic";
+        }
+
         function toggle_bar_mode() {
             Mem.options.bar.behavior.position = BarData.toggleLayout();
         }

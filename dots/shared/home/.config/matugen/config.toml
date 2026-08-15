@@ -5,6 +5,12 @@
 input_path = '~/.config/matugen/templates/colors.json'
 output_path = '~/.noon/user/colors.json'
 
+[templates.helium]
+enabled = false
+input_path = '~/.config/matugen/templates/applications/helium.json'
+output_path = '~/.cache/noon/user/generated/helium/manifest.json'
+post_hook = '~/.config/matugen/scripts/helium-reload.sh'
+
 [templates.btop]
 enabled = false
 input_path = "~/.config/matugen/templates/applications/btop.theme"
@@ -17,6 +23,10 @@ output_path = "~/.config/opencode/themes/noon.json"
 [templates.obsidian]
 input_path = "~/.config/matugen/templates/applications/obsidian.css"
 output_path = "~/Documents/Notes/.obsidian/snippets/noon.css"
+
+[templates.m3_obsidian]
+input_path = "~/.config/matugen/templates/applications/material-obsidian.css"
+output_path = "~/Documents/Notes/.obsidian/snippets/material_obsidian.css"
 
 #IGNORE
 [templates.temp_qt]
@@ -69,9 +79,13 @@ enabled = false
 input_path = "~/.config/matugen/templates/applications/spicetify.ini"
 output_path = "~/.config/spicetify/Themes/noon/color.ini"
 
-[templates.discord]
+[templates.vesktop]
 input_path = "~/.config/matugen/templates/applications/discord.css"
 output_path = "~/.config/vesktop/themes/noon.css"
+
+[templates.m3_vesktop]
+input_path = "~/.config/matugen/templates/applications/material-discord.css"
+output_path = "~/.config/vesktop/themes/material-discord.css"
 
 [templates.zed]
 input_path = '~/.config/matugen/templates/applications/zed.json'

@@ -22,7 +22,7 @@ Singleton {
     readonly property int currentBarExclusiveSize: settings.appearance.size
     readonly property list<string> separatorStyles: ["dot", "slant", "thin", "thick" ,"dots","thins","thicks"]
 
-    // Bar Modules
+    
     readonly property var contentTable: {
         "spacer": "Spacer",
         "power": "PowerIcon",
@@ -52,7 +52,7 @@ Singleton {
         "brightness": "BrightnessIndicator"
     }
 
-    // Horizontal-specific module substitutions
+    
     readonly property var horizontalSubstitutions: {
         "workspaces": "Workspaces",
         "title": "ActiveWindow",
@@ -62,13 +62,13 @@ Singleton {
         "separator": "HSeparator"
     }
 
-    // Helper for check and set bar pos
+    
     function setPosition(pos) {
         if (positions.indexOf(pos) > -1)
             settings.behavior.position = pos;
     }
 
-    // Toggle Between Vertical and Horizontal
+    
     function toggleLayout() {
         const pairs = {
             "left": "top",
@@ -107,7 +107,7 @@ Singleton {
             }, currentObjectData));
     }
 
-    // -> preset topArea - bottomArea - CenterArea ? need name and
+    
     function savePreset(id, preset, orientation) {
         const validOrientations = ["horizontal", "vertical"];
         if (!preset) {
@@ -119,7 +119,7 @@ Singleton {
         }
         const objMap = orientation[0] + "Map";
         const store = settings.dynamicPresets[objMap];
-        // if (store.find(p => p.id !== id))
+        
         const data = Object.assign({
             name: id
         }, preset);

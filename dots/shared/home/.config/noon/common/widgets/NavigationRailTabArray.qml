@@ -25,7 +25,7 @@ Item {
         implicitWidth: tabBarColumn.children[root.currentIndex].visualWidth
 
         anchors {
-            // topMargin: root.currentIndex * (itemHeight + spacing) + (root.expanded ? 0 : ((itemHeight - baseHighlightHeight) / 2))
+            
 
             top: tabBarColumn.top
             left: tabBarColumn.left

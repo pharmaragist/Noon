@@ -2,9 +2,9 @@ import QtQuick
 import Quickshell
 import qs.common
 
-/*
- * Widget to be placed on a WidgetCanvas
- */
+
+
+
 MouseArea {
     id: root
 

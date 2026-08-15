@@ -6,6 +6,7 @@ import qs.common.widgets
 
 StyledRect {
     id: root
+
     required property var modelData
     required property int index
     readonly property alias eventArea: eventArea
@@ -17,7 +18,8 @@ StyledRect {
     property bool listMode: false
     property int margins: listMode ? Padding.small : Padding.large
     clip: true
-    color: Colors.colLayer2
+    color: colors.colLayer2
+    colors: BeatsService.colors
 
     topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.tiny) : Rounding.huge
     bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.tiny) : Rounding.huge
@@ -49,7 +51,7 @@ StyledRect {
         anchors.bottom: parent.bottom
         anchors.left: root.listMode ? coverArt.right : parent.left
 
-        color: Colors.m3.m3surfaceContainerHigh
+        color: root.colors.colLayer3
         width: parent.width - 50
         height: 45
         RowLayout {
@@ -70,7 +72,7 @@ StyledRect {
                     text: root.title
                     Layout.fillWidth: true
                     truncate: true
-                    color: Colors.colOnLayer3
+                    color: root.colors.colOnLayer0
                 }
 
                 StyledText {
@@ -78,14 +80,15 @@ StyledRect {
                     text: root.artist
                     Layout.fillWidth: true
                     truncate: true
-                    color: Colors.colSubtext
+                    opacity: 0.75
+                    color: root.colors.colOnLayer0
                 }
             }
             Symbol {
                 visible: root.isPlaylist
                 font.pixelSize: 20
                 text: "list"
-                color: Colors.colOnLayer3
+                color: root.colors.colOnLayer0
             }
         }
     }
@@ -101,7 +104,7 @@ StyledRect {
             visible: !modelData.thumbnail
             anchors.centerIn: parent
             font.pixelSize: root.listMode ? 28 : 54
-            color: Colors.colSecondary
+            color: root.colors.colSecondary
         }
 
         StyledImage {

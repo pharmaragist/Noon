@@ -112,7 +112,7 @@ BottomDialog {
             spacing: Padding.massive
 
             MaterialShapeWrappedSymbol {
-                text: StringUtils.capitalizeFirstLetter(device.name !== "" ? "phone_android" : "device_unknown")
+                text: TextUtils.capitalizeFirstLetter(device.name !== "" ? "phone_android" : "device_unknown")
                 shape: MaterialShape.Shape.Ghostish
                 padding: Padding.huge
                 iconSize: 54
@@ -130,16 +130,16 @@ BottomDialog {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignLeft
                 }
-                // StyledText {
-                //     text: device.id
-                //     truncate: true
-                //     Layout.rightMargin: Padding.massive
-                //     font.pixelSize: Fonts.sizes.verylarge
-                //     font.variableAxes: Fonts.variableAxes.title
-                //     color: Colors.colSubtext
-                //     Layout.fillWidth: true
-                //     horizontalAlignment: Text.AlignLeft
-                // }
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
             }
         }
     }

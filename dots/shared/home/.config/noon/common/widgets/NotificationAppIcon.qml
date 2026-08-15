@@ -59,8 +59,6 @@ Rectangle {
             StyledIconImage {
                 anchors.centerIn: parent
                 implicitSize: root.appIconSize
-                asynchronous: true
-                colorize: true
                 _source: root.appIcon
             }
         }

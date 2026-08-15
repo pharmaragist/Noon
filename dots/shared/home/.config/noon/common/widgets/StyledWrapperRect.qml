@@ -10,7 +10,7 @@ ClippingWrapperRectangle {
     property int bottomRadius
     property int implicitSize
     property int animationDuration: Animations.durations.normal
-    property QtObject colors: Colors
+    property var colors: Colors
     property bool enableBorders: false
     readonly property int diaglonal: Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
 

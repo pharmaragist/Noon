@@ -2,9 +2,9 @@ import QtQuick
 import qs.common
 import qs.common.widgets
 
-/**
- * Material 3 dialog button. See https://m3.material.io/components/dialogs/overview
- */
+
+
+
 RippleButton {
     id: root
 

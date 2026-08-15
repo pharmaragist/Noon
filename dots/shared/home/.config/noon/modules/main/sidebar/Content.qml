@@ -1,3 +1,12 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Wayland
+import qs.common
+import qs.common.widgets
+import qs.services
+import qs.store
+
 import "components/plugins"
 import "components/games"
 import "components/cast"
@@ -15,14 +24,6 @@ import "components/tasks"
 import "components/view"
 import "components/wallpapers"
 import "components/widgets"
-import QtQuick
-import QtQuick.Layouts
-import Quickshell
-import Quickshell.Wayland
-import qs.common
-import qs.common.widgets
-import qs.services
-import qs.store
 
 Item {
     id: root
@@ -30,8 +31,7 @@ Item {
     required property var panelWindow
     readonly property bool hovered: mouseArea?.containsMouse ?? false
     readonly property alias rail: rail
-    readonly property bool effectiveSearchable: SidebarData.isSearchable(selectedCategory) ?? false
-    property QtObject colors: SidebarData.getColors(selectedCategory) || Colors
+    readonly property var colors: SidebarData.getColors(selectedCategory)
     property bool auxVisible: false
     property string selectedCategory: ""
     property string auxCategory: ""
@@ -40,6 +40,7 @@ Item {
     property bool isResizing: false
     property int resizeDuration: Animations.durations.small
     readonly property int targetWidth: panelWindow?.sidebarWidth
+    readonly property var mainContentItem: mainContentLoader._item._item
 
     onWidthChanged: isResizing = true
     Timer {
@@ -50,11 +51,6 @@ Item {
             root.isResizing = false
     }
 
-    function focusMainSearchInput() {
-        if (!root.isResizing && mainContentLoader._item)
-            if (mainContentLoader._item._item && mainContentLoader._item._item.searchInput && effectiveSearchable)
-                mainContentLoader._item._item.searchInput.forceActiveFocus();
-    }
     function dismiss() {
         panelWindow.hide();
     }
@@ -104,7 +100,6 @@ Item {
     clip: true
     focus: true
     onAuxCategoryChanged: toggleAux()
-    onEffectiveSearchableChanged: effectiveSearchable ? focusMainSearchInput() : null
 
     Keys.onPressed: event => {
         const {
@@ -114,7 +109,7 @@ Item {
         const isCtrl = mods === Qt.ControlModifier;
         const isShift = mods === Qt.ShiftModifier || mods === (Qt.ControlModifier | Qt.ShiftModifier);
 
-        // Single-key actions
+        
         if (key === Qt.Key_Slash)
             return focusMainSearchInput(), event.accepted = true;
         if (key === Qt.Key_Escape)
@@ -124,7 +119,7 @@ Item {
             return target && changeContent(target), event.accepted = true;
         }
 
-        // Modifier actions (Ctrl + Key)
+        
         const ctrlMap = {
             [Qt.Key_O]: () => SidebarData.isExpandable(selectedCategory) && !auxVisible && (panelWindow.expanded = !panelWindow.expanded),
             [Qt.Key_P]: () => panelWindow.pinned = !panelWindow.pinned,
@@ -155,7 +150,7 @@ Item {
     RowLayout {
         anchors.fill: parent
         layoutDirection: !panelWindow.rightMode ? Qt.LeftToRight : Qt.RightToLeft
-        spacing: Padding.normal
+        spacing: SidebarData.getPadding(root.selectedCategory) ?? Padding.normal
 
         SidebarNavigationRail {
             id: rail
@@ -174,16 +169,13 @@ Item {
                 id: mainContentLoader
                 active: true
                 fade: true
-                asynchronous: true
-                sourceComponent: SidebarData.isExpandable(root.selectedCategory) && root.isResizing ? overlay : contentRow
+                sourceComponent: Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory) && root.isResizing ? overlay : contentRow
                 anchors.fill: parent
 
                 readonly property Component overlay: ResizeOverlay {
                     cat: root?.selectedCategory ?? ""
                 }
                 readonly property Component contentRow: RowLayout {
-                    id: contentRow
-
                     spacing: Padding.normal
                     anchors.fill: parent
 
@@ -195,11 +187,15 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         sourceComponent: SidebarData.detachedContent.includes(root.selectedCategory) ? placeholder : content
-
+                        onLoaded: if (ready) {
+                            if ("focusItem" in item)
+                                item?.focusItem?.forceActiveFocus();
+                        }
                         readonly property Component content: ContentChild {
                             colors: root?.colors
                             category: root?.selectedCategory
                             selectedTabIndex: root?.selectedTabIndex
+                            anchors.margins: SidebarData.getPadding(root.selectedCategory) ?? Padding.huge
                         }
                         readonly property Component placeholder: PagePlaceholder {
                             colors: root.colors

@@ -23,10 +23,11 @@ Item {
     }
 
     CircularProgress {
+        sperm: true
         anchors.centerIn: parent
-        size: 26
+        implicitSize: 26
         lineWidth: 2
-
+        wavelength: 8
         value: UPower.displayDevice.percentage
 
         readonly property bool isCharging: UPower.displayDevice.state === UPowerDeviceState.Charging
@@ -34,8 +35,9 @@ Item {
 
         fill: isLow && !isCharging
 
-        primaryColor: (isLow && !isCharging) ? (Colors.m3.darkmode ? Colors.m3.m3errorContainer : Colors.m3.m3error) : Colors.m3.m3onSecondaryContainer
-        secondaryColor: (isLow && !isCharging) ? (Colors.m3.darkmode ? Colors.m3.m3error : Colors.m3.m3errorContainer) : Colors.m3.m3secondaryContainer
+        colPrimary: (isLow && !isCharging) ? (Colors.m3.darkmode ? Colors.m3.m3errorContainer : Colors.m3.m3error) : Colors.m3.m3onSecondaryContainer
+        colSecondary: (isLow && !isCharging) ? (Colors.m3.darkmode ? Colors.m3.m3error : Colors.m3.m3errorContainer) : Colors.m3.m3secondaryContainer
+
         Symbol {
             anchors.centerIn: parent
             text: "bolt"

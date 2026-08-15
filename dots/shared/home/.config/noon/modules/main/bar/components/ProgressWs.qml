@@ -44,8 +44,8 @@ BarGroup {
         StyledText {
             z: 0
             anchors.centerIn: parent
-            property string value: WorkspaceLabelManager.getDisplayTextForMode(root.workspaceIndexInGroup + 1, "words").trim()
-            text: StringUtils.capitalizeFirstLetter(value)
+            property string value: WsData.getDisplayTextForMode(root.workspaceIndexInGroup + 1, "words").trim()
+            text: TextUtils.capitalizeFirstLetter(value)
             color: Colors.colLayer3
             font: Fonts.request("mono", "small", { weight: 900 })
             rotation: parent.vertical ? 270 : 0

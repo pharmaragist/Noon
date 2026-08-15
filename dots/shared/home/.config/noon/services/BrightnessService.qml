@@ -1,8 +1,8 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-// From https://github.com/caelestia-dots/shell/ (`quickshell` branch) with modifications.
-// License: GPLv3
+
+
 
 import Quickshell
 import Quickshell.Hyprland
@@ -10,9 +10,9 @@ import QtQuick
 import qs.common
 import qs.common.utils
 
-/**
- * For managing brightness of monitors. Supports both brightnessctl and ddcutil.
- */
+
+
+
 Singleton {
     id: root
 

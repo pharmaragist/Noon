@@ -10,32 +10,32 @@ import qs.store
 Singleton {
     id: root
 
-    // --- Optimized Default Options ---
-    // isnet-general-use: Better accuracy across diverse images (IoU 0.82)
-    // 44MB model vs u2net's 176MB - faster download/load
+    
+    
+    
     property string model: "isnet-general-use"
 
-    // Alpha matting: OFF by default for speed
-    // Only enable for complex edges (hair, fur, fine details)
+    
+    
     property bool alphaMatting: false
 
-    // Optimized alpha matting parameters (when enabled):
-    // For general images: 240-10-10 (balanced)
-    // For fine details (hair/fur): 240-10-3 (less erosion)
-    property int foregroundThreshold: 240  // Higher = more foreground preserved
-    property int backgroundThreshold: 10   // Lower = more background removed
-    property int erodeSize: 10             // Lower = finer edges (more detail)
+    
+    
+    
+    property int foregroundThreshold: 240  
+    property int backgroundThreshold: 10   
+    property int erodeSize: 10             
 
-    // --- Internal ---
+    
     property string _inputPath: ""
     property string _outputPath: ""
     property string _current_depth_path: ""
-    // --- States ---
-    property string state: "idle" // idle, running, success, error, aborted
+    
+    property string state: "idle" 
 
     readonly property bool isBusy: state === "running"
 
-    // --- Process ---
+    
     Process {
         id: proc
         stdout: SplitParser {
@@ -60,13 +60,13 @@ Singleton {
         }
     }
 
-    // --- Signals ---
+    
     signal started(string inputPath, string outputPath)
     signal stdoutReady(string chunk)
     signal stderrReady(string chunk)
     signal finished(bool success, string outputPath, int exitCode)
 
-    // --- Helper: build base command ---
+    
     function _buildCommand(args) {
         const venvPath = Directories.venv;
         const scriptPath = Directories.methods.trim(Directories.scriptsDir + "/create_depth_image_rembg.py");
@@ -74,7 +74,7 @@ Singleton {
         return ["uv", "--directory", venvPath, "run", scriptPath].concat(args);
     }
 
-    // --- Helper: build process args ---
+    
     function _buildProcessArgs(inputPath, outputPath, opts) {
         const trimmedInput = Directories.methods.trim(inputPath);
         const trimmedOutput = Directories.methods.trim(outputPath);
@@ -92,7 +92,7 @@ Singleton {
         return args;
     }
 
-    // --- Helper: run command ---
+    
     function _runCommand(args, outputPath, inputPath = "") {
         _inputPath = inputPath;
         _outputPath = outputPath;
@@ -100,7 +100,7 @@ Singleton {
         proc.running = true;
     }
 
-    // --- Main API ---
+    
     function removeBackground(inputPath, outputPath, opts = {}) {
         if (!inputPath || !outputPath) {
             root.state = "error";
@@ -151,15 +151,15 @@ Singleton {
         command: ["kitty", "-e", "fish", "-c", `uv run ${Directories.scriptsDir}/create_depth_image_rembg.py`]
         workingDirectory: Directories.methods.trim(Directories.standard.state)
     }
-    // --- Preset Configurations ---
+    
 
-    // Fast mode: No alpha matting, fastest processing
+    
     readonly property var presetFast: ({
             "model": "isnet-general-use",
             "alphaMatting": false
         })
 
-    // Quality mode: Alpha matting enabled for better edges
+    
     readonly property var presetQuality: ({
             "model": "isnet-general-use",
             "alphaMatting": true,
@@ -168,12 +168,12 @@ Singleton {
             "erodeSize": 10
         })
 
-    // Fine detail mode: For images with complex edges (hair, fur)
+    
     readonly property var presetFineDetail: ({
             "model": "isnet-general-use",
             "alphaMatting": true,
             "foregroundThreshold": 240,
             "backgroundThreshold": 10,
-            "erodeSize": 3  // Less erosion for finer details
+            "erodeSize": 3  
         })
 }

@@ -54,7 +54,7 @@ StyledPanel {
             GBrightnessSlider {}
             GVolumeSlider {}
             GDBGrid {}
-            // BottomRow {}
+            
             Spacer {}
         }
     }

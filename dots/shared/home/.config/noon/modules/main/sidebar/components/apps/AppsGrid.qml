@@ -11,7 +11,7 @@ LayerRect {
     clip: true
     onExpandedChanged: console.log("Child.expanded: ", expanded)
 
-    property bool expanded // : false
+    property bool expanded 
     readonly property alias gridView: contentView
     property string searchQuery: ""
     signal dismiss
@@ -147,7 +147,7 @@ LayerRect {
         }
 
         Keys.onPressed: event => {
-            // Dynamically calculate columns based on width and cellWidth
+            
             const cols = Math.floor(contentView.width / contentView.cellWidth);
             const lastIndex = contentView.count - 1;
 

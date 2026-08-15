@@ -108,7 +108,7 @@ Singleton {
                         {
                             "icon": "motion_photos_on",
                             "name": "Animations Scale",
-                            "key": "appearance.animationsScale",
+                            "key": "appearance.animations.scale",
                             "type": "spin"
                         },
                         {
@@ -365,6 +365,16 @@ Singleton {
                             "icon": "visibility",
                             "name": "Show Icons",
                             "key": "bar.workspaces.showAppIcons"
+                        },
+                        {
+                            "icon": "merge",
+                            "name": "Big App Only",
+                            "key": "bar.workspaces.showBigAppOnly"
+                        },
+                        {
+                            "icon": "category",
+                            "name": "Generic Symbols",
+                            "key": "bar.workspaces.genericSymbols"
                         },
                         {
                             "icon": "format_list_numbered",

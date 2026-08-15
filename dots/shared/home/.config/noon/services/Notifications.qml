@@ -7,17 +7,17 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
 
-/**
- * Provides extra features not in Quickshell.Services.Notifications:
- *  - Persistent storage
- *  - Popup notifications, with timeout
- *  - Notification groups by app
- */
+
+
+
+
+
+
 Singleton {
     id: root
     component Notif: QtObject {
         id: wrapper
-        required property int notificationId // Could just be `id` but it conflicts with the default prop in QtObject
+        required property int notificationId 
         property Notification notification
         property list<var> actions: notification?.actions.map(action => ({
                     "identifier": action.identifier,
@@ -85,13 +85,13 @@ Singleton {
     }
 
     onListChanged: {
-        // Update latest time for each app
+        
         root.list.forEach(notif => {
             if (!root.latestTimeForApp[notif.appName] || notif.time > root.latestTimeForApp[notif.appName]) {
                 root.latestTimeForApp[notif.appName] = Math.max(root.latestTimeForApp[notif.appName] || 0, notif.time);
             }
         });
-        // Remove apps that no longer have notifications
+        
         Object.keys(root.latestTimeForApp).forEach(appName => {
             if (!root.list.some(notif => notif.appName === appName)) {
                 delete root.latestTimeForApp[appName];
@@ -101,7 +101,7 @@ Singleton {
 
     function appNameListForGroups(groups) {
         return Object.keys(groups).sort((a, b) => {
-            // Sort by time, descending
+            
             return groups[b].time - groups[a].time;
         });
     }
@@ -118,7 +118,7 @@ Singleton {
                 };
             }
             groups[notif.appName].notifications.push(notif);
-            // Always set to the latest time in the group
+            
             groups[notif.appName].time = latestTimeForApp[notif.appName] || notif.time;
         });
         return groups;
@@ -129,8 +129,8 @@ Singleton {
     property var appNameList: appNameListForGroups(root.groupsByAppName)
     property var popupAppNameList: appNameListForGroups(root.popupGroupsByAppName)
 
-    // Quickshell's notification IDs starts at 1 on each run, while saved notifications
-    // can already contain higher IDs. This is for avoiding id collisions
+    
+    
     property int idOffset
     signal initDone
     signal notify(notification: var)
@@ -140,7 +140,7 @@ Singleton {
 
     NotificationServer {
         id: notifServer
-        // actionIconsSupported: true
+        
         actionsSupported: true
         bodyHyperlinksSupported: true
         bodyImagesSupported: true
@@ -163,7 +163,7 @@ Singleton {
                 NoonUtils.playSound("notif_1");
             }
 
-            // Popup
+            
             if (!root.popupInhibited) {
                 newNotifObject.popup = true;
                 newNotifObject.timer = notifTimerComponent.createObject(root, {
@@ -173,13 +173,13 @@ Singleton {
             }
 
             root.notify(newNotifObject);
-            // console.log(notifToString(newNotifObject));
+            
             notifFileView.setText(stringifyList(root.list));
         }
     }
 
     function discardNotification(id) {
-        // console.log("[Notifications] Discarding notification with ID: " + id);
+        
         const index = root.list.findIndex(notif => notif.notificationId === id);
         const notifServerIndex = notifServer.trackedNotifications.values.findIndex(notif => notif.id + root.idOffset === id);
         if (index !== -1) {
@@ -190,7 +190,7 @@ Singleton {
         if (notifServerIndex !== -1) {
             notifServer.trackedNotifications.values[notifServerIndex].dismiss();
         }
-        root.discard(id); // Emit signal
+        root.discard(id); 
     }
 
     function discardAllNotifications() {
@@ -264,13 +264,13 @@ Singleton {
                     "urgency": notif.urgency
                 });
             });
-            // Find largest notificationId
+            
             let maxId = 0;
             root.list.forEach(notif => {
                 maxId = Math.max(maxId, notif.notificationId);
             });
 
-            // console.log("[Notifications] File loaded");
+            
             root.idOffset = maxId;
             root.initDone();
         }

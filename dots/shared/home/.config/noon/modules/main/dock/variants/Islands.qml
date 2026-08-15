@@ -46,7 +46,7 @@ Scope {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.topMargin: {
-                    if (dockRoot.reveal && !Globals.main.showBeam && !Globals.main.showOsdValues)
+                    if (dockRoot.reveal && !Globals.main.beam.show && !Globals.main.showOsdValues)
                         return 5;
                     else
                         dockRoot.implicitHeight - 5;

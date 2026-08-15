@@ -15,7 +15,7 @@ SidebarItemContainer {
         }
     }
 
-    // Simple filtered model
+    
     ScriptModel {
         id: filteredModel
         values: {
@@ -57,14 +57,13 @@ SidebarItemContainer {
             sourceComponent: modelData.isImage ? imageDelegate : textDelegate
 
             property bool isSelected: listView.currentIndex === index
-
-            onLoaded: {
-                _item.itemData = modelData;
-                _item.selected = Qt.binding(() => loader.isSelected);
-            }
+            binds: ({
+                itemData: () => modelData,
+                selected: () => loader.isSelected
+            })
         }
 
-        // Image delegate
+        
         Component {
             id: imageDelegate
 
@@ -93,7 +92,7 @@ SidebarItemContainer {
                     }
                 }
 
-                // Overlay when selected
+                
                 StyledRect {
                     anchors.fill: parent
                     visible: selected
@@ -124,7 +123,7 @@ SidebarItemContainer {
             }
         }
 
-        // Text delegate
+        
         Component {
             id: textDelegate
 
@@ -150,7 +149,7 @@ SidebarItemContainer {
             }
         }
 
-        // Keyboard navigation
+        
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Up) {
                 if (currentIndex <= 0) {
@@ -191,7 +190,7 @@ SidebarItemContainer {
         anchors.fill: parent
     }
 
-    // Empty state
+    
     PagePlaceholder {
         shown: listView.count === 0
         title: root.searchQuery ? qsTr("No matches found") : qsTr("Clipboard is empty")

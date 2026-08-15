@@ -18,7 +18,7 @@ AppWindow {
     property alias secondary_sidebar_content_item: secondary_sidebar_loader.sourceComponent
     property alias contentItem: contentLoader.sourceComponent
 
-    property int appearance_mode: Mem.states.applications[states_target].appearance_mode // 0: sharp, 1: convex, 2: concave 3: float
+    property int appearance_mode: Mem.states.applications[states_target].appearance_mode 
     property bool reveal_tweaks: false
 
     onAppearance_modeChanged: Mem.states.applications[states_target].appearance_mode = appearance_mode
@@ -37,7 +37,7 @@ AppWindow {
             right: parent.right
             bottom: parent.bottom
         }
-        // enabled: !sidebar.pinned
+        
         hoverEnabled: true
         preventStealing: true
         acceptedButtons: Qt.NoButton
@@ -226,7 +226,7 @@ AppWindow {
 
             implicitHeight: sidebar_controls_grid.implicitHeight + Padding.large
             implicitWidth: sidebar_controls_grid.implicitWidth + Padding.large
-            // enableBorders: true
+            
             color: Colors.colLayer2Disabled
             radius: Rounding.verylarge
 

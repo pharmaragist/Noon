@@ -332,7 +332,7 @@ def detect_wine_apps() -> list[dict]:
     return apps
 
 
-# --- commands ---
+
 
 def cmd_list_remote(args):
     releases = fetch_releases(args.source)
@@ -675,7 +675,7 @@ def cmd_status(_args):
     print(json.dumps(result))
 
 
-# --- main ---
+
 
 def build_parser():
     parser = argparse.ArgumentParser(prog="wine_manager", description="Wine/Proton Manager for Noon")

@@ -48,7 +48,7 @@ def download_favicon(url, cache_path):
         if not domain:
             return None
 
-        # Try Google favicons first (most reliable and fast)
+        
         favicon_url = f"https://www.google.com/s2/favicons?domain={domain}&sz=32"
         req = Request(favicon_url, headers={"User-Agent": "Mozilla/5.0"})
 
@@ -112,19 +112,19 @@ def find_active_profile():
 
 def connect_to_db(places_db):
     """Connect to the Firefox database, trying different methods."""
-    # Try immutable mode first (fastest, works with Firefox open)
+    
     try:
         return sqlite3.connect(f"file:{places_db}?immutable=1", uri=True)
     except sqlite3.OperationalError:
         pass
 
-    # Try read-only mode
+    
     try:
         return sqlite3.connect(f"file:{places_db}?mode=ro", uri=True)
     except:
         pass
 
-    # Last resort: temporary copy
+    
     temp_db = places_db.parent / "places_temp.sqlite"
     shutil.copy2(places_db, temp_db)
     conn = sqlite3.connect(str(temp_db))
@@ -142,7 +142,7 @@ def get_bookmarks(profile_path):
 
     conn = connect_to_db(places_db)
 
-    # Use a single optimized query
+    
     query = """
     SELECT b.id, b.title, p.url, b.dateAdded, b.lastModified, b.parent
     FROM moz_bookmarks b
@@ -154,11 +154,11 @@ def get_bookmarks(profile_path):
     bookmarks = []
     cache_dir = get_favicon_cache_path()
 
-    # Batch process rows
+    
     for row in conn.execute(query):
         url = row[2]
 
-        # Quick favicon check
+        
         favicon_local = ""
         favicon_fallback = ""
 
@@ -167,7 +167,7 @@ def get_bookmarks(profile_path):
             if cache_path.exists():
                 favicon_local = f"file://{cache_path}"
 
-            # Generate fallback URL
+            
             try:
                 domain = urlparse(url).netloc
                 if domain:
@@ -256,7 +256,7 @@ def fetch_all_favicons():
         bookmarks = get_bookmarks(profile_path)
         results = {"total": len(bookmarks), "downloaded": 0, "cached": 0, "failed": 0}
 
-        # Use thread pool for parallel downloads (max 20 concurrent)
+        
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
             futures = [
                 executor.submit(download_favicon_task, bookmark)
@@ -346,7 +346,7 @@ def remove_bookmark(bookmark_id):
         sys.exit(1)
 
 
-# Execute command
+
 if len(sys.argv) < 2:
     print(
         "Usage: firefox-bookmarks.py {list|profiles|open <url>|fetch-favicons|remove <id>}",

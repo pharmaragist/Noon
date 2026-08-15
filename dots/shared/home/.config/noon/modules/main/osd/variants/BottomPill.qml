@@ -41,7 +41,7 @@ StyledPanel {
         target: bottomPill
     }
 
-    ShaderRect {
+    PanelRect {
         id: bottomPill
 
         anchors.bottom: parent.bottom
@@ -82,9 +82,11 @@ StyledPanel {
                 Layout.alignment: Qt.AlignCenter
                 Layout.fillWidth: true
                 valueBarHeight: 5
+                highlightHeight:25
                 showProgressIndicator: false
                 valueBarGap: 4
                 value: panelRoot.value
+                animateOnStart: false
             }
         }
     }

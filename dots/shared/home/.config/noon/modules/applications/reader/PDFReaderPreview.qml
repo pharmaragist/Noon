@@ -20,7 +20,7 @@ Item {
     Rectangle {
         id: main_container
         anchors.fill: parent
-        // visible: root.currentFile.length > 0
+        
         color: Colors.colLayer0
         Component.onCompleted: fit_scale_timer.restart()
 

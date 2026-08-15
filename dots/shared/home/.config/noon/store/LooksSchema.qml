@@ -1,9 +1,9 @@
 import qs.common
 import qs.common.utils
 
-/*
-    Separated for Adapter for global access
-*/
+
+
+
 
 JsonAdapter {
     property bool showMatugenSmartScheme: false

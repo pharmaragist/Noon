@@ -38,7 +38,7 @@ SidebarItemContainer {
         spacing: Padding.normal
         model: ScriptModel {
             id: filteredModel
-            // Handles Duplicates
+            
             values: TodoService.list.filter(task => task?.content.toLowerCase().includes(root.searchQuery.toLowerCase())).filter((task, idx, arr) => arr.findIndex(t => t.content === task.content) === idx)
         }
         delegate: TodoItem {
@@ -51,7 +51,7 @@ SidebarItemContainer {
         }
 
         Keys.onPressed: event => {
-            // Get based on content
+            
             const selectedItem = list.model.values[list.currentIndex];
             const selectedItemIndex = list.currentIndex;
             if (event.modifiers === Qt.ControlModifier && selectedItemIndex > -1) {

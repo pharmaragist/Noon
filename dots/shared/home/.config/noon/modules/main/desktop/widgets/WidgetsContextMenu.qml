@@ -10,51 +10,41 @@ StyledMenu {
     id: root
     required property var modelData
     readonly property string widgetId: modelData.id
-    readonly property bool isExpanded: modelData?.expanded ?? false
-    readonly property bool isPill: modelData?.pilled ?? false
     readonly property var store: Mem?.states?.sidebar?.widgets
+    readonly property var rec: store?.items?.find(w => w.id === widgetId)
+    readonly property bool isPill: rec?.pill ?? false
+
+    function setField(field, value) {
+        let items = store.items.slice();
+        let rec = items.find(w => w.id === widgetId);
+        if (rec) {
+            rec[field] = value;
+            store.items = items;
+        }
+        root.close();
+    }
+
     content: {
         let items = [
             {
                 text: root.isPill ? "Square" : "Pill",
                 materialIcon: root.isPill ? "capture" : "pill",
-                action: () => {
-                    if (!root.isPill) {
-                        store.pilled.push(modelData.id);
-                    } else {
-                        const index = store.pilled.indexOf(root.widgetId);
-                        store.pilled.splice(index, 1);
-                    }
-                    root.close();
-                }
+                visible: (rec?.size ?? "normal") === "small",
+                action: () => root.setField("pill", !root.isPill)
             },
             {
                 text: "Remove",
                 materialIcon: "close",
-                action: () => {
-                    if (root.widgetId) {
-                        const index = store.desktop.indexOf(root.widgetId);
-                        store.desktop.splice(index, 1);
-                    }
-                    root.close();
-                }
+                action: () => root.setField("desktop", false)
             }
         ];
 
-        if (modelData.expandable) {
+        const sizes = ["small", "normal", "large", "xlarge"];
+        for (let size of sizes) {
             items.push({
-                text: root.isExpanded ? "Collapse" : "Expand",
-                materialIcon: root.isExpanded ? "close_fullscreen" : "open_in_full",
-                action: () => {
-                    if (root.widgetId) {
-                        const index = store.expanded.indexOf(root.widgetId);
-                        if (isExpanded)
-                            store.expanded.splice(index, 1);
-                        else
-                            store.expanded.push(root.widgetId);
-                    }
-                    root.close();
-                }
+                text: size.charAt(0).toUpperCase() + size.slice(1),
+                materialIcon: (rec?.size ?? "normal") === size ? "radio_button_checked" : "radio_button_unchecked",
+                action: () => root.setField("size", size)
             });
         }
 

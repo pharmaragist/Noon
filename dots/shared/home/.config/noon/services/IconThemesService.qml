@@ -5,9 +5,9 @@ import Quickshell
 import qs.common
 import qs.common.utils
 
-/*
-    Simple Get - Set For System icons
-*/
+
+
+
 Singleton {
     id: root
 

@@ -7,7 +7,7 @@ import Quickshell.Services.Notifications
 import qs.common
 import qs.services
 
-// Expand button
+
 RippleButton {
     id: root
 

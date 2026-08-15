@@ -12,14 +12,15 @@ MouseArea {
     id: root
     required property SystemTrayItem item
     property bool targetMenuOpen: false
+    property int implicitSize: 20
 
     signal menuOpened(qsWindow: var)
     signal menuClosed
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton | Qt.RightButton
-    implicitWidth: 20
-    implicitHeight: 20
+    implicitWidth: implicitSize
+    implicitHeight: implicitSize
     onPressed: event => {
         switch (event.button) {
         case Qt.LeftButton:
@@ -70,7 +71,7 @@ MouseArea {
         colorize: true
         source: root.item.icon
         anchors.centerIn: parent
-        implicitSize: BarData.currentBarExclusiveSize / 3
+        implicitSize: root.implicitSize
     }
 
     PopupToolTip {
@@ -80,13 +81,13 @@ MouseArea {
         anchorEdges: {
             switch (Mem.options.bar.behavior.position) {
             case "top":
-                return Edges.Bottom;  // Changed from Edges.bottom
+                return Edges.Bottom;  
             case "bottom":
-                return Edges.Top;     // Changed from Edges.top
+                return Edges.Top;     
             case "left":
-                return Edges.Right;   // Changed from Edges.right
+                return Edges.Right;   
             case "right":
-                return Edges.Left;    // Changed from Edges.left
+                return Edges.Left;    
             }
         }
     }

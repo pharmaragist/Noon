@@ -82,7 +82,7 @@ StyledRect {
         cellHeight: controls.listMode ? 76 : cellWidth
         property string libPath: Mem.beats.players.main.musicDirectory + "/"
         delegate: TrackItem {
-            // model: filteredModel
+            
             listMode: controls?.listMode ?? false
             implicitHeight: grid.cellHeight - margins
             implicitWidth: grid.cellWidth - margins
@@ -98,7 +98,7 @@ StyledRect {
                     menu.popup();
                 }
             }
-            // REWORK
+            
             TrackContextMenu {
                 id: menu
                 trackPath: grid.libPath + modelData.file

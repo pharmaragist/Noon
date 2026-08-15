@@ -12,15 +12,12 @@ PanelWindow {
     property bool fill: false
     property bool keyboardFocus: false
     property string _layer: "Top"
-    property alias focusActive: focusHandler.active
-    property var focusClearAction: null
-    readonly property alias focusHandler: focusHandler
 
     focusable: keyboardFocus
-    reloadableId: name
+    
     color: "transparent"
     exclusiveZone: 0
-    // BackgroundEffect.blurRegion: mask
+    
     WlrLayershell.layer: WlrLayer[_layer]
     WlrLayershell.namespace: shell + ":" + name
     WlrLayershell.keyboardFocus: (root.keyboardFocus === true) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -37,9 +34,7 @@ PanelWindow {
         left: fill
         right: fill
     }
-    FocusHandler {
-        id: focusHandler
+    property FocusHandler focusHandler: FocusHandler {
         windows: [root]
-        onCleared: () => root.focusClearAction ? root.focusClearAction() : null
     }
 }

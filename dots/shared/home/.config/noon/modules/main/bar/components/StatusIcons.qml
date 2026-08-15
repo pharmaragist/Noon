@@ -6,7 +6,7 @@ import qs.services
 
 BarGroup {
     id: root
-
+    readonly property bool useBothWhenAvailable: Mem.options.bar.statusIcons.showTextWhenAvailable
     readonly property Component batteryPopup: BatteryPopup {}
     readonly property Component bluetoothPopup: BluetoothPopup {}
     readonly property Component networkPopup: NetworkPopup {}
@@ -15,7 +15,7 @@ BarGroup {
         extraVisibleCondition: hoverTarget.containsMouse
     }
 
-    // just to reference some props
+    
     function getItemPropById(id, prop) {
         const item = content.find(i => i.id === id);
         if (!!item[prop])
@@ -32,7 +32,6 @@ BarGroup {
         },
         {
             id: "mute",
-            dialog: " ",
             icon: "volume_off",
             visible: AudioService.sink?.audio.muted
         },
@@ -71,10 +70,11 @@ BarGroup {
             dialog: "Bluetooth",
             icon: BluetoothService.currentDeviceIcon,
             text: () => {
+                if (!BluetoothService.connectedDevices.length > 0)
+                    return;
                 const device = BluetoothService.filterConnectedDevices(BluetoothService.pairedDevices)[0];
                 return Math.round(100 * (device?.battery ? device?.battery : 1));
             },
-            mode: !!BluetoothService.connectedDevices ? "both" : "symbol",
             hoverItem: bluetoothPopup
         },
         {
@@ -114,9 +114,8 @@ BarGroup {
                 useBg: root.active
                 implicitHeight: isVertical ? grid.implicitHeight + aPadding : root?.height - Padding.large
                 implicitWidth: !isVertical ? grid.implicitWidth + aPadding : root?.width - Padding.large
-
                 icon: modelData?.icon ?? ""
-                mode: modelData?.mode ?? "symbol"
+                mode: (root.useBothWhenAvailable && modelData.text && !modelData.mode) ? "both" : modelData?.mode ?? "symbol"
                 isVertical: root.vertical
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
@@ -125,7 +124,7 @@ BarGroup {
                         return;
 
                     if (typeof modelData.text === "function")
-                        return modelData.text();
+                        return modelData?.text() ?? "";
                     else
                         return modelData?.text ?? "";
                 }

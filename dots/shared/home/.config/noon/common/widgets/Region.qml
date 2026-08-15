@@ -3,7 +3,9 @@ import Quickshell
 
 Region {
     property bool enabled: true
-    property Item component: null
-    property Item dummy: Item {}
-    item: !enabled && component ? dummy : component
+    property Item target: null
+    x: target?.x ?? 0
+    y: target?.y ?? 0
+    width: target && enabled ? target?.width : 0
+    height: target && enabled ? target?.height : 0
 }

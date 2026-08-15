@@ -7,161 +7,274 @@ import qs.common
 import qs.common.functions
 import qs.common.widgets
 
-ListView {
+WidgetContainer {
     id: root
-    property bool pill
-    property bool expanded
-    property real minScale: 0.8
-    anchors.centerIn: parent
-    clip: true
-    orientation: Qt.Horizontal
-    highlightRangeMode: ListView.StrictlyEnforceRange
-    preferredHighlightBegin: 0
-    preferredHighlightEnd: width
-    reuseItems: true
-    model: BeatsService.meaningfulPlayers
-    snapMode: ListView.SnapToItem
-    spacing: Padding.massive
-    delegate: WidgetContainer {
-        id: bg
-        clip: true
-        required property var modelData
-        required property int index
-        readonly property var player: modelData
-        readonly property real delegateCenter: x + width / 2
-        readonly property real viewCenter: root.contentX + root.width / 2
-        readonly property real distanceFraction: Math.abs(delegateCenter - viewCenter) / root.width
-        readonly property bool isPlaying: player.playbackState === MprisPlaybackState.Playing
-        readonly property alias isHovered: hoverArea.containsMouse
-        scale: Math.max(root.minScale, 1.0 - distanceFraction * (1.0 - root.minScale))
-        Behavior on scale {
-            Anim {
-                duration: 400
-            }
+    readonly property var controlsModel: [
+        {
+            icon: "shuffle",
+            action: () => root.player.shuffle = !root.player.shuffle
+        },
+        {
+            icon: "skip_previous",
+            action: () => root?.player?.previous()
+        },
+        {
+            icon: root.player?.isPlaying ? "pause" : "play_arrow",
+            action: () => root?.player?.togglePlaying()
+        },
+        {
+            icon: "skip_next",
+            action: () => root?.player?.next()
+        },
+        {
+            icon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat",
+            action: () => BeatsService.cycleRepeat(root?.player)
         }
-        expanded: root.expanded
-        pill: root.pill
-        width: root.width
-        height: root.height
-        BlurImage {
-            z: 0
+    ]
+    readonly property PaletteGenerator palette: PaletteGenerator {
+        active: source !== null
+        source: player?.trackArtUrl
+    }
+    readonly property MprisPlayer player: BeatsService?.players?.find(p => /mpd/.test(p?.dbusName.toLowerCase()))
+    colors: (palette?.colors ?? Colors)
+    xlarge: Item {
+        anchors.fill: parent
+        anchors.margins: Padding.large
+
+        ColumnLayout {
             anchors.fill: parent
-            source: player.trackArtUrl
-            asynchronous: true
-            blur: true
-            tint: true
-            tintLevel: 1
-            tintColor: BeatsService.colors.colPrimary
-        }
-        StyledRect {
-            z: 999
-            anchors.fill: parent
-            opacity: bg.isHovered
-            MouseArea {
-                id: hoverArea
-                anchors.fill: parent
-                hoverEnabled: true
-                propagateComposedEvents: true
-                onClicked: {
-                    BeatsService.selectedPlayerIndex = index;
-                    NoonUtils.callIpc("sidebar reveal Beats");
-                }
-            }
+            anchors.leftMargin: Padding.large
+            anchors.rightMargin: Padding.large
+            spacing: Padding.large
 
             RowLayout {
-                anchors.bottomMargin: Padding.massive * 1.25
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                Repeater {
-                    model: [
-                        {
-                            "icon": "skip_previous",
-                            "action": () => player?.next()
-                        },
-                        {
-                            "icon": bg.isPlaying ? "pause" : "play_arrow",
-                            "action": () => {
-                                if (bg.isPlaying) {
-                                    player?.pause();
-                                } else {
-                                    player?.play();
-                                }
-                            }
-                        },
-                        {
-                            "icon": "skip_next",
-                            "action": () => player?.previous()
-                        },
-                    ]
-                    delegate: Symbol {
-                        required property var modelData
+                Layout.fillWidth: true
+                Layout.preferredHeight: 80
+                spacing: Padding.huge
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: () => modelData.action()
-                        }
-                        text: modelData.icon
-                        color: Colors.colOnSurface
-                        fill: 1
-                        font.pixelSize: 30
+                ArtImage {
+                    radius: Rounding.normal
+                    implicitSize: 60
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+                    StyledText {
+                        Layout.fillWidth: true
+                        Layout.rightMargin: Padding.massive
+                        text: this.methods.cleanMusicTitle(root.player?.trackTitle)
+                        font: Fonts.request("title", "large")
+                        color: root.colors.colOnLayer0
+                        truncate: true
+                    }
+                    StyledText {
+                        Layout.fillWidth: true
+                        Layout.rightMargin: Padding.massive
+                        text: this.methods.cleanMusicTitle(root.player?.trackArtist)
+                        font: Fonts.request("main", "normal")
+                        color: root.colors.colSubtext
+                        truncate: true
                     }
                 }
             }
-            gradient: Gradient {
-                GradientStop {
-                    position: 0.1
-                    color: "transparent"
+
+            ButtonGroup {
+                Layout.fillWidth: true
+                Repeater {
+                    model: root.controlsModel
+                    delegate: GroupButtonWithIcon {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        buttonRadius: Rounding.large
+                        layerNumber: 3
+                        materialIcon: modelData.icon
+                        colors: root.colors
+                        baseSize: 60
+                        releaseAction: () => modelData.action()
+                    }
                 }
-                GradientStop {
-                    position: 0.9
-                    color: Colors.m3.m3shadow
+            }
+
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: Rounding.verylarge
+                color: root.colors.colLayer3
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: Padding.normal
+                    spacing: 2
+                    Repeater {
+                        model: BeatsService.queue.slice(1, 5)
+                        delegate: StyledRect {
+                            required property var modelData
+                            required property int index
+
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            topRadius: index === 0 ? Rounding.large : 2
+                            bottomRadius: index === 3 ? Rounding.large : 2
+                            color: root.colors.colLayer4
+
+                            StyledText {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.margins: Padding.large
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: modelData?.title ?? ""
+                                font: Fonts.request("main", "normal")
+                                color: root.colors.colOnLayer4
+                                truncate: true
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: BeatsService.playTrackByFile(modelData?.file)
+                            }
+                        }
+                    }
                 }
             }
         }
-        RowLayout {
-            z: 2
+    }
+
+    small: Item {
+        anchors.fill: parent
+
+        Symbol {
+            z: 999
+            anchors.centerIn: parent
+            icon: root.player.isPlaying ? "music_note" : "pause"
+            iconSize: 30
+            fill: 1
+            color: root.colors.colOnPrimary
+        }
+
+        Item {
             anchors.fill: parent
-            anchors.margins: Padding.small
-            anchors.leftMargin: Padding.veryhuge
-            anchors.rightMargin: Padding.large
-            spacing: Padding.massive
-
-            // Cover Art
-            MusicCoverArt {
-                source: modelData?.trackArtUrl
-                visible: player.trackArtUrl.length > 1
-                radius: bg.radius - Padding.large
-                Layout.preferredWidth: parent.height * 0.86
-                Layout.preferredHeight: parent.height * 0.86
+            Rectangle {
+                z: 1
+                opacity: 0.6
+                anchors.fill: parent
+                color: root.colors.colPrimaryContainer
             }
+            ArtImage {
+                anchors.fill: parent
+                blur: true
+            }
+        }
+    }
+    normal: Item {
+        property int rad: 18
 
-            // Track Info
-            ColumnLayout {
-                visible: root.expanded
+        GridLayout {
+            anchors.fill: parent
+            anchors.margins: Padding.large
+            columns: 2
+
+            ArtImage {
                 Layout.fillWidth: true
-                Layout.rightMargin: Padding.massive
-                z: 2
-                spacing: 0
+                Layout.fillHeight: true
+                radius: rad
+            }
 
-                StyledText {
-                    font: Fonts.request("main", Fonts.sizes.huge)
-                    color: Colors.colOnLayer0
-                    text: player.trackTitle || "No Media Playing"
-                    elide: Text.ElideRight
-                    maximumLineCount: 1
-                    wrapMode: TextEdit.Wrap
-                    Layout.fillWidth: true
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                buttonRadius: rad
+                materialIcon: root.player?.isPlaying ? "music_note" : "pause"
+                colBackground: colors.colLayer3
+                colors: root.colors
+                onClicked: root?.player?.togglePlaying()
+            }
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                buttonRadius: rad
+                materialIcon: "skip_previous"
+                colBackground: colors.colLayer3
+                colors: root.colors
+                onClicked: root?.player?.previous()
+            }
+            RippleButtonWithIcon {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                buttonRadius: rad
+                materialIcon: "skip_next"
+                colBackground: colors.colLayer3
+                colors: root.colors
+                onClicked: root?.player?.next()
+            }
+        }
+    }
+    large: Item {
+        anchors.fill: parent
+        anchors.margins: Padding.huge
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Padding.large
+            anchors.rightMargin: Padding.large
+            spacing: Padding.normal
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 80
+                spacing: Padding.huge
+
+                ArtImage {
+                    radius: Rounding.normal
+                    implicitSize: 60
                 }
 
-                StyledText {
-                    maximumLineCount: 1
-                    wrapMode: TextEdit.Wrap
-                    font: Fonts.request("main", "large")
-                    color: Colors.colSubtext
-                    text: player.trackArtist || "No Current Artist"
-                    elide: Text.ElideRight
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+                    StyledText {
+                        Layout.fillWidth: true
+                        Layout.rightMargin: Padding.massive
+                        text: this.methods.cleanMusicTitle(root.player?.trackTitle)
+                        font: Fonts.request("title", "large")
+                        color: root.colors.colOnLayer0
+                        truncate: true
+                    }
+                    StyledText {
+                        Layout.fillWidth: true
+                        Layout.rightMargin: Padding.massive
+                        text: this.methods.cleanMusicTitle(root.player?.trackArtist)
+                        font: Fonts.request("main", "normal")
+                        color: root.colors.colSubtext
+                        truncate: true
+                    }
                 }
             }
+            ButtonGroup {
+                Layout.fillWidth: true
+                Repeater {
+                    model: root.controlsModel
+                    delegate: GroupButtonWithIcon {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        buttonRadius: Rounding.large
+                        layerNumber: 3
+                        materialIcon: modelData.icon
+                        colors: root.colors
+                        baseSize: 60
+                        releaseAction: () => modelData.action()
+                    }
+                }
+            }
+        }
+    }
+
+    component ArtImage: StyledRect {
+        property alias blur: img.blur
+        clip: true
+        BlurImage {
+            id: img
+            anchors.fill: parent
+            source: root.player.trackArtUrl ?? ""
+            blurMax: 40
         }
     }
 }

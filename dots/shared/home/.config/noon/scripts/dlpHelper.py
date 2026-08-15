@@ -15,14 +15,12 @@ PRESETS = {
 }
 
 
-def search_url(artist: str, title: str) -> str:
+def search_url(query: str) -> str:
     with yt_dlp.YoutubeDL({"quiet": True, "extract_flat": True}) as ydl:
-        info = ydl.extract_info(
-            f"ytsearch1:{artist} {title} official audio", download=False
-        )
+        info = ydl.extract_info(f"ytsearch1:{query} official audio", download=False)
     entries = (info or {}).get("entries") or []
     if not entries:
-        sys.exit(f"error: no results for '{artist} – {title}'")
+        sys.exit(f"error: no results for '{query}'")
     return entries[0]["url"]
 
 
@@ -35,6 +33,7 @@ def run(url: str, destination: str, media: str, quality: str, dry_run: bool) -> 
         "writethumbnail": True,
         "outtmpl": os.path.join(destination, "%(track,title)s.%(ext)s"),
         "format": fmt,
+        "js_runtimes": {"node": {}, "deno": {}, "bun": {}},
     }
     if media == "audio":
         ydl_opts["postprocessors"] = [
@@ -95,12 +94,7 @@ def main() -> None:
 
     src = p.add_mutually_exclusive_group(required=True)
     src.add_argument("--url", help="Direct media URL")
-    src.add_argument(
-        "--search",
-        nargs=2,
-        metavar=("ARTIST", "TITLE"),
-        help="Search YouTube by artist and title",
-    )
+    src.add_argument("--search", help="Search YouTube by query")
 
     p.add_argument("--audio", dest="media", action="store_const", const="audio")
     p.add_argument("--video", dest="media", action="store_const", const="video")
@@ -115,7 +109,7 @@ def main() -> None:
 
     os.makedirs(args.destination, exist_ok=True)
 
-    url = search_url(*args.search) if args.search else args.url
+    url = search_url(args.search) if args.search else args.url
     run(url, args.destination, args.media, args.quality, args.dry_run)
 
 

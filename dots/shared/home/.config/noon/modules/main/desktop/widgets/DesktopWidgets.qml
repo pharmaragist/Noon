@@ -9,42 +9,27 @@ import qs.store
 import qs.modules.main.bar.components
 import "../widgets"
 
-Variants {
-    model: MonitorsInfo.all
-    StyledPanel {
-        id: root
-        required property var modelData
-        screen: modelData
-        name: "blurred_layer"
-        readonly property string widgetsPath: "../widgets/"
-        readonly property var widgetObjects: WidgetsData.desktopWidgets
-        keyboardFocus: true
-        exclusiveZone: 0
-        _layer: "Bottom"
-        implicitWidth: 600
-        fill: true
+Item {
+    id: root
+    readonly property string widgetsPath: "../widgets/"
+    readonly property var widgetObjects: WidgetsData.desktopWidgets
+    readonly property bool rightMode: BarData.position === "right"
+    anchors.top: parent.top
+    anchors.left: !rightMode ? parent.left : undefined
+    anchors.right: rightMode ? parent.right : undefined
+    implicitWidth: 400
+    onRightModeChanged: ldr.reload()
 
-        margins {
-            top: Sizes.elevationMargin
-            bottom: Sizes.elevationMargin
-            right: Sizes.elevationMargin
-            left: Sizes.elevationMargin
-        }
-
-        mask: Region {
-            item: flow
-        }
-
-        StyledFlow {
+    StyledLoader {
+        id: ldr
+        anchors.fill: parent
+        active: Mem.options.desktop.widgets.enabled
+        sourceComponent: StyledFlow {
             id: flow
-            width: 400 + spacing
+            anchors.fill: parent
+            anchors.margins: Padding.large
             spacing: Padding.huge
-            anchors.top: parent.top
-            readonly property bool rightMode: Mem.options.bar.behavior.position === "right"
-
-            anchors.left: !rightMode ? parent.left : undefined
-            anchors.right: rightMode ? parent.right : undefined
-
+            layoutDirection: root.rightMode ? Qt.RightToLeft : Qt.LeftToRight
             Repeater {
                 model: ScriptModel {
                     values: root.widgetObjects
@@ -52,41 +37,61 @@ Variants {
                 delegate: Item {
                     id: delegated
                     required property var modelData
-                    width: modelData.expanded ? parent?.width : (parent?.width - parent?.spacing) / 2
-                    height: 200
 
-                    WidgetsContextMenu {
-                        id: widgetMenu
-                        modelData: delegated.modelData
+                    function sizePerRow(size) {
+                        switch (size) {
+                        case "small":
+                            return 4;
+                        case "large":
+                        case "xlarge":
+                            return 1;
+                        default:
+                            return 2;
+                        }
+                    }
+
+                    function slotHeight(size) {
+                        switch (size) {
+                        case "small":
+                            return 100;
+                        case "xlarge":
+                            return 2 * 200 + (parent?.spacing ?? 0);
+                        default:
+                            return 200;
+                        }
+                    }
+
+                    width: (parent?.width - parent?.spacing * (sizePerRow(modelData?.size ?? "normal") - 1)) / sizePerRow(modelData?.size ?? "normal")
+                    height: slotHeight(modelData?.size ?? "normal")
+
+                    SizeOverlay {
+                        id: sizeOvl
+                        widgetData: delegated.modelData
+                        radius: loader._item.radius ?? Rouding.large
+                        colors: loader._item.colors ?? Colors
                     }
 
                     MouseArea {
+                        z: 99999
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        acceptedButtons: Qt.RightButton | Qt.LeftButton
+                        acceptedButtons: Qt.RightButton | Qt.MiddleButton
                         onPressed: event => {
                             if (event.button === Qt.RightButton) {
-                                widgetMenu.popup();
+                                sizeOvl.show = !sizeOvl.show;
                             }
                         }
                     }
+
                     StyledLoader {
                         id: loader
                         anchors.fill: parent
-                        asynchronous: true
                         source: modelData.isPlugin ? modelData.entry : root.widgetsPath + modelData.component + ".qml"
                         onLoaded: {
+                            _item.widgetData = Qt.binding(() => modelData);
                             if ("window" in _item)
                                 _item.window = Qt.binding(() => root);
-                            if ("expanded" in _item) {
-                                _item.expanded = Qt.binding(() => modelData?.expanded ?? false);
-                            }
-                            if ("pill" in _item) {
-                                _item.pill = Qt.binding(() => modelData?.pilled ?? false);
-                            }
-                            if (!_item.pill)
-                                _item.radius = 1.25 * Rounding.massive;
                         }
                     }
                 }

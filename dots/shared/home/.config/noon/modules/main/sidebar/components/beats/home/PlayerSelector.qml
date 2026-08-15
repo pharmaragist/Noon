@@ -15,7 +15,7 @@ StyledRect {
     Layout.bottomMargin: -10
     color: root.colors.colLayer2
 
-    property QtObject colors: BeatsService.colors
+    property var colors: BeatsService.colors
     readonly property int iconSize: 24
 
     function getPlayerIcon(dbus) {
@@ -90,7 +90,7 @@ StyledRect {
 
         Repeater {
             id: repeater
-            model: BeatsService?.meaningfulPlayers
+            model: BeatsService?.players
 
             delegate: Item {
                 id: symbolItem

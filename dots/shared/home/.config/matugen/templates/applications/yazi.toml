@@ -8,7 +8,7 @@ find_keyword  = { fg = "{{colors.error.default.hex}}", bold = true, italic = tru
 find_position = { fg = "{{colors.error.default.hex}}", bold = true, italic = true }
 
 # Marker
-marker_copied   = { fg = "{{colors.tertiary_fixed.default.hex | auto_lightness: 20.0}}", bg = "{{colors.tertiary_fixed.default.hex | auto_lightness: 20.0}}" }
+marker_copied   = { fg = "{{colors.tertiary_fixed.default.hex}}", bg = "{{colors.tertiary_fixed.default.hex}}" }
 marker_cut      = { fg = "{{colors.tertiary_fixed.default.hex}}", bg = "{{colors.tertiary_fixed.default.hex}}" }
 marker_marked   = { fg = "{{colors.error.default.hex}}", bg = "{{colors.error.default.hex}}" }
 marker_selected = { fg = "{{colors.tertiary.default.hex}}", bg = "{{colors.tertiary.default.hex}}" }
@@ -68,11 +68,11 @@ sep_left  = { open = "🭁", close = "🭠" }
 sep_right = { open = "🭁", close = "🭠" }
 
 # Permissions
-perm_type  = { fg = "{{colors.secondary.default.hex | auto_lightness: 30.0}}" }
-perm_write = { fg = "{{colors.tertiary.default.hex | auto_lightness: 30.0}}" }
-perm_read  = { fg = "{{colors.error.default.hex | auto_lightness: 30.0}}" }
-perm_exec  = { fg = "{{colors.tertiary_fixed.default.hex | auto_lightness: 30.0}}" }
-perm_sep   = { fg = "{{colors.primary_fixed.default.hex | auto_lightness: 30.0}}" }
+perm_type  = { fg = "{{colors.secondary.default.hex}}" }
+perm_write = { fg = "{{colors.tertiary.default.hex}}" }
+perm_read  = { fg = "{{colors.error.default.hex}}" }
+perm_exec  = { fg = "{{colors.tertiary_fixed.default.hex}}" }
+perm_sep   = { fg = "{{colors.primary_fixed.default.hex}}" }
 
 # Progress
 progress_label  = { bold = true }

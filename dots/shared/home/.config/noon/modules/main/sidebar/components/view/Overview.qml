@@ -90,9 +90,9 @@ SidebarItemContainer {
 
                 StyledText {
                     anchors.centerIn: parent
-                    text: WorkspaceLabelManager.getDisplayText(parent.wsValue)
-                    font.family: WorkspaceLabelManager.useJapanese ? "Noto Sans CJK JP" : "Rubik"
-                    font.weight: WorkspaceLabelManager.useJapanese ? Font.Light : Font.DemiBold
+                    text: WsData.getDisplayText(parent.wsValue)
+                    font.family: WsData.useJapanese ? "Noto Sans CJK JP" : "Rubik"
+                    font.weight: WsData.useJapanese ? Font.Light : Font.DemiBold
                     font.pixelSize: 40
                     color: Colors.methods.transparentize(Colors.colOnLayer1, 0.8)
                     horizontalAlignment: Text.AlignHCenter

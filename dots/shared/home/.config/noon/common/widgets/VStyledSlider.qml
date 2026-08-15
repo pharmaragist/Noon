@@ -6,7 +6,7 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-// Material 3 vertical slider. See https://m3.material.io/components/sliders/overview
+
 Slider {
     id: root
 
@@ -14,8 +14,8 @@ Slider {
     property real backgroundDotSize: 4 * scale
     property real backgroundDotMargins: 4 * scale
     property real handleMargins: (root.pressed ? 0 : 2) * scale
-    property real handleHeight: (root.pressed ? 3 : 5) * scale   // thickness along the axis
-    property real handleWidth: 44 * scale                         // span across the axis
+    property real handleHeight: (root.pressed ? 3 : 5) * scale   
+    property real handleWidth: 44 * scale                         
     property real handleLimit: root.backgroundDotMargins
     property real trackWidth: 30 * scale
     property real trackRadius: Rounding.verysmall * scale
@@ -43,7 +43,7 @@ Slider {
         }
         cursorShape: root.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
         onWheel: wheel => {
-            // Positive delta = scroll up = increase value
+            
             var delta = wheel.angleDelta.y / 120;
             var newValue = root.value + (delta * root.wheelStepSize);
             root.value = Math.max(root.from, Math.min(root.to, newValue));
@@ -75,18 +75,18 @@ Slider {
             topRightRadius: root.trackRadius
             bottomLeftRadius: root.unsharpenRadius
             bottomRightRadius: root.unsharpenRadius
-            // Symbol {
-            //     visible: root.icon.length > 0
-            //     anchors {
-            //         top: parent.top
-            //         topMargin: Padding.large
-            //         horizontalCenter: parent.horizontalCenter
-            //     }
-            //     fill: 1
-            //     text: root.icon
-            //     color: Colors.highlightColor
-            //     font.pixelSize: 18
-            // }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
         }
 
         Rectangle {

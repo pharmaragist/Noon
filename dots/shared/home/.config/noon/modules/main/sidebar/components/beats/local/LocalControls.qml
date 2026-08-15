@@ -17,9 +17,9 @@ StyledRect {
     anchors.margins: Padding.huge
     anchors.bottom: parent.bottom
     anchors.horizontalCenter: parent.horizontalCenter
-    radius: Rounding.huge
-    color: Colors.m3.m3surfaceContainerHighest
-
+    radius: Rounding.silly
+    color: colors.colLayer2
+    colors: BeatsService.colors
     onIsSearchingChanged: if (isSearching)
         inputArea.forceActiveFocus()
     inputArea.onFocusChanged: if (!inputArea.focus)
@@ -42,26 +42,11 @@ StyledRect {
 
             PropertyChanges {
                 target: bg
-                width: bg?.isSearching ? 320 : group?.contentWidth
+                width: bg?.isSearching ? 360 : group?.implicitWidth
                 height: 60
             }
         }
     ]
-
-    // Connections {
-    //     target: Mem.beats.players.main
-    //     function onMusicDirectoryChanged() {
-    //         BeatsService._daemonCmd(["kill"]);
-    //         Qt.callLater(() => {
-    //             BeatsService._daemonCmd(["init"]);
-    //             BeatsService.fetchLibrary();
-    //         });
-    //     }
-    // }
-
-    function switchToFolder(folder) {
-        Mem.beats.players.main.musicDirectory = folder;
-    }
 
     StyledLoader {
         readonly property var dict: {
@@ -88,13 +73,13 @@ StyledRect {
                 anchors.verticalCenter: parent?.verticalCenter
                 implicitSize: 55
                 buttonRadius: Rounding.normal
-                colBackground: Colors.m3.m3surfaceContainerHigh
+                colBackground: bg.colors.colLayer3
                 materialIcon: isAdd ? "add" : "folder"
                 releaseAction: () => {
                     if (isAdd) {
                         BeatsService.addNewFolder();
                     } else {
-                        bg.switchToFolder(modelData);
+                        BeatsService.switchToFolder(modelData);
                     }
                 }
                 altAction: () => {
@@ -125,12 +110,12 @@ StyledRect {
 
         StyledTextField {
             id: inputArea
-            visible: isSearching
+            visible: bg.isSearching
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             focus: true
             height: 60
-            color: Colors.colOnLayer3
-            Layout.fillWidth: visible
+            color: bg.colors.colOnLayer3
+            Layout.fillWidth: bg.isSearching
             background: null
         }
 
@@ -174,11 +159,14 @@ StyledRect {
                 }
             }
             delegate: GroupButtonWithIcon {
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillHeight: false
                 Layout.fillWidth: false
                 toggled: modelData?.toggled ?? false
-                baseSize: 55
+                colors: bg.colors
+                baseSize: 38
+                buttonRadiusPressed: Rounding.silly
+                buttonRadius: 24
                 materialIcon: modelData.icon
                 releaseAction: () => modelData.action()
             }

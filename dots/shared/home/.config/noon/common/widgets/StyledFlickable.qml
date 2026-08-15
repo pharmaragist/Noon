@@ -23,8 +23,8 @@ Flickable {
         acceptedButtons: Qt.NoButton
         onWheel: function (wheelEvent) {
             const delta = wheelEvent.angleDelta.y / root.mouseScrollDeltaThreshold;
-            // The angleDelta.y of a touchpad is usually small and continuous,
-            // while that of a mouse wheel is typically in multiples of ±120.
+            
+            
             var scrollFactor = Math.abs(wheelEvent.angleDelta.y) >= root.mouseScrollDeltaThreshold ? root.mouseScrollFactor : root.touchpadScrollFactor;
             const maxY = Math.max(0, root.contentHeight - root.height);
             const base = scrollAnim.running ? root.scrollTargetY : root.contentY;

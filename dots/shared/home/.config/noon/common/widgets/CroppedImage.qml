@@ -1,6 +1,6 @@
 import Qt5Compat.GraphicalEffects
-import QtQuick
 import QtQuick.Effects
+import QtQuick
 import qs.common
 import qs.common.functions
 import qs.common.widgets
@@ -32,7 +32,6 @@ StyledImage {
     }
 
     layer.effect: OpacityMask {
-
         maskSource: Rectangle {
             width: root.width
             height: root.height

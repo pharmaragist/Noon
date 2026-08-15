@@ -16,7 +16,7 @@ Item {
     Behavior on opacity {
         Anim {}
     }
-    // modes toggle_playing , seek_forward,seek_backward
+    
     function hide () {
         opacity = 0
     }

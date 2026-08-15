@@ -32,7 +32,7 @@ TabButton {
 
     PointingHandInteraction {}
 
-    // Real stuff
+    
     contentItem: Item {
         id: buttonContent
 
@@ -91,9 +91,9 @@ TabButton {
                 }
             }
 
-            // Behavior on color {
-            //     CAnim {}
-            // }
+            
+            
+            
         }
 
         Item {

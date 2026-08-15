@@ -5,14 +5,16 @@ import Quickshell
 import qs.store
 import qs.common
 import qs.common.utils
+import qs.common.functions
 
-/*
-    Public fonts interface for easy access
-*/
+
+
+
 
 Singleton {
     id: root
 
+    property QtObject methods: TextUtils
     readonly property var family: fontsView.data.family
     readonly property var sizes: fontsView.data.sizes
 
@@ -32,6 +34,28 @@ Singleton {
             "xScale": horizontal,
             "yScale": vertical
         }];
+    }
+
+    function pickGlobalFont() {
+        fontDialog.open();
+    }
+
+    function changeSystemFont(fontVar) {
+        if (typeof fontVar === "string") {
+            execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar, "--size", Fonts.sizes.small]);
+            Mem.hypr.font_main = fontVar;
+            Mem.options.appearance.fonts.main = fontVar;
+        } else {
+            Quickshell.execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", fontVar.size]);
+            Mem.hypr.font_main = fontVar.family;
+            Mem.options.appearance.fonts.main = fontVar.family;
+            Mem.options.appearance.fonts.sizes.scale = fontVar.size / 10;
+        }
+    }
+
+    FontDialog {
+        id: fontDialog
+        onSelectedFontChanged: Fonts.changeSystemFont(fontDialog.selectedFont)
     }
 
     ConfigFileView {

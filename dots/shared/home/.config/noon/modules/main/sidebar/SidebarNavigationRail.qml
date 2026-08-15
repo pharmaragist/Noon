@@ -12,14 +12,21 @@ Item {
     required property var panel
     required property var content
     required property string selectedCategory
-    required property QtObject colors
+    required property var colors
 
     property alias radius: bg.radius
     property alias color: bg.color
 
     readonly property bool sleek: !Mem.options.sidebar.navRail.showNavTitles
-    readonly property string mode: Mem.options.sidebar.navRail.style === "sidebar" ? Mem.options.sidebar.appearance?.style : Mem.options.sidebar.navRail.style
-
+    readonly property string mode: {
+        const dbMode = SidebarData?._get(selectedCategory)?.navRailMode ?? "";
+        if (dbMode?.length > 0)
+            return dbMode;
+        else if (Mem.options.sidebar.navRail.style === "sidebar")
+            return Mem.options.sidebar.appearance?.style;
+        else
+            return Mem.options.sidebar.navRail.style;
+    }
     implicitWidth: Sizes.sidebar.bar
     Layout.fillHeight: true
 
@@ -35,7 +42,7 @@ Item {
         id: stealthPill
         z: 99999
         anchors.centerIn: parent
-        color: Colors.colPrimaryContainer
+        color: root.colors.colPrimaryContainer
         radius: Rounding.full
         implicitWidth: catName.contentHeight + Padding.small * 2
         implicitHeight: catName.contentWidth + Padding.massive * 2
@@ -81,7 +88,7 @@ Item {
         clip: true
         radius: 0
         anchors.fill: parent
-        color: colors.colLayer2
+        color: root.colors.colLayer2
         layer.enabled: stealthPill.show
         layer.effect: StyledFastBlur {
             radius: 40
@@ -146,8 +153,7 @@ Item {
                 bottomMargin: Padding.huge
 
                 highlightFollowsCurrentItem: false
-                highlight: SidebarNavigationRailHighlight {
-                }
+                highlight: SidebarNavigationRailHighlight {}
                 delegate: NavigationRailButton {
                     required property int index
                     required property string modelData

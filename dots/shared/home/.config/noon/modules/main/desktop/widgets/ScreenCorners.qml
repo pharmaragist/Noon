@@ -7,12 +7,12 @@ Variants {
     model: MonitorsInfo.all
 
     StyledPanel {
-        id: root
+        id: panel
         required property var modelData
         screen: modelData
-        _layer: "Overlay"
+        _layer: Mem.options.desktop?.screenCorners ?? "Top"
         exclusiveZone: -1
-        name: "screenCorners"
+        name: "noanim_blurred_layer"
         fill: true
         mask: Region {}
         Repeater {

@@ -30,7 +30,7 @@ Rectangle {
     radius: Rounding.verylarge - Sizes.hyprland.gapsOut + 1
 
     MouseArea {
-        // Clicking outside the dialog should dismiss
+        
         anchors.fill: parent
         acceptedButtons: Qt.AllButtons
         hoverEnabled: true
@@ -44,13 +44,13 @@ Rectangle {
 
         anchors.horizontalCenter: parent.horizontalCenter
         radius: Rounding.verylarge
-        color: Colors.m3.m3surface // Use opaque version of layer3
+        color: Colors.m3.m3surface 
         y: root.show ? targetY : (targetY - root.backgroundAnimationMovementDistance)
         implicitWidth: root.backgroundWidth
         implicitHeight: contentColumn.implicitHeight + dialogBackground.radius * 2
 
         MouseArea {
-            // So clicking inside the dialog won't dismiss
+            
             anchors.fill: parent
             acceptedButtons: Qt.AllButtons
             hoverEnabled: true

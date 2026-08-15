@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "version": "1.0",
+  "name": "Material Noon",
+  "theme": {
+    "colors": {
+      "frame": [{{ colors.primary_container.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "frame_inactive": [{{ colors.surface_container.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "toolbar": [{{ colors.surface_container.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "toolbar_button_icon": [{{ colors.on_surface_variant.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "toolbar_text": [{{ colors.on_surface.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "tab_background_text": [{{ colors.on_surface_variant.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "tab_text": [{{ colors.on_primary_container.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "bookmark_text": [{{ colors.on_surface.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "ntp_background": [{{ colors.surface.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "ntp_text": [{{ colors.on_surface.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "ntp_link": [{{ colors.primary.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "ntp_section": [{{ colors.surface_container.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "button_background": [{{ colors.primary.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "omnibox_background": [{{ colors.surface_container_low.default.rgb | replace: "rgb(", "" | replace: ")", "" }}],
+      "omnibox_text": [{{ colors.on_surface.default.rgb | replace: "rgb(", "" | replace: ")", "" }}]
+    }
+  }
+}

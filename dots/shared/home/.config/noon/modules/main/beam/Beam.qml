@@ -9,293 +9,207 @@ import qs.common.utils
 import qs.services
 import qs.store
 
-StyledPanel {
-    id: root
-    name: "noanim_blurred_layer"
-    property real scrollSum: 0
-    property bool hasAttachedFile: false
-    readonly property bool reveal: Globals.main.showBeam
-    readonly property int mainRounding: Rounding.silly
-    readonly property int elevationValue: Sizes.elevationMargin + (Mem.options.bar.behavior.position === "bottom" ? Mem.options.bar.appearance.size : 0)
-    readonly property int beamTargetWidth: Math.max(BeamData.getHint().length, BeamData.query.length) > 25 ? Sizes.beamSizeExpanded.width : Sizes.beamSize.width
+import "modes"
+import "overlays"
 
-    visible: true
-    keyboardFocus: true
-    exclusiveZone: -1
-    fill: true
-    focusHandler.active: root.reveal
-    focusHandler.onCleared: root.hide()
+Variants {
+    model: MonitorsInfo.focused
 
-    mask: Region {
-        Region {
-            item: hoverArea
-        }
-        Region {
-            enabled: beamBg.reveal
-            component: beamBg
-        }
-        Region {
-            enabled: popup.opacity > 0
-            component: popup
-        }
-    }
+    StyledPanel {
+        id: root
+        name: "noanim_blurred_layer"
+        required property var modelData
+        property real scrollSum: 0
+        property bool hasAttachedFile: false
+        readonly property string revealReason: Globals.main.beam.reason
+        readonly property bool reveal: Globals.main.beam.show  
+        readonly property int elevationValue: Sizes.elevationMargin + (Mem.options.bar.behavior.position === "bottom" ? Mem.options.bar.appearance.size : 0)
+        readonly property alias containsDrag: dropArea.containsDrag
+        readonly property var currentModeData: contentMap[revealReason]
+        readonly property var contentMap: BeamData?.contentMap ?? ({})
 
-    function hide() {
-        Globals.main.showBeam = false;
-    }
+        visible: true
+        exclusiveZone: -1
+        fill: true
+        keyboardFocus: reveal
+        focusHandler.active: root.reveal
+        focusHandler.onCleared: root.hide()
+        screen: modelData
 
-    function sendMessage() {
-        BeamData.executeCommand();
-        BeamData.reset();
-        hide();
-    }
-
-    // function takeScreenshot() {
-    //     ScreenShotService.request({
-    //         temp: true,
-    //         region: ScreenShotService.Regions.Window
-    //     });
-    //     ScreenShotService.screenshotCompleted.connect(path => {
-    //         root.hasAttachedFile = path.length > 0;
-    //         Ai.attachFile(Qt.resolvedUrl(ScreenShotService.tempPath));
-    //         Qt.callLater(hide);
-    //     });
-    // }
-
-    ScreenActionHintPanel {
-        target: dropArea
-        hint: {
-            "icon": "keyboard_double_arrow_down",
-            "text": "You Can Drop Now"
-        }
-    }
-
-    MouseArea {
-        id: hoverArea
-        z: -1
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-
-        implicitHeight: Math.max(1, Sizes.hyprland.gapsOut - 2)
-        hoverEnabled: true
-        propagateComposedEvents: true
-        acceptedButtons: Qt.NoButton
-        scrollGestureEnabled: true
-
-        Timer {
-            id: idleTimer
-            repeat: true
-            interval: 5000
-            running: root.reveal && BeamData.query.length === 0 && !hoverArea.containsMouse
-            onTriggered: root.hide()
-        }
-
-        onWheel: wheel => {
-            if (wheel.modifiers === Qt.ControlModifier) {
-                Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "incubate" : "";
-                wheel.accepted = true;
-                return;
+        mask: Region {
+            Region {
+                target: bg
+                enabled: root.reveal
             }
-            if (wheel.modifiers === Qt.ShiftModifier) {
-                Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dino" : "";
-                wheel.accepted = true;
-                return;
+            Region {
+                target: hoverArea
             }
-
-            root.scrollSum += wheel.angleDelta.y;
-
-            if (!root.reveal && root.scrollSum <= -20) {
-                Globals.main.showBeam = true;
-                root.scrollSum = 0;
-            } else if (root.reveal && root.scrollSum >= 20) {
-                Globals.main.showBeam = false;
-                root.scrollSum = 0;
+            Region {
+                target: overlaysLoader
+                enabled: overlaysLoader.active
             }
-
-            wheel.accepted = true;
+            Region {
+                enabled: popup.opacity > 0
+                target: popup
+            }
         }
 
-        DropArea {
-            id: dropArea
+        function hide() {
+            const opts = Globals.main.beam;
+            if (opts.reason !== "default")
+                opts.reason = "default";
+            else
+                opts.show = false;
+        }
+
+        WidgetLoader {
+            active: Globals.main.beam.showCheats
+            HintsWindow {}
+        }
+
+        ScrimOverlay {
+            shown: !!root?.currentModeData?.dim
+            onHide: root.hide()
+        }
+
+        StyledLoader {
+            id: overlaysLoader
+            readonly property var data: root.currentModeData ?? ({})
             anchors.fill: parent
-            keys: ["text/uri-list"]
-            onDropped: drop => {
-                if (!drop || !drop.hasUrls || drop.urls.length === 0)
-                    return;
+            z: 0
+            asynchronous: true
 
-                let urlStrings = drop.urls.map(url => url.toString());
-                let firstUrl = urlStrings[0];
+            active: {
+                const hasSource = (data?.overlay && data?.overlay?.length > 0) ?? false;
+                return root.reveal && hasSource;
+            }
 
-                if (NoonUtils.isOnline(firstUrl)) {
-                    NoonUtils.runDownloader(firstUrl);
-                } else if (firstUrl.startsWith("file://")) {
-                    Mem.states.sidebar.shelf.filePaths = [...Mem.states.sidebar.shelf.filePaths, ...urlStrings];
+            source: Qt.resolvedUrl("./overlays/" + (data?.overlay ?? "Stub") + ".qml")
+            onLoaded: {
+                if (ready && active && "hide" in _item)
+                    _item?.hide?.connect(() => root.hide());
+                if (!active)
+                    root.focusHandler.clear();
+            }
+        }
+
+        MouseArea {
+            id: hoverArea
+            z: -1
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            implicitHeight: Math.max(1, Sizes.hyprland.gapsOut - 2)
+            hoverEnabled: true
+            propagateComposedEvents: true
+            acceptedButtons: Qt.NoButton
+            scrollGestureEnabled: true
+            
+
+            Timer {
+                id: idleTimer
+                repeat: true
+                interval: 6000
+                running: {
+                    const contentHasTimeOut = root.revealReason !== "default" && (root?.currentModeData?.timeout ?? true);
+                    const defaultAndEmpty = root.revealReason === "default" && BeamData.query.length === 0;
+                    return root.reveal && (contentHasTimeOut || defaultAndEmpty);
                 }
-            }
-        }
-    }
-
-    BeamPopup {
-        id: popup
-        mainBg: beamBg
-        reveal: root.reveal
-    }
-
-    StyledRectangularShadow {
-        target: popup
-        transparency: 0.6
-    }
-
-    StyledRectangularShadow {
-        target: beamBg
-        transparency: 0.6
-    }
-
-    BeamBg {
-        id: beamBg
-        reveal: root.reveal
-        rounding: root.mainRounding
-        topRadius: popup.shown ? Rounding.tiny : rounding
-        elevationValue: root.elevationValue
-        implicitHeight: Sizes.beamSize.height
-        implicitWidth: root.beamTargetWidth
-
-        Symbol {
-            z: 999
-            font.pixelSize: 18
-            fill: 1
-            color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer3
-            anchors.centerIn: icon
-            text: BeamData.getIcon()
-        }
-
-        MaterialShape {
-            id: icon
-            anchors {
-                left: parent.left
-                verticalCenter: parent.verticalCenter
-                leftMargin: Padding.gigantic
-            }
-            implicitSize: 36
-            color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
-            shape: BeamData.getShape()
-
-            property alias inputText: inputField.text
-            onInputTextChanged: if (inputField.text.length === 0)
-                rotation = 0
-
-            Behavior on color {
-                CAnim {}
+                onTriggered: root.hide()
             }
 
-            RotationAnimation on rotation {
-                running: inputField.text.length > 0
-                loops: Animation.Infinite
-                from: 0
-                to: 360
-                duration: 9000
-                easing.type: Easing.Linear
-            }
-        }
+            onWheel: wheel => {
+                if (wheel.modifiers === Qt.ControlModifier) {
+                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "incubate" : "";
+                    wheel.accepted = true;
+                    return;
+                }
+                if (wheel.modifiers === Qt.ShiftModifier) {
+                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dino" : "";
+                    wheel.accepted = true;
+                    return;
+                }
 
-        LayerRect {
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                left: icon.right
-                right: sendButton.left
-                leftMargin: Padding.huge
-                rightMargin: Padding.small
-                margins: Padding.normal
-            }
-            radius: Rounding.full
+                root.scrollSum += wheel.angleDelta.y;
 
-            TextField {
-                id: inputField
+                if (!root.reveal && root.scrollSum <= -20) {
+                    Globals.main.beam.show = true;
+                    root.scrollSum = 0;
+                } else if (root.reveal && root.scrollSum >= 20) {
+                    Globals.main.beam.show = false;
+                    root.scrollSum = 0;
+                }
+
+                wheel.accepted = true;
+            }
+
+            DropArea {
+                id: dropArea
                 anchors.fill: parent
-                z: 10
-                focus: root.reveal
-                objectName: "inputField"
-                placeholderText: BeamData.config?.placeholder ?? "Ask any thing ..."
-                text: BeamData.query
-                background: null
-                selectionColor: Colors.colPrimaryContainer
-                selectedTextColor: Colors.m3.m3onPrimaryContainer
-                color: Colors.colOnLayer0
-                placeholderTextColor: Colors.colSubtext
-                selectByMouse: true
-                leftPadding: Padding.massive
-                rightPadding: Padding.massive
-                font: Fonts.request("main", Fonts.sizes.large - 1)
+                keys: ["text/uri-list"]
+                onDropped: drop => {
+                    if (!drop || !drop.hasUrls || drop.urls.length === 0)
+                        return;
 
-                onTextChanged: BeamData.updateStateFromQuery(text)
+                    let urlStrings = drop.urls.map(url => url.toString());
+                    let firstUrl = urlStrings[0];
 
-                Keys.onPressed: event => {
-                    switch (event.key) {
-                    case Qt.Key_Escape:
-                        root.hide();
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Return:
-                        root.sendMessage();
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Tab:
-                        const hint = BeamData.getHint();
-                        if (hint) {
-                            BeamData.query = BeamData.autocomplete(hint);
-                            event.accepted = true;
-                        }
-                        break;
-                    default:
-                        if (event.modifiers === Qt.ControlModifier && event.key === Qt.Key_S) {
-                            root.takeScreenshot();
-                            event.accepted = true;
-                        }
+                    if (NoonUtils.isOnlineUrl(firstUrl)) {
+                        NoonUtils.runDownloader(firstUrl);
+                    } else if (firstUrl.startsWith("file://")) {
+                        Mem.states.sidebar.shelf.filePaths = [...Mem.states.sidebar.shelf.filePaths, ...urlStrings];
                     }
                 }
             }
-
-            GroupButtonWithIcon {
-                id: osrButton
-                z: 999
-                visible: false
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                    right: parent.right
-                    rightMargin: Padding.large
-                }
-                buttonRadius: root.mainRounding
-                releaseAction: () => root.takeScreenshot()
-                colBackground: "transparent"
-                materialIcon: "screenshot_region"
-                implicitSize: beamBg.implicitHeight * 0.75
-                enabled: !ScreenShotService.isBusy
-                // visible: BeamData.config?.showOsrButton ?? false
-                Behavior on opacity {
-                    Anim {}
-                }
-            }
         }
 
-        GroupButtonWithIcon {
-            id: sendButton
-            anchors {
-                verticalCenter: parent.verticalCenter
-                right: parent.right
-                rightMargin: Padding.large
-            }
-            releaseAction: () => root.sendMessage()
-            buttonRadius: root.mainRounding
-            colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : "transparent"
-            iconSize: 22
-            implicitSize: beamBg.implicitHeight * 0.6
-            animateIcon: true
-            materialIcon: BeamData.query.length === 0 && BeamData.activeState === "ai" ? "mic" : root.isResponding ? "stop" : "arrow_upward"
-            Behavior on opacity {
-                Anim {}
+        BeamPopup {
+            id: popup
+            target: bg
+            reveal: root.reveal && root.revealReason === "default"
+        }
+
+        StyledRectangularShadow {
+            target: popup
+            transparency: 0.8
+            show: popup?.shown ?? false
+        }
+
+        StyledRectangularShadow {
+            target: bg
+            show: root.reveal && (root.currentModeData?.shadow ?? true)
+            transparency: 0.8
+        }
+
+        Content {
+            id: bg
+            z: 999
+            reveal: root.reveal
+            topRadius: popup.shown ? Rounding.tiny : bottomRadius
+            elevationValue: root.elevationValue
+            animationDuration: 300
+            bottomRadius: root.currentModeData.radius ?? height / 2
+            height: root.currentModeData.size?.height ?? 1000
+            width: root.currentModeData.size?.width ?? 1000
+            color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
+
+            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
+
+            onContentLoaded: item => {
+                if (root.reveal && "focusItem" in item)
+                    item.focusItem.forceActiveFocus();
+
+                if (root.currentModeData?.when ?? false) {
+                    const targetStr = root.currentModeData?.target;
+                    if (!targetStr)
+                        return;
+
+                    const parts = targetStr.split('.');
+                    const property = parts.pop();
+
+                    eval(parts.join('.'))[property] = Qt.binding(() => root.currentModeData?.when ?? false);
+                }
             }
         }
     }

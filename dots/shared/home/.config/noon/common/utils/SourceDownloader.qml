@@ -39,8 +39,8 @@ Item {
 
     Process {
         id: downloadProc
-        // Limit and don't download if file exceeds 100KB
-        // This in most cases prevents local files from being pulled again -- even though we have test checking
+        
+        
         command: ["curl", "--range", "0-99999", "--max-filesize", 100000, "-o", targetFile,  input]
         onExited: exitCode => {
             if (exitCode === 0) {

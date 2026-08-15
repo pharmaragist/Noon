@@ -9,13 +9,10 @@ RippleButton {
 
     property string materialIcon
     property bool materialIconFill: true
-    property int implicitSize: 36
     property alias iconColor: symbol.color
     property alias iconSize: symbol.font.pixelSize
-    property QtObject colors: Colors
+    property var colors: Colors
     property bool animateIcon: false
-    implicitWidth: implicitSize
-    implicitHeight: implicitSize
     buttonRadius: Rounding.normal
     colBackground: colors.colLayer2
 
@@ -27,11 +24,11 @@ RippleButton {
         text: materialIcon
         color: {
             if (root.toggled)
-                colors.colOnPrimary;
+                return colors.colOnPrimary;
             else if (root.containsMouse)
-                colors.colOnLayer1Hover;
+                return colors.colOnLayer1Hover;
             else
-                colors.colOnLayer1;
+                return colors.colOnLayer1;
         }
         fill: materialIconFill ? 1 : 0
     }

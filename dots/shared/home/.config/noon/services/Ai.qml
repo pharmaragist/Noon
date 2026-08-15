@@ -354,7 +354,7 @@ Singleton {
                 });
                 return;
             }
-            rows.reverse(); // DESC → chronological
+            rows.reverse(); 
             const groups = {}, order = [];
             rows.forEach(function(r) {
                 if (!groups[r.msg_id]) {

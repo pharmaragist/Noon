@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell
 import qs.common
 import qs.common.utils
+import qs.common.functions
+import Qt.labs.folderlistmodel
 
 Singleton {
     id: root
@@ -16,6 +18,19 @@ Singleton {
     property string lastSaved: ""
     property bool isLoaded: false
     property string _pendingNote: ""
+    readonly property var cards: {
+        const _model = notesModel;
+        let all = [];
+        for (var i = 0; i < _model.count; i++) {
+            all.push({
+                name: _model.get(i, "fileName"),
+                path: _model.get(i, "filePath"),
+                lastSaved: friendlyDate(_model.get(i, "fileModified")),
+                content: FileUtils.readFile(_model.get(i, "filePath"))
+            });
+        }
+        return all;
+    }
 
     FileView {
         id: noteFile
@@ -41,6 +56,14 @@ Singleton {
             root.isDirty = false;
             root.lastSaved = new Date().toISOString();
         }
+    }
+
+    FolderListModel {
+        id: notesModel
+        nameFilters: ["*.md"]
+        folder: root.folderPath
+        showDirs: false
+        showFiles: true
     }
 
     function createNote(name) {
@@ -74,6 +97,12 @@ Singleton {
         root.content += text.trim() + "\n";
         root.isDirty = true;
         save();
+    }
+
+    function friendlyDate(timestamp) {
+        if (!timestamp)
+            return "";
+        return Qt.formatDateTime(new Date(timestamp), "MMM d, ''yy • h:mm AP");
     }
 
     Component.onCompleted: noteFile.reload()

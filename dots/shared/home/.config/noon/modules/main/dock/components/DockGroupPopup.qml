@@ -13,14 +13,14 @@ PopupWindow {
     property var groupData
     property var parentButton
 
-    // Connections {
-    //     target: Globals.main.dock
-    //     enabled: Globals.main.dock
-    //     function onRevealChanged() {
-    //         if (!Globals.main.dock.reveal)
-    //             root.visible = false;
-    //     }
-    // }
+    
+    
+    
+    
+    
+    
+    
+    
 
     anchor.window: parentButton?.QsWindow.window
     anchor.rect.x: parentButton ? parentButton.mapToItem(null, parentButton?.width / 2, 0).x : 0
@@ -133,9 +133,7 @@ PopupWindow {
                             }
                             contentItem: StyledIconImage {
                                 anchors.centerIn: parent
-                                width: Mem.options.dock.appearance.iconSize
-                                height: width
-                                cache: false
+                                implicitSize: Mem.options.dock.appearance.iconSize
                                 source: NoonUtils.iconPath(de ? (de.icon || de.genericIcon || "applications-system") : modelData.appId)
                             }
                         }

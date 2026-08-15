@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# Controls Hyprland's cursor zoom_factor, clamped between 1.0 and 3.0
 
-# Get current zoom level
+
+
 get_zoom() {
     hyprctl getoption -j cursor:zoom_factor | jq '.float'
 }
 
-# Clamp a value between 1.0 and 3.0
+
 clamp() {
     local val="$1"
     awk "BEGIN {
@@ -18,7 +18,7 @@ clamp() {
     }"
 }
 
-# Set zoom level
+
 set_zoom() {
     local value="$1"
     clamped=$(clamp "$value")

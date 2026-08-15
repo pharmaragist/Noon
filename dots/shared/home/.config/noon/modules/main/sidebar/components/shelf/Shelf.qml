@@ -16,7 +16,7 @@ SidebarItemContainer {
         scale: 0.5
     }
 
-    // Drop zone
+    
     DropArea {
         id: dropArea
         anchors.fill: parent

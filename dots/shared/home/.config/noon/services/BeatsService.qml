@@ -1,70 +1,46 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Dialogs
+import Quickshell
+import Quickshell.Io
+import Quickshell.Services.Mpris
+
+import Noon.Utils
 import qs.store
 import qs.common
 import qs.common.utils
 import qs.common.widgets
 import qs.common.functions
-import QtQuick.Dialogs
-import QtQuick
-import Quickshell
-import Quickshell.Io
-import Quickshell.Services.Mpris
-import Qt.labs.folderlistmodel
-import QtMultimedia
-import Noon.Utils
 
 Singleton {
     id: root
-    readonly property QtObject colors: palette.colors
-    readonly property var daemonOptions: Mem.beats
+
+    readonly property var opts: Mem.beats
     readonly property var currentTrackIndexedInfo: library?.find(t => t.title === root.title)
-    readonly property string tracksDir: daemonOptions.players.main.musicDirectory
-    readonly property string tracksUrl: Qt.resolvedUrl(daemonOptions.players.main.musicDirectory)
-    readonly property var library: daemonOptions.players.main.library
+    readonly property string tracksDir: Directories.methods.trim(opts.players.main.musicDirectory || Directories.standard.music)
+    readonly property string tracksUrl: Qt.resolvedUrl(opts.players.main.musicDirectory)
+    readonly property var library: opts.players.main.library
     readonly property alias queue: queueFetcher.data
 
-    readonly property int defaultPlayerIndex: getCurrentPlayerIndex()
-    property int selectedPlayerIndex: defaultPlayerIndex
-
-    readonly property string artUrl: player ? StringUtils.cleanMusicTitle(player.trackArtUrl) : ""
-    readonly property string title: player ? StringUtils.cleanMusicTitle(player.trackTitle) : "No Title"
-    readonly property string artist: player ? StringUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
-
-    readonly property var players: Mpris?.players.values ?? []
-    readonly property MprisPlayer player: meaningfulPlayers[selectedPlayerIndex] ?? null
-
+    
+    property int selectedPlayerIndex: 0
     readonly property bool _playing: player && isPlaying(root.player)
+    readonly property var player: players[selectedPlayerIndex] ?? null
+    readonly property var colors: palette.colors
+    readonly property string artUrl: player?.trackArtUrl ?? ""
+    readonly property string title: player ? TextUtils.cleanMusicTitle(player.trackTitle) : "No Title"
+    readonly property string artist: player ? TextUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
+
+    readonly property var players: Mpris?.players?.values
     readonly property var baseCmd: ["python3", Directories.scriptsDir + "/beats_daemon.py"]
-    readonly property var meaningfulPlayers: {
-        const source = root.players;
-        if (!source)
-            return [];
-
-        const map = new Map();
-        for (let i = 0; i < source.length; i++) {
-            const p = source[i];
-            if (!p || !p.dbusName || p.dbusName === "")
-                continue;
-
-            const key = `${p.trackTitle || ""}|${p.trackArtist || ""}`.toLowerCase();
-            if (!map.has(key)) {
-                map.set(key, p);
-            } else {
-                const existing = map.get(key);
-                if (p.trackArtUrl?.length > 0 && !(existing.trackArtUrl?.length > 0))
-                    map.set(key, p);
-            }
-        }
-        return Array.from(map.values());
+    onOptsChanged: _daemonCmd(["refresh-config"])
+    onPlayersChanged: if (players && players.length > -1) {
+        root.selectedPlayerIndex = players.findIndex(p => p.isPlaying);
     }
 
-    onDaemonOptionsChanged: _daemonCmd(["refresh-config"])
-
-    function getCurrentPlayerIndex() {
-        const players = meaningfulPlayers;
-        const currentlyActivePlayer = players.find(player => isPlaying(player));
-        return Math.max(0, players?.indexOf(currentlyActivePlayer)) ?? 0;
+    function getPlayingIndex() {
+        console.error(players.filter(p => p.isPlaying).length);
     }
 
     function restartDaemon() {
@@ -91,6 +67,10 @@ Singleton {
     function isPlaying(player) {
         if (player)
             return player.playbackState === MprisPlaybackState.Playing;
+    }
+
+    function switchToFolder(folder) {
+        Mem.beats.players.main.musicDirectory = folder;
     }
 
     function playTrackByFile(file) {
@@ -155,22 +135,13 @@ Singleton {
         moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx);
     }
 
-    function formatTime(seconds) {
-        if (!seconds || seconds <= 0)
-            return "0:00";
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return mins + ":" + (secs < 10 ? "0" : "") + secs;
-    }
-
     function getQueue() {
         if (queueFetcher.running || !root.player.dbusName.includes("mpd"))
             return;
         queueFetcher.running = true;
     }
 
-    function cycleRepeat() {
-        const p = root.player;
+    function cycleRepeat(p = root.player) {
         if (!p?.canControl)
             return;
         p.loopState = ({
@@ -181,14 +152,14 @@ Singleton {
     }
 
     function openUrl() {
-        Qt.openUrlExternally("http://localhost:" + daemonOptions.players.webClient.port);
+        NoonUtils.execDetached(["gio", "open", "http://localhost:" + opts.players.webClient.port]);
     }
     function openWebClient() {
-        if (!webClientProc.running) {
-            webClientProc.running = true;
-        } else {
-            openUrl();
-        }
+        webClientProc.running = true;
+        webClientProc.onRunningChanged.connect(() => {
+            if (webClientProc.running)
+                openUrl();
+        });
     }
     function addNewFolder() {
         addFolderDialog.open();
@@ -198,7 +169,7 @@ Singleton {
         id: addFolderDialog
         title: "Select Folder"
         onAccepted: {
-            root.daemonOptions.folders.push(Directories.methods.trim(currentFolder));
+            root.opts.folders.push(Directories.methods.trim(currentFolder));
             Qt.callLater(fetchLibrary);
         }
     }
@@ -212,7 +183,7 @@ Singleton {
     }
     Process {
         id: webClientProc
-        command: [...baseCmd, "serve", "--port", daemonOptions.players.webClient.port]
+        command: [...baseCmd, "serve", "--port", opts.players.webClient.port]
         onStarted: openUrl()
     }
     Process {
@@ -224,7 +195,7 @@ Singleton {
         id: libraryFetcher
         command: [...baseCmd, "--player", "main", "library"]
         onDataChanged: if (data)
-            daemonOptions.players.main.library = data
+            opts.players.main.library = data
     }
 
     Fetcher {
@@ -242,7 +213,6 @@ Singleton {
         id: fetchTrackProc
     }
 
-
     FileSystemWatcher {
         folder: root.tracksUrl
         onContentsChanged: {
@@ -259,7 +229,7 @@ Singleton {
 
     PaletteGenerator {
         id: palette
-        active: root._playing && Mem.beats.options.adaptiveTheme
+        active: root.artUrl.length > 0 && Mem.beats.options.adaptiveTheme
         source: coverFetch.output || root.artUrl
     }
 }

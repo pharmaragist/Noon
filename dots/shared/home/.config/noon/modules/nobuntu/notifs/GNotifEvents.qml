@@ -91,12 +91,12 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    // TODO
-                    // onClicked: {
-                    //     let index = TodoService.list.indexOf(root.modelData)
-                    //     TodoService.setStatus(index, 3)
-                    //     console.log(index,root.modelData)
-                    // }
+                    
+                    
+                    
+                    
+                    
+                    
                 }
             }
         }

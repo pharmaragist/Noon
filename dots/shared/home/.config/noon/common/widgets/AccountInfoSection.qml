@@ -7,7 +7,7 @@ import qs.common.functions
 StyledRect {
     id: root
     property var account: AuthManager.oauthData[0]?.account ?? {}
-    color: "transparent" // Colors.colLayer2
+    color: "transparent" 
     radius: Rounding.verylarge
 
     Layout.fillWidth: true
@@ -16,8 +16,8 @@ StyledRect {
     RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        // anchors.leftMargin: Padding.veryhuge
-        // anchors.rightMargin: Padding.veryhuge
+        
+        
         anchors.verticalCenter: parent.verticalCenter
         spacing: Padding.huge
 
@@ -50,7 +50,7 @@ StyledRect {
 
             Symbol {
                 z: 0
-                // visible: !FileUtils.exists(account.image)
+                
                 anchors.centerIn: parent
                 font.pixelSize: 30
                 color: Colors.colPrimary
@@ -75,7 +75,7 @@ StyledRect {
                 truncate: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignLeft
-                text: StringUtils.capitalizeFirstLetter(account.name)
+                text: TextUtils.capitalizeFirstLetter(account.name)
                 color: Colors.colOnLayer2
                 font: Fonts.request("title", "huge")
             }

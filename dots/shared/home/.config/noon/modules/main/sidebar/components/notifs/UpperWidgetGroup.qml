@@ -26,6 +26,7 @@ Item {
             bottomMargin: Padding.large
             topMargin: Padding.normal
         }
+
         RowLayout {
             Layout.fillWidth: true
             DateUptime {}
@@ -57,15 +58,18 @@ Item {
 
         Group {
             visible: Mem.options.sidebar.appearance.showSliders ?? false
-            Layout.preferredHeight: sliders.implicitHeight + sliders.anchors.margins
+            implicitHeight: sliders.implicitHeight + Padding.massive
+
             ColumnLayout {
                 id: sliders
-                anchors.margins: Padding.huge
+
+                spacing: Padding.verysmall
+
                 anchors.left: parent.left
                 anchors.right: parent.right
+                anchors.margins: Padding.huge
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Padding.verysmall
-                Layout.rightMargin: Padding.normal
+                anchors.verticalCenterOffset: Padding.verysmall
 
                 BrightnessSlider {}
                 VolumeOutputSlider {}

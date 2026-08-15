@@ -7,6 +7,7 @@ import qs.services
 Item {
     id: root
     property var altAction
+    property var releaseAction
     property bool verticalMode: false
     property bool expanded: mouseArea.containsMouse
     property alias text: text.text
@@ -32,10 +33,14 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: event => {
-            if (event.button === Qt.LeftButton)
-                expanded = !expanded
-            else if (event.button === Qt.RightButton)
-                altAction()
+            if (event.button === Qt.LeftButton) {
+                if (!!releaseAction) {
+                    releaseAction();
+                    event.accepted = true;
+                } else
+                    expanded = !expanded;
+            } else if (event.button === Qt.RightButton)
+                altAction();
         }
         hoverEnabled: true
     }

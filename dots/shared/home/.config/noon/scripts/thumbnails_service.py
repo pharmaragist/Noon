@@ -141,7 +141,7 @@ def thumbnail_folder(
     for fpath in all_files:
         rel = str(fpath.resolve().relative_to(dir_path.resolve()))
         entry = existing.get(rel)
-        # ponytail: stat is cheaper than PNG metadata read; sidecar mtime is authoritative
+        
         if entry and int(entry.get("mtime", 0)) == int(fpath.stat().st_mtime):
             if (THUMBNAIL_CACHE / SIZE_DIR / f"{entry['hash']}.png").exists():
                 logger.debug("FRESH       {}", fpath.as_uri())

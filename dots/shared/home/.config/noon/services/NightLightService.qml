@@ -32,8 +32,12 @@ Singleton {
 
         const now = new Date();
         const currentHour = now.getHours() + now.getMinutes() / 60;
-        const [sunriseH, sunriseM] = WeatherService.sunrise.split(":").map(Number);
-        const [sunsetH, sunsetM] = WeatherService.sunset.split(":").map(Number);
+        const sr = WeatherService.weatherData.sunrise;
+        const ss = WeatherService.weatherData.sunset;
+        if (!sr || !ss)
+            return;
+        const [sunriseH, sunriseM] = sr.split(":").map(Number);
+        const [sunsetH, sunsetM] = ss.split(":").map(Number);
         const sunrise = sunriseH + sunriseM / 60;
         const sunset = sunsetH + sunsetM / 60;
         const isNight = currentHour < sunrise || currentHour > sunset;
@@ -74,16 +78,9 @@ Singleton {
     }
 
     Connections {
-        function onSunriseChanged() {
+        function onWeatherDataChanged() {
             if (root.autoEnabled)
                 root.syncWithSunset();
-
-        }
-
-        function onSunsetChanged() {
-            if (root.autoEnabled)
-                root.syncWithSunset();
-
         }
 
         target: WeatherService

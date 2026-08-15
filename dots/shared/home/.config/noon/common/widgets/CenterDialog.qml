@@ -13,7 +13,7 @@ Item {
     property bool show: true
     property alias bg: bg
     property Item contentItem
-    property QtObject colors: Colors
+    property var colors: Colors
     property var buttonData: [
         {
             label: "Cancel",

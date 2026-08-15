@@ -8,9 +8,10 @@ import qs.services
 
 Item {
     id: root
+    z: 999
     required property var context
     implicitHeight: 65
-    implicitWidth: Sizes.beamSize.width
+    implicitWidth: Sizes.beam.normal.width
 
     anchors {
         bottom: parent.bottom
@@ -23,11 +24,12 @@ Item {
 
         z: 99
         implicitHeight: 65
-        implicitWidth: Sizes.beamSize.width
+        implicitWidth: Sizes.beam.normal.width
         radius: Rounding.full
         color: Colors.colLayer0
-        enableBorders: false
+        
         anchors.centerIn: parent
+
         Item {
             id: icon
             anchors {
@@ -40,7 +42,7 @@ Item {
             MaterialShape {
                 z: 999
                 implicitSize: 42
-                shape: MaterialShape.Cookie6Sided
+                _shape: "Cookie9Sided"
                 anchors.centerIn: parent
 
                 readonly property string inputText: inputField.text
@@ -102,11 +104,12 @@ Item {
             }
         }
 
-        RippleButtonWithIcon {
+        GroupButtonWithIcon {
             id: enter
-            buttonRadius: Rounding.full
-            enabled: inputField.text.length > 0 && !root.context.unlockInProgress
-            materialIcon: "arrow_forward"
+            buttonRadius: height / 2
+            materialIcon: "arrow_upward"
+            enabled: !root.context.unlockInProgress
+            toggled: inputField.text.length > 0
             implicitSize: 45
             releaseAction: () => {
                 root.context.tryUnlock();
@@ -115,11 +118,6 @@ Item {
             anchors {
                 right: parent.right
                 rightMargin: Padding.normal
-                verticalCenter: parent.verticalCenter
-            }
-
-            anchors {
-                right: parent.right
                 verticalCenter: parent.verticalCenter
             }
         }
@@ -131,5 +129,6 @@ Item {
 
     StyledRectangularShadow {
         target: bg
+        transparency: 0.85
     }
 }

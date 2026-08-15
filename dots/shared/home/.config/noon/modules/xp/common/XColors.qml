@@ -7,7 +7,7 @@ Singleton {
     property QtObject luna
     property QtObject lunaSilver
     property QtObject lunaBeige
-    property QtObject colors: luna
+    property var colors: luna
 
     luna: QtObject {
         readonly property real dimintensity: 1.2
@@ -22,7 +22,7 @@ Singleton {
         readonly property color colSecondaryHover: Qt.lighter(colSecondary, lightintensity)
         readonly property color colOnSecondary: "#A6FDFF"
         readonly property color colSecondaryBorder: "#1FAAE9"
-        readonly property color colTertiary: "#2D812D" // Start Button Bg
+        readonly property color colTertiary: "#2D812D" 
         readonly property color colTertiaryBorder: "#84BD7E"
         readonly property color colQuaternary: "#D3E5FB"
         readonly property color colQuaternaryContainer: "#D3E5FB"

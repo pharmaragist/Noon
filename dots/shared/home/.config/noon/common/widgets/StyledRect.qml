@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
 import Qt5Compat.GraphicalEffects
@@ -18,7 +17,7 @@ Rectangle {
     property int bottomRadius
     property int implicitSize
     property int animationDuration: Animations.durations.normal
-    property QtObject colors: Colors
+    property var colors: Colors
 
     implicitHeight: implicitSize
     implicitWidth: implicitSize
@@ -43,9 +42,11 @@ Rectangle {
     }
     transitions: Transition {
         Anim {
-            properties: "topRightRadius,bottomRightRadius,topLeftRadius,bottomLeftRadius,anchors.topMargin,anchors.bottomMargin,radius,opacity"
+            duration: root.animationDuration
+            properties: "topRightRadius,bottomRightRadius,topLeftRadius,bottomLeftRadius,anchors.topMargin,anchors.bottomMargin,anchors.rightMargin,anchors.leftMargin,radius,opacity"
         }
         CAnim {
+            duration: root.animationDuration
             property: "color"
         }
     }

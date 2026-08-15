@@ -3,15 +3,15 @@ import QtQuick
 import QtQuick.Controls
 import qs.common
 
-/**
- * Material 3 styled TextArea (filled style)
- * https://m3.material.io/components/text-fields/overview
- * Note: We don't use NativeRendering because it makes the small placeholder text look weird
- */
+
+
+
+
+
 TextArea {
     id: root
 
-    Material.theme: Material.System
+    Material.theme: Material[Colors.mode]
     Material.accent: Colors.m3.m3primary
     Material.primary: Colors.m3.m3primary
     Material.background: Colors.m3.m3surface

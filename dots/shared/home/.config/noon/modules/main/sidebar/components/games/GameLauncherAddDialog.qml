@@ -16,7 +16,7 @@ BottomDialog {
     enableStagedReveal: false
     bottomAreaReveal: true
     hoverHeight: 300
-    // scrim: false
+    
     colors: GameLauncherService.colors
     property bool sidebarExpanded
     bgAnchors {

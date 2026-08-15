@@ -6,7 +6,7 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-// Material 3 slider. See [https://m3.material.io/components/sliders/overview](https://m3.material.io/components/sliders/overview)
+
 Slider {
     id: root
 
@@ -20,14 +20,14 @@ Slider {
     property real trackHeight: 30 * scale
     property real trackRadius: Rounding.verysmall * scale
     property real unsharpenRadius: Rounding.tiny
-    // Color properties
+    
     property color highlightColor: Colors.colPrimary
     property color trackColor: Colors.colSecondaryContainer
     property color handleColor: Colors.m3.m3onSecondaryContainer
     property bool enableTooltip: true
     property real limitedHandleRangeWidth: (root.availableWidth - handleWidth - root.handleLimit * 2)
     property string tooltipContent: `${Math.round(value * 100)}%`
-    // Wheel handler properties
+    
     property real wheelStepSize: 0.05
     property bool showBackgroundDot: true
     Layout.fillWidth: true
@@ -40,9 +40,9 @@ Slider {
             return mouse.accepted = false;
         }
         cursorShape: root.pressed ? Qt.ClosedHandCursor : Qt.PointingHandCursor
-        // Add wheel event handler
+        
         onWheel: wheel => {
-            var delta = wheel.angleDelta.y / 120; // Normalize to clicks
+            var delta = wheel.angleDelta.y / 120; 
             var newValue = root.value + (delta * root.wheelStepSize);
             root.value = Math.max(root.from, Math.min(root.to, newValue));
             wheel.accepted = true;
@@ -63,7 +63,7 @@ Slider {
         anchors.verticalCenter: parent.verticalCenter
         implicitHeight: trackHeight
 
-        // Fill left (active/highlighted portion)
+        
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -76,7 +76,7 @@ Slider {
             bottomRightRadius: root.unsharpenRadius
         }
 
-        // Fill right (inactive/track portion)
+        
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
@@ -89,7 +89,7 @@ Slider {
             bottomRightRadius: root.trackRadius
         }
 
-        // Dot at the end
+        
         Rectangle {
             visible: root.showBackgroundDot
             anchors.verticalCenter: parent.verticalCenter

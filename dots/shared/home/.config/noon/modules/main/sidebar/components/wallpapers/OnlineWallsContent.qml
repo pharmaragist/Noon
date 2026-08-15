@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 import qs.services
@@ -56,15 +57,19 @@ LayerRect {
         }
     }
 
+    ScrollEdgeFade {
+        target: gridView
+    }
+
+    StyledRectangularShadow {
+        target: categoryBar
+        transparency: 0.9
+        z: 1
+    }
+
     StyledGridView {
         id: gridView
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            bottom: categoryBar.top
-            bottomMargin: Padding.small
-        }
+        anchors.fill: parent
 
         cellWidth: root._cellWidth
         cellHeight: root._cellHeight
@@ -177,47 +182,35 @@ LayerRect {
 
     StyledRect {
         id: categoryBar
+        z: 2
+
         anchors {
             right: parent.right
             bottom: parent.bottom
-            margins: Padding.small
+            margins: Padding.huge
         }
-        width: categoryRow.implicitWidth + Padding.massive
-        height: categoryRow.implicitHeight + Padding.massive
-        color: Colors.colLayer3
+
+        implicitWidth: 55
+        implicitHeight: categoryRow.implicitHeight + Padding.massive
+        color: Colors.colLayer0
         radius: Rounding.full
 
-        ListView {
+        ColumnLayout {
             id: categoryRow
+
             anchors.centerIn: parent
-            implicitWidth: contentItem.childrenRect.width
-            implicitHeight: contentItem.childrenRect.height
             spacing: Padding.small
             clip: true
-            model: OnlineWallpaperService.categories
 
-            delegate: StyledRect {
-                required property int index
-                required property var modelData
-
-                implicitHeight: symb.implicitHeight + Padding.large * 2
-                implicitWidth: symb.implicitWidth + Padding.large * 2
-                radius: Rounding.large
-                color: OnlineWallpaperService.selectedCategory === index ? Colors.colPrimary : Colors.colLayer4
-
-                Symbol {
-                    id: symb
-                    anchors.centerIn: parent
-                    text: modelData.icon
-                    fill: OnlineWallpaperService.selectedCategory === index ? 1 : 0
-                    font.pixelSize: Fonts.sizes.normal
-                    color: OnlineWallpaperService.selectedCategory === index ? Colors.colOnPrimary : Colors.colOnLayer4
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: OnlineWallpaperService.selectCategory(index)
+            Repeater {
+                model: OnlineWallpaperService.categories
+                delegate: RippleButtonWithIcon {
+                    required property int index
+                    required property var modelData
+                    Layout.alignment: Qt.AlignHCenter
+                    toggled: OnlineWallpaperService.selectedCategory === index
+                    materialIcon: modelData.icon
+                    releaseAction: () => OnlineWallpaperService.selectCategory(index)
                 }
             }
         }

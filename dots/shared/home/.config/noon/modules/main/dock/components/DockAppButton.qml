@@ -78,7 +78,6 @@ DockButton {
             width: root.iconSize - Padding.large
             height: root.iconSize - Padding.large
             sourceComponent: StyledIconImage {
-                cache: false
                 source: NoonUtils.iconPath(root.desktopEntry ? (root.desktopEntry.icon || root.desktopEntry.genericIcon || "applications-system") : appToplevel.appId)
             }
         }

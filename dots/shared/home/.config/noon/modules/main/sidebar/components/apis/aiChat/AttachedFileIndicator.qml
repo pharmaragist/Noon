@@ -16,7 +16,7 @@ Rectangle {
     property real imageWidth: -1
     property real imageHeight: -1
     property real scale: Math.min(root.maxHeight / imageHeight, root.width / imageWidth)
-    // Styles/widgets
+    
     property real horizontalPadding: 10
     property real verticalPadding: 10
 

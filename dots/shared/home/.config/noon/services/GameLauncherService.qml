@@ -23,12 +23,12 @@ Singleton {
 
     property int selectedIndex: 0
     property var selectedInfo: store?.list[selectedIndex] ?? null
-    property QtObject colors: selectedInfo?.coverImage && selectedInfo?.coverImage.length > 0 ? colorsgen?.colors ?? Colors : Colors
+    property var colors: selectedInfo?.coverImage && selectedInfo?.coverImage.length > 0 ? colorsgen?.colors ?? Colors : Colors
     property string pendingSelectedGame: ""
     property string pendingSelectedCover: ""
     property alias addDialog: addGamePicker
     property alias addCoverDialog: addCoverPicker
-    // for amd "DRI_PRIME=1"
+    
     property var launchConfig: ({
             runner: "wine",
             gamescope: false,

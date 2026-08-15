@@ -5,7 +5,7 @@ import QtQuick.Effects
 Item {
     id: root
 
-    // Public API
+    
     property color backgroundColor: "lightgray"
     property real backgroundRadius: 12
     property real backgroundOpacity: 1.0

@@ -16,7 +16,7 @@ SidebarItemContainer {
     onContentFocusRequested: listView.forceActiveFocus()
 
     function executeAction(x) {
-        const sanitized = x.toLowerCase(); // .replace(/[^a-z0-9]/g, '');
+        const sanitized = x.toLowerCase(); 
         NoonUtils.execDetached(sanitized);
     }
 

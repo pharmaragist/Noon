@@ -69,7 +69,7 @@ StyledRect {
             id: title
             text: {
                 if (root.isOnline) {
-                    StringUtils.getDomain(root.path);
+                    TextUtils.getDomain(root.path);
                 } else
                     decodeURIComponent(FileUtils.getEscapedFileNameWithoutExtension(root.path));
             }
@@ -151,7 +151,7 @@ StyledRect {
                 "text": "Open",
                 "materialIcon": "open_in_new",
                 "action": () => {
-                    NoonUtils.openFile(path);
+                    NoonUtils.open(path);
                     if (!Globals.main.sidebar.pinned) {
                         NoonUtils.callIpc("sidebar hide");
                     }
@@ -162,7 +162,7 @@ StyledRect {
                 "text": "Open In Sidebar",
                 "materialIcon": "globe",
                 "action": () => {
-                    NoonUtils.setSidebarUrl(path);
+                    NoonUtils.open(path);
                     NoonUtils.callIpc("sidebar reveal Web");
                 }
             },

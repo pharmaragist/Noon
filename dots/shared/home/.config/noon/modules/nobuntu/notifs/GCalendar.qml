@@ -1,15 +1,15 @@
 import qs.services
 import qs.common
+import qs.common.functions
 import qs.common.widgets
-import "calendar_layout.js" as CalendarLayout
 import QtQuick
 import QtQuick.Layouts
 
 Item {
-    // anchors.topMargin: 10
+    
     property int monthShift: 0
-    property var viewingDate: CalendarLayout.getDateInXMonthsTime(monthShift)
-    property var calendarLayout: CalendarLayout.getCalendarLayout(viewingDate, monthShift === 0)
+    property var viewingDate: CalendarUtils.getDateInXMonthsTime(monthShift)
+    property var calendarLayout: CalendarUtils.getCalendarLayout(viewingDate, monthShift === 0)
 
     Layout.alignment:Qt.AlignHCenter
 
@@ -81,14 +81,14 @@ Item {
             }
         }
 
-        // Week days row
+        
         RowLayout {
             id: weekDaysRow
             Layout.alignment: Qt.AlignHCenter
             Layout.fillHeight: false
             spacing: 5
             Repeater {
-                model: CalendarLayout.weekDays
+                model: CalendarUtils.weekDays
                 delegate: GCalendarDayButton {
                     day: qsTr(modelData.day)
                     isToday: modelData.today
@@ -98,7 +98,7 @@ Item {
             }
         }
 
-        // Real week rows
+        
         Repeater {
             id: calendarRows
             model: 6

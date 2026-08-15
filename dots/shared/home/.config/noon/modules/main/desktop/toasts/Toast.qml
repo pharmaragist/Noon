@@ -95,7 +95,7 @@ Item {
         }
     ]
 
-    ShaderRect {
+    PanelRect {
         id: bg
         anchors.fill: parent
         enableBorders: false

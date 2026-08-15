@@ -18,7 +18,7 @@ Button {
 
     PointingHandInteraction {}
 
-    // Real stuff
+    
     ColumnLayout {
         id: columnLayout
 

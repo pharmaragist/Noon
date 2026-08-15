@@ -77,7 +77,6 @@ StyledPopup {
                     }
 
                     StyledIconImage {
-                        mipmap: true
                         _source: AppSearch.guessIcon(winRect.winData?.class)
                         implicitSize: Math.min(winRect.width, winRect.height) * 0.2
                         anchors.bottom: parent.bottom

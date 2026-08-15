@@ -7,13 +7,13 @@ import qs.common
 ColumnLayout {
     id: root
 
-    required property var tabButtonList // Something like [{"icon": "notifications", "name": qsTr("Notifications")}, {"icon": "volume_up", "name": qsTr("Volume mixer")}]
+    required property var tabButtonList 
     required property var externalTrackedTab
     property bool enableIndicatorAnimation: false
-    property color colIndicator: Colors.colPrimary ?? "#65558F"
+    property color colIndicator: colors.colPrimary ?? "#65558F"
     property bool centerTabBar: parent.width > 500
     property alias currentIndex: tabBar.currentIndex
-
+    property var colors: Colors
     spacing: Padding.tiny
     Layout.fillWidth: !centerTabBar
     Layout.alignment: Qt.AlignHCenter
@@ -49,7 +49,7 @@ ColumnLayout {
         }
     }
 
-    // Tab indicator
+    
     Item {
         id: tabIndicator
 
@@ -66,25 +66,26 @@ ColumnLayout {
 
         Rectangle {
             id: indicator
-
             property int tabCount: root.tabButtonList.length
-            property real fullTabSize: root.width / tabCount
-            property real targetWidth: tabBar.contentItem.children[0].children[tabBar.currentIndex].tabContentWidth
-
+            property real fullTabSize: tabCount > 0 ? root.width / tabCount : 0
+            property var currentButton: {
+                const col = tabBar.contentItem.children[0];
+                if (!col || tabBar.currentIndex < 0 || tabBar.currentIndex >= col.children.length)
+                    return null;
+                return col.children[tabBar.currentIndex];
+            }
+            property real targetWidth: currentButton?.tabContentWidth ?? 0
             implicitWidth: targetWidth
-            x: tabBar.currentIndex * fullTabSize + (fullTabSize - targetWidth) / 2
+            x: tabCount > 0 ? tabBar.currentIndex * fullTabSize + (fullTabSize - targetWidth) / 2 : 0
             color: root.colIndicator
             radius: Rounding.full ?? 9999
-
             anchors {
                 top: parent.top
                 bottom: parent.bottom
             }
-
             Behavior on x {
                 Anim {}
             }
-
             Behavior on implicitWidth {
                 Anim {}
             }

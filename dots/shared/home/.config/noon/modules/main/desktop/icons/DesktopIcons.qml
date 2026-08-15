@@ -198,7 +198,7 @@ Variants {
                 } else if (key === "Icon") {
                     r.icon = value;
                 } else if (key === "Exec") {
-                    // Extracts value and safely strips %u, %U, %f, %F, etc.
+                    
                     r.exec = value.replace(/%[fFuuAaCcCcDdFfGgHhiImMnnNvv]/g, "").trim();
                 }
             }

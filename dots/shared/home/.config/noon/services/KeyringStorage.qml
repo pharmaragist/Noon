@@ -7,10 +7,10 @@ import Quickshell
 import Qt.labs.platform
 import QtQuick
 
-/**
- * For storing sensitive data in the keyring.
- * Use this for small data only, since it stores a JSON of the contents directly and doesn't use a database.
- */
+
+
+
+
 Singleton {
     id: root
 
@@ -24,7 +24,7 @@ Singleton {
     property var propertiesAsArgs: Object.keys(root.properties).reduce(function (arr, key) {
         return arr.concat([key, root.properties[key]]);
     }, [])
-    property string keyringLabel: StringUtils.format(qsTr("{0} Safe Storage"), "hyprnoon")
+    property string keyringLabel: TextUtils.format(qsTr("{0} Safe Storage"), "hyprnoon")
 
     function setNestedField(path, value) {
         if (!root.keyringData)
@@ -33,7 +33,7 @@ Singleton {
         let obj = root.keyringData;
         let parents = [obj];
 
-        // Traverse and collect parent objects
+        
         for (let i = 0; i < keys.length - 1; ++i) {
             if (!obj[keys[i]] || typeof obj[keys[i]] !== "object") {
                 obj[keys[i]] = {};
@@ -42,18 +42,18 @@ Singleton {
             parents.push(obj);
         }
 
-        // Set the value at the innermost key
+        
         obj[keys[keys.length - 1]] = value;
 
-        // Reassign each parent object from the bottom up to trigger change notifications
+        
         for (let i = keys.length - 2; i >= 0; --i) {
             let parent = parents[i];
             let key = keys[i];
-            // Shallow clone to change object identity (spread replaced with Object.assign)
+            
             parent[key] = Object.assign({}, parent[key]);
         }
 
-        // Finally, reassign root.keyringData to trigger top-level change
+        
         root.keyringData = Object.assign({}, root.keyringData);
 
         saveKeyringData();
@@ -73,16 +73,16 @@ Singleton {
         command: ["secret-tool", "store", "--label=" + keyringLabel, ...propertiesAsArgs,]
         onRunningChanged: {
             if (saveData.running) {
-                // console.log("[KeyringStorage] Saving with command: '" + saveData.command.join("' '") + "'");
+                
                 saveData.write(JSON.stringify(root.keyringData));
-                stdinEnabled = false; // End input stream
+                stdinEnabled = false; 
             }
         }
     }
 
     Process {
         id: getData
-        command: [ // We need to use echo for a newline so splitparser does parse
+        command: [ 
             "bash", "-c", `echo $(secret-tool lookup 'application' 'hyprnoon')`,]
         stdout: SplitParser {
             onRead: data => {
@@ -90,7 +90,7 @@ Singleton {
                     return;
                 try {
                     root.keyringData = JSON.parse(data);
-                    // console.log("[KeyringStorage] Keyring data fetched:", JSON.stringify(root.keyringData));
+                    
                 } catch (e) {
                     console.error("[KeyringStorage] Failed to get keyring data, reinitializing.");
                     root.keyringData = {};
@@ -99,7 +99,7 @@ Singleton {
             }
         }
         onExited: (exitCode, exitStatus) => {
-            // console.log("[KeyringStorage] Keyring data fetch process exited with code:", exitCode);
+            
             if (exitCode !== 0) {
                 console.error("[KeyringStorage] Failed to get keyring data, reinitializing.");
                 root.keyringData = {};

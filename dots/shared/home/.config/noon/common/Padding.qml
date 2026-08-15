@@ -18,4 +18,5 @@ Singleton {
     property int veryhuge: 16 * scale
     property int gigantic: 18 * scale
     property int massive: 20 * scale
+    property int silly: 40 * scale
 }

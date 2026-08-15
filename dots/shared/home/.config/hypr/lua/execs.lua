@@ -1,11 +1,11 @@
 hl.on("hyprland.start", function()
     local apps = {
         "systemctl --user --no-block start graphical-session.target",
+        "noon -d -n",
         ipc .. " global trigger_autostart_apps",
         "dbus-update-activation-environment --systemd --all",
         "systemctl --user import-environment QT_QPA_PLATFORMTHEME",
         "systemctl --user restart xdg-desktop-portal xdg-desktop-portal-hyprland",
-        "noon -d -n",
         "kdeconnectd",
         "foot --server",
         "kwalletd6",

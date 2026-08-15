@@ -20,7 +20,7 @@ StyledPopup {
             font: Fonts.request("numbers", 76)
         }
 
-        // AM/PM (12hr format only)
+        
         StyledText {
             Layout.alignment: Qt.AlignHCenter
             text: DateTimeService.twelveHour ? DateTimeService.dayTime : ""

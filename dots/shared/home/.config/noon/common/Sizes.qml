@@ -6,75 +6,61 @@ import qs.common
 import qs.services
 
 Singleton {
-    property QtObject hyprland
-    property QtObject sidebar
-    property QtObject osd
-    property QtObject screenshot
-    property QtObject editor
-    property QtObject mediaPlayer
-
     readonly property real infinity: Number.POSITIVE_INFINITY
     readonly property real barElevation: hyprland.gapsOut
-    readonly property real osdWidth: 220
-    readonly property real osdHeight: 45
     readonly property real notificationPopupWidth: 420
     readonly property real toastWidth: 385
-    readonly property real elevationValue: Padding.verylarge
-    readonly property real frameThickness: Mem.options.desktop.bg.borderMultiplier * (hyprland.gapsOut - Padding.normal)
-    readonly property real elevationMargin: frameThickness + elevationValue
-    readonly property size beamSize: Qt.size(540, 65)
-    readonly property size beamPopupExpanded: Qt.size(1600, 800)
-    readonly property size beamSizeExpanded: Qt.size(1000, 100)
+    readonly property real frameThickness: !Mem.options.desktop.enableFrame ? 0 : hyprland.gapsOut / 4
+    readonly property real elevationMargin: frameThickness + Padding.verylarge
+    readonly property size clipboardSize: Qt.size(320, 490)
     readonly property size gameLauncherItemSize: Qt.size(225, 360)
 
-    editor: QtObject {
+    readonly property QtObject editor: QtObject {
         property size statusIsland: Qt.size(120, 40)
     }
-    mediaPlayer: QtObject {
+
+    readonly property QtObject mediaPlayer: QtObject {
         property real sidebarWidth: 300
         property real sidebarWidthCollapsed: 82
         property real overlaySize: 145
         property size controlsSize: Qt.size(600, 80)
     }
-    screenshot: QtObject {
-        property size size: Qt.size(400, 60)
+
+    readonly property QtObject beam: QtObject {
+        readonly property size normal: Qt.size(470, 70)
+        readonly property size expanded: Qt.size(1000, 100)
+        readonly property size popupMaxSize: Qt.size(1200, 600)
+        readonly property size screenshot: Qt.size(340, 60)
+        readonly property size weather: Qt.size(440, 300)
+        readonly property size music: Qt.size(400, 160)
+        readonly property size drop: Qt.size(600, 280)
+        readonly property size dictate: Qt.size(200, 55)
+        readonly property size appearance: Qt.size(640, 70)
+        readonly property size dictateWindow: Qt.size(640, 480)
     }
-    osd: QtObject {
-        readonly property size nobuntu: Qt.size(220, 64)
+
+    readonly property QtObject osd: QtObject {
         readonly property size bottomPill: Qt.size(224, 68)
         readonly property size centerIsland: Qt.size(145, 145)
         readonly property size sideBay: Qt.size(48, 200)
         readonly property size windows_10: Qt.size(85, 240)
     }
 
-    sidebar: QtObject {
+    readonly property QtObject sidebar: QtObject {
         readonly property real bar: 70
-        readonly property real contentQuarter: Math.round(Screen.width * 0.24) - bar
         readonly property real half: Math.round(Screen.width * 0.46)
         readonly property real quarter: Math.round(Screen.width * 0.27)
         readonly property real largerQuarter: Math.round(Screen.width * 0.275)
         readonly property real threeQuarter: Math.round(Screen.width * 0.75)
-        readonly property real widgetsExpanded: Math.round(Screen.width * 0.501)
+        readonly property real widgetsExpanded: Math.round(Screen.width * 0.5)
 
         readonly property real session: 280
-        readonly property real overview: bar + Math.round(Screen.width * 0.185) + Padding.massive * 2
         readonly property real overviewExpanded: Math.round(Screen.width * 0.435)
-        readonly property real widgetSize: 172
-        readonly property real widgetPillHeight: 72
         readonly property size shelfItemSize: Qt.size(115, 115)
         readonly property size shelfPopupSize: Qt.size(300, 200)
-
-        property QtObject widgets: QtObject {
-            readonly property real expandedWidth: 2 * Sizes.sidebar.widgetSize + Padding.verylarge
-        }
     }
 
-    hyprland: QtObject {
-        property real borders: Mem.hypr.borders ?? 0
+    readonly property QtObject hyprland: QtObject {
         property real gapsOut: Mem.hypr.gaps_out ?? 0
-        property real gapsIn: Mem.hypr.gaps_in ?? 0
-        property real blurSize: Mem.hypr.blur_size ?? 0
-        property real blurPasses: Mem.hypr.blur_passes ?? 0
-        property real shadowsRange: Mem.hypr.shadows_range ?? 0
     }
 }

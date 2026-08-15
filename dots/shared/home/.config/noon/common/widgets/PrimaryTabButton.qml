@@ -16,12 +16,12 @@ TabButton {
     property int rippleDuration: 1200
     height: buttonBackground.height
     implicitWidth: Math.max(tabContentWidth, buttonBackground.implicitWidth, minimumWidth)
-
-    property color colBackground: Colors.methods.transparentize(Colors.colLayer0, 1) || "transparent"
-    property color colBackgroundHover: Colors.colLayer1Hover ?? "#E5DFED"
-    property color colRipple: Colors.colLayer1Active ?? "#D6CEE2"
-    property color colActive: Colors.colPrimary ?? "#65558F"
-    property color colInactive: Colors.colOnLayer1 ?? "#45464F"
+    property var colors: Colors
+    property color colBackground: Colors.methods.transparentize(colors.colLayer0, 1) || "transparent"
+    property color colBackgroundHover: colors.colLayer1Hover ?? "#E5DFED"
+    property color colRipple: colors.colLayer1Active ?? "#D6CEE2"
+    property color colActive: colors.colPrimary ?? "#65558F"
+    property color colInactive: colors.colOnLayer1 ?? "#45464F"
 
     component RippleAnim: Anim {}
 
@@ -45,7 +45,7 @@ TabButton {
             rippleAnim.restart();
         }
         onReleased: event => {
-            button.click(); // Because the MouseArea already consumed the event
+            button.click(); 
             rippleFadeAnim.restart();
         }
     }

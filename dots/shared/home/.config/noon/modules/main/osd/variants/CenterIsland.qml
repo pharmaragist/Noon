@@ -52,9 +52,9 @@ StyledPanel {
             id: circularProgress
             anchors.centerIn: parent
             value: panelRoot.value
-            size: bg.implicitWidth / 1.25
-            lineWidth: 10
-
+            implicitSize: bg.implicitWidth / 1.25
+            lineWidth: 4
+            sperm: true
             property bool valueChanging: true
 
             Timer {

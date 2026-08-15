@@ -18,7 +18,7 @@ LazyLoader {
     property real popupBackgroundMargin: Padding.verylarge
     property int contentMargins: 40
     property bool extraVisibilityCondition: true
-    // unified bar position property
+    
     readonly property string barPosition: Mem.options.bar.behavior.position
     active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
     property bool focus: false
@@ -46,7 +46,7 @@ LazyLoader {
         }
         margins {
             left: {
-                // Popup placement for top/bottom bars (horizontal)
+                
                 if (barPosition === "top" || barPosition === "bottom") {
                     const mapped = root.QsWindow?.mapFromItem(root.hoverTarget, (root.hoverTarget.width - popupBackground.implicitWidth) / 2, 0);
                     if (!mapped)
@@ -55,7 +55,7 @@ LazyLoader {
                     const screenWidth = root.QsWindow?.screen?.width || 1920;
                     const popupWidth = popupBackground.implicitWidth + Sizes.elevationMargin * 2 + root.popupBackgroundMargin;
 
-                    // Prevent overflow
+                    
                     let leftPos = mapped.x;
                     if (leftPos < 0)
                         leftPos = 0;
@@ -65,7 +65,7 @@ LazyLoader {
                     return Math.max(0, leftPos);
                 }
 
-                // For left/right bars, respect exclusive size
+                
                 if (barPosition === "left")
                     return BarData.currentBarExclusiveSize + (Sizes.hyprland.gapsOut / 2);
 
@@ -73,7 +73,7 @@ LazyLoader {
             }
 
             top: {
-                // Popup placement for left/right bars (vertical)
+                
                 if (barPosition === "left" || barPosition === "right") {
                     const mapped = root.QsWindow?.mapFromItem(root.hoverTarget, 0, (root.hoverTarget.height - popupBackground.implicitHeight) / 2);
                     if (!mapped)
@@ -82,7 +82,7 @@ LazyLoader {
                     const screenHeight = root.QsWindow?.screen?.height || 1080;
                     const popupHeight = popupBackground.implicitHeight + Sizes.elevationMargin * 2 + root.popupBackgroundMargin;
 
-                    // Prevent overflow
+                    
                     let topPos = mapped.y;
                     if (topPos < 0)
                         topPos = 0;
@@ -92,7 +92,7 @@ LazyLoader {
                     return Math.max(0, topPos);
                 }
 
-                // For top/bottom bars, respect exclusive size
+                
                 if (barPosition === "top")
                     return BarData.currentBarExclusiveSize + (Sizes.hyprland.gapsOut / 2);
 

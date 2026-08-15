@@ -116,7 +116,7 @@ StyledRect {
                     height: 24
                     radius: 6
                     width: 6
-                    color: colors.colPrimary
+                    color: root.colors.colPrimary
                 }
             }
 
@@ -174,7 +174,7 @@ StyledRect {
                             Layout.alignment: Qt.AlignVCenter
                             Layout.fillWidth: true
                             color: colors.colOnLayer2
-                            font.pixelSize: Fonts.sizes.normal
+                            font: Fonts.request("main", "normal")
                         }
                         StyledText {
                             text: modelData?.artist
@@ -182,7 +182,7 @@ StyledRect {
                             Layout.alignment: Qt.AlignVCenter
                             Layout.fillWidth: true
                             color: colors.colSubtext
-                            font.pixelSize: Fonts.sizes.small
+                            font: Fonts.request("main", "small")
                         }
                     }
                 }

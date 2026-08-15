@@ -9,19 +9,30 @@ StyledMenu {
     required property var widgetData
 
     readonly property string widgetId: widgetData.id
-    readonly property bool isPinned: Mem.states.sidebar.widgets.pinned.indexOf(widgetId) !== -1
-    readonly property bool isDesktop: Mem.states.sidebar.widgets.desktop.indexOf(widgetId) !== -1
-    readonly property bool isPill: Mem.states.sidebar.widgets.pilled.indexOf(widgetId) !== -1
-    readonly property bool isExpanded: widgetData.expandable && Mem.states.sidebar.widgets.expanded.indexOf(widgetId) !== -1
+    readonly property var store: Mem.states.sidebar.widgets
+    readonly property var rec: store.items.find(w => w.id === widgetId)
+    readonly property bool isPinned: rec?.pin ?? false
+    readonly property bool isDesktop: rec?.desktop ?? false
+    readonly property bool isPill: rec?.pill ?? false
 
-    function toggleList(stateList, id) {
-        let list = stateList.slice();
-        let idx = list.indexOf(id);
-        if (idx === -1)
-            list.push(id);
-        else
-            list.splice(idx, 1);
-        return list;
+    function toggle(field) {
+        let items = store.items.slice();
+        let rec = items.find(w => w.id === widgetId);
+        if (rec) {
+            rec[field] = !rec[field];
+            store.items = items;
+        }
+        root.close();
+    }
+
+    function setSize(size) {
+        let items = store.items.slice();
+        let rec = items.find(w => w.id === widgetId);
+        if (rec) {
+            rec.size = size;
+            store.items = items;
+        }
+        root.close();
     }
 
     content: {
@@ -29,45 +40,32 @@ StyledMenu {
             {
                 text: isPinned ? "Unpin" : "Pin",
                 materialIcon: "push_pin",
-                action: () => {
-                    Mem.states.sidebar.widgets.pinned = toggleList(Mem.states.sidebar.widgets.pinned, widgetId);
-                    root.close();
-                }
+                action: () => toggle("pin")
             },
             {
                 text: isDesktop ? "Remove from desktop" : "Send to desktop",
                 materialIcon: "open_in_new",
-                action: () => {
-                    Mem.states.sidebar.widgets.desktop = toggleList(Mem.states.sidebar.widgets.desktop, widgetId);
-                    root.close();
-                }
+                action: () => toggle("desktop")
             },
             {
                 text: isPill ? "Square" : "Pill",
                 materialIcon: isPill ? "capture" : "pill",
-                action: () => {
-                    Mem.states.sidebar.widgets.pilled = toggleList(Mem.states.sidebar.widgets.pilled, widgetId);
-                    root.close();
-                }
+                visible: (rec?.size ?? "normal") === "small",
+                action: () => toggle("pill")
             },
             {
                 text: "Disable",
                 materialIcon: "visibility_off",
-                action: () => {
-                    Mem.states.sidebar.widgets.enabled = toggleList(Mem.states.sidebar.widgets.enabled, widgetId);
-                    root.close();
-                }
+                action: () => toggle("enabled")
             }
         ];
 
-        if (widgetData.expandable) {
+        const sizes = ["small", "normal", "large", "xlarge"];
+        for (let size of sizes) {
             items.push({
-                text: isExpanded ? "Collapse" : "Expand",
-                materialIcon: isExpanded ? "close_fullscreen" : "open_in_full",
-                action: () => {
-                    Mem.states.sidebar.widgets.expanded = toggleList(Mem.states.sidebar.widgets.expanded, widgetId);
-                    root.close();
-                }
+                text: size.charAt(0).toUpperCase() + size.slice(1),
+                materialIcon: (rec?.size ?? "normal") === size ? "radio_button_checked" : "radio_button_unchecked",
+                action: () => setSize(size)
             });
         }
 

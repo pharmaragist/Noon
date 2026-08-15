@@ -104,7 +104,7 @@ def get_stats():
     }
 
 if __name__ == "__main__":
-    # Flush output immediately
+    
     sys.stdout.reconfigure(line_buffering=True)
     
     while True:

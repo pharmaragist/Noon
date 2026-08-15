@@ -14,9 +14,12 @@ JsonAdapter {
     }
 
     property JO appearance: JO {
-        property real animationsScale: 1
         property real paddingScale: 1
 
+        property JO animations: JO {
+            property real scale: 1
+            property string curve: "standard"
+        }
         property JO colors: JO {
             property string palettePath: "auto"
         }
@@ -50,7 +53,7 @@ JsonAdapter {
         property JO protection: JO {
             property bool enable: false
             property real maxAllowedIncrease: 100
-            property real maxAllowed: 200
+            property real maxAllowed: 150
         }
     }
 
@@ -121,6 +124,7 @@ JsonAdapter {
     }
 
     property JO battery: JO {
+        property bool autoConservativeMode: true
         property bool automaticSuspend: true
         property int low: 20
         property int critical: 5
@@ -133,7 +137,11 @@ JsonAdapter {
             property string animationStyle: "expo"
         }
         property JO behavior: JO {
+            property bool enableOldContent: false
             property bool scrollToReveal: true
+            property bool enableApplets: true
+            property string defaultState: "ai"
+            property list<string> enabledApplets: ["music","weather"]
         }
     }
 
@@ -150,9 +158,6 @@ JsonAdapter {
             property bool apis: true
             property bool shelf: true
             property bool tasks: true
-            property bool history: true
-            property bool bookmarks: true
-            property bool emojies: true
             property bool notifs: true
             property bool notes: true
             property bool beats: true
@@ -164,6 +169,11 @@ JsonAdapter {
             property bool overview: false
             property bool sounds: true
             property bool timers: true
+
+            
+            property bool history: false
+            property bool bookmarks: false
+            property bool emojies: false
         }
 
         property JO behavior: JO {
@@ -171,6 +181,7 @@ JsonAdapter {
             property bool preExpand: false
             property bool aiTextFadeIn: false
             property bool superHeldReveal: false
+            property bool enableResizeOverlay: true
         }
 
         property JO navRail: JO {
@@ -181,6 +192,7 @@ JsonAdapter {
 
         property JO appearance: JO {
             property string style: "float"
+            property string toolbarStyle: "tool"
             property real itemListScale: 1
             property bool showSliders: true
             property bool showVolumeInputSlider: false
@@ -200,12 +212,13 @@ JsonAdapter {
     }
 
     property JO desktop: JO {
-        property int screenCorners: 1
+        property string screenCorners: "Top"
         property bool timerOverlayMode: true
         property list<string> customResolutions: []
+        property bool enableFrame: false
 
         property JO branding: JO {
-            property string logo: "symbol" // "distro"
+            property string logo: "distro" 
             property string materialSymbol: "auto_awesome"
         }
 
@@ -232,7 +245,6 @@ JsonAdapter {
         }
 
         property JO bg: JO {
-            property real borderMultiplier: 0
             property bool depthMode: false
 
             property JO parallax: JO {
@@ -248,10 +260,10 @@ JsonAdapter {
         }
 
         property JO clock: JO {
-            property bool enabled: false
+            property bool enabled: true
             property real scale: 1
             property real spacingMultiplier: 0.3
-            property bool verticalMode: false
+            property bool verticalMode: true
             property string font: "Badeen Display"
         }
 
@@ -323,7 +335,7 @@ JsonAdapter {
 
         property JO appearance: JO {
             property string style: "concave"
-            property string separatorsMode: "dot"
+            property string separatorsMode: "thin"
             property bool enableSeparators: true
             property bool useBg: true
             property bool barGroup: false
@@ -344,7 +356,9 @@ JsonAdapter {
 
         property JO statusIcons: JO {
             property list<string> enabledStatusIcons: ["network", "bluetooth", "overheat", "polkit", "silent", "battery", "record", "mute"]
-            property string batteryMode: "symbol" // ["symbol","text","both"]
+            property bool useLegacyBatteryIcons: false
+            property string batteryMode: "symbol" 
+            property bool showTextWhenAvailable: false
         }
 
         property JO utils: JO {
@@ -359,6 +373,8 @@ JsonAdapter {
         property JO workspaces: JO {
             property int number: 6
             property bool showAppIcons: true
+            property bool showBigAppOnly: false
+            property bool genericSymbols: false
             property string displayMode: "normal"
             property string customFallback: "●"
             property list<string> customMapping: []

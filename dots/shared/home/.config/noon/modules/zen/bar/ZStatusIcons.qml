@@ -23,7 +23,7 @@ Rectangle {
         StyledText {
             visible: AudioService.sink?.audio?.muted ?? false
             color: Colors.m3.m3onSurface
-            text: "\uf466"   // nf-md-volume_off
+            text: "\uf466"   
             font.pixelSize: root.commonIconSize
             font.family: Fonts.family.monospace
         }
@@ -31,22 +31,22 @@ Rectangle {
             color: Colors.m3.m3onSurface
             text: {
                 if (NetworkService.manager.ethernet)
-                    return "\udb80\udea8";  // nf-md-ethernet_cable (ethernet connected)
+                    return "\udb80\udea8";  
                 if (!NetworkService.manager.wifiEnabled)
-                    return "\udb82\udd2f";  // nf-md-wifi_off
+                    return "\udb82\udd2f";  
                 if (NetworkService.manager.wifi && (NetworkService.manager.networkName ?? "") !== "") {
                     const strength = NetworkService.manager.networkStrength ?? 0;
                     if (strength > 80)
-                        return "\udb82\udd29";  // nf-md-wifi_strength_4
+                        return "\udb82\udd29";  
                     if (strength > 60)
-                        return "\udb82\udd28";  // nf-md-wifi_strength_3
+                        return "\udb82\udd28";  
                     if (strength > 40)
-                        return "\udb82\udd27";  // nf-md-wifi_strength_2
+                        return "\udb82\udd27";  
                     if (strength > 20)
-                        return "\udb82\udd26";  // nf-md-wifi_strength_1
-                    return "\udb82\udd25";                     // nf-md-wifi_strength_outline
+                        return "\udb82\udd26";  
+                    return "\udb82\udd25";                     
                 }
-                return "\udb82\udd2f";  // nf-md-wifi_off
+                return "\udb82\udd2f";  
             }
             font.pixelSize: root.commonIconSize
             font.family: Fonts.family.monospace
@@ -65,10 +65,10 @@ Rectangle {
                 const connected = BluetoothService.bluetoothConnected ?? false;
                 const enabled = BluetoothService.bluetoothEnabled ?? false;
                 if (connected)
-                    return "\udb80\udcaf";  // nf-md-bluetooth_connect
+                    return "\udb80\udcaf";  
                 if (enabled)
-                    return "\udb80\udcae";  // nf-md-bluetooth
-                return "\udb80\udcb2";         // nf-md-bluetooth_off
+                    return "\udb80\udcae";  
+                return "\udb80\udcb2";         
             }
             font.pixelSize: root.commonIconSize
             font.family: Fonts.family.monospace

@@ -12,6 +12,7 @@ SidebarItemContainer {
     id: root
 
     property real padding: Padding.huge
+    property alias focusItem: messageInputField
     property var inputField: messageInputField
     property string commandPrefix: "/"
     property bool isRecording: false
@@ -252,8 +253,8 @@ SidebarItemContainer {
                 if (ClipboardService.isImage(0)) {
                     decodeImageAndAttach(entry);
                     event.accepted = true;
-                } else if (StringUtils.cleanCliphistEntry(entry).startsWith("file://")) {
-                    Ai.attachFile(decodeURIComponent(StringUtils.cleanCliphistEntry(entry)));
+                } else if (TextUtils.cleanCliphistEntry(entry).startsWith("file://")) {
+                    Ai.attachFile(decodeURIComponent(TextUtils.cleanCliphistEntry(entry)));
                     event.accepted = true;
                 }
             }

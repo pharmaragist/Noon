@@ -50,9 +50,9 @@ SUPPORTED = {
 WORKERS = os.cpu_count() or 8
 
 
-# ---------------------------------------------------------------------------
-# Helpers (must be top-level for pickling)
-# ---------------------------------------------------------------------------
+
+
+
 
 
 def get_hash(filepath):
@@ -72,11 +72,11 @@ def _write_cover_local(file_key, data, img_ext, coverarts_dir, local_dedup):
     out_name = f"{file_key}.{img_ext}"
     out_path = os.path.join(coverarts_dir, out_name)
 
-    # Layer 1: already on disk from a previous run or a sibling chunk
+    
     if os.path.exists(out_path):
         return out_path
 
-    # Layer 2: duplicate within this chunk
+    
     img_hash = _cover_hash(data)
     if img_hash in local_dedup:
         existing = local_dedup[img_hash]
@@ -186,7 +186,7 @@ def process_chunk(args):
     IPC traffic = N_CORES roundtrips total, not N_FILES.
     """
     chunk, coverarts_dir = args
-    local_dedup = {}  # img_hash -> path, scoped to this chunk
+    local_dedup = {}  
     results = []
 
     for filepath, mtime, size in chunk:
@@ -228,9 +228,9 @@ def process_chunk(args):
     return results
 
 
-# ---------------------------------------------------------------------------
-# Scan / playlist / finalize
-# ---------------------------------------------------------------------------
+
+
+
 
 
 def _scan_music(directory):
@@ -275,9 +275,9 @@ def _finalize(hashmap, directory, meta_path):
     print(f"  Playlist                          →  {m3u_path}")
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+
+
+
 
 
 def build_metadata(directory, force=False):
@@ -337,7 +337,7 @@ def build_metadata(directory, force=False):
         _finalize(hashmap, directory, meta_path)
         return
 
-    # Split into per-worker chunks — N_CORES IPC roundtrips instead of N_FILES
+    
     chunks = _make_chunks(to_process, WORKERS)
     chunk_args = [(chunk, coverarts_dir) for chunk in chunks]
 

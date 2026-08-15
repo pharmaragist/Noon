@@ -185,15 +185,14 @@ SidebarItemContainer {
 
                 anchors.right: parent.right
                 anchors.left: parent.left
-                height: 80
+                height: 90
                 color: Colors.colLayer2
 
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.leftMargin: Padding.veryhuge
                     anchors.rightMargin: Padding.veryhuge
-                    anchors.topMargin: Padding.normal
-                    anchors.bottomMargin: Padding.normal
+                    anchors.margins: Padding.large
                     spacing: Padding.tiny
 
                     RowLayout {
@@ -209,8 +208,8 @@ SidebarItemContainer {
                             spacing: 0
                             StyledText {
                                 text: appInfo ? appInfo.name || modelData.class : modelData.class ?? "Unknown"
-                                font.pixelSize: Fonts.sizes.normal
-                                color: Colors.colOnSurface
+                                font: Fonts.request("main", "normal")
+                                color: Colors.colOnSurfaceVariant
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                             }
@@ -225,13 +224,14 @@ SidebarItemContainer {
 
                     StyledProgressBar {
                         Layout.fillWidth: true
-                        valueBarHeight: 8
+                        valueBarHeight: 4
+                        wavelength: 25
                         valueBarGap: 6
                         value: maxTime > 0 ? modelData.timeSeconds / maxTime : 0
                         highlightColor: Colors.colPrimary
                         trackColor: Colors.colSurfaceContainerHighest
                         showProgressIndicator: false
-                        sperm: true
+                        highlightHeight: 20
                     }
                 }
             }

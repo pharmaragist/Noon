@@ -25,7 +25,7 @@ RowLayout {
 
         StyledIconImage {
             anchors.centerIn: parent
-            source: NoonUtils.iconPath("audio-volume-muted")
+            _source: "audio-volume-muted"
             implicitSize: commonIconSize
         }
     }
@@ -45,7 +45,7 @@ RowLayout {
 
             StyledIconImage {
                 anchors.centerIn: parent
-                source: NoonUtils.iconPath("microphone-sensitivity-muted")
+                _source: "microphone-sensitivity-muted"
                 implicitSize: commonIconSize
                 mipmap: true
                 smooth: true

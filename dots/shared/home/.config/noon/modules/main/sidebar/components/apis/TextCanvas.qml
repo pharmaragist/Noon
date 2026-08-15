@@ -8,19 +8,19 @@ import qs.common.widgets
 import qs.services
 
 Rectangle {
-    // border.color: isInput ? Colors.colOutlineVariant : "transparent"
-    // border.width: isInput ? 1 : 0
+    
+    
 
     id: root
 
-    property bool isInput: true // true for input, false for output
+    property bool isInput: true 
     property string placeholderText
     property string text: ""
     property var inputTextArea: isInput ? inputLoader.item : undefined
     readonly property string displayedText: isInput ? inputLoader.item.text : root.text.length > 0 ? outputLoader.item.text : ""
     default property alias actionButtons: actions.buttonsData
 
-    signal inputTextChanged // Signal emitted when text changes
+    signal inputTextChanged 
 
     Layout.fillWidth: true
     implicitHeight: Math.max(100, inputColumn.implicitHeight)
@@ -40,7 +40,7 @@ Rectangle {
             visible: root.isInput
             Layout.fillWidth: true
 
-            // Input area
+            
             sourceComponent: StyledTextArea {
                 id: inputTextArea
 
@@ -62,7 +62,7 @@ Rectangle {
             visible: !root.isInput
             Layout.fillWidth: true
 
-            // Output area
+            
             sourceComponent: StyledText {
                 id: outputTextArea
 
@@ -79,7 +79,7 @@ Rectangle {
         }
 
         RowLayout {
-            // Status row
+            
             Layout.fillWidth: true
             Layout.margins: 10
             spacing: 10

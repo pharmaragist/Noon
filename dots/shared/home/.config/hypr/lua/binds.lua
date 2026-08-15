@@ -1,17 +1,8 @@
--- Workspaces Switch
-for i = 1, 10 do
-    m_bind(i % 10, hl.dsp.focus({ workspace = i }))
-end
-
--- Move active window to workspace
-for i = 1, 10 do
-    m_bind("+ALT+" .. i % 10,  hl.dsp.window.move({ workspace = i }))
-end
-
+-- No USE
 -- Special workspace
-m_bind("S", hl.dsp.workspace.toggle_special())
-m_bind("ALT+S", hl.dsp.window.move({ workspace = "special" }))
-m_bind("mouse:275", hl.dsp.workspace.toggle_special(), { mouse = true })
+-- m_bind("S", hl.dsp.workspace.toggle_special())
+-- m_bind("ALT+S", hl.dsp.window.move({ workspace = "special" }))
+-- m_bind("mouse:275", hl.dsp.workspace.toggle_special(), { mouse = true })
 
 hl.bind("CTRL+" .. mainMod .. "+bracketleft", hl.dsp.focus({ workspace = "e-1" }))
 hl.bind("CTRL+" .. mainMod .. "+bracketright", hl.dsp.focus({ workspace = "e+1" }))
@@ -44,8 +35,6 @@ m_bind("ALT+Page_Down", hl.dsp.window.move({ workspace = "+1" }))
 m_bind("ALT+Page_Up", hl.dsp.window.move({ workspace = "-1" }))
 m_bind("SHIFT+Page_Down", hl.dsp.window.move({ workspace = "r+1" }))
 m_bind("SHIFT+Page_Up", hl.dsp.window.move({ workspace = "r-1" }))
-
-m_bind("ALT+S", hl.dsp.window.move({ workspace = "special" }))
 
 -- Windows
 m_bind("G", hl.dsp.group.toggle())
@@ -156,3 +145,17 @@ hl.bind("CTRL+" .. mainMod .. "+V", hl.dsp.exec_cmd("pavucontrol-qt"))
 hl.bind("CTRL+SHIFT+Escape", hl.dsp.exec_cmd(task_manager))
 hl.bind("CTRL+" .. mainMod .. "+SHIFT+Escape", hl.dsp.exec_cmd(task_manager_alt))
 hl.bind("CTRL+SHIFT+ALT+" .. mainMod .. "+Delete", hl.dsp.exec_cmd("systemctl poweroff || loginctl poweroff"))
+
+-- Workspaces Switch
+for i = 1, 10 do
+    m_bind(i % 10, hl.dsp.focus({ workspace = i }))
+end
+
+-- Move active window to workspace
+for i = 1, 10 do
+    m_bind("+ALT+" .. i % 10,  hl.dsp.window.move({ workspace = i }))
+end
+
+for i = 1, 10 do
+    m_bind("+CTRL+" .. i % 10,  hl.dsp.exec_cmd(ipc .. " sidebar reveal_no " .. i))
+end

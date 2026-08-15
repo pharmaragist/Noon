@@ -39,7 +39,7 @@ RadioButton {
             border.width: 2
             color: "transparent"
 
-            // Checked indicator
+            
             Rectangle {
                 anchors.centerIn: parent
                 width: checked ? 10 : 4
@@ -68,7 +68,7 @@ RadioButton {
 
             }
 
-            // Hover
+            
             Rectangle {
                 anchors.centerIn: parent
                 width: root.hovered ? 40 : 20

@@ -4,9 +4,9 @@ import QtQuick.Controls
 import qs.common
 import qs.common.widgets
 
-/**
- * A button with ripple effect similar to in Material Design.
- */
+
+
+
 Button {
     id: root
 
@@ -20,10 +20,10 @@ Button {
     property real buttonEffectiveRadius: root.down ? root.buttonRadiusPressed : root.buttonRadius
     property int rippleDuration: 1200
     property bool rippleEnabled: true
-    property var downAction // When left clicking (down)
-    property var releaseAction // When left clicking (release)
-    property var altAction // When right clicking
-    property var middleClickAction // When middle clicking
+    property var downAction 
+    property var releaseAction 
+    property var altAction 
+    property var middleClickAction 
     property color colBackground: colors.colLayer1 || "transparent"
     property color colBackgroundHover: colors.colLayer1Hover ?? "#E5DFED"
     property color colBackgroundToggled: colors.colPrimary ?? "#65558F"
@@ -32,8 +32,12 @@ Button {
     property color colRippleToggled: colors.colPrimaryActive ?? "#D6CEE2"
     property color buttonColor: Colors.methods.transparentize(root.toggled ? (root.hovered ? colBackgroundToggledHover : colBackgroundToggled) : (root.hovered ? colBackgroundHover : colBackground), root.enabled ? 0 : 1)
     property color rippleColor: root.toggled ? colRippleToggled : colRipple
-    property QtObject colors: Colors
+    property var colors: Colors
     property alias eventArea: eventArea
+    property int implicitSize: 36
+    implicitWidth: implicitSize
+    implicitHeight: implicitSize
+
     function startRipple(x, y) {
         const stateY = buttonBackground.y;
         rippleAnim.x = x;
@@ -89,7 +93,7 @@ Button {
             if (root.releaseAction)
                 root.releaseAction();
 
-            root.click(); // Because the MouseArea already consumed the event
+            root.click(); 
             if (!root.rippleEnabled)
                 return;
 
@@ -158,7 +162,7 @@ Button {
         id: buttonBackground
         topRadius: root.buttonEffectiveRadius
         bottomRadius: root.buttonEffectiveRadius
-        // radius: root.buttonEffectiveRadius
+        
         implicitHeight: 30
         color: root.buttonColor
         layer.enabled: true

@@ -8,7 +8,7 @@ import qs.common.widgets
 TextField {
     id: folderPathField
 
-    property QtObject colors: Colors
+    property var colors: Colors
     property alias radius: rect.radius
     property alias bg: rect
     placeholderTextColor: colors.colOnLayer1

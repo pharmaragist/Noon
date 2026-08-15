@@ -22,7 +22,7 @@ RowLayout {
     readonly property bool isLow: percentage <= Mem.options.battery.low / 100
     readonly property bool isCritical: percentage <= 0.15
     readonly property bool isEmpty: percentage <= 0.05
-    // Battery icon name based on percentage and state
+    
     readonly property string batteryIcon: {
         if (isEmpty)
             return "battery-empty";
@@ -60,7 +60,7 @@ RowLayout {
         Layout.preferredHeight: Math.max(batteryIcon.height, percentageText.height)
         width: Math.max(Math.round(batteryIcon + percentageText + 7), 50)
 
-        // System battery icon
+        
         Image {
             id: batteryIcon
 
@@ -71,7 +71,7 @@ RowLayout {
             height: 24
             smooth: true
 
-            // Color overlay for low battery warning
+            
             ColorOverlay {
                 anchors.fill: parent
                 source: parent
@@ -89,7 +89,7 @@ RowLayout {
 
         }
 
-        // Battery percentage text
+        
         StyledText {
             id: percentageText
 

@@ -10,7 +10,7 @@ Item {
     id: searchBar
     signal contentFocusRequested
 
-    required property QtObject colors
+    required property var colors
     required property var root
     property var action
     property alias searchText: searchInput.text
@@ -60,10 +60,7 @@ Item {
                 selectedTextColor: colors.colOnSecondary
                 color: colors.colOnLayer1
                 selectByMouse: true
-                font {
-                    family: Fonts.family.main
-                    pixelSize: Fonts.sizes.small
-                }
+                font: Fonts.request("main","normal")
 
                 Connections {
                     target: root

@@ -70,18 +70,16 @@ ColumnLayout {
         }
     }
 
-    // Progress bar
+    
     StyledProgressBar {
-        sperm: true
         value: BeatsService.currentTrackProgressRatio()
+        sperm:true
         highlightColor: root.trackColors.colPrimary
         trackColor: root.trackColors.colSecondaryContainer
         Layout.fillWidth: true
         Layout.preferredHeight: 40
         valueBarHeight: 16
-        valueBarGap: 12
-        wavelength: 28
-        spermAmplitude: 10
+        valueBarGap: 16
 
         MouseArea {
             anchors.fill: parent
@@ -111,7 +109,7 @@ ColumnLayout {
         }
     }
 
-    // Media controls
+    
     RowLayout {
         spacing: Padding.small
         Layout.fillWidth: true

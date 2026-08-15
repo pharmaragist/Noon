@@ -86,6 +86,8 @@ SidebarItemContainer {
 
                     StyledListView {
                         id: list
+
+                        hint: false
                         anchors.fill: parent
                         anchors.margins: Padding.huge
                         spacing: Padding.verysmall
@@ -119,6 +121,7 @@ SidebarItemContainer {
             radius: Rounding.large
             Layout.preferredHeight: 100
             toggled: true
+            colBackground: Colors.colPrimary
             ColumnLayout {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: Padding.massive

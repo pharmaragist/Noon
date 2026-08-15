@@ -13,7 +13,7 @@ Item {
     required property bool show
     required property bool rightMode
     required property string selectedCategory
-    required property QtObject colors
+    required property var colors
     readonly property var sidebar: Globals.main.sidebar
 
     ScriptModel {
@@ -195,11 +195,12 @@ Item {
     anchors.left: rightMode ? undefined : sidebarBg.right
     anchors.bottom: sidebarBg.bottom
     anchors.margins: Math.max(Math.floor(sidebar.rounding / 3), Padding.small)
+    anchors.bottomMargin: anchors.margins + Sizes.frameThickness
 
     StyledRect {
         id: bg
 
-        color: root.colors.colLayer0
+        color: Colors.t(root.colors.colLayer0)
         anchors.right: parent.right
         anchors.left: parent.left
         anchors.bottom: parent.bottom

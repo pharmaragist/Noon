@@ -8,35 +8,48 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-/**
- * Material 3 progress bar. See https://m3.material.io/components/progress-indicators/overview
- */
+
+
+
 ProgressBar {
     id: root
 
+    property var colors: Colors
     property real valueBarWidth: 120
     property real valueBarHeight: 4
-    property real highlightHeight: valueBarHeight // Active indicator height (colPrimary moving part)
-    property real valueBarGap: 4 // M3 spec: 4px track-indicator gap
-    property color indicatorColor: Colors.colOnLayer0
-    property color highlightColor: Colors.colPrimary ?? "#685496"
-    property color trackColor: Colors.m3.m3secondaryContainer ?? "#F1D3F9"
-    property bool sperm: false // If true, the progress bar will have a wavy fill effect
+    property real highlightHeight: valueBarHeight 
+    property real valueBarGap: 4 
+    property color indicatorColor: colors?.colOnLayer0
+    property color highlightColor: colors?.colPrimary ?? "#685496"
+    property color trackColor: colors?.colPrimaryContainer ?? "#F1D3F9"
+    property bool sperm: false 
     property bool animateSperm: true
-    property real spermAmplitude: sperm ? 3 : 0 // M3 spec: 3px wave amplitude
-    property real wavelength: 40 // M3 spec: 40px determinate, 20px indeterminate
+    property real spermAmplitude: sperm ? 3 : 0 
+    property real wavelength: 40 
     property real trackHeight: Math.max(sperm ? highlightHeight + spermAmplitude * 2 : highlightHeight, valueBarHeight)
     property real spermFps: 60
     property real rounding: Rounding.full
     property bool showProgressIndicator: true
-    property bool vertical: false // If true, progress bar grows vertically to the top
-    property bool showDot: false // If true, a dot will be displayed at the end of the progress bar
+    property bool vertical: false 
+    property bool showDot: false 
+    property bool animateOnStart: true
     Behavior on spermAmplitude {
         Anim {}
     }
 
     Behavior on value {
         Anim {}
+    }
+
+    Anim on value {
+        from: 0
+        to: value
+        duration: root.animateOnStart ? Animations.durations.massive: 0
+    }
+
+    Anim on spermAmplitude {
+        from: 0
+        to: spermAmplitude
     }
 
     background: Rectangle {
@@ -61,7 +74,7 @@ ProgressBar {
                 ctx.clearRect(0, 0, width, height);
                 var progress = root.visualPosition;
                 if (vertical) {
-                    // Vertical mode - draw from bottom to top
+                    
                     var fillHeight = progress * parent.height;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;
@@ -84,7 +97,7 @@ ProgressBar {
                     }
                     ctx.stroke();
                 } else {
-                    // Original horizontal mode - unchanged
+                    
                     var fillWidth = progress * width;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;
@@ -157,7 +170,7 @@ ProgressBar {
         }
         Rectangle {
             id: remaining
-            // Right remaining part fill (horizontal mode)
+            
             radius: root.rounding
             color: root.trackColor
             visible: !vertical
@@ -168,7 +181,7 @@ ProgressBar {
         }
 
         Rectangle {
-            // Top remaining part fill (vertical mode only)
+            
             radius: root.rounding
             color: root.trackColor
             visible: vertical
@@ -183,7 +196,7 @@ ProgressBar {
 
         Rectangle {
             visible: root.showDot
-            // Stop point (horizontal mode)
+            
             anchors.right: vertical ? undefined : parent.right
             anchors.verticalCenter: vertical ? undefined : parent.verticalCenter
             anchors.rightMargin: vertical ? 0 : 6

@@ -7,7 +7,7 @@ import qs.common.widgets
 ColumnLayout {
     id: resourcesContainer
 
-    // Required properties for each resource
+    
     required property double batteryPercentage
     required property double cpuPercentage
     required property double memoryPercentage
@@ -15,7 +15,7 @@ ColumnLayout {
 
     spacing: 6
 
-    // Battery Resource
+    
     RowLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -23,7 +23,7 @@ ColumnLayout {
         Symbol {
             Layout.alignment: Qt.AlignVCenter
             fill: 1
-            text: "battery_full" // This will show the battery icon
+            text: "battery_full" 
             iconSize: Fonts.sizes.normal
             color: Colors.m3.m3onSecondaryContainer
         }
@@ -60,7 +60,7 @@ ColumnLayout {
         }
     }
 
-    // CPU Resource
+    
     RowLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -68,7 +68,7 @@ ColumnLayout {
         Symbol {
             Layout.alignment: Qt.AlignVCenter
             fill: 1
-            text: "memory" // CPU icon
+            text: "memory" 
             iconSize: Fonts.sizes.normal
             color: Colors.m3.m3onSecondaryContainer
         }
@@ -105,7 +105,7 @@ ColumnLayout {
         }
     }
 
-    // Memory Resource
+    
     RowLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -113,7 +113,7 @@ ColumnLayout {
         Symbol {
             Layout.alignment: Qt.AlignVCenter
             fill: 1
-            text: "database" // Memory icon
+            text: "database" 
             iconSize: Fonts.sizes.normal
             color: Colors.m3.m3onSecondaryContainer
         }
@@ -150,7 +150,7 @@ ColumnLayout {
         }
     }
 
-    // Swap Resource
+    
     RowLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -158,7 +158,7 @@ ColumnLayout {
         Symbol {
             Layout.alignment: Qt.AlignVCenter
             fill: 1
-            text: "swap_horiz" // Swap icon
+            text: "swap_horiz" 
             iconSize: Fonts.sizes.normal
             color: Colors.m3.m3onSecondaryContainer
         }

@@ -45,13 +45,13 @@ Item {
         anchors.top: parent.top
         spacing: 0
 
-        Rectangle { // Header background
+        Rectangle { 
             id: header
             color: Colors.colSurfaceContainerHighest
             Layout.fillWidth: true
             implicitHeight: thinkBlockTitleBarRowLayout.implicitHeight + thinkBlockHeaderPaddingVertical * 2
 
-            MouseArea { // Click to reveal
+            MouseArea { 
                 id: headerMouseArea
                 enabled: root.completed
                 anchors.fill: parent
@@ -62,7 +62,7 @@ Item {
                 }
             }
 
-            RowLayout { // Header content
+            RowLayout { 
                 id: thinkBlockTitleBarRowLayout
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
@@ -87,7 +87,7 @@ Item {
                 Item {
                     Layout.fillWidth: true
                 }
-                RippleButton { // Expand button
+                RippleButton { 
                     id: expandButton
                     visible: root.completed
                     implicitWidth: 22

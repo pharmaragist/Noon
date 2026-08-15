@@ -14,7 +14,7 @@ LayerRect {
     radius: Rounding.veryhuge
     clip: false
 
-    // Scrollable window
+    
     NotificationListView {
         id: listview
         hint: true

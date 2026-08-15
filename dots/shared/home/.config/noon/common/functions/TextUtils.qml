@@ -1,0 +1,349 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+import Quickshell
+
+Singleton {
+    id: root
+
+    
+
+
+
+
+
+    function format(str, ...args) {
+        return str.replace(/{(\d+)}/g, (match, index) => typeof args[index] !== 'undefined' ? args[index] : match);
+    }
+
+    
+
+
+
+
+    function getDomain(url) {
+        const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/);
+        return match ? match[1] : null;
+    }
+
+    
+
+
+
+
+    function getBaseUrl(url) {
+        const match = url.match(/^(https?:\/\/[^\/]+)(\/.*)?$/);
+        return match ? match[1] : null;
+    }
+
+    
+
+
+
+
+    function shellSingleQuoteEscape(str) {
+        return String(str)
+        
+        .replace(/'/g, "'\\''");
+    }
+
+    
+
+
+
+
+    function splitMarkdownBlocks(markdown) {
+        if (typeof markdown !== 'string')
+            return [];
+        const regex = /```(\w+)?\n([\s\S]*?)```|<think>([\s\S]*?)<\/think>/g;
+        
+
+
+        let result = [];
+        let lastIndex = 0;
+        let match;
+        while ((match = regex.exec(markdown)) !== null) {
+            if (match.index > lastIndex) {
+                const text = markdown.slice(lastIndex, match.index);
+                if (text.trim()) {
+                    result.push({
+                        type: "text",
+                        content: text
+                    });
+                }
+            }
+            if (match[0].startsWith('```')) {
+                if (match[2] && match[2].trim()) {
+                    result.push({
+                        type: "code",
+                        lang: match[1] || "",
+                        content: match[2],
+                        completed: true
+                    });
+                }
+            } else if (match[0].startsWith('<think>')) {
+                if (match[3] && match[3].trim()) {
+                    result.push({
+                        type: "think",
+                        content: match[3],
+                        completed: true
+                    });
+                }
+            }
+            lastIndex = regex.lastIndex;
+        }
+        
+        if (lastIndex < markdown.length) {
+            const text = markdown.slice(lastIndex);
+            
+            const thinkStart = text.indexOf('<think>');
+            const codeStart = text.indexOf('```');
+            if (thinkStart !== -1 && (codeStart === -1 || thinkStart < codeStart)) {
+                const beforeThink = text.slice(0, thinkStart);
+                if (beforeThink.trim()) {
+                    result.push({
+                        type: "text",
+                        content: beforeThink
+                    });
+                }
+                const thinkContent = text.slice(thinkStart + 7);
+                if (thinkContent.trim()) {
+                    result.push({
+                        type: "think",
+                        content: thinkContent,
+                        completed: false
+                    });
+                }
+            } else if (codeStart !== -1) {
+                const beforeCode = text.slice(0, codeStart);
+                if (beforeCode.trim()) {
+                    result.push({
+                        type: "text",
+                        content: beforeCode
+                    });
+                }
+                
+                const codeLangMatch = text.slice(codeStart + 3).match(/^(\w+)?\n/);
+                let lang = "";
+                let codeContentStart = codeStart + 3;
+                if (codeLangMatch) {
+                    lang = codeLangMatch[1] || "";
+                    codeContentStart += codeLangMatch[0].length;
+                } else if (text[codeStart + 3] === '\n') {
+                    codeContentStart += 1;
+                }
+                const codeContent = text.slice(codeContentStart);
+                if (codeContent.trim()) {
+                    result.push({
+                        type: "code",
+                        lang,
+                        content: codeContent,
+                        completed: false
+                    });
+                }
+            } else if (text.trim()) {
+                result.push({
+                    type: "text",
+                    content: text
+                });
+            }
+        }
+        
+        return result;
+    }
+
+    
+
+
+
+
+    function escapeBackslashes(str) {
+        return str.replace(/\\/g, '\\\\');
+    }
+
+    
+
+
+
+
+
+    function wordWrap(str, maxLen) {
+        if (!str)
+            return "";
+        let words = str.split(" ");
+        let lines = [];
+        let current = "";
+        for (let i = 0; i < words.length; ++i) {
+            if ((current + (current.length > 0 ? " " : "") + words[i]).length > maxLen) {
+                if (current.length > 0)
+                    lines.push(current);
+                current = words[i];
+            } else {
+                current += (current.length > 0 ? " " : "") + words[i];
+            }
+        }
+        if (current.length > 0)
+            lines.push(current);
+        return lines.join("\n");
+    }
+
+    
+
+
+
+
+    function cleanMusicTitle(title) {
+        if (!title)
+            return "";
+        
+        title = title.replace(/^ *\([^)]*\) */g, " "); 
+        title = title.replace(/^ *\[[^\]]*\] */g, " "); 
+        title = title.replace(/^ *\{[^\}]*\} */g, " "); 
+        
+        title = title.replace(/^ *【[^】]*】/, ""); 
+        title = title.replace(/^ *《[^》]*》/, ""); 
+        title = title.replace(/^ *「[^」]*」/, ""); 
+        title = title.replace(/^ *『[^』]*』/, ""); 
+
+        return title.trim();
+    }
+
+    
+
+
+
+
+    function friendlyTimeForSeconds(seconds) {
+        if (isNaN(seconds) || seconds < 0)
+            return "0:00";
+        seconds = Math.floor(seconds);
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        } else {
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+    }
+
+    
+
+
+
+
+    function escapeHtml(str) {
+        if (typeof str !== 'string')
+            return str;
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    
+
+
+
+
+    function cleanCliphistEntry(str: string): string {
+        return str.replace(/^\d+\t/, "");
+    }
+
+    
+
+
+
+
+
+    function stringListContainsSubstring(str, substrings) {
+        for (let i = 0; i < substrings.length; ++i) {
+            if (str.includes(substrings[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+
+
+
+
+
+    function cleanPrefix(str, prefix) {
+        if (str.startsWith(prefix)) {
+            return str.slice(prefix.length);
+        }
+        return str;
+    }
+
+    
+
+
+
+
+
+    function cleanOnePrefix(str, prefixes) {
+        for (let i = 0; i < prefixes.length; ++i) {
+            if (str.startsWith(prefixes[i])) {
+                return str.slice(prefixes[i].length);
+            }
+        }
+        return str;
+    }
+
+    
+
+
+
+
+    function toTitleCase(str) {
+        
+        return str.replace(/[-_]/g, " ").replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+    }
+
+    function cleanFileSizeFromBytes(bytes) {
+        const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+        let unitIndex = 0;
+
+        while (bytes >= 1024 && unitIndex < units.length - 1) {
+            bytes /= 1024;
+            unitIndex++;
+        }
+
+        return `${unitIndex === 0 ? bytes : bytes.toFixed(2)} ${units[unitIndex]}`;
+    }
+    
+
+
+
+
+    function separateCamelCase(str) {
+        return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').replace(/\b./g, s => s.toUpperCase());
+    }
+
+    
+
+
+
+
+
+    function capitalizeFirstLetter(string) {
+        if (!string)
+            return "";
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+
+
+
+
+    function getStretch(horizontal = 0.6, vertical = 1) {
+        return [
+            {
+                "type": "scale",
+                "xScale": horizontal,
+                "yScale": vertical
+            }
+        ];
+    }
+}

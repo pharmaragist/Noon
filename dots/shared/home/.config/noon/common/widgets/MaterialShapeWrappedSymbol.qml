@@ -12,10 +12,9 @@ MaterialShape {
     property alias colSymbol: symbol.color
     property alias fill: symbol.fill
     property real padding: 6
-    property QtObject colors: Colors
-    color: colors.colSecondaryContainer
-    colSymbol: colors.colOnSecondaryContainer
-    shape: MaterialShape.Shape.Clover4Leaf
+    property var colors: Colors
+    color: root.colors.colSecondaryContainer
+    colSymbol: root.colors.colOnSecondaryContainer
     implicitSize: Math.max(symbol.implicitWidth, symbol.implicitHeight) + padding * 2
 
     Symbol {

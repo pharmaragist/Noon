@@ -60,7 +60,7 @@ function toggle_float()
 end
 
 function mission_control()
-    hl.dsp.global("hymission:toggle")
+    return hl.dsp.exec_cmd(ipc .. " noon reveal_beam music")
 end
 
 local suppressMaximizeRule = hl.window_rule({

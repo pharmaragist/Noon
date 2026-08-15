@@ -47,7 +47,7 @@ SidebarItemContainer {
                 shape: MaterialShape.Shape.Bun
             }
         }
-        // Device selector
+        
         StyledRect {
             Layout.fillWidth: true
             Layout.fillHeight: false

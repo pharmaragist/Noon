@@ -4,7 +4,7 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-// Tag suggestion description
+
 Item {
     id: root
 

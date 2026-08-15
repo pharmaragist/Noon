@@ -26,9 +26,9 @@ StyledRect {
             Layout.alignment: Qt.AlignVCenter
             lineWidth: 10
             value: root.timer.remainingTime / root.timer.originalDuration
-            size: 85
-            secondaryColor: Colors.m3.m3secondaryContainer
-            primaryColor: timer?.color || Colors.m3.m3primary
+            implicitSize: 85
+            colSecondary: Colors.m3.m3secondaryContainer
+            colPrimary: timer?.color || Colors.m3.m3primary
             Symbol {
                 icon: timer?.icon ?? "timer"
                 anchors.centerIn: parent

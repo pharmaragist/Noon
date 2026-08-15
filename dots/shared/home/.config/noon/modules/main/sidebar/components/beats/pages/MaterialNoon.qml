@@ -14,7 +14,7 @@ SidebarItemContainer {
 
     readonly property bool playing: BeatsService.player?.playbackState === MprisPlaybackState.Playing
     readonly property bool displayingLyrics: activeLyrics.showContent
-    readonly property QtObject colors: BeatsService?.colors ?? Colors
+    readonly property var colors: BeatsService?.colors ?? Colors
 
     Keys.onPressed: event => {
         const ctrl = event.modifiers & Qt.ControlModifier;

@@ -1,5 +1,5 @@
-// From https://github.com/caelestia-dots/shell with modifications.
-// License: GPLv3
+
+
 
 import QtQuick
 import Quickshell

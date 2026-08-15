@@ -11,6 +11,7 @@ import QtQuick.Effects
 
 Item {
     id: root
+    z: 999
     implicitHeight: 400
     implicitWidth: 400
     readonly property bool isLocked: Globals.main.locked
@@ -22,7 +23,7 @@ Item {
     }
 
     Anim on y {
-        from: Screen.height + 100 // Hidden
+        from: Screen.height + 100 
         to: (Screen?.height - (height * 1.4)) / 2
         duration: 450
     }
@@ -61,9 +62,9 @@ Item {
         }
 
         Shape {
-            shape: MaterialShape.Shape.Oval
+            _shape: "Pill"
             implicitSize: 180
-            color: Colors.colPrimaryContainer
+            color: Colors.colTertiaryContainer
             anchors.centerIn: parent
 
             RotationAnimation on rotation {
@@ -78,7 +79,7 @@ Item {
 
         StyledText {
             anchors.centerIn: parent
-            color: Colors.colOnPrimaryContainer
+            color: Colors.colOnTertiaryContainer
             text: DateTimeService.time
             font: Fonts.request("numbers", 38)
         }
@@ -143,34 +144,29 @@ Item {
             shadowColor: "white"
         }
     }
+
     CLayout {
         anchors {
             top: shape.bottom
             horizontalCenter: shape.horizontalCenter
-            topMargin: Padding.massive
+            topMargin: Padding.large
         }
 
-        StyledRect {
-            Layout.alignment:Qt.AlignHCenter
-            color: Colors.colPrimaryContainer
-            radius: Rounding.full
-            implicitWidth: 180
-            implicitHeight: 56
-            LockStats {anchors.centerIn:parent}
+        LockControls {
+            Layout.alignment: Qt.AlignHCenter
         }
 
         StyledText {
             id: greets
-            text: "Welcome Back " + StringUtils.capitalizeFirstLetter(SysInfoService.username) + "!"
+            text: "Welcome Back " + TextUtils.capitalizeFirstLetter(SysInfoService.username) + "!"
             color: Colors.colOnLayer0
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             font: Fonts.request("title", Fonts.sizes.title * 1.25)
         }
-
     }
     component Shape: MaterialShape {
-        shape: MaterialShape.Shape.Cookie9Sided
+        _shape: "Cookie9Sided"
         implicitSize: 450
         color: Colors.colSecondaryContainer
     }

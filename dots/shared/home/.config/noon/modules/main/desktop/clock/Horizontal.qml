@@ -12,7 +12,7 @@ Item {
 
     readonly property real clockScale: Mem.states.desktop.clock.scale
     readonly property bool hovered: hoverArea.containsMouse
-    // Logic for font axes based on hover state
+    
     property int wght: hovered ? 1000 : Mem.states.fonts.variableAxes.display.wght
     property int wdth: hovered ? 0 : Mem.states.fonts.variableAxes.display.wdth
 
@@ -36,7 +36,7 @@ Item {
 
         StyledText {
             text: DateTimeService.time
-            font.family: Fonts.family.clock
+            font.family: Fonts.family.variable
             font.pixelSize: 100 * clockScale
             color: hovered ? Colors.colPrimary : Colors.colOnBackground
             font.variableAxes: {
@@ -50,7 +50,7 @@ Item {
             Layout.leftMargin: 3
             text: DateTimeService.date
             color: hovered ? Colors.colSecondaryContainer : Colors.colOnBackground
-            font.family: Fonts.family.clock
+            font.family: Fonts.family.variable
             font.pixelSize: 40 * clockScale
             opacity: 0.75
             renderType: Text.NativeRendering

@@ -56,6 +56,5 @@ Item {
     }
     StyledRectangularShadow {
         target: bg
-        enabled: bg.color !== "transparent"
     }
 }

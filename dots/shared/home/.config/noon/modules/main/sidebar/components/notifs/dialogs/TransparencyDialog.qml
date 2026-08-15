@@ -30,12 +30,14 @@ BottomDialog {
             OptionsSection {
                 icon: "blur_on"
                 title: "Transparency"
+                enabled: !Globals.conservativeMode
                 checked: Mem.options.appearance.transparency.enabled
                 action: Mem.options.appearance.transparency.enabled = checked
             }
             OptionsSection {
                 icon: "rocket_launch"
                 title: "Blur Applications"
+                enabled: !Globals.conservativeMode
                 checked: !Mem.hypr.unblur_apps
                 action: Mem.hypr.unblur_apps = !checked
             }

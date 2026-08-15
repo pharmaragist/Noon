@@ -6,7 +6,7 @@ import qs.common
 TextField {
     id: root
 
-    Material.theme: Material.System
+    Material.theme: Material[Colors.mode]
     Material.accent: Colors.m3.m3primary
     Material.primary: Colors.m3.m3primary
     Material.background: Colors.m3.m3surface

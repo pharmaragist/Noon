@@ -60,7 +60,7 @@ StyledRect {
         propagateComposedEvents: true
         anchors.fill: parent
         hoverEnabled: true
-        // onEntered: NoonUtils.callIpc("nobuntu toggle_overview")
+        
         onClicked: NoonUtils.callIpc("nobuntu toggle_overview")
     }
 }

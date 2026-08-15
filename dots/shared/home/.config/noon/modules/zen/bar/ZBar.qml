@@ -15,7 +15,7 @@ Scope {
         model: MonitorsInfo.all
         StyledPanel {
             id: panel
-            // shell: "zen"
+            
             name: "bar"
             required property var modelData
             screen: modelData

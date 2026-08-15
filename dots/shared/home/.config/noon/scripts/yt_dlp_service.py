@@ -98,7 +98,7 @@ class DownloadManager:
         if label is None:
             label = get_label(url)
 
-        # Check if file already exists
+        
         output_template = str(Path(output_dir) / "%(title)s.%(ext)s")
         try:
             with yt_dlp.YoutubeDL({"quiet": True, "noplaylist": True}) as ydl:

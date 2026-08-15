@@ -10,7 +10,18 @@ import Quickshell
 Singleton {
     id: root
 
-    readonly property var list: EmojisStore.avilableEmojies
+    readonly property var list: {
+        const db = Directories.assets + "/db/emojies.json";
+        const content = Directories.methods.readFile(db);
+        let parsed = [];
+        try {
+            parsed = JSON.parse(content);
+        } catch (_) {
+            console.error("EmojisService: ", _);
+        }
+        return parsed;
+    }
+
     readonly property var frequentEmojis: {
         const emojis = Mem.states.services.emojis.frequentEmojies || [];
         const counts = {};
@@ -19,6 +30,7 @@ Singleton {
 
         return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([e]) => e);
     }
+
     function recordEmojiUse(emoji: string) {
         const emojiChar = emoji.split(' ')[0];
         Mem.states.services.emojis.frequentEmojies.push(emojiChar);

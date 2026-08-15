@@ -6,13 +6,13 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-/**
- * A ListView with animations.
- */
+
+
+
 ListView {
     id: root
 
-    property real removeOvershoot: 100 // Account for gaps and bouncy animations
+    property real removeOvershoot: 100 
     property int dragIndex: -1
     property real dragDistance: 0
     property bool popin: true
@@ -24,7 +24,7 @@ ListView {
     property bool reverseRemoveDirection: false
     property bool fasterInteractions: Mem.options.interactions.scrolling.fasterTouchpadScroll
     property var _model
-    // Accumulated scroll destination so wheel deltas stack while animating
+    
     property alias hinter: hinter
     property real scrollTargetY: 0
     property real touchpadScrollFactor: Mem.options.interactions.scrolling.touchpadScrollFactor ?? 100
@@ -44,7 +44,7 @@ ListView {
     spacing: 5
     maximumFlickVelocity: 1000
     boundsBehavior: Flickable.StopAtBounds
-    // Keep target synced when not animating (e.g., drag/flick or programmatic changes)
+    
     onContentYChanged: {
         if (!scrollAnim.running)
             root.scrollTargetY = root.contentY;
@@ -198,7 +198,7 @@ ListView {
         }
     }
 
-    // This is movement when something is removed, not removing animation!
+    
     removeDisplaced: Transition {
         ParallelAnimation {
             Anim {

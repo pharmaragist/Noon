@@ -13,6 +13,7 @@ Singleton {
     readonly property string month: request("MMMM")
     readonly property string year: request("yyyy")
     readonly property string minute: request("mm")
+    readonly property string second: request("ss")
     readonly property alias clock: clock
     readonly property bool twelveHour: Mem.options.services.time.use12HourFormat
     readonly property string time: twelveHour ? request("hh:mm ap") : request("HH:mm")
@@ -21,16 +22,15 @@ Singleton {
     readonly property string collapsedCalendarFormat: request("dd MMMM yyyy")
     readonly property string arabicDayName: clock.date.toLocaleDateString(Qt.locale("ar_SA"), "dddd")
     readonly property string gnome_format: twelveHour ? request("hh:mm ap") : request("HH:mm")
-
     function request(format) {
         if (format)
             return Qt.formatDateTime(clock.date, format);
     }
 
     function getRelativeTime(timestamp) {
-        var now = new Date();
+        const now = new Date();
         var savedTime = new Date(timestamp);
-        var diff = Math.floor((now - savedTime) / 1000); // difference in seconds
+        var diff = Math.floor((now - savedTime) / 1000); 
 
         if (diff < 60) {
             return diff + "s ago";
@@ -39,7 +39,7 @@ Singleton {
         } else if (diff < 86400) {
             return Math.floor(diff / 3600) + "h ago";
         } else {
-            // More than a day, show the date
+            
             return Qt.formatDate(savedTime, "MMM d, yyyy");
         }
     }

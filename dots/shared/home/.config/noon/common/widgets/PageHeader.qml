@@ -10,7 +10,7 @@ RowLayout {
     property var target: parent?.parent.parent ?? null
     property alias title: titleArea.text
     property alias subTitle: subTitleArea.text
-    property QtObject colors: Colors
+    property var colors: Colors
     property alias sideButton: sideButton
     Layout.fillWidth: true
     Layout.preferredHeight: 50

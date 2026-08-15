@@ -48,7 +48,7 @@ TabButton {
             rippleAnim.restart();
         }
         onReleased: event => {
-            root.click(); // Because the MouseArea already consumed the event
+            root.click(); 
             rippleFadeAnim.restart();
         }
     }

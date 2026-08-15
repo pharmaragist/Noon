@@ -8,9 +8,9 @@ import qs.common.functions
 import qs.common.widgets
 import qs.services
 
-/*
-    Just a dictionary service
-*/
+
+
+
 Singleton {
     id: root
 

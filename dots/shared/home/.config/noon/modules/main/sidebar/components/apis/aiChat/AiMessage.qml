@@ -18,7 +18,7 @@ Item {
     property bool renderMarkdown: true
     property bool editing: false
 
-    readonly property list<var> messageBlocks: StringUtils.splitMarkdownBlocks(root.messageData?.content)
+    readonly property list<var> messageBlocks: TextUtils.splitMarkdownBlocks(root.messageData?.content)
 
     anchors.left: parent?.left
     anchors.right: parent?.right

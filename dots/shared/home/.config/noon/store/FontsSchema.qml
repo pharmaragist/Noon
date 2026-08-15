@@ -32,6 +32,15 @@ JsonAdapter {
                     "grad": 100
                 }
             },
+            "banner": {
+                "family": family.variable,
+                "variableAxes": {
+                    "rond": 50,
+                    "opsz": 95,
+                    "wdth": 110,
+                    "wght": 900
+                }
+            },
             "title": {
                 "family": family.variable,
                 "variableAxes": {

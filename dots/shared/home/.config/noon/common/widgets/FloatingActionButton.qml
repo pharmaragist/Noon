@@ -4,9 +4,9 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 
-/**
- * Material 3 FAB.
- */
+
+
+
 RippleButton {
     id: root
     property string iconText: "add"

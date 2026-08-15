@@ -25,9 +25,9 @@ BarGroup {
         hoverEnabled: true
     }
 
-    // TimerPopup {
-    //     hoverTarget: mouse
-    // }
+    
+    
+    
 
     GridLayout {
         id: content

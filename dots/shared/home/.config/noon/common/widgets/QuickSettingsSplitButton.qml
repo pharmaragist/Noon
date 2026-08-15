@@ -7,18 +7,18 @@ import qs.common.widgets
 import qs.services
 
 Item {
-    // on text change / accept
+    
 
     id: root
 
-    // ─── Core State ─────────────────────────────────────────────
+    
     property bool enabled: true
     property bool searchToggled: false
     property bool secondActive: false
     property bool thirdActive: false
     property bool showThird: true
     property string searchText: ""
-    // ─── Customization ──────────────────────────────────────────
+    
     property string placeholderText: "Find"
     property string firstIcon: "search"
     property string secondIcon: "restart_alt"
@@ -37,18 +37,18 @@ Item {
 
         return Colors.m3.m3primary;
     }
-    // ─── Variable-based action callbacks ─────────────────────────
+    
     property var firstAction
-    // toggles search or custom
+    
     property var secondAction
-    // middle hold or click
+    
     property var thirdAction
-    // expand/collapse or custom
+    
     property var thirdRightAction
-    // right-click alternative
+    
     property var searchAction
     property var secondPressHoldAction
-    // ─── UI constants ───────────────────────────────────────────
+    
     property int buttonHeight: 45
     property int buttonRadius: 99
     property int buttonSmallRadius: 4
@@ -75,7 +75,7 @@ Item {
         anchors.right: parent.right
         spacing: 3
 
-        // ─── First Button (Search) ───────────────────────────────
+        
         Rectangle {
             id: firstButton
 
@@ -196,7 +196,7 @@ Item {
 
         }
 
-        // ─── Second Button ───────────────────────────────────────
+        
         Rectangle {
             id: secondButton
 
@@ -280,7 +280,7 @@ Item {
 
         }
 
-        // ─── Third Button ────────────────────────────────────────
+        
         Rectangle {
             id: thirdButton
 

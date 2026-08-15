@@ -118,7 +118,7 @@ hl.window_rule({
     name = "games",
     match = { title = ".*\\.exe" },
     immediate = true,
-    fullscreen_state = 2,
+    fullscreen_state = 3,
 })
 
 -- Layers
@@ -181,6 +181,14 @@ local layers = {
         name = "slide_dim_layer",
         namespace = "noon:slide_dim_layer",
         dim_around = true,
+        animation = "slide",
+    },
+    {
+        name = "noanim_blurred_dim_layer",
+        namespace = "noon:noanim_blurred_dim_layer",
+        dim_around = true,
+        blur = true,
+        xray = true,
         animation = "slide",
     },
     {

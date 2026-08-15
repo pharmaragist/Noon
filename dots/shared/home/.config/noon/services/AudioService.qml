@@ -5,9 +5,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
 
-/**
- * A nice wrapper for default Pipewire audio sink and source.
- */
+
+
+
 Singleton {
     id: root
 
@@ -22,21 +22,20 @@ Singleton {
     }
 
     Connections {
-        // Protection against sudden volume changes
+        
         target: sink?.audio ?? null
         property bool lastReady: false
         property real lastVolume: 0
         function onVolumeChanged() {
-            if (!Mem.options.audio.protection.enable)
-                return;
             if (!lastReady) {
                 lastVolume = sink.audio.volume;
                 lastReady = true;
                 return;
             }
+            const opts = Mem.options.audio.protection;
             const newVolume = sink.audio.volume;
-            const maxAllowedIncrease = Mem.options.audio.protection.maxAllowedIncrease / 100;
-            const maxAllowed = Mem.options.audio.protection.maxAllowed / 100;
+            const maxAllowedIncrease = (opts.enabled ? opts.maxAllowedIncrease : opts.maxAllowed) / 100;
+            const maxAllowed = opts.maxAllowed / 100;
 
             if (newVolume - lastVolume > maxAllowedIncrease) {
                 sink.audio.volume = lastVolume;

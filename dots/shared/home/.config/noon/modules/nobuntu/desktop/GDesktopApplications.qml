@@ -52,11 +52,11 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
                         horizontalAlignment: Text.AlignHCenter
                         truncate: true
-                        // wrapMode: Text.NoWrap
-                        // Layout.preferredWidth: parent.width / 2
+                        
+                        
                         Layout.maximumWidth: 50
-                        // Layout.fillWidth: true
-                        // maximumLineCount: 2
+                        
+                        
                         text: app.name
                         color: Colors.colOnBackground
                         font.pixelSize: Fonts.sizes.small
