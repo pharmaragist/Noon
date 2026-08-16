@@ -4,6 +4,7 @@ import json
 import math
 import os
 import sys
+import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import mpd
@@ -162,6 +163,15 @@ class LibraryManager:
     def build_covers(self):
         os.makedirs(self.covers_dir, exist_ok=True)
         cover_map = self._load_cover_map()
+        stale = [
+            rel for rel in cover_map
+            if not os.path.exists(os.path.join(self.music_dir, rel))
+        ]
+        for rel in stale:
+            del cover_map[rel]
+        if stale:
+            self._save_cover_map(cover_map)
+            print(f"  Pruned {len(stale)} stale cover entries.")
 
         tracks = self._run(lambda c: c.listallinfo()) or []
         pending = [
@@ -216,10 +226,13 @@ class LibraryManager:
                     "album": track.get("album", ""),
                     "genre": track.get("genre", ""),
                     "date": track.get("date", ""),
+                    "track": track.get("track", ""),
                     "duration": float(track.get("duration", 0)),
                     "cover": cover_map.get(rel, ""),
+                    "last_modified": track.get("last-modified", ""),
                 }
             )
+        result.sort(key=lambda t: t["last_modified"], reverse=True)
         with open(TEMP_FILE, "w", encoding="utf-8") as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
         return result
@@ -237,4 +250,13 @@ class LibraryManager:
         return sorted(set(r.get("genre", "") for r in result if r.get("genre")))
 
     def update_db(self):
-        self._run(lambda c: c.update())
+        """Kick a full DB update and block until MPD finishes scanning."""
+
+        def fn(c):
+            c.update()
+            for _ in range(3000):
+                if not c.status().get("updating_db"):
+                    return
+                time.sleep(0.1)
+
+        self._run(fn)

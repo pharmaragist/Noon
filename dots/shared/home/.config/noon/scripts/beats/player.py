@@ -77,10 +77,6 @@ class Player:
             target = next((f for f in library if name_lower in f.lower()), None)
 
             if target:
-                try:
-                    c.save("temp_former_queue")
-                except mpd.CommandError:
-                    pass
                 c.clear()
                 c.add(target)
                 for path in library:
@@ -123,11 +119,6 @@ class Player:
         title_list = [t.strip() for t in titles.split(",") if t.strip()]
 
         def fn(c):
-            try:
-                c.save("temp_former_queue")
-            except mpd.CommandError:
-                pass
-
             library = c.search("any", "")
             title_map = {}
             for track in library:

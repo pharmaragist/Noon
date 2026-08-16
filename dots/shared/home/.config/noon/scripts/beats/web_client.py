@@ -28,7 +28,7 @@ def _resp(code: int, body: str | bytes, mime: str = "text/plain",
           cache: str = "") -> Response:
     if isinstance(body, str):
         body = body.encode()
-    h = Headers({"Content-Type": mime, "Access-Control-Allow-Origin": "*"})
+    h = Headers({"Content-Type": mime})
     if cache:
         h["Cache-Control"] = cache
     reason = {200: "OK", 400: "Bad Request", 403: "Forbidden", 404: "Not Found"}.get(
@@ -39,7 +39,7 @@ def _resp(code: int, body: str | bytes, mime: str = "text/plain",
 
 class BeatsWebServer:
     def __init__(self, player: str = "main", port: int = 8090,
-                 host: str = "0.0.0.0"):
+                 host: str = "127.0.0.1"):
         self.player = player
         self.port = port
         self.host = host
@@ -59,10 +59,6 @@ class BeatsWebServer:
             return _resp(200, f.read(), mime or "application/octet-stream", cache)
 
     def _api(self, path: str) -> Response | None:
-        if path == "/api/config":
-            from .config import load_conf
-            return _resp(200, json.dumps(load_conf()), "application/json")
-
         if path == "/api/players":
             from .config import load_conf
             from .player import Player
@@ -71,7 +67,9 @@ class BeatsWebServer:
             result = {}
             for name in players:
                 host = players[name].get("host", "")
-                if host and os.path.exists(os.path.expanduser(host)):
+                if not host:
+                    continue
+                if os.path.exists(os.path.expanduser(host)):
                     p = Player(name)
                     s = p.status()
                     running = s.get("running", False)

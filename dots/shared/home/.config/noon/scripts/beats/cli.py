@@ -1,6 +1,8 @@
 import argparse
+import fcntl
 import json
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -52,23 +54,100 @@ def _mpd_conf(name: str, host: str, music_dir: str) -> str:
     )
 
 
+def _proc_args(pid: int) -> list:
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return [a.decode(errors="replace") for a in f.read().split(b"\0") if a]
+    except OSError:
+        return []
+
+
+def _kill_pid(pid: int):
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def _mpd_pids(name: str | None = None) -> list:
+    """PIDs of mpd daemons we manage (conf file lives under MPD_SOCK_DIR)."""
+    pids = []
+    for entry in os.listdir("/proc"):
+        if not entry.isdigit():
+            continue
+        pid = int(entry)
+        args = _proc_args(pid)
+        if not args or os.path.basename(args[0]) != "mpd":
+            continue
+        confs = [a for a in args if a.startswith(MPD_SOCK_DIR) and a.endswith(".conf")]
+        if not confs:
+            continue
+        if name is None or any(os.path.basename(c) == f"{name}.conf" for c in confs):
+            pids.append(pid)
+    return pids
+
+
+def _bridge_pids(host: str | None = None) -> list:
+    """PIDs of mpd-mpris bridges talking to our sockets (optionally one host)."""
+    pids = []
+    for entry in os.listdir("/proc"):
+        if not entry.isdigit():
+            continue
+        pid = int(entry)
+        args = _proc_args(pid)
+        if not args or "mpd-mpris" not in args[0]:
+            continue
+        if host is not None:
+            if host not in args:
+                continue
+        elif not any(a.startswith(MPD_SOCK_DIR) for a in args):
+            continue
+        pids.append(pid)
+    return pids
+
+
+def _serve_pids() -> list:
+    """PIDs of running beats web servers (beats_daemon.py serve)."""
+    pids = []
+    for entry in os.listdir("/proc"):
+        if not entry.isdigit():
+            continue
+        pid = int(entry)
+        args = _proc_args(pid)
+        if not args or "serve" not in args:
+            continue
+        if any(a.endswith("beats_daemon.py") for a in args):
+            pids.append(pid)
+    return pids
+
+
 def _ensure_mpd(name: str, host: str, music_dir: str):
     if _mpd_ping(host):
+        for pid in _mpd_pids(name)[1:]:
+            _kill_pid(pid)
         return
 
-    if os.path.exists(host):
-        os.remove(host)
+    os.makedirs(MPD_SOCK_DIR, exist_ok=True)
+    with open(os.path.join(MPD_SOCK_DIR, f"{name}.lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if _mpd_ping(host):
+            return
 
-    print(f"Starting MPD ({name}) on {host}...", file=sys.stderr, flush=True)
-    conf = _mpd_conf(name, host, music_dir)
-    conf_file = os.path.join(os.path.dirname(host), f"{name}.conf")
-    with open(conf_file, "w") as f:
-        f.write(conf)
-    subprocess.Popen(
-        ["mpd", conf_file],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+        for pid in _mpd_pids(name):
+            _kill_pid(pid)
+        if os.path.exists(host):
+            os.remove(host)
+
+        print(f"Starting MPD ({name}) on {host}...", file=sys.stderr, flush=True)
+        conf = _mpd_conf(name, host, music_dir)
+        conf_file = os.path.join(os.path.dirname(host), f"{name}.conf")
+        with open(conf_file, "w") as f:
+            f.write(conf)
+        subprocess.Popen(
+            ["mpd", conf_file],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
     if _wait_for_mpd(host):
         print(f"  {name} ready.", file=sys.stderr, flush=True)
@@ -80,14 +159,9 @@ def _ensure_mpd(name: str, host: str, music_dir: str):
 BRIDGE_BIN = "mpd-mpris"
 
 
-def _kill_bridge():
-    subprocess.run(["killall", "-9", "mpd-mpris"], capture_output=True, timeout=5)
-    subprocess.run(["killall", "mpd-mpris"], capture_output=True, timeout=5)
-    time.sleep(0.5)
-
-
 def _ensure_mpd_mpris(socket_path: str):
-    _kill_bridge()
+    if _bridge_pids(socket_path):
+        return
 
     print("Starting MPRIS bridge...", file=sys.stderr, flush=True)
     subprocess.Popen(
@@ -98,7 +172,7 @@ def _ensure_mpd_mpris(socket_path: str):
     time.sleep(1)
 
 
-def init(player: str, port: int):
+def init(player: str):
     conf = load_conf()
     players = conf.get("players", {})
     for name, pconf in players.items():
@@ -115,8 +189,8 @@ def init(player: str, port: int):
 
 
 def kill():
-    _kill_bridge()
-    subprocess.run(["killall", "-9", "mpd"], capture_output=True, timeout=5)
+    for pid in _mpd_pids() + _bridge_pids() + _serve_pids():
+        _kill_pid(pid)
     time.sleep(1)
 
     for sock in os.listdir(MPD_SOCK_DIR):
@@ -131,6 +205,7 @@ def main():
     parser = argparse.ArgumentParser(description="beats - MPD controller")
     parser.add_argument("--player", type=str, default="main")
     parser.add_argument("--port", type=int, default=8090)
+    parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument(
         "command",
         choices=[
@@ -171,7 +246,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "init":
-        init(args.player, args.port)
+        init(args.player)
         return
 
     if args.command == "kill":
@@ -188,18 +263,16 @@ def main():
             _ensure_mpd_mpris(host)
         import asyncio
         from .web_client import BeatsWebServer
-        asyncio.run(BeatsWebServer(args.player, args.port).start())
+        asyncio.run(BeatsWebServer(args.player, args.port, args.host).start())
         return
 
     conf = load_conf()
     pconf = conf.get("players", {}).get(args.player)
     if pconf:
+        music_dir = os.path.expanduser(pconf.get("musicDirectory", "~/Music"))
         host = os.path.expanduser(pconf["host"])
-        if not _mpd_ping(host):
-            print(f"MPD ({args.player}) not running. Initializing...", file=sys.stderr, flush=True)
-            init(args.player, args.port)
-        else:
-            _ensure_mpd_mpris(host)
+        _ensure_mpd(args.player, host, music_dir)
+        _ensure_mpd_mpris(host)
 
     p = Player(args.player)
     lib = LibraryManager(args.player)
@@ -225,7 +298,7 @@ def main():
         "list-artists": lambda: print(json.dumps(lib.list_artists())),
         "list-albums": lambda: print(json.dumps(lib.list_albums())),
         "list-genres": lambda: print(json.dumps(lib.list_genres())),
-        "fetch": lambda: (p.refresh_config(), lib.build_covers(), p.update_db(), print("Fetch complete.", file=sys.stderr)),
+        "fetch": lambda: (lib.update_db(), lib.build_covers(), print("Fetch complete.", file=sys.stderr)),
     }
     dispatch[args.command]()
 

@@ -161,19 +161,25 @@ async function playTrack(t) {
   await mpd.refresh()
 }
 
+function trackNum(t) {
+  return parseInt(t.track) || 0
+}
+
 function playAlbum(artist, album) {
   const t = tracks.value.filter(tr => tr.artist === artist && tr.album === album)
   if (!t.length) return
+  const sorted = [...t].sort((a, b) => trackNum(a) - trackNum(b))
   mpd.cmd('clear').then(() => {
-    return Promise.all(t.map(tr => mpd.cmd('add', `"${tr.file}"`)))
+    return Promise.all(sorted.map(tr => mpd.cmd('add', `"${tr.file}"`)))
   }).then(() => mpd.cmd('play', '0')).then(() => mpd.refresh())
 }
 
 function playArtist(artist) {
   const t = tracks.value.filter(tr => tr.artist === artist)
   if (!t.length) return
+  const sorted = [...t].sort((a, b) => trackNum(a) - trackNum(b))
   mpd.cmd('clear').then(() => {
-    return Promise.all(t.map(tr => mpd.cmd('add', `"${tr.file}"`)))
+    return Promise.all(sorted.map(tr => mpd.cmd('add', `"${tr.file}"`)))
   }).then(() => mpd.cmd('play', '0')).then(() => mpd.refresh())
 }
 

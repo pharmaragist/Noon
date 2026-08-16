@@ -199,15 +199,19 @@ onMounted(() => {
 });
 
 let lyricsTimer = null;
+let lyricsAnchor = 0;
+let lyricsAnchorAt = 0;
 
 function tickLyrics() {
-    lyricsPos.value += 0.1;
+    lyricsPos.value = lyricsAnchor + (performance.now() - lyricsAnchorAt) / 1000;
 }
 
 function startLyricsLoop() {
     clearInterval(lyricsTimer);
     if (s.value.state !== "play") return;
     lyricsPos.value = seekVal.value;
+    lyricsAnchor = seekVal.value;
+    lyricsAnchorAt = performance.now();
     lyricsTimer = setInterval(tickLyrics, 100);
 }
 

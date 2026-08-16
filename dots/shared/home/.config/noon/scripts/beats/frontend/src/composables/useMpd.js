@@ -35,6 +35,8 @@ class MPDClient {
       this.connected.value = false
       clearInterval(this._poller)
       this._poller = null
+      this._accResp = []
+      while (this._pending.length) this._pending.shift()(null)
       this.onDisconnected?.()
       if (this.player) {
         this._reconnectTimer = setTimeout(() => {
@@ -107,11 +109,14 @@ class MPDClient {
   }
 
   async refresh() {
-    const sStat = await this.cmd('status')
-    const sSong = await this.cmd('currentsong')
+    const [sStat, sSong] = await Promise.all([this.cmd('status'), this.cmd('currentsong')])
     if (sStat) Object.assign(this.status, this._parseKv(sStat))
     if (sSong) this.currentSong.value = this._parseKv(sSong)
     else this.currentSong.value = {}
+    try {
+      const res = await fetch('/api/queue')
+      if (res.ok) this.queue.value = await res.json()
+    } catch (_) {}
   }
 
   _parseKv(lines) {
@@ -125,7 +130,7 @@ class MPDClient {
 
   _poll() {
     this.refresh()
-    this._poller = setInterval(() => this.refresh(), 3000)
+    this._poller = setInterval(() => this.refresh(), 1000)
   }
 
   coverUrl(rel) {
