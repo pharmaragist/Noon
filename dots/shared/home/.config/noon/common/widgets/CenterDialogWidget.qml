@@ -42,7 +42,7 @@ AppWindow {
         if (!url)
             return;
         let guide = segmentedButtonsContent[segmentedButtons.selectedIndex];
-        let dir = Directories.methods.trim(Directories.standard.downloads);
+        let dir = Paths.methods.trim(Paths.standard.downloads);
         let params;
 
         switch (guide.toLowerCase()) {

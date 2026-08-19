@@ -22,12 +22,12 @@ BottomDialog {
         id: folderEntry
         anchors.fill: parent
         anchors.margins: Padding.verylarge
-        text: FileUtils.collapsePath(Mem.looks.currentFolder)
+        text: Paths.methods.collapsePath(Mem.looks.currentFolder)
         placeholderText: "Wallpaper folder path..."
         placeholderTextColor: Colors.colOnLayer3
         color: Colors.colOnLayer1
         bg.color: Colors.colLayer4
         Keys.onEscapePressed: focus = false
-        onAccepted: Mem.looks.currentFolder = FileUtils.expandPath(folderEntry.text)
+        onAccepted: Mem.looks.currentFolder = Paths.methods.expandPath(folderEntry.text)
     }
 }

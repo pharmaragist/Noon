@@ -19,7 +19,7 @@ Singleton {
 
     function listen() {
         listening = false;
-        
+
         _cmd(false, "--stt");
     }
 
@@ -32,7 +32,7 @@ Singleton {
     function _cmd(detached, ...args) {
         if (!args.length)
             return;
-        mainProc.command = ["python", Directories.scriptsDir + "/speech_service.py", "--config", Directories.methods.trim(optsView.path), ...args];
+        mainProc.command = ["python", Paths.scriptsDir + "/speech_service.py", "--config", Paths.methods.trim(optsView.path), ...args];
         if (detached) {
             mainProc.startDetached();
         } else {

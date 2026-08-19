@@ -7,6 +7,8 @@ import qs.common.widgets
 import qs.services
 
 Singleton {
+    id: root
+
     readonly property var tweaks: [
         {
             "section": "Appearance",
@@ -418,31 +420,31 @@ Singleton {
                     "name": "Vertical Mode Style",
                     "type": "combobox",
                     "values": BarData.verticalBarModes,
-                    "key": "bar.verticalLayout"
+                    "key": "bar.vertical.layout"
                 },
                 {
                     "icon": "width",
                     "name": "Horizontal Mode Style",
                     "type": "combobox",
                     "values": BarData.horizontalBarModes,
-                    "key": "bar.horizontalLayout"
+                    "key": "bar.horizontal.layout"
                 },
                 {
                     "icon": "border_all",
                     "name": "BarGroup",
                     "hint": "Group bar items into a single capsule",
-                    "key": "bar.appearance.barGroup"
+                    "key": root.expandBarKey("appearance.barGroup")
                 },
                 {
                     "icon": "border_horizontal",
                     "name": "Separators",
                     "hint": "Show dividers between bar sections",
-                    "key": "bar.appearance.enableSeparators"
+                    "key": root.expandBarKey("appearance.enableSeparators")
                 },
                 {
                     "icon": "border_vertical",
                     "name": "Separator Style",
-                    "key": "bar.appearance.separatorsMode",
+                    "key": root.expandBarKey("appearance.separatorsMode"),
                     "type": "combobox",
                     "values": BarData.separatorStyles
                 },
@@ -450,19 +452,19 @@ Singleton {
                     "icon": "border_all",
                     "name": "Outline",
                     "hint": "Border outline on float-style bar",
-                    "key": "bar.appearance.outline"
+                    "key": root.expandBarKey("appearance.outline")
                 },
                 {
                     "icon": "tune",
                     "name": "Style",
-                    "key": "bar.appearance.style",
+                    "key": root.expandBarKey("appearance.style"),
                     "type": "combobox",
                     "values": BarData.appearanceModes
                 },
                 {
                     "icon": "width_full",
                     "name": "Size",
-                    "key": "bar.appearance.size",
+                    "key": root.expandBarKey("appearance.size"),
                     "type": "spin",
                     "minValue": 40,
                     "maxValue": 65
@@ -477,7 +479,7 @@ Singleton {
                     "icon": "palette",
                     "name": "Use Background",
                     "hint": "Background fill behind bar items",
-                    "key": "bar.appearance.useBg"
+                    "key": root.expandBarKey("appearance.useBg")
                 },
                 {
                     "icon": "tv",
@@ -797,6 +799,19 @@ Singleton {
                     "releaseAction": () => {
                         NoonUtils.callIpc("sidebar reveal Packages");
                     }
+                },
+                {
+                    "icon": "restart_alt",
+                    "name": "Reset Default Settings",
+                    "hint": "Resets All Shell Tweaks to its initial state",
+                    "type": "action",
+                    "actionIcon": "restart_alt",
+                    "releaseAction": () => {
+                        NoonUtils.trash(Mem.optionsView.path)
+                        NoonUtils.inlineTimer(() => {
+                            NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh")
+                        }, 500);
+                    }
                 }
             ]
         },
@@ -850,4 +865,8 @@ Singleton {
             ]
         }
     ]
+
+    function expandBarKey(key) {
+        return (BarData.isVertical ? "bar.vertical" : "bar.horizontal") + "." + key;
+    }
 }

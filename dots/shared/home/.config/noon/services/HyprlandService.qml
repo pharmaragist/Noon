@@ -25,15 +25,15 @@ Singleton {
     readonly property list<string> availableAnimations: root.availableAnimationsModel.getArray("fileBaseName")
 
     readonly property FolderListModel availableAnimationsModel: FolderListModel {
-        folder: Directories.standard.config + "/hypr/lua/animations/"
+        folder: Paths.standard.config + "/hypr/lua/animations/"
         nameFilters: ["*.lua"]
     }
 
-    
-    
-    
-    
-    
+
+
+
+
+
 
     BatchBinding {
         target: Mem.hypr

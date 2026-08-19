@@ -51,7 +51,7 @@ Item {
 
         const mode = segmentedButtonsContent[segmentedButtons.selectedIndex].toLowerCase();
         const isAudio = mode === "audio";
-        const dir = isAudio ? Directories.methods.trim(Directories.standard.music) : Directories.methods.trim(Directories.standard.videos);
+        const dir = isAudio ? Paths.methods.trim(Paths.standard.music) : Paths.methods.trim(Paths.standard.videos);
         const label = qualityRow.model[qualityRow.currentIndex] ?? "Best";
 
         DlpService.request({

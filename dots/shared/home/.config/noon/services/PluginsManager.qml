@@ -74,32 +74,32 @@ Singleton {
     }
 
     function disable(group, name) {
-        actionProc.command = [Directories.scriptsDir + "/plugins_helper.sh", "disable", group, name];
+        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "disable", group, name];
         actionProc.running = true;
     }
     function enable(group, name) {
-        actionProc.command = [Directories.scriptsDir + "/plugins_helper.sh", "enable", group, name];
+        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "enable", group, name];
         actionProc.running = true;
     }
     function install(zip = root.selectedLocation) {
-        actionProc.command = [Directories.scriptsDir + "/plugins_helper.sh", "install", zip];
+        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "install", zip];
         actionProc.running = true;
     }
     function remove(group, name) {
-        actionProc.command = [Directories.scriptsDir + "/plugins_helper.sh", "remove", group, name];
+        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "remove", group, name];
         actionProc.running = true;
     }
 
     function action(plugin, action) {
         if (!plugin)
             return;
-        actionProc.command = [Directories.scriptsDir + "/plugins_helper.sh", action, plugin];
+        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", action, plugin];
         actionProc.running = true;
     }
 
     QmlCrawler {
         enabled: root.developmentMode
-        folder: Qt.resolvedUrl(Directories.plugins.main)
+        folder: Qt.resolvedUrl(Paths.plugins.main)
         onContentsChanged: Quickshell.reload(true)
     }
 
@@ -108,7 +108,7 @@ Singleton {
         title: "Select Plugin Dir"
         nameFilters: ["*.zip *.tar.gz *.tar", "All files (*)"]
         onAccepted: {
-            root.selectedLocation = Directories.methods.trim(currentFile);
+            root.selectedLocation = Paths.methods.trim(currentFile);
             NoonUtils.callIpc("sidebar reveal Plugins");
         }
     }

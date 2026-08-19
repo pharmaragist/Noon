@@ -19,7 +19,7 @@ Singleton {
     Process {
         id: getProc
         running: Mem.store.services.cursors.availableCursors.length === 0
-        command: ["bash", "-c", Directories.scriptsDir + "/get_cursors.sh"]
+        command: ["bash", "-c", Paths.scriptsDir + "/get_cursors.sh"]
         stdout: SplitParser {
             onRead: line => {
                 var current = Mem.store.services.cursors.availableCursors;

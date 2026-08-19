@@ -22,7 +22,7 @@ FileView {
     watchChanges: true
 
     path: {
-        const parent = state ? Directories.standard.state : Directories.shellConfigs;
+        const parent = state ? Paths.standard.state : Paths.shellConfigs;
         return parent + "/" + parentDir + fileName + ".json";
     }
 

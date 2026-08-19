@@ -10,7 +10,7 @@ import Qt.labs.folderlistmodel
 Singleton {
     id: root
 
-    readonly property string folderPath: Directories.standard.documents + "/Notes/"
+    readonly property string folderPath: Paths.standard.documents + "/Notes/"
     property string fileName: Mem.states.services.notes?.currentFile ?? "noon_notes.md"
     property string filePath: folderPath + fileName
     property string content: ""
@@ -26,7 +26,7 @@ Singleton {
                 name: _model.get(i, "fileName"),
                 path: _model.get(i, "filePath"),
                 lastSaved: friendlyDate(_model.get(i, "fileModified")),
-                content: FileUtils.readFile(_model.get(i, "filePath"))
+                content: Paths.methods.readFile(_model.get(i, "filePath"))
             });
         }
         return all;
@@ -70,7 +70,7 @@ Singleton {
         if (!name?.trim())
             return;
         const _name = name + ".md";
-        FileUtils.createFileWith(folderPath + "/" + _name, "");
+        Paths.methods.createFileWith(folderPath + "/" + _name, "");
         NoonUtils.inlineTimer(() => openNote(_name), 500);
     }
 

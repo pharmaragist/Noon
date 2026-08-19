@@ -7,8 +7,6 @@ import qs.services
 import qs.store
 
 Item {
-    id: root
-
     RowLayout {
         id: content
         anchors.fill: parent
@@ -19,7 +17,7 @@ Item {
             radius: height / 2
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
             Layout.fillHeight: true
-            Layout.fillWidth: true
+            // Layout.fillWidth: true
 
             ToolbarTabBar {
                 id: modeTabBar
@@ -31,7 +29,43 @@ Item {
                 }
             }
         }
-
+        ButtonGroup {
+            Layout.fillHeight: true
+            Repeater {
+                model: [
+                    {
+                        "icon": GowallService.isBusy ? "hourglass" : "auto_fix_high",
+                        "enabled": !GowallService.isBusy,
+                        "action": () => {
+                            GowallService.upscaleCurrentWallpaper();
+                        }
+                    },
+                    {
+                        "enabled": !GowallService.isBusy,
+                        "icon": GowallService.isBusy ? "hourglass" : "content_cut",
+                        "action": () => {
+                            GowallService.removeBackground(WallpaperService.currentWallpaper);
+                        }
+                    },
+                    {
+                        "icon": "colorize",
+                        "action": () => {
+                            WallpaperService.pickAccentColor()
+                        }
+                    },
+                ]
+                GroupButtonWithIcon {
+                    Layout.fillHeight: false
+                    iconSize: 20
+                    implicitSize: 45
+                    buttonRadius: height / 2
+                    buttonRadiusPressed: height / 2
+                    materialIcon: modelData?.icon ?? ""
+                    enabled: modelData?.enabled ?? true
+                    releaseAction: () => modelData.action()
+                }
+            }
+        }
         ShapeComboBox {
             id: paletteCombo
             Layout.leftMargin: Padding.normal

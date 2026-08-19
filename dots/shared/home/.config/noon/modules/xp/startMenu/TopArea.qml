@@ -26,7 +26,7 @@ RowLayout {
         StyledImage {
             anchors.fill: parent
             anchors.margins: 3
-            source: Directories.standard.home + "/.face"
+            source: Paths.standard.home + "/.face"
             mipmap: true
             cache: true
             asynchronous: true

@@ -31,39 +31,6 @@ Item {
                 ]
             },
             {
-                "cat": "Walls",
-                "bubbles": [
-                    {
-                        "icon": "colorize",
-                        "enabled": true,
-                        "action": () => {
-                            WallpaperService.pickAccentColor();
-                        }
-                    },
-                    {
-                        "icon": GowallService.isBusy ? "hourglass" : "auto_fix_high",
-                        "enabled": !GowallService.isBusy,
-                        "action": () => {
-                            GowallService.upscaleCurrentWallpaper();
-                        }
-                    },
-                    {
-                        "enabled": !GowallService.isBusy,
-                        "icon": GowallService.isBusy ? "hourglass" : "content_cut",
-                        "action": () => {
-                            GowallService.removeBackground(WallpaperService.currentWallpaper);
-                        }
-                    },
-                    {
-                        "icon": WallpaperService._generatingThumbnails ? "hourglass" : "restart_alt",
-                        "enabled": !WallpaperService._generatingThumbnails,
-                        "action": () => {
-                            WallpaperService.generateThumbnails(WallpaperService.currentFolderPath);
-                        }
-                    }
-                ]
-            },
-            {
                 "cat": "API",
                 "bubbles": [
                     {
@@ -76,39 +43,6 @@ Item {
                         "icon": "globe",
                         "action": () => {
                             Ai.openInTerm();
-                        }
-                    }
-                ]
-            },
-            {
-                "cat": "Web",
-                "bubbles": [
-                    {
-                        "icon": "open_in_new",
-                        "action": () => {
-                            Qt.openUrlExternally(Globals.web_session?.url ?? "");
-                            NoonUtils.callIpc("sidebar hide");
-                        }
-                    },
-                    {
-                        "icon": "keyboard_double_arrow_left",
-                        "enabled": Globals.web_session?.canGoBack ?? false,
-                        "action": () => {
-                            Globals.web_session.goBack();
-                        }
-                    },
-                    {
-                        "icon": "keyboard_double_arrow_right",
-                        "enabled": Globals.web_session?.canGoForward ?? false,
-                        "action": () => {
-                            Globals.web_session.goForward();
-                        }
-                    },
-                    {
-                        "icon": "restart_alt",
-                        "enabled": !Globals.web_session?.loading ?? false,
-                        "action": () => {
-                            Globals.web_session.reload();
                         }
                     }
                 ]

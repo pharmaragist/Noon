@@ -9,20 +9,23 @@ import qs.common.functions
 Singleton {
     id: root
 
+    readonly property var settings: Mem.options.bar
+
+    readonly property bool isVertical: ["left", "right"].includes(position)
     readonly property var bars: barsModel.getArray("fileBaseName")
+    readonly property var currentModeInfo: isVertical ? settings.vertical : settings.horizontal
+
     readonly property var verticalBarModes: bars.filter(i => i.toLowerCase().startsWith('v'))
     readonly property var horizontalBarModes: bars.filter(i => !i.toLowerCase().startsWith('v'))
 
-    readonly property QtObject settings: Mem.options.bar
     readonly property string position: settings.behavior.position
-    readonly property bool isVertical: ["left", "right"].includes(position)
     readonly property list<string> appearanceModes: ["float", "sharp", "concave", "convex"]
     readonly property list<string> positions: ["left", "right", "bottom", "top"]
     readonly property list<string> layoutProps: ["fillHeight", "fillWidth", "preferredWidth", "preferredHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "margins", "implicitWidth", "implicitHeight", "width", "height", "minimumWidth", "minimumHeight", "maximumWidth", "maximumHeight"]
-    readonly property int currentBarExclusiveSize: settings.appearance.size
+    readonly property int currentBarExclusiveSize: currentModeInfo.appearance.size
     readonly property list<string> separatorStyles: ["dot", "slant", "thin", "thick" ,"dots","thins","thicks"]
 
-    
+
     readonly property var contentTable: {
         "spacer": "Spacer",
         "power": "PowerIcon",
@@ -52,7 +55,7 @@ Singleton {
         "brightness": "BrightnessIndicator"
     }
 
-    
+
     readonly property var horizontalSubstitutions: {
         "workspaces": "Workspaces",
         "title": "ActiveWindow",
@@ -62,13 +65,13 @@ Singleton {
         "separator": "HSeparator"
     }
 
-    
+
     function setPosition(pos) {
         if (positions.indexOf(pos) > -1)
             settings.behavior.position = pos;
     }
 
-    
+
     function toggleLayout() {
         const pairs = {
             "left": "top",
@@ -90,7 +93,7 @@ Singleton {
     }
 
     function loadPreset(id, orientation) {
-        const preset = settings.dynamicPresets[orientation].find(p => p.name === id);
+        const preset = currentModeInfo.presets[orientation].find(p => p.name === id);
         if (!preset) return;
         ObjectUtils.applyToQtObject(root.settings[orientation[0] + "Map"], preset);
     }
@@ -100,14 +103,14 @@ Singleton {
         const objMap = orientation[0] + "Map";
         const currentSettings = root.settings[objMap];
         const currentObjectData = ObjectUtils.toPlainObject(currentSettings);
-        const target = settings.dynamicPresets[orientation];
+        const target = currentModeInfo.presets[orientation];
         if (!target.find(p => p.name === id))
             target.push(Object.assign({
                 name: id
             }, currentObjectData));
     }
 
-    
+
     function savePreset(id, preset, orientation) {
         const validOrientations = ["horizontal", "vertical"];
         if (!preset) {
@@ -118,8 +121,8 @@ Singleton {
             return;
         }
         const objMap = orientation[0] + "Map";
-        const store = settings.dynamicPresets[objMap];
-        
+        const store = currentModeInfo.presets[objMap];
+
         const data = Object.assign({
             name: id
         }, preset);
@@ -136,7 +139,7 @@ Singleton {
     FolderListModel {
         id: barsModel
         nameFilters: ["*.qml"]
-        folder: Qt.resolvedUrl(Directories.shellDir + "/modules/main/bar/layouts")
+        folder: Qt.resolvedUrl(Paths.shellDir + "/modules/main/bar/layouts")
         showDirs: false
         showFiles: true
     }

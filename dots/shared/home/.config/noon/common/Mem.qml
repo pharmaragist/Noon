@@ -10,104 +10,90 @@ Singleton {
     id: root
 
     readonly property bool ready: optionsView.loaded && statesView.loaded
-    readonly property alias states: statesView.data
-    readonly property alias options: optionsView.data
-    readonly property alias store: storeView.data
-    readonly property alias looks: looksView.data
-    readonly property alias ai: aiView.data
-    readonly property alias todo: todoView.data
-    readonly property alias games: gamesView.data
-    readonly property alias colors: colorsView.data
-    readonly property alias beats: beatsView.data
-    readonly property alias pkgs: pkgsView.data
+    readonly property var states: statesView.data
+    readonly property var options: optionsView.data
+    readonly property var store: storeView.data
+    readonly property var looks: looksView.data
+    readonly property var ai: aiView.data
+    readonly property var todo: todoView.data
+    readonly property var games: gamesView.data
+    readonly property var colors: colorsView.data
+    readonly property var beats: beatsView.data
+    readonly property var pkgs: pkgsView.data
 
-    readonly property alias hypr: hyprView.variables
-    readonly property alias env: envView.data
+    readonly property var hypr: hyprView.variables
+    readonly property var env: envView.data
 
     EnvManager {
         id: envView
-        path: Directories.standard.home + "/.env"
+        path: Paths.standard.home + "/.env"
     }
 
     HyprParser {
         id: hyprView
-        path: Directories.hyprConfigs + "/lua/variables.lua"
+        path: Paths.hyprConfigs + "/lua/variables.lua"
     }
 
-    ConfigFileView {
-        id: optionsView
-
+    readonly property ConfigFileView optionsView: ConfigFileView {
         state: false
         fileName: "options"
         OptionsSchema {}
     }
 
-    ConfigFileView {
-        id: statesView
-
+    readonly property ConfigFileView statesView: ConfigFileView {
         fileName: "states"
         StatesSchema {}
     }
 
-    ConfigFileView {
-        id: storeView
-
+    readonly property ConfigFileView storeView: ConfigFileView {
         watchChanges: false
         fileName: "store"
         StoreSchema {}
     }
 
-    ConfigFileView {
-        id: gamesView
+    readonly property ConfigFileView gamesView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "games"
         GamesSchema {}
     }
 
-    ConfigFileView {
-        id: aiView
+    readonly property ConfigFileView aiView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "ai"
         AiSchema {}
     }
 
-    ConfigFileView {
-        id: todoView
+    readonly property ConfigFileView todoView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "todo"
         TodoSchema {}
     }
 
-    ConfigFileView {
-        id: beatsView
+    readonly property ConfigFileView beatsView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "beats"
         BeatsSchema {}
     }
 
-    ConfigFileView {
-        id: colorsView
+    readonly property ConfigFileView colorsView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "colors"
         ColorsSchema {}
     }
 
-    ConfigFileView {
-        id: looksView
+    readonly property ConfigFileView looksView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "looks"
         LooksSchema {}
     }
 
-    ConfigFileView {
-        id: pkgsView
-
+    readonly property ConfigFileView pkgsView: ConfigFileView {
         state: false
         parentDir: "user/"
         fileName: "packages"

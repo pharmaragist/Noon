@@ -18,7 +18,7 @@ Singleton {
     function search(query, limit = _limit) {
         lastQuery = query;
         _limit = limit;
-        var cmd = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/hits_service.py", "search", "--query", query, "--limit", limit];
+        var cmd = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/hits_service.py", "search", "--query", query, "--limit", limit];
         root.searchResults = null;
         searchProc.running = false;
         searchProc.command = cmd;
@@ -30,12 +30,12 @@ Singleton {
     }
 
     function request(limit = _limit) {
-        var cmd = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/hits_service.py"];
+        var cmd = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/hits_service.py"];
 
         if (Mem.states.services.beats.discoverMode) {
             cmd.push("discover");
         } else {
-            cmd.push("recommend", Directories.methods.trim(Directories.standard.state + "/user/generated/beats_library.json"));
+            cmd.push("recommend", Paths.methods.trim(Paths.standard.state + "/user/generated/beats_library.json"));
         }
 
         cmd.push("--limit", limit.toString());
@@ -46,7 +46,7 @@ Singleton {
     }
 
     function _cmd(...arg) {
-        const cmd = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/hits_service.py"];
+        const cmd = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/hits_service.py"];
         cmd.push(...arg);
         actionProc.command = cmd;
         actionProc.running = true;

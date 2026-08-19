@@ -24,7 +24,7 @@ Button {
                 id: logo
                 clip: true
                 sourceSize: Qt.size(34, 34)
-                source: Directories.assets + "/icons/xp_logo.png"
+                source: Paths.assets + "/icons/xp_logo.png"
                 layer.enabled: true
                 layer.effect: DropShadow {
                     verticalOffset: 4

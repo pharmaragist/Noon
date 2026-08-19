@@ -28,7 +28,7 @@ Scope {
             color: "transparent"
             readonly property bool _overview_enabled: true
             readonly property bool _overview: Globals.nobuntu.overview.show
-            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode 
+            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode
             readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
             readonly property string wallpaper: WallpaperService.currentWallpaper
             readonly property real currentWorkspace: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
@@ -158,7 +158,7 @@ Scope {
                         z: 9999
                         anchors.fill: bgImage
                         fillMode: Image.PreserveAspectCrop
-                        source: Directories.methods.trim(Directories.wallpapers.depthDir + Qt.md5(Directories.methods.trim(Mem.looks.currentBg)) + ".png") || ""
+                        source: Paths.methods.trim(Paths.wallpapers.depthDir + Qt.md5(Paths.methods.trim(Mem.looks.currentBg)) + ".png") || ""
                         asynchronous: true
                         cache: true
                         mipmap: true
@@ -167,7 +167,7 @@ Scope {
                         y: bgImage.y
                         function refresh() {
                             fgImage.source = "";
-                            fgImage.source = Directories.methods.trim(Directories.wallpapers.depthDir + Qt.md5(Directories.methods.trim(Mem.looks.currentBg)) + ".png");
+                            fgImage.source = Paths.methods.trim(Paths.wallpapers.depthDir + Qt.md5(Paths.methods.trim(Mem.looks.currentBg)) + ".png");
                         }
                         opacity: fgImage.status === Image.Ready ? 1 : 0
                         Behavior on opacity {

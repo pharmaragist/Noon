@@ -4,7 +4,7 @@ import qs.common.functions
 
 ConfigFileView {
     id: root
-    readonly property string basePath: Directories.standard.state + "/plugins/"
-    readonly property string cleanPath: Directories.methods.trim(path)
+    readonly property string basePath: Paths.standard.state + "/plugins/"
+    readonly property string cleanPath: Paths.methods.trim(path)
     path: basePath + fileName + ".json"
 }

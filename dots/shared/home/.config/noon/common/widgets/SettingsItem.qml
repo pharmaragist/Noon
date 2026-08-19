@@ -127,7 +127,7 @@ StyledRect {
             title: "Restart",
             description: "For changes to take Effect",
             acceptText: "Accept",
-            onAccepted: () => NoonUtils.execDetached(Directories.scriptsDir + "/reload_shell.sh")
+            onAccepted: () => NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh")
         });
     }
 
@@ -177,7 +177,7 @@ StyledRect {
         anchors.fill: parent
         hoverEnabled: true
         enabled: root.description.length > 0
-        
+
     }
     ColumnLayout {
         id: contentCol

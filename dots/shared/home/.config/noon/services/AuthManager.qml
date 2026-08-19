@@ -39,7 +39,7 @@ Singleton {
     }
     readonly property Process mainProc: Process {}
     readonly property FileView oauthView: FileView {
-        path: Qt.resolvedUrl(Directories.userOptions + "/oauth.json")
+        path: Qt.resolvedUrl(Paths.userOptions + "/oauth.json")
     }
 
     function isAuth(id: string) {
@@ -66,7 +66,7 @@ Singleton {
 
     function _cmd(...args) {
         mainProc.running = false;
-        mainProc.command = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/oauth_manager.py", ...args];
+        mainProc.command = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/oauth_manager.py", ...args];
         mainProc.running = true;
     }
 }

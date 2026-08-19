@@ -96,7 +96,7 @@ Singleton {
 
     function downloadAndApply(item) {
         const info = api.resolveDownloadInfo(item);
-        const destPath = Directories.methods.trim(WallpaperService.currentFolderPath + "/" + info.fileName);
+        const destPath = Paths.methods.trim(WallpaperService.currentFolderPath + "/" + info.fileName);
         const destUrl = "file://" + destPath;
 
         root.downloadingId = item.id;

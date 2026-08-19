@@ -65,7 +65,7 @@ Singleton {
     function _cmd(action) {
         if (mainProc.running)
             mainProc.running = false;
-        mainProc.command = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/gcalendar_service.py", action];
+        mainProc.command = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/gcalendar_service.py", action];
         mainProc.running = true;
     }
 

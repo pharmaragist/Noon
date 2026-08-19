@@ -10,9 +10,9 @@ Singleton {
     id: root
 
     property var thumbnailsData: ({})
-    readonly property bool fgReady: Directories.methods.exists(currentFgPath)
-    readonly property string currentWallpaper: Mem.looks.currentBg ?? Qt.resolvedUrl(Directories.wallpapers.defaultBg)
-    readonly property string currentFgPath: clean(Directories.wallpapers.depthDir + Qt.md5(clean(currentWallpaper)) + ".png")
+    readonly property bool fgReady: Paths.methods.exists(currentFgPath)
+    readonly property string currentWallpaper: Mem.looks.currentBg ?? Qt.resolvedUrl(Paths.wallpapers.defaultBg)
+    readonly property string currentFgPath: clean(Paths.wallpapers.depthDir + Qt.md5(clean(currentWallpaper)) + ".png")
     readonly property string currentFolderPath: Mem.looks.currentFolder
     readonly property bool isBright: Mem.looks.isBright
 
@@ -41,13 +41,13 @@ Singleton {
     }
 
     function clean(fileUrl) {
-        return Directories.methods.trim(fileUrl);
+        return Paths.methods.trim(fileUrl);
     }
 
     function generateThumbnails(directory) {
         if (thumbnailGenerator.running)
             return;
-        const cmd = ["python3", Directories.wallpapers.thumbScript, "-d", clean(directory)];
+        const cmd = ["python3", Paths.wallpapers.thumbScript, "-d", clean(directory)];
         thumbnailGenerator.command = cmd;
         thumbnailGenerator.running = true;
     }
@@ -72,13 +72,13 @@ Singleton {
     }
 
     function resetWallpaper() {
-        applyWallpaper(Directories.wallpapers.defaultBg);
+        applyWallpaper(Paths.wallpapers.defaultBg);
     }
 
     function _cmd(...args) {
         if (mainProc.running)
             mainProc.running = false;
-        mainProc.command = ["python3", Directories.wallpapers.colGenScript, ...args];
+        mainProc.command = ["python3", Paths.wallpapers.colGenScript, ...args];
         mainProc.running = true;
     }
 
@@ -102,7 +102,7 @@ Singleton {
         Mem.looks.currentBg = `${fileUrl}`;
         if (PaletteService.current === "auto")
             changeAccentFromImage(fileUrl);
-        Directories.methods.createLink(Mem.looks.currentBg, Directories.standard.home + "/.wall.png");
+        Paths.methods.createLink(Mem.looks.currentBg, Paths.standard.home + "/.wall.png");
     }
 
     function applyRandomWallpaper() {

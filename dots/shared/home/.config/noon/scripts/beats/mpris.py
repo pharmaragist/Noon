@@ -157,6 +157,7 @@ class MprisPlayer(ServiceInterface):
     def LoopStatus(self, value: "s"):
         self._player.set_loop_track(value == "Track")
         self._player.set_repeat(value == "Playlist")
+        self._refresh()
 
     @dbus_property(access=PropertyAccess.READWRITE)
     def Rate(self) -> "d":
@@ -165,6 +166,7 @@ class MprisPlayer(ServiceInterface):
     @Rate.setter
     def Rate(self, value: "d"):
         self._player.set_rate(float(value))
+        self._refresh()
 
     @dbus_property(access=PropertyAccess.READWRITE)
     def Shuffle(self) -> "b":
@@ -173,6 +175,7 @@ class MprisPlayer(ServiceInterface):
     @Shuffle.setter
     def Shuffle(self, value: "b"):
         self._player.set_random(bool(value))
+        self._refresh()
 
     @dbus_property(access=PropertyAccess.READWRITE)
     def Volume(self) -> "d":
@@ -181,6 +184,7 @@ class MprisPlayer(ServiceInterface):
     @Volume.setter
     def Volume(self, value: "d"):
         self._player.set_volume(int(round(value * 100)))
+        self._refresh()
 
     # ── methods ──
 

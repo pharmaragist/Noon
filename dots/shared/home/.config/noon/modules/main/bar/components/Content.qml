@@ -6,7 +6,7 @@ import qs.modules.main.bar.components
 Item {
     id: root
     required property var barRoot
-    readonly property var opts: Mem.options.bar.hMap
+    readonly property var opts: Mem.options.bar.horizontal.map
 
     anchors {
         fill: parent

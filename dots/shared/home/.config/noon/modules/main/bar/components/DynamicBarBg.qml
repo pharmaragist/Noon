@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.store
 import qs.common
 import qs.common.widgets
 
@@ -12,13 +13,13 @@ PanelRect {
     readonly property bool isTop: side === "top" || side === ""
     readonly property bool isLeft: side === "left"
     readonly property bool isRight: side === "right"
-    readonly property bool useBg: Mem.options.bar.appearance.useBg
+    readonly property bool useBg: BarData.currentModeInfo.appearance.useBg
     readonly property int exclusionOverride: bg.state && bg.state === "float" ? Sizes.barElevation : 0
 
     color: useBg ? Colors.colBackground : "transparent"
     anchors.fill: parent
     enableBorders: false
-    state: Mem.options.bar.appearance?.style ?? "float"
+    state: BarData.currentModeInfo.appearance?.style ?? "float"
     animationDuration: 200
 
     function getGapsValue(anchor) {
@@ -57,7 +58,7 @@ PanelRect {
                 anchors.leftMargin: getGapsValue("left")
                 anchors.rightMargin: getGapsValue("right")
                 radius: Rounding.verylarge
-                enableBorders: Mem.options.bar.appearance.outline
+                enableBorders: BarData.currentModeInfo.appearance.outline
             }
         },
         State {

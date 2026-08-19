@@ -15,7 +15,7 @@ Singleton {
     }
     FontLoader {
         id: fontLoader
-        source: Directories.standard.home + "/lucide.ttf"
+        source: Paths.standard.home + "/lucide.ttf"
     }
     readonly property var dict: {
         "add": "plus",

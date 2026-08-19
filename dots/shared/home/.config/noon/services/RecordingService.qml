@@ -31,7 +31,7 @@ Singleton {
     }) {
         if (!opts)
             return;
-        let cmd = [Directories.scriptsDir + "/record_service.sh", "--dir", Directories.records];
+        let cmd = [Paths.scriptsDir + "/record_service.sh", "--dir", Paths.records];
         if (opts.duration)
             root.targetDuration = opts.duration;
         if (opts.fullscreen)

@@ -20,7 +20,7 @@ Item {
     function getIcon(path) {
         if (!path)
             return "docs";
-        const ext = "*." + FileUtils.getEscapedFileExtension(path).toLowerCase();
+        const ext = "*." + Paths.methods.getEscapedFileExtension(path).toLowerCase();
         switch (ext) {
         case "*.pdf":
             return "picture_as_pdf";

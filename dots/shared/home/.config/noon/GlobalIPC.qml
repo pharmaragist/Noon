@@ -56,13 +56,13 @@ Scope {
             Globals.showDormantShere = !Globals.showDormantShere;
         }
         function toggle_dormant_state() {
-            Mem.states.desktop.shell.deload = !Mem.states.desktop.shell.deload;
+            Globals.deload = !Globals.deload;
         }
         function load() {
-            Mem.states.desktop.shell.deload = false;
+            Globals.deload = false;
         }
         function deload() {
-            Mem.states.desktop.shell.deload = true;
+            Globals.deload = true;
         }
         function toast(info: string, state: string) {
             NoonUtils.toast({

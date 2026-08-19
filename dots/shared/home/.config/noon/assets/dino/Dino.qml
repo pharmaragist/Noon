@@ -12,7 +12,7 @@ import qs.services
 Item {
     id: root
 
-    
+
     property color activeColor: isInverted ? Colors.m3.m3inverseOnSurface : Colors.m3.m3onSurface
     property color bgColor: isInverted ? Colors.m3.m3inverseSurface : "transparent"
 
@@ -23,13 +23,13 @@ Item {
         CAnim {}
     }
 
-    
+
     property bool isPlaying: false
     property bool isGameOver: false
     property real gameSpeed: 6.0
     property real score: 0
     property real highScore: {
-        var val = parseFloat(FileUtils.readFile(saveFile));
+        var val = parseFloat(Paths.methods.readFile(saveFile));
         if (!isNaN(val))
             return val;
         else
@@ -40,26 +40,26 @@ Item {
 
     property bool _previousDnd: false
 
-    
+
     property real dinoY: 0
     property real dinoVelocityY: 0
     property real gravity: 0.8
     property real duckGravity: 1.5
     property real jumpForce: -13.0
 
-    
+
     property var obstacles: []
     property real obstacleTimer: 0
 
-    
+
     property var clouds: []
     property real cloudTimer: 0
     property real groundX: 0
 
-    
+
     property int frameCount: 0
-    readonly property string assetsFolder: Directories.assets + "/dino/"
-    readonly property string saveFile: Directories.methods.trim(Directories.standard.home) + "/.dino_highscore.txt"
+    readonly property string assetsFolder: Paths.assets + "/dino/"
+    readonly property string saveFile: Paths.methods.trim(Paths.standard.home) + "/.dino_highscore.txt"
     implicitWidth: Math.max(250, parent.width * 0.8)
     implicitHeight: 200
     clip: true
@@ -84,7 +84,7 @@ Item {
     }
 
     function writeScore(score) {
-        FileUtils.createFileWith(saveFile, score);
+        Paths.methods.createFileWith(saveFile, score);
     }
 
     function gameOver() {
@@ -143,14 +143,14 @@ Item {
         }
     }
 
-    
+
     Rectangle {
         anchors.fill: parent
         color: root.bgColor
         z: -1
     }
 
-    
+
     Item {
         visible: root.isPlaying || root.isGameOver
         width: parent.width
@@ -189,7 +189,7 @@ Item {
         }
     }
 
-    
+
     ColumnLayout {
         anchors.centerIn: parent
         visible: !root.isPlaying && !root.isGameOver
@@ -222,12 +222,12 @@ Item {
         }
     }
 
-    
+
     Item {
         anchors.fill: parent
         visible: root.isPlaying || root.isGameOver
 
-        
+
         Repeater {
             model: root.clouds
             Image {
@@ -246,7 +246,7 @@ Item {
             }
         }
 
-        
+
         Image {
             id: dino
             width: root.isDucking ? 59 : 44
@@ -270,7 +270,7 @@ Item {
             }
         }
 
-        
+
         StyledText {
             text: "HI " + ("00000" + Math.floor(root.highScore)).slice(-5) + "  " + ("00000" + Math.floor(root.score)).slice(-5)
             anchors.top: parent.top
@@ -283,7 +283,7 @@ Item {
             }
         }
 
-        
+
         Repeater {
             model: root.obstacles
             Image {
@@ -306,7 +306,7 @@ Item {
         }
     }
 
-    
+
     StyledText {
         visible: root.isGameOver && Math.floor(root.score) < 99999
         text: "G A M E   O V E R\nClick to restart"
@@ -317,7 +317,7 @@ Item {
         color: root.activeColor
     }
 
-    
+
     StyledText {
         visible: root.isGameOver && Math.floor(root.score) >= 99999
         text: "Y O U   W I N !\nNow go touch grass"
@@ -343,7 +343,7 @@ Item {
             root.frameCount++;
             root.score += 0.15;
 
-            
+
             root.groundX = (root.groundX + root.gameSpeed) % 2400;
 
             var newClouds = [];
@@ -364,7 +364,7 @@ Item {
                 });
             }
 
-            
+
             root.isInverted = (Math.floor(root.score / 700) % 2 === 1);
 
             if (Math.floor(root.score) >= 99999) {

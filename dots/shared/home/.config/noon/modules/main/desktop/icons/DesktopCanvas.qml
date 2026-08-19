@@ -29,7 +29,7 @@ Item {
 
     FolderListModel {
         id: appsModel
-        folder: Directories.standard.home + "/Desktop"
+        folder: Paths.standard.home + "/Desktop"
         nameFilters: ["*.desktop"]
         showDirs: false
         showFiles: true
@@ -49,7 +49,7 @@ Item {
 
     function refresh() {
         appsModel.folder = "";
-        appsModel.folder = Directories.standard.home + "/Desktop";
+        appsModel.folder = Paths.standard.home + "/Desktop";
     }
 
     function deselectAll() {

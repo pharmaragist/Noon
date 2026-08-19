@@ -15,7 +15,7 @@ Item {
             return;
 
         const online = input.startsWith("https://") || input.startsWith("http://");
-        targetFile = Directories.beats.coverArt + "/" + Qt.md5(input) + ".jpg";
+        targetFile = Paths.beats.coverArt + "/" + Qt.md5(input) + ".jpg";
         downloadProc.running = false;
 
         if (online) {
@@ -39,8 +39,8 @@ Item {
 
     Process {
         id: downloadProc
-        
-        
+
+
         command: ["curl", "--range", "0-99999", "--max-filesize", 100000, "-o", targetFile,  input]
         onExited: exitCode => {
             if (exitCode === 0) {

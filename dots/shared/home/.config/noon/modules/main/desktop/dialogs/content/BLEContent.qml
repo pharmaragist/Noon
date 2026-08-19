@@ -68,7 +68,7 @@ Item {
     FolderListModel {
         id: badgesList
         readonly property var results: getArray("fileName")
-        folder: "file://" + Directories.assets + "/devices"
+        folder: "file://" + Paths.assets + "/devices"
         showDirs: false
         showFiles: true
         nameFilters: NameFilters.picture

@@ -26,8 +26,8 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             color: "transparent"
 
-            
-            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode 
+
+            readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode
             readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
             property string wallpaper: WallpaperService.currentWallpaper
             property var workspaceList: Hyprland.workspaces.values.filter(ws => ws.id >= 0).sort((a, b) => a.id - b.id)
@@ -97,7 +97,7 @@ Scope {
                         z: 9999
                         anchors.fill: bgImage
                         fillMode: Image.PreserveAspectCrop
-                        source: Directories.methods.trim(Directories.wallpapers.depthDir + Qt.md5(Directories.methods.trim(Mem.looks.currentBg)) + ".png")
+                        source: Paths.methods.trim(Paths.wallpapers.depthDir + Qt.md5(Paths.methods.trim(Mem.looks.currentBg)) + ".png")
                         asynchronous: true
                         cache: true
                         mipmap: true
@@ -106,7 +106,7 @@ Scope {
                         y: bgImage.y
                         function refresh() {
                             fgImage.source = "";
-                            fgImage.source = Directories.methods.trim(Directories.wallpapers.depthDir + Qt.md5(Directories.methods.trim(Mem.looks.currentBg)) + ".png");
+                            fgImage.source = Paths.methods.trim(Paths.wallpapers.depthDir + Qt.md5(Paths.methods.trim(Mem.looks.currentBg)) + ".png");
                         }
                         opacity: fgImage.status === Image.Ready ? 1 : 0
                         Behavior on opacity {

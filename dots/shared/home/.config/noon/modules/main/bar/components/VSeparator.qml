@@ -5,7 +5,7 @@ import qs.store
 
 RowLayout {
     id: root
-    visible: Mem.options.bar.appearance.enableSeparators
+    visible: BarData.currentModeInfo.appearance.enableSeparators
     implicitHeight: bg.implicitHeight
     Layout.fillWidth: true
 
@@ -14,7 +14,7 @@ RowLayout {
 
     Layout.margins: 4
     spacing: 2
-    state: Mem.options.bar.appearance.separatorsMode
+    state: BarData.currentModeInfo.appearance.separatorsMode
     Repeater {
         model: root.state.endsWith('s') ? 3 : 1
         Rectangle {

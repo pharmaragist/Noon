@@ -4,10 +4,6 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 
-
-
-
-
 Rectangle {
     id: root
 

@@ -16,7 +16,7 @@ BottomDialog {
     enableStagedReveal: false
     bottomAreaReveal: true
     hoverHeight: 300
-    
+
     colors: GameLauncherService.colors
     property bool sidebarExpanded
     bgAnchors {
@@ -40,7 +40,7 @@ BottomDialog {
         PageSeparator {}
         EntryArea {
             id: nameInput
-            text: pathInput.text.length > 0 ? FileUtils.getEscapedFileNameWithoutExtension(pathInput.text) : ""
+            text: pathInput.text.length > 0 ? Paths.methods.getEscapedFileNameWithoutExtension(pathInput.text) : ""
             name: "Name:"
             placeholder: "Enter Game's Name"
         }

@@ -11,7 +11,7 @@ import Quickshell
 
 ColumnLayout {
     id: root
-    
+
     property bool editing: parent?.editing ?? false
     property bool renderMarkdown: parent?.renderMarkdown ?? true
     property bool enableMouseSelection: parent?.enableMouseSelection ?? false
@@ -26,11 +26,11 @@ ColumnLayout {
     property real codeBlockComponentSpacing: 2
 
     spacing: codeBlockComponentSpacing
-    
-    
+
+
 
     Rectangle {
-        
+
         Layout.fillWidth: true
         topLeftRadius: codeBlockBackgroundRounding
         topRightRadius: codeBlockBackgroundRounding
@@ -39,7 +39,7 @@ ColumnLayout {
         color: Colors.colSurfaceContainerHighest
         implicitHeight: codeBlockTitleBarRowLayout.implicitHeight + codeBlockHeaderPadding * 2
 
-        RowLayout { 
+        RowLayout {
             id: codeBlockTitleBarRowLayout
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
@@ -92,7 +92,7 @@ ColumnLayout {
                     buttonIcon: activated ? "check" : "save"
 
                     onClicked: {
-                        const downloadPath = Directories.methods.trim(Directories.standard.downloads);
+                        const downloadPath = Paths.methods.trim(Paths.standard.downloads);
                         NoonUtils.execDetached(`echo '${TextUtils.shellSingleQuoteEscape(segmentContent)}' > '${downloadPath}/code.${segmentLang || "txt"}'`);
                         Quickshell.execDetached(["notify-send", qsTr("Code saved to file"), qsTr("Saved to %1").arg(`${downloadPath}/code.${segmentLang || "txt"}`), "-a", "Shell"]);
                         saveCodeButton.activated = true;
@@ -116,11 +116,11 @@ ColumnLayout {
     }
 
     RowLayout {
-        
+
         spacing: codeBlockComponentSpacing
 
         Rectangle {
-            
+
             implicitWidth: 40
             implicitHeight: lineNumberColumnLayout.implicitHeight
             Layout.fillHeight: true
@@ -158,7 +158,7 @@ ColumnLayout {
         }
 
         Rectangle {
-            
+
             Layout.fillWidth: true
             topLeftRadius: Rounding.tiny
             bottomLeftRadius: Rounding.tiny
@@ -174,11 +174,11 @@ ColumnLayout {
                 ScrollView {
                     id: codeScrollView
                     Layout.fillWidth: true
-                    
+
                     implicitWidth: parent.width
                     implicitHeight: codeTextArea.implicitHeight + 1
                     contentWidth: codeTextArea.width - 1
-                    
+
                     clip: true
                     ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
@@ -202,7 +202,7 @@ ColumnLayout {
                         }
                     }
 
-                    TextArea { 
+                    TextArea {
                         id: codeTextArea
                         Layout.fillWidth: true
                         readOnly: !editing
@@ -211,7 +211,7 @@ ColumnLayout {
                         font: Fonts.request("mono", Fonts.sizes.small, { "hintingPreference": Font.PreferNoHinting })
                         selectedTextColor: Colors.m3.m3onSecondaryContainer
                         selectionColor: Colors.colSecondaryContainer
-                        
+
                         color: messageData.thinking ? Colors.colSubtext : Colors.colOnLayer1
 
                         text: segmentContent
@@ -221,7 +221,7 @@ ColumnLayout {
 
                         Keys.onPressed: event => {
                             if (event.key === Qt.Key_Tab) {
-                                
+
                                 const cursor = codeTextArea.cursorPosition;
                                 codeTextArea.insert(cursor, "    ");
                                 codeTextArea.cursorPosition = cursor + 4;
@@ -272,16 +272,16 @@ ColumnLayout {
                 }
             }
 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
+
+
+
+
         }
     }
 }

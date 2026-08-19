@@ -3,10 +3,6 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 
-
-
-
-
 Item {
     id: root
 
@@ -20,16 +16,11 @@ Item {
     implicitWidth: background.implicitWidth
     implicitHeight: background.implicitHeight
 
-    
-    
-    
-    
-
     LayerRect {
         id: background
 
         anchors.fill: parent
-        colBackground: root.colors.colLayer1 
+        colBackground: root.colors.colLayer1
         implicitHeight: Math.max(toolbarLayout.implicitHeight + root.padding * 2, 56)
         implicitWidth: toolbarLayout.implicitWidth + root.padding * 2
         radius: height / 2

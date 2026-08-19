@@ -1,4 +1,5 @@
 -- Hacks
+m_bind("Super_L", hl.dsp.global("noon:superHeld"))
 m_bind("CTRL+R", reload_shell())
 m_bind("CTRL+Period", hl.dsp.exec_cmd("wl-paste -p | xargs -0 " .. ipc .. " noon translate"))
 m_bind("L", hl.dsp.exec_cmd(ipc .. " global lock"))
@@ -48,14 +49,14 @@ local sidebar = {
     Plugins = "P",
     Tasks = "CTRL+T",
     Notes = "CTRL+N",
-    Games = "CTRL+G" ,
+    Games = "CTRL+G",
     Session = "Escape"
 }
 
 local noon_actions = {
     toggle_zen = "CTRL+SHIFT+X",
-    toggle_beam = "Super_L" ,
-    toggle_bar_mode = "CTRL+X" ,
+    toggle_beam = "Super_L",
+    toggle_bar_mode = "CTRL+X",
     toggle_history = "V",
     toggle_emoji = "Period",
     swap_bar_position = "ALT+X",
@@ -76,6 +77,6 @@ local xp_actions = {
 
 loop_ipc(xp_actions, "xp", "")
 loop_ipc(nobuntu_actions, "nobuntu", "")
-loop_ipc(noon_actions, "noon" , "")
+loop_ipc(noon_actions, "noon", "")
 loop_ipc(sidebar, "sidebar reveal", "")
 loop_ipc(sidebar, "sidebar reveal_aux", "SHIFT")

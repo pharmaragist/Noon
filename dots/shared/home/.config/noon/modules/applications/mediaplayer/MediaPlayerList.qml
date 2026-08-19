@@ -10,7 +10,7 @@ import Qt.labs.folderlistmodel
 Item {
     id: root
     property var queue: Globals.applications.mediaplayer.queue
-    property string path: Qt.resolvedUrl(Directories.standard.videos)
+    property string path: Qt.resolvedUrl(Paths.standard.videos)
     property bool expanded: false
     property var model: queue.length > 0 ? queue : itemsModel
     anchors {
@@ -23,7 +23,7 @@ Item {
         if (!path)
             return "play_arrow";
 
-        const ext = "*." + FileUtils.getEscapedFileExtension(path).toLowerCase();
+        const ext = "*." + Paths.methods.getEscapedFileExtension(path).toLowerCase();
 
         if (NameFilters.picture.indexOf(ext) !== -1) {
             return "image";
@@ -46,7 +46,7 @@ Item {
             required property var modelData
             property var index
             shape: MaterialShape.Shape.Bun
-            title: modelData?.fileName || encodeURIComponent(FileUtils.getEscapedFileNameWithoutExtension(modelData))
+            title: modelData?.fileName || encodeURIComponent(Paths.methods.getEscapedFileNameWithoutExtension(modelData))
             subtext: modelData?.filePath || modelData
             materialIcon: root.getIcon(subtext)
             releaseAction: () => {

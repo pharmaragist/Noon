@@ -11,9 +11,9 @@ Singleton {
     id: root
 
     property bool isBusy: proc.running
-    property string inputPath: Directories.methods.trim(Mem.looks.currentBg)
-    property string current_processed_wall: Directories.wallpapers.gowallDir + Qt.md5(inputPath) + ".png"
-    property string upscale_output: FileUtils.trimFileExt(inputPath) + "_upscaled.png"
+    property string inputPath: Paths.methods.trim(Mem.looks.currentBg)
+    property string current_processed_wall: Paths.wallpapers.gowallDir + Qt.md5(inputPath) + ".png"
+    property string upscale_output: Paths.methods.trimFileExt(inputPath) + "_upscaled.png"
     property string _pendingOutput: ""
 
     function upscaleCurrentWallpaper(): void {
@@ -29,7 +29,7 @@ Singleton {
     }
 
     function removeBackground(input: string): void {
-        const inputPath = Directories.methods.trim(WallpaperService.currentWallpaper);
+        const inputPath = Paths.methods.trim(WallpaperService.currentWallpaper);
         depthProc.command = ["bash", "-c", `[ -f '${WallpaperService.currentFgPath}' ] || gowall bg --output '${WallpaperService.currentFgPath}' '${inputPath}'`];
         depthProc.running = true;
     }

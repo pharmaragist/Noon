@@ -41,11 +41,11 @@ Singleton {
 
     function changeSystemFont(fontVar) {
         if (typeof fontVar === "string") {
-            execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar, "--size", Fonts.sizes.small]);
+            execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar, "--size", Fonts.sizes.small]);
             Mem.hypr.font_main = fontVar;
             Mem.options.appearance.fonts.main = fontVar;
         } else {
-            Quickshell.execDetached([Directories.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", fontVar.size]);
+            Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", fontVar.size]);
             Mem.hypr.font_main = fontVar.family;
             Mem.options.appearance.fonts.main = fontVar.family;
             Mem.options.appearance.fonts.sizes.scale = fontVar.size / 10;

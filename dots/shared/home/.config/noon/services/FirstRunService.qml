@@ -7,9 +7,9 @@ Singleton {
     id: root
 
     function createXDPH() {
-        const config = Directories.methods.trim(Directories.standard.config)
+        const config = Paths.methods.trim(Paths.standard.config)
 
-        FileUtils.createFileWith(config + "/hypr/xdph.conf", `
+        Paths.methods.createFileWith(config + "/hypr/xdph.conf", `
         screencopy {
             custom_picker_binary = ${config}/noon/scripts/screen_share_watcher
         }

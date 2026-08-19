@@ -11,8 +11,8 @@ Singleton {
     id: root
 
     readonly property var list: {
-        const db = Directories.assets + "/db/emojies.json";
-        const content = Directories.methods.readFile(db);
+        const db = Paths.assets + "/db/emojies.json";
+        const content = Paths.methods.readFile(db);
         let parsed = [];
         try {
             parsed = JSON.parse(content);

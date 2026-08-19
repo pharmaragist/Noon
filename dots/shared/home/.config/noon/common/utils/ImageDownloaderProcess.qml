@@ -12,7 +12,7 @@ Process {
     property string downloadUserAgent: Mem.options?.networking.userAgent ?? ""
 
     function processFilePath() {
-        return TextUtils.shellSingleQuoteEscape(Directories.methods.trim(filePath));
+        return TextUtils.shellSingleQuoteEscape(Paths.methods.trim(filePath));
     }
 
     running: true

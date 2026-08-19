@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import qs.store
 import qs.common
 import qs.common.widgets
 
@@ -9,7 +10,7 @@ StyledRect {
     property int barSize: -1
     property bool vertical: false
     property bool verticalMode: false
-    property bool active: Mem.options.bar.appearance.barGroup
+    property bool active: BarData.currentModeInfo.appearance.barGroup
     property color colBackground: Colors.colSurfaceContainer
     readonly property real padding: Padding.small
     color: active ? colBackground : "transparent"

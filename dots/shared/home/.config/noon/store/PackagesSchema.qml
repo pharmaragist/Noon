@@ -41,7 +41,7 @@ JsonAdapter {
             "description": "Dependencies for Speech Service",
             "type": "python",
             "dependencies": ["numpy", "piper-tts", "sounddevice", "faster_whisper"],
-            "postInstallCommands": [[Directories.scriptsDir + "/stt_service.py", "--stt"]]
+            "postInstallCommands": [[Paths.scriptsDir + "/stt_service.py", "--stt"]]
         }
     ]
 }

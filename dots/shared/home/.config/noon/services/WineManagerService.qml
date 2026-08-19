@@ -13,7 +13,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string scriptPath: Directories.scriptsDir + "/wine_manager.py"
+    readonly property string scriptPath: Paths.scriptsDir + "/wine_manager.py"
     readonly property var baseCmd: ["python3", scriptPath]
 
     property var installedTools: ({})

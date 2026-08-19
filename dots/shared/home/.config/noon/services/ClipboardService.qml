@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
     property var entries: []
-    readonly property string cacheDir: Directories.services.clipboardCache
+    readonly property string cacheDir: Paths.services.clipboardCache
     function refresh() {
         if (!listProcess.running)
             listProcess.running = true;
@@ -94,7 +94,7 @@ Singleton {
     }
 
     FileView {
-        path: Directories.standard.home + "/.cache/cliphist/db"
+        path: Paths.standard.home + "/.cache/cliphist/db"
         watchChanges: true
         onFileChanged: root.refresh()
         Component.onCompleted: root.refresh()

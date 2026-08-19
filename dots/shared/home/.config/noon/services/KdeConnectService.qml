@@ -49,7 +49,7 @@ Singleton {
         const deviceName = root.devices.find(d => d.id === id)?.name ?? "";
 
         for (const file of rawList) {
-            const cleanPath = Directories.methods.trim(file);
+            const cleanPath = Paths.methods.trim(file);
             _cmdD(id, "--share", cleanPath);
         }
 

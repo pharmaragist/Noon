@@ -257,7 +257,7 @@ Singleton {
                     exec: query => DlpService.request({
                             url: query,
                             video: true,
-                            directory: Directories.standard.downloads,
+                            directory: Paths.standard.downloads,
                             toast: true
                         })
                 },

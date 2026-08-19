@@ -190,7 +190,7 @@ Menu {
         text: "Open Terminal Here"
         icon.name: "utilities-terminal"
         Material.foreground: "white"
-        onTriggered: NoonUtils.execDetached(["kitty", "--directory", Directories.standard.home + "/Desktop"])
+        onTriggered: NoonUtils.execDetached(["kitty", "--directory", Paths.standard.home + "/Desktop"])
         background: Rectangle {
             color: parent.highlighted ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
             radius: 6
@@ -201,7 +201,7 @@ Menu {
         text: "Open in Files"
         icon.name: "folder-open"
         Material.foreground: "white"
-        onTriggered: NoonUtils.execDetached(["gio", "open", Directories.standard.home + "/Desktop"])
+        onTriggered: NoonUtils.execDetached(["gio", "open", Paths.standard.home + "/Desktop"])
         background: Rectangle {
             color: parent.highlighted ? Qt.rgba(1, 1, 1, 0.08) : "transparent"
             radius: 6

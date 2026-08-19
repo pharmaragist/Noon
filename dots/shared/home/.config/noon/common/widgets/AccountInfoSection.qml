@@ -7,7 +7,7 @@ import qs.common.functions
 StyledRect {
     id: root
     property var account: AuthManager.oauthData[0]?.account ?? {}
-    color: "transparent" 
+    color: "transparent"
     radius: Rounding.verylarge
 
     Layout.fillWidth: true
@@ -16,8 +16,8 @@ StyledRect {
     RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        
-        
+
+
         anchors.verticalCenter: parent.verticalCenter
         spacing: Padding.huge
 
@@ -50,7 +50,7 @@ StyledRect {
 
             Symbol {
                 z: 0
-                
+
                 anchors.centerIn: parent
                 font.pixelSize: 30
                 color: Colors.colPrimary
@@ -63,7 +63,7 @@ StyledRect {
                 z: 999
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: NoonUtils.execDetached([Directories.scriptsDir + "/set_face.sh"])
+                onClicked: NoonUtils.execDetached([Paths.scriptsDir + "/set_face.sh"])
             }
         }
 

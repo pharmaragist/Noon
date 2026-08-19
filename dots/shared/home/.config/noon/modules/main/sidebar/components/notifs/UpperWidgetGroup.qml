@@ -37,7 +37,7 @@ Item {
                     materialIcon: "settings"
                     materialIconFill: 1
                     altAction: () => {
-                        NoonUtils.execDetached([Mem.hypr.editor, Directories.shellConfigs + "/options.json"]);
+                        NoonUtils.execDetached([Mem.hypr.editor, Paths.shellConfigs + "/options.json"]);
                         NoonUtils.callIpc("sidebar hide");
                     }
                     releaseAction: () => {

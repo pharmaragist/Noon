@@ -29,7 +29,7 @@ Item {
             showDirs: false
             showFiles: true
             nameFilters: NameFilters.video
-            folder: Qt.resolvedUrl(Directories.standard.videos)
+            folder: Qt.resolvedUrl(Paths.standard.videos)
         }
 
         delegate: MovieItem {

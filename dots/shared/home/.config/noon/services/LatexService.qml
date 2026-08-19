@@ -11,7 +11,7 @@ Singleton {
     id: root
 
     property list<string> processedHashes: []
-    property string latexOutputPath: Directories.methods.trim(Directories.services.latex)
+    property string latexOutputPath: Paths.methods.trim(Paths.services.latex)
 
     signal renderFinished(string hash, string imagePath)
 

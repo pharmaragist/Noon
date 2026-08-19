@@ -22,8 +22,8 @@ Variants {
         property real scrollSum: 0
         property bool hasAttachedFile: false
         readonly property string revealReason: Globals.main.beam.reason
-        readonly property bool reveal: Globals.main.beam.show  
-        readonly property int elevationValue: Sizes.elevationMargin + (Mem.options.bar.behavior.position === "bottom" ? Mem.options.bar.appearance.size : 0)
+        readonly property bool reveal: Globals.main.beam.show
+        readonly property int elevationValue: Sizes.elevationMargin + (Mem.options.bar.behavior.position === "bottom" ? BarData.currentModeInfo.appearance.size : 0)
         readonly property alias containsDrag: dropArea.containsDrag
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})
@@ -105,7 +105,7 @@ Variants {
             propagateComposedEvents: true
             acceptedButtons: Qt.NoButton
             scrollGestureEnabled: true
-            
+
 
             Timer {
                 id: idleTimer

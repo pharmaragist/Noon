@@ -20,7 +20,7 @@ Singleton {
             return;
 
         const mode = modes[(i + (reverse ? -1 : 1) + modes.length) % modes.length];
-        NoonUtils.execDetached(`${Directories.scriptsDir}/power_service.sh set ${mode}`);
+        NoonUtils.execDetached(`${Paths.scriptsDir}/power_service.sh set ${mode}`);
     }
 
     function getModeDisplayName(mode) {

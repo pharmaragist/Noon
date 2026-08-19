@@ -66,7 +66,7 @@ LayerRect {
                     items.push({
                         fileUrl: fileUrl,
                         thumb: WallpaperService.getThumbnailPath(fileUrl),
-                        fileName: FileUtils.getEscapedFileName(fileUrl)
+                        fileName: Paths.methods.getEscapedFileName(fileUrl)
                     });
                 }
             }

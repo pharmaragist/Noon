@@ -17,7 +17,7 @@ Item {
 
     function edit(filePath) {
         Globals.applications.editor.currentFile = filePath;
-        loadFile(Directories.methods.trim(filePath));
+        loadFile(Paths.methods.trim(filePath));
     }
 
     function navigate(pos, select) {
@@ -69,7 +69,7 @@ Item {
     function save() {
         if (!currentFile)
             return;
-        var path = Directories.methods.trim(currentFile);
+        var path = Paths.methods.trim(currentFile);
         var xhr = new XMLHttpRequest();
         xhr.open("PUT", "file://" + path);
         xhr.onreadystatechange = () => {
@@ -147,7 +147,7 @@ Item {
 
                         SyntaxHighlighter {
                             textEdit: textEdit
-                            _definition: Directories.methods.trim(root.currentFile)
+                            _definition: Paths.methods.trim(root.currentFile)
                         }
 
                         Rectangle {

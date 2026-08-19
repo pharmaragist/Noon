@@ -21,7 +21,7 @@ Singleton {
 
         property string output: ""
 
-        command: ["bash", "-c", `${Directories.scriptsDir}/quotes_service.sh`]
+        command: ["bash", "-c", `${Paths.scriptsDir}/quotes_service.sh`]
         onExited: {
             const line = fetcher.output.trim();
             if (line.length > 0 && line.includes("|")) {

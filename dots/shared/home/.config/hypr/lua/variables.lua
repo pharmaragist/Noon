@@ -51,7 +51,7 @@ direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
 bar_location = "left"
-bar_width = 52
+bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()
 m_width = active_monitor and active_monitor.width or 1920

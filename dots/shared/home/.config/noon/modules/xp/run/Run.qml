@@ -52,7 +52,7 @@ AppWindow {
                 spacing: XPadding.small
                 StyledImage {
                     Layout.topMargin: 6
-                    source: Directories.assets + "/icons/run.png"
+                    source: Paths.assets + "/icons/run.png"
                     implicitSize: 46
                 }
                 ColumnLayout {

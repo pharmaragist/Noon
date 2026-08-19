@@ -22,7 +22,7 @@ StyledRect {
         if (!path)
             return "draft";
 
-        const ext = "*." + FileUtils.getEscapedFileExtension(path).toLowerCase();
+        const ext = "*." + Paths.methods.getEscapedFileExtension(path).toLowerCase();
 
         if (NameFilters.picture.indexOf(ext) !== -1) {
             return "image";
@@ -71,7 +71,7 @@ StyledRect {
                 if (root.isOnline) {
                     TextUtils.getDomain(root.path);
                 } else
-                    decodeURIComponent(FileUtils.getEscapedFileNameWithoutExtension(root.path));
+                    decodeURIComponent(Paths.methods.getEscapedFileNameWithoutExtension(root.path));
             }
             color: Colors.colOnLayer2
             font.pixelSize: Fonts.sizes.small

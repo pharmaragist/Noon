@@ -10,7 +10,7 @@ GridView {
     property bool hint: false
     property int radius: Rounding.large
     property color colBackground: "transparent"
-    
+
     property real touchpadScrollFactor: Mem.options.interactions.scrolling.touchpadScrollFactor ?? 100
     property real mouseScrollFactor: Mem.options.interactions.scrolling.mouseScrollFactor ?? 50
     property real mouseScrollDeltaThreshold: Mem.options.interactions.scrolling.mouseScrollDeltaThreshold ?? 120
@@ -20,10 +20,12 @@ GridView {
     cellWidth: width / columns
     cellHeight: width / columns
     model: (script && script.values) ? script : []
+
     ScriptModel {
         id: script
-        values: _model
+        values: _model ?? []
     }
+
     StyledLoader {
         z: 999
         active: root.hint
@@ -33,7 +35,7 @@ GridView {
             target: root
         }
     }
-    
+
     maximumFlickVelocity: 3500
     boundsBehavior: Flickable.DragOverBounds
     layer.enabled: root.clip
@@ -43,7 +45,7 @@ GridView {
         anchors.fill: root
         color: root.colBackground
     }
-    
+
 
     MouseArea {
         visible: Mem.options.interactions.scrolling.fasterTouchpadScroll ?? true
@@ -52,8 +54,8 @@ GridView {
         propagateComposedEvents: false
         onWheel: function (wheelEvent) {
             const delta = wheelEvent.angleDelta.y / root.mouseScrollDeltaThreshold;
-            
-            
+
+
             var scrollFactor = Math.abs(wheelEvent.angleDelta.y) >= root.mouseScrollDeltaThreshold ? root.mouseScrollFactor : root.touchpadScrollFactor;
             const maxY = Math.max(0, root.contentHeight - root.height);
             const base = root.contentY;
@@ -64,8 +66,8 @@ GridView {
         }
     }
 
-    
-    
+
+
     add: Transition {
         Anim {
             property: "opacity"

@@ -23,7 +23,7 @@ Item {
     function getIcon(path) {
         if (!path)
             return "draft";
-            const ext = "*." + FileUtils.getEscapedFileExtension(path).toLowerCase();
+            const ext = "*." + Paths.methods.getEscapedFileExtension(path).toLowerCase();
             switch (ext) {
                 case "*.json":
                 return "data_object";

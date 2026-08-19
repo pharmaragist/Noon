@@ -17,8 +17,8 @@ Image {
         if (!fileModelData.fileIsDir)
             return NoonUtils.iconPath("application-x-zerosize");
 
-        if ([Directories.standard.documents, Directories.standard.downloads, Directories.standard.music, Directories.standard.pictures, Directories.standard.videos].some((dir) => {
-            return Directories.methods.trim(dir) === fileModelData.filePath;
+        if ([Paths.standard.documents, Paths.standard.downloads, Paths.standard.music, Paths.standard.pictures, Paths.standard.videos].some((dir) => {
+            return Paths.methods.trim(dir) === fileModelData.filePath;
         }))
             return NoonUtils.iconPath(`folder-${fileModelData.fileName.toLowerCase()}`);
 

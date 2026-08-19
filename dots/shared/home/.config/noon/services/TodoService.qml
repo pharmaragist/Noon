@@ -148,7 +148,7 @@ Singleton {
     function _cmd(action) {
         if (mainProc.running)
             mainProc.running = false;
-        mainProc.command = ["uv", "--directory", Directories.venv, "run", Directories.scriptsDir + "/gtasks_sync.py", action];
+        mainProc.command = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/gtasks_sync.py", action];
         mainProc.running = true;
     }
 

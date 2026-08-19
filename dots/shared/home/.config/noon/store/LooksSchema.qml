@@ -16,7 +16,7 @@ JsonAdapter {
     property bool isLive: true
     property bool isBright: false
     property string currentBg: ""
-    property string currentFolder: Directories.standard.home + "/Pictures/Wallpapers"
+    property string currentFolder: Paths.standard.home + "/Pictures/Wallpapers"
     property real contrast: 0
     property real darkness: 0
     property real lightness: 0

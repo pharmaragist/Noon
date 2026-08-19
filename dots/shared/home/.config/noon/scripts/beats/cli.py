@@ -37,14 +37,14 @@ def _serve_pids() -> list:
         args = _proc_args(pid)
         if not args or "serve" not in args:
             continue
-        if any(a.endswith("beats_daemon.py") for a in args):
+        if any(a.endswith("beats_service.py") for a in args):
             pids.append(pid)
     return pids
 
 
 def _daemon_script() -> str:
     return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        "beats_daemon.py")
+                        "beats_service.py")
 
 
 def init():

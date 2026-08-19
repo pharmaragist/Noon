@@ -14,7 +14,7 @@ Singleton {
         Window
     }
 
-    readonly property string mainDir: Directories.services.screenshots
+    readonly property string mainDir: Paths.services.screenshots
     readonly property string tempPath: "/tmp/temp_screen_shot.png"
     readonly property bool isBusy: mainProc.running
     readonly property bool hasRegion: regionW > 0 && regionH > 0
@@ -63,7 +63,7 @@ Singleton {
         property string outPath: ""
         onStarted: console.log("started", mainProc.command.join(" "))
         environment: ({
-                "XDG_SCREENSHOTS_DIR": Directories.methods.trim(mainDir)
+                "XDG_SCREENSHOTS_DIR": Paths.methods.trim(mainDir)
             })
         onExited: code => {
             if (code === 0) {

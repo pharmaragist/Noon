@@ -267,9 +267,9 @@ SidebarItemContainer {
             Repeater {
                 id: widgetRepeater
                 model: root.db
-                
-                
-                
+
+
+
 
                 delegate: StyledLoader {
                     id: loader
@@ -294,7 +294,7 @@ SidebarItemContainer {
                     onSpanChanged: Qt.callLater(root.arrangeAll)
 
                     shown: rec?.enabled ?? false
-                    source: modelData.isPlugin ? Qt.resolvedUrl(modelData.entry) : sanitizeSource(Directories.shellDir + "/modules/main/desktop/widgets/", modelData.component)
+                    source: modelData.isPlugin ? Qt.resolvedUrl(modelData.entry) : sanitizeSource(Paths.shellDir + "/modules/main/desktop/widgets/", modelData.component)
                     width: root.sizeWidth(span)
                     height: root.sizeHeight(span)
 

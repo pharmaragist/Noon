@@ -60,7 +60,7 @@ Use `qs.common.widgets` (in `common/widgets/`) before reaching for raw QtQuick:
 
 ## Utilities
 
-- Helper functions via `.methods`: `Colors.methods` → `ColorUtils` (`transparentize`, `mix`, `applyAlpha`, `getReadableColOn`, `isValidColor`); `Fonts.methods` → `TextUtils` (`capitalizeFirstLetter`, `format`, `friendlyTimeForSeconds`, `toTitleCase`, `wordWrap`, `getDomain`); `Directories.methods` → `FileUtils` (`trim`, `fileExists`, `readFile`, `mkdir`, `copyItem`, `moveItem`).
+- Helper functions via `.methods`: `Colors.methods` → `ColorUtils` (`transparentize`, `mix`, `applyAlpha`, `getReadableColOn`, `isValidColor`); `Fonts.methods` → `TextUtils` (`capitalizeFirstLetter`, `format`, `friendlyTimeForSeconds`, `toTitleCase`, `wordWrap`, `getDomain`); `Paths.methods` → `FileUtils` (`trim`, `fileExists`, `readFile`, `mkdir`, `copyItem`, `moveItem`).
 - Services from `qs.services` (in `services/`): `PaletteService.colors`, `WallpaperService`, `AudioService`, `MprisController`, `Notifications`, `ClipboardService`, `PluginsManager`, `NetworkService`, `BluetoothService`, `BatteryService`, `CalendarService`, `DateTimeService`, `WeatherService`, `HyprlandService`, `TimerService`, `ResourcesService`, `SysInfoService`, `EmojisService`, `SpeechService`, and more.
 - `NoonUtils.*`: `toast(...)`, `notify(content, title)`, `playSound(sound)`, `execDetached(command, log?)`, `iconPath(icon, fallback)`, `openFile(path)`, `deleteFile(path)`, `setHyprKey(key, value)`, `requestDialog(dialog, data)`, `callIpc(request)`, `inlineTimer(callback, delay)`.
 - Persistence: `PluginFileView { id; fileName }` → reactive JSON auto-persisted at `~/.local/state/noon/plugins/<fileName>.json`. Extends `ConfigFileView` (`fileName`, `data`, `path`, `contentChanged`).

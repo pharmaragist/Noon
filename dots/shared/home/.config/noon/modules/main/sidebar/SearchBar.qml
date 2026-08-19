@@ -59,9 +59,6 @@ StyledRect {
             color: colors.colOnLayer1
             font: Fonts.request("main", "large")
 
-            onAccepted: if (SidebarData._get(root.category).acceptOnlyOnEnter || false)
-                Globals.web_session.url = Mem.options.networking.searchEngine + text
-
             Keys.onPressed: event => {
                 if (!root.effectiveSearchable)
                     return;

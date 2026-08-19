@@ -12,18 +12,14 @@ import qs.services
 Singleton {
     id: root
 
-    property var web_session
-    property bool showDormantSphere: true
+    property bool deload: false
     property bool superPressed: superHeldShortcut.pressed
     readonly property var topLevel: ToplevelManager.activeToplevel
     readonly property bool superHeld: superHeldShortcut.pressed
-    readonly property CustomShortcut superHeldShortcut: CustomShortcut {
-        name: "superHeld"
-    }
     readonly property IdleMonitor idleMonitor: IdleMonitor {
         timeout: Mem.options.services.idle.timeOut
         respectInhibitors: true
-        onIsIdleChanged: if (isIdle && !Mem.options.services.idle.inhibit)
+        onIsIdleChanged: if (isIdle && !Mem.options.services.idle.inhibit && !(Globals.topLevel?.fullscreen ?? false))
             Globals.main.locked = true
     }
 
@@ -57,13 +53,13 @@ Singleton {
         }
         property QtObject reader: QtObject {
             property bool show: false
-            property string currentPath: Qt.resolvedUrl(Directories.standard.documents)
+            property string currentPath: Qt.resolvedUrl(Paths.standard.documents)
 
             property var document_page_view
         }
         property QtObject editor: QtObject {
             property bool show: false
-            property string currentPath: Qt.resolvedUrl(Directories.shellConfigs)
+            property string currentPath: Qt.resolvedUrl(Paths.shellConfigs)
             property string currentFile: ""
         }
     }
@@ -131,6 +127,30 @@ Singleton {
 
         property QtObject notifs: QtObject {
             property bool show: false
+        }
+    }
+
+    CustomShortcut {
+        id:superHeldShortcut
+        name: "superHeld"
+    }
+
+    Connections {
+        target: Quickshell
+
+        Component.onCompleted: {
+            Globals.deload = false
+        }
+
+        function onReloadFailed(error) {
+            let lines = error.split('\n');
+            let lastLine = lines[lines.length - 1];
+            root.toast({
+                id: 0,
+                content: lastLine,
+                status: "error",
+                title: "Quickshell"
+            });
         }
     }
 }

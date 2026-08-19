@@ -7,7 +7,7 @@ import qs.services
 
 Singleton {
     readonly property real infinity: Number.POSITIVE_INFINITY
-    readonly property real barElevation: hyprland.gapsOut
+    readonly property real barElevation: hyprland.gapsOut / 2
     readonly property real notificationPopupWidth: 420
     readonly property real toastWidth: 385
     readonly property real frameThickness: !Mem.options.desktop.enableFrame ? 0 : hyprland.gapsOut / 4
@@ -35,7 +35,7 @@ Singleton {
         readonly property size music: Qt.size(400, 160)
         readonly property size drop: Qt.size(600, 280)
         readonly property size dictate: Qt.size(200, 55)
-        readonly property size appearance: Qt.size(640, 70)
+        readonly property size appearance: Qt.size(800, 70)
         readonly property size dictateWindow: Qt.size(640, 480)
     }
 

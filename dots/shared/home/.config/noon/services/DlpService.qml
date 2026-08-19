@@ -13,7 +13,7 @@ import qs.common.functions
 Singleton {
     id: root
 
-    readonly property list<string> cmd: ["uv", "run", Directories.scriptsDir + "/dlpHelper.py"]
+    readonly property list<string> cmd: ["uv", "run", Paths.scriptsDir + "/dlpHelper.py"]
 
     function toast(info) {
         NoonUtils.toast({
@@ -43,7 +43,7 @@ Singleton {
         if (info.quality)
             final = final.concat(["--quality", info.quality]);
 
-        const dir = Directories.methods.trim(info.directory || Directories.standard.downloads);
+        const dir = Paths.methods.trim(info.directory || Paths.standard.downloads);
         if (dir.length > 0)
             final = final.concat(["-d", dir]);
 

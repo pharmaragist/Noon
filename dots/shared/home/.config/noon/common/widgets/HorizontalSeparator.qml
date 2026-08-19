@@ -8,5 +8,5 @@ Rectangle {
     implicitHeight: 1
     implicitWidth: Layout.fillWidth
     Layout.margins: 4
-    visible: Mem.options.bar.appearance.enableSeparators
+    visible: BarData.currentModeInfo.appearance.enableSeparators
 }

@@ -10,7 +10,7 @@ Singleton {
     property string distroId: "unknown"
     property string distroIcon: "arch-symbolic"
     property string username: "user"
-    property string userPfp: Directories.standard.home + "/.face"
+    property string userPfp: Paths.standard.home + "/.face"
 
     readonly property var distroIcons: ({
             arch: "arch-symbolic",

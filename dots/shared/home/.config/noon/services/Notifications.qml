@@ -17,7 +17,7 @@ Singleton {
     id: root
     component Notif: QtObject {
         id: wrapper
-        required property int notificationId 
+        required property int notificationId
         property Notification notification
         property list<var> actions: notification?.actions.map(action => ({
                     "identifier": action.identifier,
@@ -66,7 +66,7 @@ Singleton {
     }
 
     property bool silent: Mem.states.services.notifications.silent
-    property var filePath: Directories.services.notifications
+    property var filePath: Paths.services.notifications
     property list<Notif> list: []
     property var popupList: list.filter(notif => notif.popup)
     property bool popupInhibited: (Globals?.sidebarRightOpen ?? false) || silent
@@ -85,13 +85,13 @@ Singleton {
     }
 
     onListChanged: {
-        
+
         root.list.forEach(notif => {
             if (!root.latestTimeForApp[notif.appName] || notif.time > root.latestTimeForApp[notif.appName]) {
                 root.latestTimeForApp[notif.appName] = Math.max(root.latestTimeForApp[notif.appName] || 0, notif.time);
             }
         });
-        
+
         Object.keys(root.latestTimeForApp).forEach(appName => {
             if (!root.list.some(notif => notif.appName === appName)) {
                 delete root.latestTimeForApp[appName];
@@ -101,7 +101,7 @@ Singleton {
 
     function appNameListForGroups(groups) {
         return Object.keys(groups).sort((a, b) => {
-            
+
             return groups[b].time - groups[a].time;
         });
     }
@@ -118,7 +118,7 @@ Singleton {
                 };
             }
             groups[notif.appName].notifications.push(notif);
-            
+
             groups[notif.appName].time = latestTimeForApp[notif.appName] || notif.time;
         });
         return groups;
@@ -129,8 +129,8 @@ Singleton {
     property var appNameList: appNameListForGroups(root.groupsByAppName)
     property var popupAppNameList: appNameListForGroups(root.popupGroupsByAppName)
 
-    
-    
+
+
     property int idOffset
     signal initDone
     signal notify(notification: var)
@@ -140,7 +140,7 @@ Singleton {
 
     NotificationServer {
         id: notifServer
-        
+
         actionsSupported: true
         bodyHyperlinksSupported: true
         bodyImagesSupported: true
@@ -163,7 +163,7 @@ Singleton {
                 NoonUtils.playSound("notif_1");
             }
 
-            
+
             if (!root.popupInhibited) {
                 newNotifObject.popup = true;
                 newNotifObject.timer = notifTimerComponent.createObject(root, {
@@ -173,13 +173,13 @@ Singleton {
             }
 
             root.notify(newNotifObject);
-            
+
             notifFileView.setText(stringifyList(root.list));
         }
     }
 
     function discardNotification(id) {
-        
+
         const index = root.list.findIndex(notif => notif.notificationId === id);
         const notifServerIndex = notifServer.trackedNotifications.values.findIndex(notif => notif.id + root.idOffset === id);
         if (index !== -1) {
@@ -190,7 +190,7 @@ Singleton {
         if (notifServerIndex !== -1) {
             notifServer.trackedNotifications.values[notifServerIndex].dismiss();
         }
-        root.discard(id); 
+        root.discard(id);
     }
 
     function discardAllNotifications() {
@@ -264,13 +264,13 @@ Singleton {
                     "urgency": notif.urgency
                 });
             });
-            
+
             let maxId = 0;
             root.list.forEach(notif => {
                 maxId = Math.max(maxId, notif.notificationId);
             });
 
-            
+
             root.idOffset = maxId;
             root.initDone();
         }

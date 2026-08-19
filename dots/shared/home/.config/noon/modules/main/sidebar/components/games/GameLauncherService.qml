@@ -28,7 +28,7 @@ Singleton {
     property string pendingSelectedCover: ""
     property alias addDialog: addGamePicker
     property alias addCoverDialog: addCoverPicker
-    
+
     property var launchConfig: ({
             runner: "wine",
             gamescope: false,
@@ -99,7 +99,7 @@ Singleton {
 
     function _buildLaunchCommand(game) {
         const cfg = root.launchConfig;
-        const cmd = ["uv", "run", Directories.scriptsDir + "/games_service.py", "run", game.executablePath];
+        const cmd = ["uv", "run", Paths.scriptsDir + "/games_service.py", "run", game.executablePath];
         if (cfg.runner !== "")
             cmd.push("--runner", cfg.runner);
         if (cfg.gamescope) {
@@ -173,7 +173,7 @@ Singleton {
         title: "Select Game Executable"
         nameFilters: ["Executable files (*.exe *.AppImage *.sh)", "All files (*)"]
         onAccepted: {
-            root.pendingSelectedGame = Directories.methods.trim(currentFile);
+            root.pendingSelectedGame = Paths.methods.trim(currentFile);
             NoonUtils.callIpc("sidebar reveal Games");
         }
     }
@@ -183,7 +183,7 @@ Singleton {
         title: "Select Cover Image"
         nameFilters: ["Image files (*.png *.jpg *.jpeg)", "All files (*)"]
         onAccepted: {
-            root.pendingSelectedCover = Directories.methods.trim(currentFile);
+            root.pendingSelectedCover = Paths.methods.trim(currentFile);
             NoonUtils.callIpc("sidebar reveal Games");
         }
     }

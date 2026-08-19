@@ -12,7 +12,7 @@ Singleton {
     property var _descCache: ({})
     property var _pending: ({})
 
-    readonly property string _coverDir: Directories.services.gamesCoverArts
+    readonly property string _coverDir: Paths.services.gamesCoverArts
 
     function getCover(gameId, gameName, existingCover) {
         if (existingCover && existingCover !== "")
@@ -63,7 +63,7 @@ Singleton {
 
             property var _proc: Process {
                 running: true
-                command: [Directories.scriptsDir + "/metadata_helper.sh", "--name", fetchComp.gameName, "--id", fetchComp.gameId, "--dir", root._coverDir]
+                command: [Paths.scriptsDir + "/metadata_helper.sh", "--name", fetchComp.gameName, "--id", fetchComp.gameId, "--dir", root._coverDir]
                 onStdoutChanged: fetchComp._result += stdout
                 onStarted: console.log("GamesMetadata: fetching", command.join(" "))
                 onExited: code => {

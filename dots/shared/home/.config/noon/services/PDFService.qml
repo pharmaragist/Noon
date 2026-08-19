@@ -10,7 +10,7 @@ Singleton {
     signal textReady(string text)
 
     function extract(pdfFile: string) {
-        proc.input_path = Directories.methods.trim(pdfFile);
+        proc.input_path = Paths.methods.trim(pdfFile);
         proc.running = true;
     }
 

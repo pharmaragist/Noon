@@ -30,7 +30,7 @@ ShellRoot {
     id: root
 
     readonly property string mode: Mem.options.desktop.shell.mode
-    readonly property bool deload: Mem.states.desktop.shell.deload || (Mem.options.desktop.shell.deloadOnFullscreen && (Globals.topLevel?.fullscreen ?? false))
+    readonly property bool deload: Globals.deload || (Mem.options.desktop.shell.deloadOnFullscreen && (Globals.topLevel?.fullscreen ?? false))
     readonly property string currentShellPath: shellMap[mode] || "main/Main.qml"
     readonly property var shellMap: {
         "main": "main/Main.qml",

@@ -17,7 +17,7 @@ Process {
     }
 
     running: PluginsManager?.enablePlugins
-    command: ["bash", Directories.scriptsDir + "/plugins_helper.sh", "list", group]
+    command: ["bash", Paths.scriptsDir + "/plugins_helper.sh", "list", group]
     stdout: StdioCollector {
         onStreamFinished: {
             try {

@@ -92,7 +92,7 @@ StyledRect {
 
                 StyledToolTip {
                     extraVisibleCondition: parent.hovered
-                    content: FileUtils.getEscapedFileName(modelData)
+                    content: Paths.methods.getEscapedFileName(modelData)
                 }
             }
         }

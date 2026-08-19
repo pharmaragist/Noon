@@ -94,7 +94,7 @@ Singleton {
     }
     readonly property list<var> predefinedColors: [
         {
-            
+
             dark: {
                 primary: "#a8c7fa",
                 secondary: "#a2b8d9",
@@ -107,7 +107,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ff9388",
                 secondary: "#c39c99",
@@ -120,7 +120,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#7be89e",
                 secondary: "#9bad9f",
@@ -133,7 +133,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ffe68c",
                 secondary: "#b3a47a",
@@ -146,7 +146,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#d0bcff",
                 secondary: "#a89bb9",
@@ -159,7 +159,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ffb1c8",
                 secondary: "#b38a9b",
@@ -172,7 +172,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ffb686",
                 secondary: "#a88a72",
@@ -185,7 +185,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#78d9ec",
                 secondary: "#8eb0b6",
@@ -198,7 +198,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#e3e3e3",
                 secondary: "#c6c6c6",
@@ -211,7 +211,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#7ed9c8",
                 secondary: "#8ca8a0",
@@ -224,7 +224,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#c9f28c",
                 secondary: "#a8b37f",
@@ -237,7 +237,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#b8c4ff",
                 secondary: "#9a9fc7",
@@ -250,7 +250,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ffb4d1",
                 secondary: "#b38a9f",
@@ -263,7 +263,7 @@ Singleton {
             }
         },
         {
-            
+
             dark: {
                 primary: "#ffcc80",
                 secondary: "#b39e7a",
@@ -279,12 +279,12 @@ Singleton {
 
     PModel {
         id: palettesModel
-        folder: Qt.resolvedUrl(Directories.assets) + "/db/palettes"
+        folder: Qt.resolvedUrl(Paths.assets) + "/db/palettes"
     }
 
     PModel {
         id: pluginsPalettesModel
-        folder: Qt.resolvedUrl(Directories.plugins.palettes)
+        folder: Qt.resolvedUrl(Paths.plugins.palettes)
     }
 
     Process {

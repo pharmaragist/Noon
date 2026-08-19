@@ -22,7 +22,7 @@ Singleton {
 
     Fetcher {
         id: fetcher
-        command: [Directories.scriptsDir + "/weather_service_metio", "--city", root.weatherLocation, (root.useFehrenheit ? "-f" : "")]
+        command: [Paths.scriptsDir + "/weather_service_metio", "--city", root.weatherLocation, (root.useFehrenheit ? "-f" : "")]
     }
 
     Timer {

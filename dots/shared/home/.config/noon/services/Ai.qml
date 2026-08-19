@@ -26,7 +26,7 @@ Singleton {
     readonly property string currentModelId: states.model
     readonly property var skills: states.skills
     readonly property SQLReader db: SQLReader {
-        path: Directories.services.opencodeDb
+        path: Paths.services.opencodeDb
         onLoaded: refreshSessions()
     }
     property var sessions: []
@@ -320,7 +320,7 @@ Singleton {
     Process {
         id: skillsDiscovery
         running: true
-        command: ["sh", "-c", "grep -rPl '^name:\\s*\\S+' " + Directories.services.skills + " --include='SKILL.md' | xargs -n1 dirname | xargs -n1 basename"]
+        command: ["sh", "-c", "grep -rPl '^name:\\s*\\S+' " + Paths.services.skills + " --include='SKILL.md' | xargs -n1 dirname | xargs -n1 basename"]
         stdout: StdioCollector {
             onStreamFinished: {
                 states.skills = text.trim().split("\n").filter(Boolean);
@@ -354,7 +354,7 @@ Singleton {
                 });
                 return;
             }
-            rows.reverse(); 
+            rows.reverse();
             const groups = {}, order = [];
             rows.forEach(function(r) {
                 if (!groups[r.msg_id]) {

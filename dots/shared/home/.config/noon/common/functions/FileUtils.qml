@@ -8,20 +8,10 @@ import Noon.Protocols
 Singleton {
     id: root
 
-
-
-
-
-
     function trim(str) {
         str = String(str);
         return str.startsWith("file://") ? str.slice(7) : str;
     }
-
-
-
-
-
 
     function fileNameForPath(str) {
         if (typeof str !== "string")
@@ -29,10 +19,6 @@ Singleton {
         const trimmed = trim(str);
         return trimmed.split(/[\\/]/).pop();
     }
-
-
-
-
 
     function trimFileExt(str) {
         if (typeof str !== "string")
@@ -45,10 +31,6 @@ Singleton {
         return trimmed;
     }
 
-
-
-
-
     function parentDirectory(str) {
         if (typeof str !== "string")
             return "";
@@ -59,10 +41,6 @@ Singleton {
         parts.pop();
         return parts.join("/");
     }
-
-
-
-
 
     function folderNameForPath(str) {
         if (typeof str !== "string")
@@ -75,24 +53,13 @@ Singleton {
         return noTrailing.split(/[\\/]/).pop();
     }
 
-
-
-
-
-
     function getEscapedFileName(path) {
-
         const trimmed = trim(path);
 
         const fileName = trimmed.split(/[\/\\]/).pop();
 
         return encodeURIComponent(fileName);
     }
-
-
-
-
-
 
     function getEscapedFileNameWithoutExtension(path) {
         const trimmed = trim(path);
@@ -102,11 +69,6 @@ Singleton {
         return encodeURIComponent(nameWithoutExtension);
     }
 
-
-
-
-
-
     function getEscapedFileExtension(path) {
         const trimmed = trim(path);
         const fileName = trimmed.split(/[\/\\]/).pop();
@@ -114,14 +76,6 @@ Singleton {
         const extension = lastDotIndex !== -1 && lastDotIndex < fileName.length - 1 ? fileName.slice(lastDotIndex + 1) : "";
         return encodeURIComponent(extension);
     }
-
-
-
-
-
-
-
-
 
     function insertTextBeforeExtension(path, insertText) {
         if (!path || typeof path !== "string")
@@ -133,18 +87,12 @@ Singleton {
         if (!fileName)
             return "";
         const lastDotIndex = fileName.lastIndexOf(".");
-        const nameWithoutExt = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex).replace(/\s+$/, "")
-        : fileName;
+        const nameWithoutExt = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex).replace(/\s+$/, "") : fileName;
         const ext = lastDotIndex !== -1 ? fileName.slice(lastDotIndex) : "";
         const newFileName = nameWithoutExt + insertText + ext;
         const newPath = [...parts, newFileName].join("/");
         return hasFileProtocol ? "file://" + newPath : newPath;
     }
-
-
-
-
-
 
     function fileExists(filePath) {
         if (!filePath) {
@@ -153,13 +101,11 @@ Singleton {
 
         let pathToCheck = filePath;
         if (typeof filePath === "object" && filePath.toString()) {
-
             pathToCheck = filePath.toString();
         } else if (typeof filePath !== "string") {
             console.warn("fileExists: Invalid input type:", typeof filePath);
             return false;
         }
-
 
         let trimmed = pathToCheck;
         if (pathToCheck.startsWith("file://")) {
@@ -169,15 +115,12 @@ Singleton {
         }
 
         try {
-            const exists = FileUtils.fileExists(trimmed);
+            const exists = Paths.methods.fileExists(trimmed);
             return exists;
         } catch (error) {
             return false;
         }
     }
-
-
-
 
     function getFileInfo(filePath) {
         if (!filePath || typeof filePath !== "string")
@@ -204,11 +147,11 @@ Singleton {
             return Directories.standard.home + filePath.substring(1);
         }
     }
-    function mkdir(directories) {
-        if (!directories)
+    function mkdir(dirs) {
+        if (!dirs)
             return;
 
-        const trimmedDirs = directories.map(dir => trim(dir));
+        const trimmedDirs = dirs.map(dir => trim(dir));
         NoonUtils.execDetached(`mkdir -p '${trimmedDirs.join("' '")}'`);
     }
 
@@ -228,7 +171,7 @@ Singleton {
     function createLink(file, dist) {
         if (!file || !dist)
             return;
-        NoonUtils.execDetached(["ln", "-sf", `${FileUtils.trim(file)}`, `${FileUtils.trim(dist)}`]);
+        NoonUtils.execDetached(["ln", "-sf", `${Paths.methods.trim(file)}`, `${Paths.methods.trim(dist)}`]);
     }
 
     function readFile(fileUrl) {

@@ -8,9 +8,10 @@ import qs.services
 
 SidebarItemContainer {
     id: root
+    anchors.margins: Padding.small
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Padding.huge
 
         StyledStackView {
             id: stack
@@ -70,29 +71,16 @@ SidebarItemContainer {
         id: listView
 
         Item {
-            ColumnLayout {
+            StyledListView {
                 anchors.fill: parent
-
                 spacing: Padding.large
-
-                PageHeader {
-                    title: "Notes"
-                    subTitle: Directories.methods.collapsePath(NotesService.folderPath)
-                }
-
-                StyledListView {
-                    hinter.anchors.margins: -Padding.huge
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    spacing: Padding.normal
-                    radius: Rounding.huge
-                    clip: true
-                    _model: NotesService.cards
-                    delegate: NoteCard {
-                        anchors.right: parent?.right
-                        anchors.left: parent?.left
-                        onClicked: root.openNote(modelData?.name)
-                    }
+                radius: Rounding.huge
+                clip: true
+                _model: NotesService.cards
+                delegate: NoteCard {
+                    anchors.right: parent?.right
+                    anchors.left: parent?.left
+                    onClicked: root.openNote(modelData?.name)
                 }
             }
         }

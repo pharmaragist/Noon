@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import qs.store
 import qs.common
 import qs.common.widgets
 import "./../components"
@@ -9,7 +10,7 @@ StyledPanel {
     id: bar
 
     readonly property string pos: Mem.options.bar.behavior.position
-    readonly property int barHeight: Mem.options.bar.appearance.size
+    readonly property int barHeight: BarData.currentModeInfo.appearance.size
 
     name: "bar"
     shell: "noon"

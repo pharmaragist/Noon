@@ -214,7 +214,7 @@ Item {
                 leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
                 symbol.anchors.horizontalCenterOffset: -2
                 materialIcon: "delete"
-                enabled: Directories.methods.exists(currentTrackPath)
+                enabled: Paths.methods.exists(currentTrackPath)
                 toggled: false
                 releaseAction: () => deleteConfirmDialog.request(currentTrackPath)
             }
@@ -241,7 +241,7 @@ Item {
             spacing: Padding.huge
 
             PageHeader {
-                title: "Delete " + decodeURIComponent(Directories.methods.getEscapedFileNameWithoutExtension(deleteConfirmDialog.currentFile))
+                title: "Delete " + decodeURIComponent(Paths.methods.getEscapedFileNameWithoutExtension(deleteConfirmDialog.currentFile))
                 colors:root.trackColors
             }
 

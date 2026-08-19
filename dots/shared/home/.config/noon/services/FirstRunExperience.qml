@@ -8,11 +8,11 @@ pragma ComponentBehavior: Bound
 Singleton {
     id: root
 
-    property string firstRunFilePath: `${Directories.standard.state}/user/first_run.txt`
+    property string firstRunFilePath: `${Paths.standard.state}/user/first_run.txt`
     property string firstRunFileContent: "This file is just here to confirm you've been greeted :>"
     property string firstRunNotifSummary: "Welcome!"
     property string firstRunNotifBody: "Hit Super+/ for a list of keybinds"
-    property string defaultWallpaperPath: Directories.methods.trim(`${Directories.standard.config}/noon/assets/images/default_wallpaper.png`)
+    property string defaultWallpaperPath: Paths.methods.trim(`${Paths.standard.config}/noon/assets/images/default_wallpaper.png`)
 
     function load() {
         firstRunFileView.reload();

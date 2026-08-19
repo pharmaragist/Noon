@@ -141,7 +141,7 @@ JsonAdapter {
             property bool scrollToReveal: true
             property bool enableApplets: true
             property string defaultState: "ai"
-            property list<string> enabledApplets: ["music","weather"]
+            property list<string> enabledApplets: ["music", "weather"]
         }
     }
 
@@ -170,7 +170,6 @@ JsonAdapter {
             property bool sounds: true
             property bool timers: true
 
-            
             property bool history: false
             property bool bookmarks: false
             property bool emojies: false
@@ -180,7 +179,6 @@ JsonAdapter {
             property bool overlay: false
             property bool preExpand: false
             property bool aiTextFadeIn: false
-            property bool superHeldReveal: false
             property bool enableResizeOverlay: true
         }
 
@@ -218,7 +216,7 @@ JsonAdapter {
         property bool enableFrame: false
 
         property JO branding: JO {
-            property string logo: "distro" 
+            property string logo: "distro"
             property string materialSymbol: "auto_awesome"
         }
 
@@ -228,7 +226,7 @@ JsonAdapter {
 
         property JO shell: JO {
             property bool deloadOnFullscreen: false
-            property string mode: ""
+            property string mode: "main"
         }
 
         property JO widgets: JO {
@@ -260,7 +258,7 @@ JsonAdapter {
         }
 
         property JO clock: JO {
-            property bool enabled: true
+            property bool enabled: false
             property real scale: 1
             property real spacingMultiplier: 0.3
             property bool verticalMode: true
@@ -311,42 +309,54 @@ JsonAdapter {
     }
 
     property JO bar: JO {
-        property string horizontalLayout: "Dynamic"
-        property string verticalLayout: "VDynamic"
+        property JO horizontal: JO {
+            property string layout: "Dynamic"
+            property list<var> presets: []
 
-        property JO dynamicPresets: JO {
-            property list<var> horizontal: []
-            property list<var> vertical: []
+            property JO map: JO {
+                property int spacing: 5
+                property list<string> leftArea: ["workspaces"]
+                property list<string> centerArea: ["media", "separator", "clock"]
+                property list<string> rightArea: ["inlineTray", "materialStatusIcons"]
+            }
+
+            property JO appearance: JO {
+                property string style: "concave"
+                property string separatorsMode: "thin"
+                property bool enableSeparators: true
+                property bool useBg: true
+                property bool barGroup: false
+                property bool outline: true
+                property int size: 50
+            }
         }
 
-        property JO vMap: JO {
-            property int spacing: 5
-            property list<string> topArea: ["materialStatusIcons", "battery", "weather", "tray"]
-            property list<string> centerArea: []
-            property list<string> bottomArea: ["media", "resources", "separator", "volume", "brightness", "separator", "progressWs", "separator", "clock", "separator", "keyboard", "separator", "power"]
-        }
+        property JO vertical: JO {
+            property string layout: "VDynamic"
+            property list<var> presets: []
 
-        property JO hMap: JO {
-            property int spacing: 5
-            property list<string> leftArea: ["power", "separator", "progressWs", "separator", "title"]
-            property list<string> centerArea: ["media", "separator", "clock"]
-            property list<string> rightArea: ["tray", "battery", "materialStatusIcons"]
-        }
+            property JO map: JO {
+                property int spacing: 5
+                property list<string> topArea: ["materialStatusIcons", "inlineTray"]
+                property list<string> centerArea: []
+                property list<string> bottomArea: ["workspaces", "separator", "clock", "separator", "keyboard"]
+            }
 
-        property JO appearance: JO {
-            property string style: "concave"
-            property string separatorsMode: "thin"
-            property bool enableSeparators: true
-            property bool useBg: true
-            property bool barGroup: false
-            property bool outline: true
-            property int size: 50
+            property JO appearance: JO {
+                property string style: "concave"
+                property string separatorsMode: "thin"
+                property bool enableSeparators: true
+                property bool useBg: true
+                property bool barGroup: false
+                property bool outline: true
+                property int size: 50
+            }
         }
 
         property JO behavior: JO {
             property string position: "left"
             property bool autoHide: false
-            property bool showOnAll: false
+            property bool showOnAll: true
         }
 
         property JO resources: JO {
@@ -357,7 +367,7 @@ JsonAdapter {
         property JO statusIcons: JO {
             property list<string> enabledStatusIcons: ["network", "bluetooth", "overheat", "polkit", "silent", "battery", "record", "mute"]
             property bool useLegacyBatteryIcons: false
-            property string batteryMode: "symbol" 
+            property string batteryMode: "symbol"
             property bool showTextWhenAvailable: false
         }
 
@@ -384,7 +394,7 @@ JsonAdapter {
     }
 
     property JO dock: JO {
-        property bool enabled: true
+        property bool enabled: false
         property int animationDuration: 200
 
         property JO appearance: JO {

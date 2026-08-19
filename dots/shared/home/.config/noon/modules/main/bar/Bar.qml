@@ -7,21 +7,13 @@ import qs.common.utils
 import "layouts"
 import "components"
 
-Scope {
-    readonly property var settings: Mem.options.bar
-    property string position: settings.behavior.position
-    Variants {
-        model: settings.behavior.showOnAll ? MonitorsInfo.all : MonitorsInfo.main
-        StyledLoader {
-            id: loader
-            required property var modelData
-            shown: true
-            source: {
-                const isVertical = BarData.isVertical;
-                const layout = isVertical ? settings.verticalLayout : settings.horizontalLayout;
-                return `layouts/${layout}.qml`;
-            }
-            onLoaded: _item.screen = loader.modelData
-        }
+Variants {
+    model: Mem.options.bar.behavior.showOnAll ? MonitorsInfo.all : MonitorsInfo.main
+    StyledLoader {
+        id: loader
+        required property var modelData
+        shown: true
+        source: Qt.resolvedUrl(`layouts/${BarData.currentModeInfo.layout}.qml`)
+        onLoaded: this._item.screen = loader.modelData
     }
 }

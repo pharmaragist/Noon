@@ -18,7 +18,7 @@ Singleton {
 
     readonly property var opts: Mem.beats
     readonly property var currentTrackIndexedInfo: library?.find(t => t.title === root.title)
-    readonly property string tracksDir: Directories.methods.trim(opts.directory || Directories.standard.music)
+    readonly property string tracksDir: Paths.methods.trim(opts.directory || Paths.standard.music)
     readonly property string tracksUrl: Qt.resolvedUrl(opts.directory)
     readonly property var library: libraryFetcher?.data ?? []
     readonly property var queue: queueFetcher?.data ?? []
@@ -33,16 +33,16 @@ Singleton {
     readonly property string artist: player ? TextUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
 
     readonly property var players: Mpris?.players?.values
-    readonly property var baseCmd: ["python3", Directories.scriptsDir + "/beats_daemon.py"]
+    readonly property var baseCmd: ["python3", Paths.scriptsDir + "/beats_service.py"]
     onOptsChanged: _daemonCmd(["refresh-config"])
     onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
 
     function playerIndex() {
         if (!players || players.length === 0)
             return 0;
-        const baetsIndex = players.findIndex(p => /beats/.test(p?.dbusName.toLowerCase()));
-        if (baetsIndex >= 0)
-        return baetsIndex;
+        const baets = players.findIndex(p => /noon/.test(p?.dbusName.toLowerCase()));
+        if (baets >= 0)
+        return baets;
         const playingIndex = players.findIndex(p => p.isPlaying);
         return playingIndex >= 0 ? playingIndex : 0;
     }
@@ -132,7 +132,9 @@ Singleton {
     }
 
     function getQueue() {
-        if (queueFetcher.running || !root.player.dbusName.includes("mpv"))
+        if (queueFetcher.running)
+            return;
+        if (!root.players.some(p => /noon/.test(p.dbusName)))
             return;
         queueFetcher.running = true;
     }
@@ -165,7 +167,7 @@ Singleton {
         id: addFolderDialog
         title: "Select Folder"
         onAccepted: {
-            root.opts.folders.push(Directories.methods.trim(currentFolder));
+            root.opts.folders.push(Paths.methods.trim(currentFolder));
             Qt.callLater(fetchLibrary);
         }
     }

@@ -7,7 +7,7 @@ import "./../components"
 Item {
     id: root
     required property var barRoot
-    readonly property var opts: Mem.options.bar.vMap
+    readonly property var opts: Mem.options.bar.vertical.map
 
     anchors {
         fill: parent

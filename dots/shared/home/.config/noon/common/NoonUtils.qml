@@ -43,7 +43,7 @@ Singleton {
     }
 
     function trash(path) {
-        const f = Directories.methods.trim(path);
+        const f = Paths.methods.trim(path);
         execDetached(["gio", "trash", `"${f}"`]);
     }
 
@@ -51,7 +51,7 @@ Singleton {
         let thing = sth;
 
         if (sth.startsWith("file://"))
-            thing = Directories.methods.trim(thing);
+            thing = Paths.methods.trim(thing);
 
         execDetached(["gio", "open", `${thing}`]);
     }
@@ -77,7 +77,7 @@ Singleton {
 
     function startPlayer(obj) {
         const pack = `/${(obj.pack ?? "ui")}/`;
-        const path = Qt.resolvedUrl(Directories.sounds) + pack + obj.name + ".ogg";
+        const path = Qt.resolvedUrl(Paths.sounds) + pack + obj.name + ".ogg";
         const repeats = obj.repeats < 0 ? MediaPlayer.Infinite : (obj?.repeats ?? 1);
 
         if (player.playbackState === MediaPlayer.PlayingState)
@@ -145,7 +145,7 @@ Singleton {
     }
 
     function notify(content, title, urgency = "normal") {
-        let icon = Directories.assets + "/icons/noon-symbolic.svg";
+        let icon = Paths.assets + "/icons/noon-symbolic.svg";
         let titleStr = title ?? "Noon";
         Quickshell.execDetached(["notify-send", "-i", icon, "-a", titleStr, "-u", urgency, content]);
     }
@@ -155,7 +155,7 @@ Singleton {
     }
 
     function callIpc(request) {
-        NoonUtils.execDetached(["qs", "-c", Directories.shellDir, "ipc", "call", request]);
+        NoonUtils.execDetached(["qs", "-c", Paths.shellDir, "ipc", "call", request]);
     }
 
     function execDetached(cmd) {
@@ -218,7 +218,7 @@ Singleton {
     Process {
         id: ipcCommands
         running: Mem.ready && Mem.store.misc.ipcCommands.length === 0
-        command: ["bash", "-c", `qs -c ${Directories.methods.trim(Directories.standard.config)}/noon  ipc  show`]
+        command: ["bash", "-c", `qs -c ${Paths.methods.trim(Paths.standard.config)}/noon  ipc  show`]
         stdout: StdioCollector {
             onStreamFinished: {
                 const out = text.trim();
@@ -271,20 +271,6 @@ Singleton {
         onPlaybackStateChanged: if (playbackState === MediaPlayer.StoppedState && remainingRepeats > 1) {
             remainingRepeats--;
             player.play();
-        }
-    }
-
-    Connections {
-        target: Quickshell
-        function onReloadFailed(error) {
-            let lines = error.split('\n');
-            let lastLine = lines[lines.length - 1];
-            root.toast({
-                id: 0,
-                content: lastLine,
-                status: "error",
-                title: "Quickshell"
-            });
         }
     }
 }

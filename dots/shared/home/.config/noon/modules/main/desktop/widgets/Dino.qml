@@ -16,7 +16,7 @@ WidgetContainer {
             Image {
                 id: img
                 fillMode: Image.PreserveAspectFit
-                source: Directories.assets + "/icons/dino.png"
+                source: Paths.assets + "/icons/dino.png"
                 sourceSize: Qt.size(width, height)
                 anchors.fill: parent
                 anchors.margins: Padding.massive

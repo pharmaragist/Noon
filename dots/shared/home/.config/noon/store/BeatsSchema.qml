@@ -2,9 +2,8 @@ import qs.common
 import qs.common.utils
 
 JsonAdapter {
-    property string directory: Directories.methods.trim(Directories.standard.home)
+    property string directory: Paths.methods.trim(Paths.standard.home)
     property list<string> folders: []
-    property var library: []
     property int webClientPort: 8090
 
     property JO options: JO {

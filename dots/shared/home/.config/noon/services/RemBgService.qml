@@ -10,32 +10,32 @@ import qs.store
 Singleton {
     id: root
 
-    
-    
-    
+
+
+
     property string model: "isnet-general-use"
 
-    
-    
+
+
     property bool alphaMatting: false
 
-    
-    
-    
-    property int foregroundThreshold: 240  
-    property int backgroundThreshold: 10   
-    property int erodeSize: 10             
 
-    
+
+
+    property int foregroundThreshold: 240
+    property int backgroundThreshold: 10
+    property int erodeSize: 10
+
+
     property string _inputPath: ""
     property string _outputPath: ""
     property string _current_depth_path: ""
-    
-    property string state: "idle" 
+
+    property string state: "idle"
 
     readonly property bool isBusy: state === "running"
 
-    
+
     Process {
         id: proc
         stdout: SplitParser {
@@ -60,24 +60,24 @@ Singleton {
         }
     }
 
-    
+
     signal started(string inputPath, string outputPath)
     signal stdoutReady(string chunk)
     signal stderrReady(string chunk)
     signal finished(bool success, string outputPath, int exitCode)
 
-    
+
     function _buildCommand(args) {
-        const venvPath = Directories.venv;
-        const scriptPath = Directories.methods.trim(Directories.scriptsDir + "/create_depth_image_rembg.py");
+        const venvPath = Paths.venv;
+        const scriptPath = Paths.methods.trim(Paths.scriptsDir + "/create_depth_image_rembg.py");
 
         return ["uv", "--directory", venvPath, "run", scriptPath].concat(args);
     }
 
-    
+
     function _buildProcessArgs(inputPath, outputPath, opts) {
-        const trimmedInput = Directories.methods.trim(inputPath);
-        const trimmedOutput = Directories.methods.trim(outputPath);
+        const trimmedInput = Paths.methods.trim(inputPath);
+        const trimmedOutput = Paths.methods.trim(outputPath);
 
         const args = [trimmedInput, trimmedOutput, "-m", opts?.model ?? model];
 
@@ -92,7 +92,7 @@ Singleton {
         return args;
     }
 
-    
+
     function _runCommand(args, outputPath, inputPath = "") {
         _inputPath = inputPath;
         _outputPath = outputPath;
@@ -100,7 +100,7 @@ Singleton {
         proc.running = true;
     }
 
-    
+
     function removeBackground(inputPath, outputPath, opts = {}) {
         if (!inputPath || !outputPath) {
             root.state = "error";
@@ -121,8 +121,8 @@ Singleton {
         }
     }
     function process_current_bg() {
-        const inputPath = Directories.methods.trim(Mem.looks.currentBg);
-        const outputPath = Directories.methods.trim(Directories.wallpapers.depthDir + Qt.md5(inputPath) + ".png");
+        const inputPath = Paths.methods.trim(Mem.looks.currentBg);
+        const outputPath = Paths.methods.trim(Paths.wallpapers.depthDir + Qt.md5(inputPath) + ".png");
         root._current_depth_path = outputPath;
         removeBackground(inputPath, outputPath);
     }
@@ -148,18 +148,18 @@ Singleton {
     }
     Process {
         id: setupProc
-        command: ["kitty", "-e", "fish", "-c", `uv run ${Directories.scriptsDir}/create_depth_image_rembg.py`]
-        workingDirectory: Directories.methods.trim(Directories.standard.state)
+        command: ["kitty", "-e", "fish", "-c", `uv run ${Paths.scriptsDir}/create_depth_image_rembg.py`]
+        workingDirectory: Paths.methods.trim(Paths.standard.state)
     }
-    
 
-    
+
+
     readonly property var presetFast: ({
             "model": "isnet-general-use",
             "alphaMatting": false
         })
 
-    
+
     readonly property var presetQuality: ({
             "model": "isnet-general-use",
             "alphaMatting": true,
@@ -168,12 +168,12 @@ Singleton {
             "erodeSize": 10
         })
 
-    
+
     readonly property var presetFineDetail: ({
             "model": "isnet-general-use",
             "alphaMatting": true,
             "foregroundThreshold": 240,
             "backgroundThreshold": 10,
-            "erodeSize": 3  
+            "erodeSize": 3
         })
 }

@@ -99,7 +99,7 @@ StyledRect {
                 "materialIcon": "favorite",
                 "action": function () {
                     if (wallpaperItem.fileUrl)
-                        FileUtils.moveItem(wallpaperItem.fileUrl, Directories.wallpapers.favorite);
+                        Paths.methods.moveItem(wallpaperItem.fileUrl, Paths.wallpapers.favorite);
                 }
             },
             {

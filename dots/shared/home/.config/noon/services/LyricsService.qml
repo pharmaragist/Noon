@@ -28,7 +28,7 @@ Singleton {
         plainLyrics = "";
 
         proc.running = false;
-        proc.command = ["uv", "run", Directories.scriptsDir + "/lyrics_service.py", "--title", title, "--artist", artist || "",];
+        proc.command = ["uv", "run", Paths.scriptsDir + "/lyrics_service.py", "--title", title, "--artist", artist || "",];
         proc.running = true;
     }
 
