@@ -7,7 +7,7 @@ Singleton {
     id: root
 
     function createXDPH() {
-        const config = Directories.trim(Directories.standard.config)
+        const config = Directories.methods.trim(Directories.standard.config)
 
         FileUtils.createFileWith(config + "/hypr/xdph.conf", `
         screencopy {

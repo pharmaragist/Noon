@@ -28,7 +28,7 @@ Singleton {
             return;
 
         let final = [...root.cmd];
-        const query = (info.artist ?? "") + (info?.title ?? "");
+        const query = [info.artist, info.title].filter(Boolean).join(" ");
 
         if (query.length > 0)
             final = final.concat(["--search", `${query}`]);

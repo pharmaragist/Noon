@@ -3,6 +3,13 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Node
+node_modules/
+
+# Frontend build
+dist/
+.vite/
+
 # SDDM
 sddm/theme.conf
 dots/.config/hypr/colors.lua

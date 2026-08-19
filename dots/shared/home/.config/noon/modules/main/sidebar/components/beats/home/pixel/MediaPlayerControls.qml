@@ -90,7 +90,7 @@ Item {
 
             StyledProgressBar {
                 id: progressBar
-                
+
 
                 anchors.right: parent.right
                 anchors.left: parent.left
@@ -151,7 +151,7 @@ Item {
                 }
             }
         }
-        
+
         ButtonGroup {
             spacing: Padding.normal
             Layout.alignment: Qt.AlignHCenter
@@ -168,6 +168,7 @@ Item {
                 enabled: !!root.player
                 onClicked: root.player.togglePlaying()
                 buttonRadius: Rounding.huge
+                clickedWidth: 180
                 buttonRadiusPressed: Rounding.silly
                 materialIcon: root.isPlaying ? "pause" : "play_arrow"
                 materialIconFill: 1
@@ -209,7 +210,7 @@ Item {
             }
 
             ControlButton {
-                readonly property string currentTrackPath: Mem.beats.players.main.musicDirectory + "/" + BeatsService.currentTrackIndexedInfo.file
+                readonly property string currentTrackPath: Mem.beats.directory + "/" + BeatsService.currentTrackIndexedInfo.file
                 leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
                 symbol.anchors.horizontalCenterOffset: -2
                 materialIcon: "delete"

@@ -93,32 +93,32 @@ function onKey(e) {
   switch (e.code) {
     case 'Space':
       e.preventDefault()
-      mpd.do('pause', mpd.status.state === 'play' ? '1' : '0')
+      mpd.toggle()
       break
     case 'ArrowLeft':
       e.preventDefault()
-      mpd.do('seekcur', -5)
+      mpd.seekBy(-5)
       break
     case 'ArrowRight':
       e.preventDefault()
-      mpd.do('seekcur', +5)
+      mpd.seekBy(5)
       break
     case 'ArrowUp':
       e.preventDefault()
-      mpd.do('setvol', Math.min(100, parseInt(mpd.status.volume || 0) + 5))
+      mpd.setVolume(parseInt(mpd.status.volume || 0) + 5)
       break
     case 'ArrowDown':
       e.preventDefault()
-      mpd.do('setvol', Math.max(0, parseInt(mpd.status.volume || 0) - 5))
+      mpd.setVolume(parseInt(mpd.status.volume || 0) - 5)
       break
     case 'KeyN':
-      mpd.do('next')
+      mpd.next()
       break
     case 'KeyP':
-      mpd.do('previous')
+      mpd.prev()
       break
     case 'KeyM':
-      mpd.do('setvol', parseInt(mpd.status.volume || 0) > 0 ? '0' : '50')
+      mpd.setVolume(parseInt(mpd.status.volume || 0) > 0 ? 0 : 50)
       break
   }
 }

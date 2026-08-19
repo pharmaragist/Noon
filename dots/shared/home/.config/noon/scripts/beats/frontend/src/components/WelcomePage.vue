@@ -22,10 +22,7 @@
         <div class="player-body">
           <div class="player-name">{{ p.name }}</div>
           <div class="player-meta">
-            <template v-if="p.hasPassword">
-              <span class="icon">lock</span> password required
-            </template>
-            <template v-else-if="p.running">connected</template>
+            <template v-if="p.running">connected</template>
             <template v-else>offline</template>
           </div>
         </div>
@@ -34,27 +31,11 @@
         </div>
       </div>
     </div>
-
-    <div v-if="passwordPlayer" id="password-area">
-      <input
-        id="pw-input"
-        v-model="password"
-        type="password"
-        placeholder="Enter password"
-        @keyup.enter="submitPassword"
-        ref="pwRef"
-        autofocus
-      />
-      <div class="pw-actions">
-        <button id="pw-submit" @click="submitPassword">Connect</button>
-        <button class="pw-cancel" @click="passwordPlayer = null">Cancel</button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMpd } from '../composables/useMpd.js'
 
@@ -63,9 +44,6 @@ const mpd = useMpd()
 
 const players = ref([])
 const loading = ref(true)
-const passwordPlayer = ref(null)
-const password = ref('')
-const pwRef = ref(null)
 
 async function fetchPlayers() {
   loading.value = true
@@ -88,28 +66,12 @@ function onConnectGo() {
   router.push('/player')
 }
 
-async function doConnect(p) {
+function doConnect(p) {
   if (!p.running) return
-  if (p.hasPassword) {
-    passwordPlayer.value = p
-    password.value = ''
-    await nextTick()
-    pwRef.value?.focus()
-    return
-  }
   loading.value = true
   const prev = mpd.onConnected
   mpd.onConnected = () => { prev?.(); onConnectGo() }
   mpd.connect(p.name)
-}
-
-function submitPassword() {
-  const p = passwordPlayer.value
-  if (!p) return
-  passwordPlayer.value = null
-  const prev = mpd.onConnected
-  mpd.onConnected = () => { prev?.(); onConnectGo() }
-  mpd.connect(p.name, password.value)
 }
 
 onMounted(fetchPlayers)
@@ -222,62 +184,6 @@ onMounted(fetchPlayers)
 
 .player-arrow { color: var(--text3); flex-shrink: 0; }
 .player-arrow .icon { font-size: 20px; }
-
-#password-area {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-  margin-top: 24px;
-  animation: fadeUp 300ms ease both;
-}
-
-#pw-input {
-  width: 100%;
-  max-width: 280px;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 15px;
-  font-family: var(--font-body);
-  outline: none;
-  transition: border-color var(--transition);
-}
-#pw-input:focus { border-color: var(--accent); }
-
-.pw-actions {
-  display: flex;
-  gap: 10px;
-}
-
-#pw-submit {
-  padding: 10px 24px;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: background var(--transition), transform 150ms;
-}
-#pw-submit:hover { background: var(--accent-hover); }
-#pw-submit:active { transform: scale(.97); }
-
-.pw-cancel {
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-size: 13px;
-  font-family: var(--font-body);
-  cursor: pointer;
-  padding: 10px 16px;
-  transition: color 150ms;
-}
-.pw-cancel:hover { color: var(--text); }
 
 @media (max-width: 480px) {
   #welcome-box { padding: 0 16px; }

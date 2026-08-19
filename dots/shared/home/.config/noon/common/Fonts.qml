@@ -7,10 +7,6 @@ import qs.common
 import qs.common.utils
 import qs.common.functions
 
-
-
-
-
 Singleton {
     id: root
 
@@ -19,7 +15,8 @@ Singleton {
     readonly property var sizes: fontsView.data.sizes
 
     function request(name, size, props = {}) {
-        if (!name || !size) return;
+        if (!name || !size)
+            return;
         const _size = typeof size === "string" ? Fonts.sizes[size] : size;
         const presets = fontsView.data.presets;
         const final = Object.assign({}, presets[name], {
@@ -29,11 +26,13 @@ Singleton {
     }
 
     function getStretch(horizontal = 0.6, vertical = 1) {
-        return [{
-            "type": "scale",
-            "xScale": horizontal,
-            "yScale": vertical
-        }];
+        return [
+            {
+                "type": "scale",
+                "xScale": horizontal,
+                "yScale": vertical
+            }
+        ];
     }
 
     function pickGlobalFont() {

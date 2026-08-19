@@ -3,19 +3,28 @@ import json
 import mimetypes
 import os
 import urllib.parse
-import urllib.request
 
 from websockets import Request, Response
 from websockets.datastructures import Headers
 
-from .bridge import UnixWebSocketBridge
+from .controller import Controller
+from .player import MpvPlayer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(HERE, "page")
 
-COVER_MAX_SIZE = 320
 COVER_CACHE_DAYS = 30
 _STATIC_CACHE = f"public, max-age={COVER_CACHE_DAYS * 86400}"
+PUSH_INTERVAL = 0.5
+
+
+def _coerce(v):
+    if v is None:
+        return None
+    try:
+        return json.loads(v)
+    except (json.JSONDecodeError, TypeError):
+        return v
 
 
 def _load_cover(path: str) -> tuple[bytes, str]:
@@ -38,11 +47,12 @@ def _resp(code: int, body: str | bytes, mime: str = "text/plain",
 
 
 class BeatsWebServer:
-    def __init__(self, player: str = "main", port: int = 8090,
-                 host: str = "127.0.0.1"):
-        self.player = player
+    def __init__(self, port: int = 8090, host: str = "127.0.0.1"):
         self.port = port
         self.host = host
+        self.mpv = MpvPlayer()
+        self.controller = Controller(self.mpv)
+        self.clients = {}
 
     def _static(self, path: str) -> Response | None:
         path = path.split("?", 1)[0]
@@ -58,51 +68,37 @@ class BeatsWebServer:
         with open(filepath, "rb") as f:
             return _resp(200, f.read(), mime or "application/octet-stream", cache)
 
-    def _api(self, path: str) -> Response | None:
-        if path == "/api/players":
-            from .config import load_conf
-            from .player import Player
-            conf = load_conf()
-            players = conf.get("players", {})
-            result = {}
-            for name in players:
-                host = players[name].get("host", "")
-                if not host:
-                    continue
-                if os.path.exists(os.path.expanduser(host)):
-                    p = Player(name)
-                    s = p.status()
-                    running = s.get("running", False)
-                else:
-                    running = False
-                result[name] = {
-                    "name": name,
-                    "running": running,
-                    "hasPassword": bool(players[name].get("password", "")),
-                }
-            return _resp(200, json.dumps(result), "application/json")
-
+    def _api(self, path: str, qs: dict) -> Response | None:
         if path == "/api/library":
             from .library import LibraryManager
-            lib = LibraryManager(self.player)
+            lib = LibraryManager()
             return _resp(200, json.dumps(lib.get_library()), "application/json")
 
-        if path == "/api/queue":
-            from .player import Player
-            return _resp(200, json.dumps(Player(self.player).get_queue()),
+        if path == "/api/status":
+            return _resp(200, json.dumps(self.controller.handle("status")),
                          "application/json")
 
-        if path.startswith("/api/play-by-name/"):
-            name = urllib.parse.unquote(path.removeprefix("/api/play-by-name/"))
-            if not name:
-                return _resp(400, "Bad Request")
-            from .player import Player
-            Player(self.player).play_by_name(name)
+        if path == "/api/queue":
+            return _resp(200, json.dumps(self.controller.handle("queue")),
+                         "application/json")
+
+        if path == "/api/refresh-config":
+            self.mpv.refresh_config()
             return _resp(200, "OK", "application/json")
 
-        if path == "/api/lyrics" or path.startswith("/api/lyrics?"):
-            parsed = urllib.parse.urlparse(path)
-            qs = urllib.parse.parse_qs(parsed.query)
+        if path.startswith("/api/cmd"):
+            cmd = qs.get("cmd", [""])[0]
+            a = qs.get("a", [None])[0]
+            b = qs.get("b", [None])[0]
+            if not cmd:
+                return _resp(400, "Bad Request")
+            try:
+                result = self.controller.handle(cmd, _coerce(a), _coerce(b))
+            except Exception as e:
+                return _resp(400, json.dumps({"error": str(e)}), "application/json")
+            return _resp(200, json.dumps(result), "application/json")
+
+        if path.startswith("/api/lyrics"):
             title = qs.get("title", [""])[0]
             artist = qs.get("artist", [""])[0]
             if not title:
@@ -110,7 +106,6 @@ class BeatsWebServer:
 
             async def fetch_lyrics():
                 script = os.path.join(HERE, "..", "lyrics_service.py")
-                loop = asyncio.get_event_loop()
                 try:
                     proc = await asyncio.create_subprocess_exec(
                         "python3", script, "--title", title, "--artist", artist,
@@ -131,7 +126,7 @@ class BeatsWebServer:
             if not rel:
                 return _resp(400, "Bad Request")
             from .library import LibraryManager
-            lib = LibraryManager(self.player)
+            lib = LibraryManager()
             music_dir = lib.music_dir
             cover_map = lib._load_cover_map()
 
@@ -167,40 +162,111 @@ class BeatsWebServer:
         if req.headers.get("Upgrade", "").lower() == "websocket":
             return None
         if path.startswith("/api/"):
-            resp = self._api(path)
+            parsed = urllib.parse.urlparse(path)
+            qs = urllib.parse.parse_qs(parsed.query)
+            resp = self._api(path, qs)
             return resp if resp else _resp(404, "Not Found")
         resp = self._static(path)
         if resp is not None:
             return resp
         return _resp(404, "Not Found")
 
+    def _status_fields(self) -> dict:
+        s = self.mpv.snapshot()
+        return {
+            "type": "status",
+            "state": s["state"],
+            "volume": s["volume"],
+            "elapsed": s["position"],
+            "duration": s["duration"],
+            "repeat": s["repeat"],
+            "title": s["title"],
+            "artist": s["artist"],
+            "album": s["album"],
+            "file": s["file"],
+        }
+
+    async def _broadcast(self, payload: dict):
+        text = json.dumps(payload)
+        for ws, lock in list(self.clients.items()):
+            try:
+                async with lock:
+                    await ws.send(text)
+            except Exception:
+                self.clients.pop(ws, None)
+
+    async def _push_loop(self):
+        last_status = None
+        last_qkey = None
+        while True:
+            try:
+                fields = self._status_fields()
+                if fields["state"] == "play" or fields != last_status:
+                    last_status = fields
+                    await self._broadcast(fields)
+                qkey = (self.mpv.queue_version,
+                        self.mpv.snapshot()["queue_length"],
+                        self.mpv.snapshot()["playlist_pos"])
+                if qkey != last_qkey:
+                    last_qkey = qkey
+                    await self._broadcast({"type": "queue",
+                                           "queue": self.controller.handle("queue")})
+            except Exception:
+                pass
+            await asyncio.sleep(PUSH_INTERVAL)
+
     async def _on_ws(self, websocket):
-        player = websocket.request.path.strip("/") or self.player
-        from .config import load_conf
-        conf = load_conf()
-        players = conf.get("players", {})
-        if player not in players:
-            await websocket.close(4004, f"unknown player: {player}")
-            return
-        pconf = players[player]
-        bridge = UnixWebSocketBridge(pconf["host"])
-        await bridge.bridge(websocket)
+        lock = asyncio.Lock()
+        self.clients[websocket] = lock
+        try:
+            async with lock:
+                await websocket.send(json.dumps(self._status_fields()))
+                await websocket.send(json.dumps({"type": "queue",
+                                                 "queue": self.controller.handle("queue")}))
+            async for raw in websocket:
+                try:
+                    msg = json.loads(raw)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+                cmd = msg.get("cmd", "")
+                a = msg.get("a")
+                b = msg.get("b")
+                if not cmd:
+                    continue
+                try:
+                    result = self.controller.handle(cmd, a, b)
+                except Exception as e:
+                    async with lock:
+                        await websocket.send(json.dumps({"ok": False, "error": str(e)}))
+                    continue
+                async with lock:
+                    await websocket.send(json.dumps({"ok": True, "data": result}))
+        finally:
+            self.clients.pop(websocket, None)
 
     async def start(self):
-        print(f"  beats [{self.player}] → http://{self.host}:{self.port}")
+        from .mpris import MprisService
+        from .library import LibraryManager
+        lib = LibraryManager()
+
+        def cover_url(rel: str) -> str:
+            if not rel:
+                return ""
+            cover_map = lib._load_cover_map()
+            cover_rel = cover_map.get(rel, "")
+            if not cover_rel:
+                return ""
+            full = os.path.normpath(os.path.join(lib.music_dir, cover_rel))
+            if os.path.isfile(full):
+                return f"file://{full}"
+            return ""
+
+        mpris = MprisService(self.mpv, cover_url=cover_url)
+        await mpris.start()
+
+        asyncio.get_running_loop().create_task(self._push_loop())
+        print(f"  beats → http://{self.host}:{self.port}")
         from websockets.asyncio.server import serve
         async with serve(self._on_ws, self.host, self.port,
                          process_request=self._on_http) as srv:
             await srv.serve_forever()
-
-
-def main():
-    import sys
-    player = sys.argv[1] if len(sys.argv) > 1 else "main"
-    port = int(sys.argv[2]) if len(sys.argv) > 2 else 8090
-    host = sys.argv[3] if len(sys.argv) > 3 else "127.0.0.1"
-    asyncio.run(BeatsWebServer(player, port, host).start())
-
-
-if __name__ == "__main__":
-    main()

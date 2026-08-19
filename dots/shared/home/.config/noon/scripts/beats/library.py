@@ -7,12 +7,13 @@ import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-import mpd
+from mutagen import File
 
-from .config import get_player_conf
+from .config import conf_require
 
 WORKERS = os.cpu_count() or 4
 TEMP_FILE = os.path.expanduser("~/.local/state/noon/user/generated/beats_library.json")
+AUDIO_EXTS = {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".wma", ".mp4"}
 
 
 def _process_chunk(args: tuple) -> list:
@@ -23,7 +24,6 @@ def _process_chunk(args: tuple) -> list:
     """
     chunk, music_dir, covers_dir = args
 
-    from mutagen import File
     from mutagen.flac import Picture
     from mutagen.id3 import APIC, ID3
     from mutagen.mp4 import MP4Cover
@@ -108,40 +108,79 @@ def _make_chunks(items: list, n: int) -> list:
     return [items[i : i + size] for i in range(0, len(items), size)]
 
 
-class LibraryManager:
-    def __init__(self, player_name: str = "main"):
-        conf = get_player_conf(player_name)
-        self.host = conf["host"]
-        self.port = conf["port"]
-        self.password = conf.get("password", "")
-        self.music_dir = self._get_music_dir()
-        self.covers_dir = os.path.join(self.music_dir, ".coverarts")
+def _iso_mtime(st_mtime: float) -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(st_mtime))
 
-    def _connect(self) -> mpd.MPDClient:
-        c = mpd.MPDClient()
-        c.connect(self.host, self.port)
-        if self.password:
-            c.password(self.password)
-        return c
 
-    def _run(self, fn):
+def _scan_mtimes(music_dir: str) -> dict:
+    """Rel path -> ISO mtime for every audio file under music_dir (fast walk)."""
+    mtimes = {}
+    for root, dirs, files in os.walk(music_dir):
+        dirs[:] = [d for d in dirs if d != ".coverarts"]
+        for f in files:
+            if os.path.splitext(f)[1].lower() not in AUDIO_EXTS:
+                continue
+            abs_path = os.path.join(root, f)
+            rel = os.path.relpath(abs_path, music_dir)
+            try:
+                mtimes[rel] = _iso_mtime(os.stat(abs_path).st_mtime)
+            except OSError:
+                continue
+    return mtimes
+
+
+def _read_tags(music_dir: str, rel: str) -> dict | None:
+    abs_path = os.path.join(music_dir, rel)
+    audio = None
+    try:
+        audio = File(abs_path, easy=True)
+    except Exception:
+        pass
+    if audio is None:
         try:
-            c = self._connect()
-            result = fn(c)
-            c.disconnect()
-            return result
-        except Exception as e:
-            print(f"MPD error: {e}", file=sys.stderr)
-            return None
-
-    def _get_music_dir(self) -> str:
-        try:
-            c = self._connect()
-            result = c.config()
-            c.disconnect()
-            return os.path.expanduser(result.get("music_directory", "~/Music"))
+            audio = File(abs_path)
         except Exception:
-            return os.path.expanduser("~/Music")
+            return None
+    if audio is None:
+        return None
+
+    def first(*keys):
+        for key in keys:
+            try:
+                v = audio.get(key)
+            except Exception:
+                continue
+            if isinstance(v, (list, tuple)):
+                v = v[0] if v else None
+            if v is not None and str(v).strip():
+                return str(v).strip()
+        return ""
+
+    track = first("tracknumber", "track")
+    if "/" in track:
+        track = track.split("/")[0]
+    try:
+        duration = float(audio.info.length)
+    except Exception:
+        duration = 0.0
+    return {
+        "file": rel,
+        "title": first("title") or os.path.splitext(os.path.basename(rel))[0],
+        "artist": first("artist"),
+        "album": first("album"),
+        "genre": first("genre"),
+        "date": first("date", "year", "originaldate", "origyear"),
+        "track": track,
+        "duration": duration,
+    }
+
+
+class LibraryManager:
+    def __init__(self, music_dir: str | None = None):
+        if music_dir is None:
+            music_dir = conf_require("directory")["directory"]
+        self.music_dir = os.path.expanduser(music_dir)
+        self.covers_dir = os.path.join(self.music_dir, ".coverarts")
 
     def _cover_map_path(self) -> str:
         return os.path.join(self.music_dir, ".covermap.json")
@@ -173,10 +212,8 @@ class LibraryManager:
             self._save_cover_map(cover_map)
             print(f"  Pruned {len(stale)} stale cover entries.")
 
-        tracks = self._run(lambda c: c.listallinfo()) or []
-        pending = [
-            t["file"] for t in tracks if t.get("file") and t["file"] not in cover_map
-        ]
+        tracks = sorted(_scan_mtimes(self.music_dir))
+        pending = [rel for rel in tracks if rel not in cover_map]
 
         total = len(tracks)
         cached = total - len(pending)
@@ -210,53 +247,57 @@ class LibraryManager:
         print(f"\nDone. {done} new covers extracted.")
         return cover_map
 
+    def _cache_valid(self, mtimes: dict) -> list | None:
+        """Return cached library if it matches the current filesystem, else None."""
+        if not os.path.exists(TEMP_FILE):
+            return None
+        try:
+            with open(TEMP_FILE) as f:
+                tracks = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            return None
+        if len(tracks) != len(mtimes):
+            return None
+        for t in tracks:
+            if mtimes.get(t.get("file")) != t.get("last_modified"):
+                return None
+        return tracks
+
     def get_library(self) -> list:
-        cover_map = self._load_cover_map()
-        tracks = self._run(lambda c: c.listallinfo()) or []
-        result = []
-        for track in tracks:
-            if "file" not in track:
-                continue
-            rel = track["file"]
-            result.append(
-                {
-                    "file": rel,
-                    "title": track.get("title") or os.path.basename(rel),
-                    "artist": track.get("artist", ""),
-                    "album": track.get("album", ""),
-                    "genre": track.get("genre", ""),
-                    "date": track.get("date", ""),
-                    "track": track.get("track", ""),
-                    "duration": float(track.get("duration", 0)),
-                    "cover": cover_map.get(rel, ""),
-                    "last_modified": track.get("last-modified", ""),
-                }
-            )
-        result.sort(key=lambda t: t["last_modified"], reverse=True)
-        with open(TEMP_FILE, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
-        return result
+        mtimes = _scan_mtimes(self.music_dir)
+        tracks = self._cache_valid(mtimes)
+        if tracks is None:
+            tracks = []
+            for rel in sorted(mtimes):
+                track = _read_tags(self.music_dir, rel)
+                if track is None:
+                    continue
+                track["last_modified"] = mtimes[rel]
+                tracks.append(track)
+            cover_map = self._load_cover_map()
+            for t in tracks:
+                t["cover"] = cover_map.get(t["file"], "")
+            with open(TEMP_FILE, "w", encoding="utf-8") as f:
+                json.dump(tracks, f, ensure_ascii=False, indent=2)
+        else:
+            cover_map = self._load_cover_map()
+            for t in tracks:
+                t["cover"] = cover_map.get(t["file"], "")
+        tracks.sort(key=lambda t: t["last_modified"], reverse=True)
+        return tracks
+
+    def track_index(self) -> dict:
+        return {t["file"]: t for t in self.get_library()}
 
     def list_artists(self) -> list:
-        result = self._run(lambda c: c.list("artist")) or []
-        return sorted(set(r.get("artist", "") for r in result if r.get("artist")))
+        return sorted({t["artist"] for t in self.get_library() if t["artist"]})
 
     def list_albums(self) -> list:
-        result = self._run(lambda c: c.list("album")) or []
-        return sorted(set(r.get("album", "") for r in result if r.get("album")))
+        return sorted({t["album"] for t in self.get_library() if t["album"]})
 
     def list_genres(self) -> list:
-        result = self._run(lambda c: c.list("genre")) or []
-        return sorted(set(r.get("genre", "") for r in result if r.get("genre")))
+        return sorted({t["genre"] for t in self.get_library() if t["genre"]})
 
-    def update_db(self):
-        """Kick a full DB update and block until MPD finishes scanning."""
 
-        def fn(c):
-            c.update()
-            for _ in range(3000):
-                if not c.status().get("updating_db"):
-                    return
-                time.sleep(0.1)
-
-        self._run(fn)
+def track_index(music_dir: str) -> dict:
+    return LibraryManager(music_dir=music_dir).track_index()

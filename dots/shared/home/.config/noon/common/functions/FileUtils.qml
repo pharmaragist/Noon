@@ -8,7 +8,7 @@ import Noon.Protocols
 Singleton {
     id: root
 
-    
+
 
 
 
@@ -18,7 +18,7 @@ Singleton {
         return str.startsWith("file://") ? str.slice(7) : str;
     }
 
-    
+
 
 
 
@@ -29,7 +29,7 @@ Singleton {
         const trimmed = trim(str);
         return trimmed.split(/[\\/]/).pop();
     }
-    
+
 
 
 
@@ -44,7 +44,7 @@ Singleton {
         }
         return trimmed;
     }
-    
+
 
 
 
@@ -59,7 +59,7 @@ Singleton {
         parts.pop();
         return parts.join("/");
     }
-    
+
 
 
 
@@ -68,54 +68,54 @@ Singleton {
         if (typeof str !== "string")
             return "";
         const trimmed = trim(str);
-        
+
         const noTrailing = trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
         if (!noTrailing)
             return "";
         return noTrailing.split(/[\\/]/).pop();
     }
 
-    
+
 
 
 
 
     function getEscapedFileName(path) {
-        
+
         const trimmed = trim(path);
-        
+
         const fileName = trimmed.split(/[\/\\]/).pop();
-        
+
         return encodeURIComponent(fileName);
     }
 
-    
+
 
 
 
 
     function getEscapedFileNameWithoutExtension(path) {
         const trimmed = trim(path);
-        const fileName = trimmed.split(/[\/\\]/).pop(); 
+        const fileName = trimmed.split(/[\/\\]/).pop();
         const lastDotIndex = fileName.lastIndexOf(".");
         const nameWithoutExtension = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex) : fileName;
         return encodeURIComponent(nameWithoutExtension);
     }
 
-    
+
 
 
 
 
     function getEscapedFileExtension(path) {
         const trimmed = trim(path);
-        const fileName = trimmed.split(/[\/\\]/).pop(); 
+        const fileName = trimmed.split(/[\/\\]/).pop();
         const lastDotIndex = fileName.lastIndexOf(".");
         const extension = lastDotIndex !== -1 && lastDotIndex < fileName.length - 1 ? fileName.slice(lastDotIndex + 1) : "";
         return encodeURIComponent(extension);
     }
 
-    
+
 
 
 
@@ -133,7 +133,7 @@ Singleton {
         if (!fileName)
             return "";
         const lastDotIndex = fileName.lastIndexOf(".");
-        const nameWithoutExt = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex).replace(/\s+$/, "") 
+        const nameWithoutExt = lastDotIndex !== -1 ? fileName.slice(0, lastDotIndex).replace(/\s+$/, "")
         : fileName;
         const ext = lastDotIndex !== -1 ? fileName.slice(lastDotIndex) : "";
         const newFileName = nameWithoutExt + insertText + ext;
@@ -141,7 +141,7 @@ Singleton {
         return hasFileProtocol ? "file://" + newPath : newPath;
     }
 
-    
+
 
 
 
@@ -153,19 +153,19 @@ Singleton {
 
         let pathToCheck = filePath;
         if (typeof filePath === "object" && filePath.toString()) {
-            
+
             pathToCheck = filePath.toString();
         } else if (typeof filePath !== "string") {
             console.warn("fileExists: Invalid input type:", typeof filePath);
             return false;
         }
 
-        
+
         let trimmed = pathToCheck;
         if (pathToCheck.startsWith("file://")) {
-            trimmed = pathToCheck.substring(7);  
+            trimmed = pathToCheck.substring(7);
         } else if (pathToCheck.startsWith("file:///")) {
-            trimmed = pathToCheck.substring(8);  
+            trimmed = pathToCheck.substring(8);
         }
 
         try {
@@ -174,7 +174,7 @@ Singleton {
         } catch (error) {
             return false;
         }
-    }    
+    }
 
 
 
@@ -215,14 +215,14 @@ Singleton {
     function copyItem(item, target) {
         NoonUtils.execDetached(`cp ${trim(item)} ${trim(target)}`);
     }
-    
+
     function moveItem(item, target) {
         const fileName = getEscapedFileName(item);
         NoonUtils.execDetached(`mv ${trim(item)} ${trim(target)}/${fileName}`);
     }
 
     function createFileWith(path, content) {
-        NoonUtils.execDetached(["echo", `"${content}"`, ">", path]);
+        NoonUtils.execDetached(["echo", `"${content}"`, ">", trim(path)]);
     }
 
     function createLink(file, dist) {

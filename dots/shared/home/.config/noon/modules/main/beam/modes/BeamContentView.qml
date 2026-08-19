@@ -18,6 +18,7 @@ PanelRect {
         BeamData.executeCommand();
         BeamData.reset();
         hide();
+        inputField.text = ""
     }
 
     Binding {
@@ -157,7 +158,7 @@ PanelRect {
             materialIcon: "screenshot_region"
             baseSize: 40
             enabled: !ScreenShotService.isBusy
-            
+
             Behavior on opacity {
                 Anim {}
             }

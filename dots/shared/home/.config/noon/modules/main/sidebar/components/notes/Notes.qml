@@ -8,11 +8,57 @@ import qs.services
 
 SidebarItemContainer {
     id: root
-
-    StyledStackView {
-        id: stack
+    ColumnLayout {
         anchors.fill: parent
-        initialItem: listView
+        anchors.margins: Padding.huge
+
+        StyledStackView {
+            id: stack
+            initialItem: listView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+
+        StyledRect {
+            color: Colors.colLayer3
+            radius: 999
+            implicitHeight: 65
+            Layout.fillWidth: true
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: Padding.verysmall
+                anchors.leftMargin: Padding.huge
+                anchors.rightMargin: Padding.huge
+
+                spacing: Padding.huge
+
+                StyledRect {
+                    implicitSize: 38
+                    radius: Rounding.full
+                    color: Colors.colPrimary
+
+                    Symbol {
+                        anchors.centerIn: parent
+                        icon: "edit"
+                        iconSize: 20
+                        fill: 1
+                        color: Colors.colOnPrimary
+                    }
+                }
+
+                StyledTextField {
+                    Layout.fillWidth: true
+                    placeholderText: "Create Note"
+                    color: Colors.colOnLayer2
+                    background: null
+                    onAccepted: {
+                        NotesService.createNote(this.text);
+                        this.text = "";
+                    }
+                }
+            }
+        }
     }
 
     function openNote(name) {
@@ -26,7 +72,6 @@ SidebarItemContainer {
         Item {
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: Padding.huge
 
                 spacing: Padding.large
 
@@ -40,6 +85,8 @@ SidebarItemContainer {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     spacing: Padding.normal
+                    radius: Rounding.huge
+                    clip: true
                     _model: NotesService.cards
                     delegate: NoteCard {
                         anchors.right: parent?.right

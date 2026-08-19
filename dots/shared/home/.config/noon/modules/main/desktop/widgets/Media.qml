@@ -35,7 +35,7 @@ WidgetContainer {
         active: source !== null
         source: player?.trackArtUrl
     }
-    readonly property MprisPlayer player: BeatsService?.players?.find(p => /mpd/.test(p?.dbusName.toLowerCase()))
+    readonly property MprisPlayer player: BeatsService?.players?.find(p => /beats/.test(p?.dbusName.toLowerCase()))
     colors: (palette?.colors ?? Colors)
     xlarge: Item {
         anchors.fill: parent

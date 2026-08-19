@@ -69,12 +69,9 @@ Singleton {
     function createNote(name) {
         if (!name?.trim())
             return;
-        openNote(name.trim());
-        root.content = "";
-        root.isLoaded = false;
-        root.isDirty = false;
-        noteFile.setText("");
-        noteFile.reload();
+        const _name = name + ".md";
+        FileUtils.createFileWith(folderPath + "/" + _name, "");
+        NoonUtils.inlineTimer(() => openNote(_name), 500);
     }
 
     function openNote(name) {

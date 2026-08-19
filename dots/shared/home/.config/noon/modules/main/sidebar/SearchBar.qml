@@ -6,31 +6,40 @@ import qs.common.widgets
 import qs.services
 import qs.store
 
-Item {
+StyledRect {
     id: searchBar
     signal contentFocusRequested
 
     required property var colors
     required property var root
+
     property var action
     property alias searchText: searchInput.text
     property alias searchInput: searchInput
-    property int contentY
 
     visible: root.effectiveSearchable && root.category !== ""
-    Layout.preferredHeight: root.effectiveSearchable ? 50 : 0
-    Layout.leftMargin: Padding.large
-    Layout.rightMargin: Padding.large
-
     Layout.fillWidth: true
+    implicitHeight: root.effectiveSearchable ? 65 : 0
+
+    color: searchInput.focus ? colors.colLayer1Active : colors.colLayer1
+    radius: Rounding.full
+
+    Connections {
+        target: root
+        function onCategoryChanged() {
+            searchInput.text = "";
+        }
+    }
 
     RLayout {
         anchors.fill: parent
+        anchors.leftMargin: Padding.huge
+        anchors.rightMargin: Padding.huge
         spacing: Padding.huge
 
         MaterialShapeWrappedSymbol {
-            padding: 8
-            iconSize: 20
+            iconSize: 18
+            implicitSize: 38
             Layout.alignment: Qt.AlignVCenter
             Layout.fillHeight: true
             color: searchInput.focus ? colors.colPrimary : colors.colPrimaryContainer
@@ -40,57 +49,38 @@ Item {
             fill: 1
         }
 
-        StyledRect {
+        StyledTextField {
+            id: searchInput
+            Layout.fillHeight: true
             Layout.fillWidth: true
-            radius: Rounding.verylarge
-            height: 46
-            color: searchInput.focus ? colors.colSecondaryContainer : colors.colLayer1
+            colors: searchBar.colors
+            background: null
+            placeholderText: "Search..."
+            color: colors.colOnLayer1
+            font: Fonts.request("main", "large")
 
-            StyledTextField {
-                id: searchInput
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                anchors.left: parent.left
-                visible: root.effectiveSearchable
-                enabled: root.effectiveSearchable
-                background: null
-                placeholderText: "Search..."
-                placeholderTextColor: focus ? colors.colOnSecondaryContainer : colors.colOutline
-                selectionColor: searchBar.colors.colSecondary
-                selectedTextColor: colors.colOnSecondary
-                color: colors.colOnLayer1
-                selectByMouse: true
-                font: Fonts.request("main","normal")
+            onAccepted: if (SidebarData._get(root.category).acceptOnlyOnEnter || false)
+                Globals.web_session.url = Mem.options.networking.searchEngine + text
 
-                Connections {
-                    target: root
-                    function onCategoryChanged() {
-                        searchInput.text = "";
-                    }
+            Keys.onPressed: event => {
+                if (!root.effectiveSearchable)
+                    return;
+                if (event.key === Qt.Return) {
+                    if (searchBar.action)
+                        searchBar.action();
+                    event.accepted = true;
                 }
-
-                onAccepted: if (SidebarData._get(root.category).acceptOnlyOnEnter || false)
-                    Globals.web_session.url = Mem.options.networking.searchEngine + text
-
-                Keys.onPressed: event => {
-                    if (!root.effectiveSearchable)
-                        return;
-                    if (event.key === Qt.Return) {
-                        if (searchBar.action)
-                            searchBar.action();
-                        event.accepted = true;
-                    }
-                    if (event.key === Qt.Key_Down || event.key === Qt.Key_PageDown) {
-                        searchBar.contentFocusRequested();
-                        event.accepted = true;
-                    }
+                if (event.key === Qt.Key_Down || event.key === Qt.Key_PageDown) {
+                    searchBar.contentFocusRequested();
+                    event.accepted = true;
                 }
             }
         }
 
         RippleButtonWithIcon {
-            implicitSize: 30
-            colBackground: "transparent"
+            implicitSize: 38
+            colors: searchBar.colors
+            colBackground: colors.colLayer2Active
             materialIcon: "close"
             visible: searchInput.text.length > 0
             releaseAction: () => {
@@ -98,13 +88,5 @@ Item {
                 searchInput.focus = true;
             }
         }
-    }
-
-    transform: Translate {
-        y: contentY
-    }
-
-    Behavior on Layout.preferredHeight {
-        Anim {}
     }
 }

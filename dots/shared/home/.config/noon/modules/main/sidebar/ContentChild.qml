@@ -109,7 +109,6 @@ Item {
             id: searchBar
             root: panel
             colors: panel.colors
-            contentY: contentStack.y
 
             property string debouncedQuery: ""
 

@@ -70,7 +70,7 @@ StyledRect {
                                         quality: "best",
                                         debug: true,
                                         toast: true,
-                                        directory: Mem.beats.players.main.musicDirectory
+                                        directory: Mem.beats.directory
                                     });
                                     root.dismiss();
                                 }

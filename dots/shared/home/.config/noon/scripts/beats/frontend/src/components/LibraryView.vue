@@ -157,8 +157,7 @@ function fmtDur(sec) {
 }
 
 async function playTrack(t) {
-  await fetch(`/api/play-by-name/${encodeURIComponent(t.file)}`)
-  await mpd.refresh()
+  mpd.playByName(t.file)
 }
 
 function trackNum(t) {
@@ -169,18 +168,14 @@ function playAlbum(artist, album) {
   const t = tracks.value.filter(tr => tr.artist === artist && tr.album === album)
   if (!t.length) return
   const sorted = [...t].sort((a, b) => trackNum(a) - trackNum(b))
-  mpd.cmd('clear').then(() => {
-    return Promise.all(sorted.map(tr => mpd.cmd('add', `"${tr.file}"`)))
-  }).then(() => mpd.cmd('play', '0')).then(() => mpd.refresh())
+  mpd.playFiles(sorted.map(tr => tr.file))
 }
 
 function playArtist(artist) {
   const t = tracks.value.filter(tr => tr.artist === artist)
   if (!t.length) return
   const sorted = [...t].sort((a, b) => trackNum(a) - trackNum(b))
-  mpd.cmd('clear').then(() => {
-    return Promise.all(sorted.map(tr => mpd.cmd('add', `"${tr.file}"`)))
-  }).then(() => mpd.cmd('play', '0')).then(() => mpd.refresh())
+  mpd.playFiles(sorted.map(tr => tr.file))
 }
 
 onMounted(async () => {

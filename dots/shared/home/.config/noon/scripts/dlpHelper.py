@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import re
 import sys
 
 import yt_dlp
@@ -15,9 +16,17 @@ PRESETS = {
 }
 
 
+def clean_title(title: str) -> str:
+    if not title:
+        return ""
+    t = re.sub(r"^\s*(?:[\(\[【《「『][^)\]】》」』]*[\)\]】》」』]\s*)+", "", title)
+    t = re.sub(r"(?:\s*[\(\[【《「『][^)\]】》」』]*[\)\]】》」』])+\s*$", "", t)
+    return t.strip()
+
+
 def search_url(query: str) -> str:
     with yt_dlp.YoutubeDL({"quiet": True, "extract_flat": True}) as ydl:
-        info = ydl.extract_info(f"ytsearch1:{query} official audio", download=False)
+        info = ydl.extract_info(f"ytsearch1:{query}", download=False)
     entries = (info or {}).get("entries") or []
     if not entries:
         sys.exit(f"error: no results for '{query}'")
@@ -63,6 +72,10 @@ def run(url: str, destination: str, media: str, quality: str, dry_run: bool) -> 
     if dry_run:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            cleaned = clean_title(info.get("track") or info.get("title"))
+            if cleaned:
+                info["track"] = cleaned
+                info["title"] = cleaned
             out_path = ydl.prepare_filename(info)
         if media == "audio":
             out_path = os.path.splitext(out_path)[0] + ".mp3"
@@ -84,7 +97,12 @@ def run(url: str, destination: str, media: str, quality: str, dry_run: bool) -> 
     ydl_opts["progress_hooks"] = [hook]
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url, download=False)
+            cleaned = clean_title(info.get("track") or info.get("title"))
+            if cleaned:
+                info["track"] = cleaned
+                info["title"] = cleaned
+            ydl.process_video_result(info, download=True)
     except Exception as e:
         sys.exit(f"error: {e}")
 

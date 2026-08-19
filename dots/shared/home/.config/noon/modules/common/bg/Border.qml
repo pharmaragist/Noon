@@ -30,7 +30,7 @@ Variants {
 
             anchors.fill: parent
 
-            
+
             Rectangle {
                 anchors.fill: parent
                 color: Colors.colLayer0
@@ -45,7 +45,7 @@ Variants {
                 }
             }
 
-            
+
             Item {
                 id: maskLayer
 

@@ -90,9 +90,7 @@ const emptyAlbums = computed(() => loaded.value && filteredAlbums.value.length =
 function playAlbum(artist, album) {
   const t = tracks.value.filter(tr => tr.artist === artist && tr.album === album)
   if (!t.length) return
-  mpd.cmd('clear').then(() => {
-    return Promise.all(t.map(tr => mpd.cmd('add', `"${tr.file}"`)))
-  }).then(() => mpd.cmd('play', '0')).then(() => mpd.refresh())
+  mpd.playFiles(t.map(tr => tr.file))
 }
 
 onMounted(async () => {

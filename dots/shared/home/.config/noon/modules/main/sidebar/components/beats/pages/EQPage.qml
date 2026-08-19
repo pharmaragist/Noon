@@ -25,8 +25,6 @@ StyledRect {
         writeBands(targetBands);
     }
     function writeBands(bands) {
-        store.players.preview.eq.eqBands = bands;
-        store.players.main.eq.eqBands = bands;
     }
     function applyPreset(bands) {
         for (let i = 0; i < bands.length; i++) {
@@ -55,7 +53,7 @@ StyledRect {
             bandName: modelData
             slider.from: -12
             slider.to: 12
-            slider.value: store.players.main.eq.eqBands[index]
+            slider.value: 0
             slider.onValueChanged: setBand(index, Math.round(slider.value))
         }
     }

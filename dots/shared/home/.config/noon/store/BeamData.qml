@@ -204,7 +204,7 @@ Singleton {
                     shape: "PixelCircle"
                 },
                 "yt_music": {
-                    prefix: "m",
+                    prefix: "/m",
                     description: "Search In Youtube Music Directly",
                     icon: "music_note",
                     shape: "Bun",
@@ -214,8 +214,18 @@ Singleton {
                         revealSidebar("Beats");
                     }
                 },
+                "youtube": {
+                    prefix: "/y",
+                    description: "Search In Youtube",
+                    icon: "play_arrow",
+                    shape: "Pill",
+                    exec: query => {
+                        const link = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                        NoonUtils.open(`"${link}"`);
+                    }
+                },
                 "spotify": {
-                    prefix: "s",
+                    prefix: "/s",
                     description: "Search In Spotify Directly",
                     icon: "music_cast",
                     searchQuery: "https://open.spotify.com/search/",
@@ -245,11 +255,11 @@ Singleton {
                     icon: "play_arrow",
                     shape: "PixelCircle",
                     exec: query => DlpService.request({
-                        url: query,
-                        video: true,
-                        directory: Directories.standard.downloads,
-                        toast: true
-                    })
+                            url: query,
+                            video: true,
+                            directory: Directories.standard.downloads,
+                            toast: true
+                        })
                 },
                 "audio": {
                     prefix: "m",
@@ -257,11 +267,11 @@ Singleton {
                     icon: "music_note",
                     shape: "PixelCircle",
                     exec: query => DlpService.request({
-                        url: query,
-                        audio: true,
-                        directory: BeatsService.tracksDir,
-                        toast: true
-                    })
+                            url: query,
+                            audio: true,
+                            directory: BeatsService.tracksDir,
+                            toast: true
+                        })
                 },
                 "audio_search": {
                     prefix: "?m",
@@ -269,10 +279,10 @@ Singleton {
                     icon: "music_note",
                     shape: "PixelCircle",
                     exec: query => DlpService.request({
-                        title: query,
-                        audio: true,
-                        directory: BeatsService.tracksDir
-                    })
+                            title: query,
+                            audio: true,
+                            directory: BeatsService.tracksDir
+                        })
                 }
             }
         }
@@ -340,7 +350,6 @@ Singleton {
         }
     }
 
-    
     readonly property var applets: [
         {
             name: "music",
@@ -388,6 +397,7 @@ Singleton {
         "weather": {
             dim: true,
             radius: 48,
+            timeout: false,
             size: sizes.weather,
             component: "WeatherContentView"
         },
@@ -484,8 +494,9 @@ Singleton {
     }
 
     function executeCommand() {
-        if (cleanQuery.length > 0 && !!config?.executor)
+        if (cleanQuery.length > 0 && !!config?.executor) {
             config.executor();
+        }
     }
 
     function revealSidebar(cat) {

@@ -1,57 +1,16 @@
 import argparse
-import fcntl
 import json
 import os
 import signal
 import subprocess
 import sys
 import time
+import urllib.parse
+import urllib.request
 
-import mpd
+from .config import load_conf, conf_require, _write
 
-from .config import load_conf
-from .library import LibraryManager
-from .player import Player
-
-MPD_SOCK_DIR = os.path.expanduser("~/.cache/noon/beats/mpd")
-
-
-def _mpd_ping(sock: str, timeout: float = 3) -> bool:
-    try:
-        c = mpd.MPDClient()
-        c.timeout = timeout
-        c.connect(sock, 0)
-        c.ping()
-        c.disconnect()
-        return True
-    except Exception:
-        return False
-
-
-def _wait_for_mpd(sock: str, max_sec: int = 15) -> bool:
-    for _ in range(max_sec * 2):
-        if _mpd_ping(sock):
-            return True
-        time.sleep(0.5)
-    return False
-
-
-def _mpd_conf(name: str, host: str, music_dir: str) -> str:
-    sock_dir = os.path.dirname(host)
-    os.makedirs(sock_dir, exist_ok=True)
-    return (
-        f'music_directory "{music_dir}"\n'
-        f'db_file "{os.path.join(sock_dir, name)}.db"\n'
-        f'pid_file "{os.path.join(sock_dir, name)}.pid"\n'
-        f'log_file "{os.path.join(sock_dir, name)}.log"\n'
-        f'bind_to_address "{host}"\n'
-        'restore_paused "yes"\n'
-        'auto_update "yes"\n'
-        'audio_output {\n'
-        '  type "pipewire"\n'
-        f'  name "{name}"\n'
-        '}\n'
-    )
+LOG_FILE = os.path.expanduser("~/.cache/noon/beats/daemon.log")
 
 
 def _proc_args(pid: int) -> list:
@@ -69,45 +28,7 @@ def _kill_pid(pid: int):
         pass
 
 
-def _mpd_pids(name: str | None = None) -> list:
-    """PIDs of mpd daemons we manage (conf file lives under MPD_SOCK_DIR)."""
-    pids = []
-    for entry in os.listdir("/proc"):
-        if not entry.isdigit():
-            continue
-        pid = int(entry)
-        args = _proc_args(pid)
-        if not args or os.path.basename(args[0]) != "mpd":
-            continue
-        confs = [a for a in args if a.startswith(MPD_SOCK_DIR) and a.endswith(".conf")]
-        if not confs:
-            continue
-        if name is None or any(os.path.basename(c) == f"{name}.conf" for c in confs):
-            pids.append(pid)
-    return pids
-
-
-def _bridge_pids(host: str | None = None) -> list:
-    """PIDs of mpd-mpris bridges talking to our sockets (optionally one host)."""
-    pids = []
-    for entry in os.listdir("/proc"):
-        if not entry.isdigit():
-            continue
-        pid = int(entry)
-        args = _proc_args(pid)
-        if not args or "mpd-mpris" not in args[0]:
-            continue
-        if host is not None:
-            if host not in args:
-                continue
-        elif not any(a.startswith(MPD_SOCK_DIR) for a in args):
-            continue
-        pids.append(pid)
-    return pids
-
-
 def _serve_pids() -> list:
-    """PIDs of running beats web servers (beats_daemon.py serve)."""
     pids = []
     for entry in os.listdir("/proc"):
         if not entry.isdigit():
@@ -121,91 +42,70 @@ def _serve_pids() -> list:
     return pids
 
 
-def _ensure_mpd(name: str, host: str, music_dir: str):
-    if _mpd_ping(host):
-        for pid in _mpd_pids(name)[1:]:
-            _kill_pid(pid)
+def _daemon_script() -> str:
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "beats_daemon.py")
+
+
+def init():
+    if _serve_pids():
+        print("beats daemon already running.", file=sys.stderr)
         return
-
-    os.makedirs(MPD_SOCK_DIR, exist_ok=True)
-    with open(os.path.join(MPD_SOCK_DIR, f"{name}.lock"), "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        if _mpd_ping(host):
-            return
-
-        for pid in _mpd_pids(name):
-            _kill_pid(pid)
-        if os.path.exists(host):
-            os.remove(host)
-
-        print(f"Starting MPD ({name}) on {host}...", file=sys.stderr, flush=True)
-        conf = _mpd_conf(name, host, music_dir)
-        conf_file = os.path.join(os.path.dirname(host), f"{name}.conf")
-        with open(conf_file, "w") as f:
-            f.write(conf)
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    port = conf_require("webClientPort")["webClientPort"]
+    print("Starting beats daemon...", file=sys.stderr, flush=True)
+    with open(LOG_FILE, "a") as log:
         subprocess.Popen(
-            ["mpd", conf_file],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            [sys.executable, _daemon_script(), "serve", "--port", str(port)],
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
         )
-
-    if _wait_for_mpd(host):
-        print(f"  {name} ready.", file=sys.stderr, flush=True)
-    else:
-        print(f"  Failed to start MPD ({name}).", file=sys.stderr, flush=True)
-        sys.exit(1)
-
-
-BRIDGE_BIN = "mpd-mpris"
-
-
-def _ensure_mpd_mpris(socket_path: str):
-    if _bridge_pids(socket_path):
-        return
-
-    print("Starting MPRIS bridge...", file=sys.stderr, flush=True)
-    subprocess.Popen(
-        [BRIDGE_BIN, "-network", "unix", "-host", socket_path, "-no-instance"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    time.sleep(1)
-
-
-def init(player: str):
-    conf = load_conf()
-    players = conf.get("players", {})
-    for name, pconf in players.items():
-        if "host" not in pconf:
-            continue
-        music_dir = os.path.expanduser(pconf.get("musicDirectory", "~/Music"))
-        host = os.path.expanduser(pconf["host"])
-        _ensure_mpd(name, host, music_dir)
-
-    pconf = players.get(player, {})
-    host = os.path.expanduser(pconf.get("host", os.path.join(MPD_SOCK_DIR, "main_socket")))
-    _ensure_mpd_mpris(host)
-    print("Init complete. Run 'beats serve' to start the web UI.", file=sys.stderr, flush=True)
+    for _ in range(10):
+        time.sleep(0.5)
+        if _serve_pids():
+            print(f"  daemon ready (port {port}).", file=sys.stderr)
+            return
+    print("  failed to start daemon.", file=sys.stderr)
 
 
 def kill():
-    for pid in _mpd_pids() + _bridge_pids() + _serve_pids():
+    for pid in _serve_pids():
         _kill_pid(pid)
     time.sleep(1)
+    print("All stopped.", file=sys.stderr)
 
-    for sock in os.listdir(MPD_SOCK_DIR):
-        path = os.path.join(MPD_SOCK_DIR, sock)
-        if os.path.exists(path) and (sock.endswith("_socket") or sock == "socket"):
-            os.remove(path)
 
-    print("All stopped.", file=sys.stderr, flush=True)
+def _forward(cmd: str, a=None, b=None):
+    port = conf_require("webClientPort")["webClientPort"]
+    if not _serve_pids():
+        print("beats daemon is not running (start it with 'serve' or 'init').",
+              file=sys.stderr)
+        sys.exit(1)
+    params = [("cmd", cmd)]
+    if a is not None:
+        params.append(("a", a))
+    if b is not None:
+        params.append(("b", b))
+    query = urllib.parse.urlencode(params)
+    try:
+        with urllib.request.urlopen(
+            f"http://127.0.0.1:{port}/api/cmd?{query}", timeout=10
+        ) as resp:
+            body = resp.read().decode()
+            if cmd in ("status", "queue"):
+                print(body)
+            elif body != '{"ok": true}':
+                print(body)
+    except Exception as e:
+        print(f"daemon error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="beats - MPD controller")
-    parser.add_argument("--player", type=str, default="main")
-    parser.add_argument("--port", type=int, default=8090)
-    parser.add_argument("--host", type=str, default="127.0.0.1")
+    parser = argparse.ArgumentParser(description="beats - mpv player controller")
+    parser.add_argument("-d", "--directory", type=str, default=None,
+                        help="override music directory")
     parser.add_argument(
         "command",
         choices=[
@@ -233,8 +133,11 @@ def main():
             "serve",
             "init",
             "kill",
+            "refresh-config",
         ],
     )
+    parser.add_argument("--port", type=int, default=8090)
+    parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--index", type=int, default=0)
     parser.add_argument("--new-index", type=int, default=0)
     parser.add_argument("--seconds", type=float, default=5.0)
@@ -245,8 +148,13 @@ def main():
     parser.add_argument("--list", type=str, default="", dest="list_titles")
     args = parser.parse_args()
 
+    if args.directory:
+        conf = load_conf()
+        conf["directory"] = os.path.expanduser(args.directory)
+        _write(conf)
+
     if args.command == "init":
-        init(args.player)
+        init()
         return
 
     if args.command == "kill":
@@ -254,54 +162,48 @@ def main():
         return
 
     if args.command == "serve":
-        conf = load_conf()
-        pconf = conf.get("players", {}).get(args.player)
-        if pconf and "host" in pconf:
-            music_dir = os.path.expanduser(pconf.get("musicDirectory", "~/Music"))
-            host = os.path.expanduser(pconf["host"])
-            _ensure_mpd(args.player, host, music_dir)
-            _ensure_mpd_mpris(host)
         import asyncio
         from .web_client import BeatsWebServer
-        asyncio.run(BeatsWebServer(args.player, args.port, args.host).start())
+        asyncio.run(BeatsWebServer(args.port, args.host).start())
         return
 
-    conf = load_conf()
-    pconf = conf.get("players", {}).get(args.player)
-    if pconf:
-        music_dir = os.path.expanduser(pconf.get("musicDirectory", "~/Music"))
-        host = os.path.expanduser(pconf["host"])
-        _ensure_mpd(args.player, host, music_dir)
-        _ensure_mpd_mpris(host)
+    if args.command == "library":
+        from .library import LibraryManager
+        print(json.dumps(LibraryManager().get_library()))
+        return
 
-    p = Player(args.player)
-    lib = LibraryManager(args.player)
+    if args.command in ("list-artists", "list-albums", "list-genres"):
+        from .library import LibraryManager
+        lib = LibraryManager()
+        print(json.dumps(getattr(lib, args.command)()))
+        return
 
-    dispatch = {
-        "play-file": lambda: p.play_file(args.file),
-        "play-url": lambda: p.play_url(args.url),
-        "play-by-name": lambda: p.play_by_name(args.name),
-        "play-pause": p.play_pause,
-        "next": p.next,
-        "prev": p.prev,
-        "stop": p.stop,
-        "seek": lambda: p.seek(args.seconds),
-        "volume": lambda: p.set_volume(args.volume),
-        "status": lambda: print(json.dumps(p.status())),
-        "queue": lambda: print(json.dumps(p.get_queue())),
-        "queue-add": lambda: p.queue_add(args.url or args.file),
-        "queue-remove": lambda: p.queue_remove(args.index),
-        "queue-move": lambda: p.queue_move(args.index, args.new_index),
-        "queue-clear": p.queue_clear,
-        "build-playlist": lambda: p.build_playlist(args.list_titles),
-        "library": lambda: print(json.dumps(lib.get_library())),
-        "list-artists": lambda: print(json.dumps(lib.list_artists())),
-        "list-albums": lambda: print(json.dumps(lib.list_albums())),
-        "list-genres": lambda: print(json.dumps(lib.list_genres())),
-        "fetch": lambda: (lib.update_db(), lib.build_covers(), print("Fetch complete.", file=sys.stderr)),
+    if args.command == "fetch":
+        from .library import LibraryManager
+        lib = LibraryManager()
+        lib.build_covers()
+        lib.get_library()
+        print("Fetch complete.", file=sys.stderr)
+        return
+
+    daemon = {
+        "play-file": ("playFile", args.file),
+        "play-url": ("playUrl", args.url),
+        "play-by-name": ("playByName", args.name),
+        "play-pause": ("playPause", None),
+        "next": ("next", None),
+        "prev": ("prev", None),
+        "stop": ("stop", None),
+        "seek": ("seekBy", str(args.seconds)),
+        "volume": ("setVolume", str(args.volume)),
+        "status": ("status", None),
+        "queue": ("queue", None),
+        "queue-add": ("queueAdd", args.url or args.file),
+        "queue-remove": ("queueRemove", str(args.index)),
+        "queue-move": ("queueMove", str(args.index), str(args.new_index)),
+        "queue-clear": ("queueClear", None),
+        "build-playlist": ("buildPlaylist", args.list_titles),
+        "refresh-config": ("refreshConfig", None),
     }
-    dispatch[args.command]()
-
-
-if __name__ == "__main__":
-    main()
+    cmd, a, *b = daemon[args.command]
+    _forward(cmd, a, b[0] if b else None)

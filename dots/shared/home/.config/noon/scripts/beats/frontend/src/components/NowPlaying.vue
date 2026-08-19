@@ -27,13 +27,13 @@
                     <div class="track-info">
                         <h1 class="track-title">
                             {{
-                                cs.Title ||
+                                cs.title ||
                                 cs.file?.split("/").pop() ||
                                 "Not Playing"
                             }}
                         </h1>
                         <h2 class="track-artist">
-                            {{ cs.Artist || "Unknown Artist" }}
+                            {{ cs.artist || "Unknown Artist" }}
                         </h2>
                     </div>
 
@@ -64,22 +64,18 @@
                     </div>
 
                     <div class="transport">
-                        <button class="tport-btn" @click="doCmd('previous')">
+                        <button class="tport-btn" @click="mpd.prev()">
                             <span class="icon fill-icon">skip_previous</span>
                         </button>
                         <button
                             class="tport-btn play-btn"
-                            @click="
-                                doCmd(
-                                    s.state === 'play' ? 'pause 1' : 'pause 0',
-                                )
-                            "
+                            @click="mpd.toggle()"
                         >
                             <span class="icon fill-icon">{{
                                 s.state === "play" ? "pause" : "play_arrow"
                             }}</span>
                         </button>
-                        <button class="tport-btn" @click="doCmd('next')">
+                        <button class="tport-btn" @click="mpd.next()">
                             <span class="icon fill-icon">skip_next</span>
                         </button>
                     </div>
@@ -221,8 +217,8 @@ function stopLyricsLoop() {
 }
 
 async function fetchLyrics() {
-    const title = cs.value.Title;
-    const artist = cs.value.Artist;
+    const title = cs.value.title;
+    const artist = cs.value.artist;
     if (!title) {
         lyricsLoaded.value = false;
         return;
@@ -357,7 +353,7 @@ function onSeekDown(e) {
     handlePointer(e, seekEl.value, (pct, isEnd) => {
         seekVal.value = pct * dur.value;
         if (isEnd) {
-            mpd.do("seekcur", seekVal.value);
+            mpd.seekTo(seekVal.value);
             seeking.value = false;
         }
     });
@@ -365,16 +361,12 @@ function onSeekDown(e) {
 
 function onVolDown(e) {
     handlePointer(e, volEl.value, (pct) => {
-        mpd.do("setvol", Math.round(pct * 100));
+        mpd.setVolume(Math.round(pct * 100));
     });
 }
 
-function doCmd(cmd, ...args) {
-    mpd.do(cmd, ...args);
-}
-
 async function playItem(item) {
-    await mpd.do("play", item.index);
+    await mpd.playIndex(item.index);
 }
 
 function onDragStart(e, pos, item) {
@@ -396,7 +388,7 @@ function onDrop(e, dropQueuePos) {
     const from = dragIndex.value;
     const to = queue.value[dropQueuePos]?.index;
     if (from == null || to == null || from === to) return;
-    mpd.do("move", from, to);
+    mpd.queueMove(from, to);
     dragIndex.value = null;
 }
 

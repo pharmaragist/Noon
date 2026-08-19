@@ -18,12 +18,12 @@ Singleton {
 
     readonly property var opts: Mem.beats
     readonly property var currentTrackIndexedInfo: library?.find(t => t.title === root.title)
-    readonly property string tracksDir: Directories.methods.trim(opts.players.main.musicDirectory || Directories.standard.music)
-    readonly property string tracksUrl: Qt.resolvedUrl(opts.players.main.musicDirectory)
-    readonly property var library: opts.players.main.library
-    readonly property alias queue: queueFetcher.data
+    readonly property string tracksDir: Directories.methods.trim(opts.directory || Directories.standard.music)
+    readonly property string tracksUrl: Qt.resolvedUrl(opts.directory)
+    readonly property var library: libraryFetcher?.data ?? []
+    readonly property var queue: queueFetcher?.data ?? []
 
-    
+
     property int selectedPlayerIndex: 0
     readonly property bool _playing: player && isPlaying(root.player)
     readonly property var player: players[selectedPlayerIndex] ?? null
@@ -35,16 +35,20 @@ Singleton {
     readonly property var players: Mpris?.players?.values
     readonly property var baseCmd: ["python3", Directories.scriptsDir + "/beats_daemon.py"]
     onOptsChanged: _daemonCmd(["refresh-config"])
-    onPlayersChanged: if (players && players.length > -1) {
-        root.selectedPlayerIndex = players.findIndex(p => p.isPlaying);
-    }
+    onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
 
-    function getPlayingIndex() {
-        console.error(players.filter(p => p.isPlaying).length);
+    function playerIndex() {
+        if (!players || players.length === 0)
+            return 0;
+        const baetsIndex = players.findIndex(p => /beats/.test(p?.dbusName.toLowerCase()));
+        if (baetsIndex >= 0)
+        return baetsIndex;
+        const playingIndex = players.findIndex(p => p.isPlaying);
+        return playingIndex >= 0 ? playingIndex : 0;
     }
 
     function restartDaemon() {
-        NoonUtils.execDetached(["killall", "-9", "mpd"]);
+        _daemonCmd(["kill"]);
         Qt.callLater(() => _daemonCmd(["init"]));
     }
 
@@ -70,15 +74,15 @@ Singleton {
     }
 
     function switchToFolder(folder) {
-        Mem.beats.players.main.musicDirectory = folder;
+        Mem.beats.directory = folder;
     }
 
     function playTrackByFile(file) {
-        _daemonCmd(["--player", "main", "play-by-name", "--name", `${file}`]);
+        _daemonCmd(["play-by-name", "--name", `${file}`]);
     }
 
     function playCustomPlaylist(...args) {
-        _daemonCmd(["--player", "main", "build-playlist", "--list", args.join(",")]);
+        _daemonCmd(["build-playlist", "--list", args.join(",")]);
     }
 
     function _daemonCmd(args) {
@@ -87,10 +91,6 @@ Singleton {
         mainProc.running = true;
     }
 
-    function terminatePlayer() {
-        if (root.player)
-            NoonUtils.execDetached(["killall", root.player.dbusName]);
-    }
     function stopPlayer() {
         root.player.stop();
     }
@@ -108,10 +108,6 @@ Singleton {
         NoonUtils.execDetached(["mpv", `${decodeURI(url)}`]);
     }
 
-    function killPreview() {
-        _daemonCmd(["--player", "preview", "stop"]);
-    }
-
     function currentTrackProgressRatio(p = root.player) {
         const pos = p?.position ?? 0;
         const len = p?.length ?? 0;
@@ -120,7 +116,7 @@ Singleton {
     }
 
     function moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx) {
-        _daemonCmd(["--player", "main", "queue-move", "--index", `${fromMpdIdx}`, "--new-index", `${toMpdIdx}`]);
+        _daemonCmd(["queue-move", "--index", `${fromMpdIdx}`, "--new-index", `${toMpdIdx}`]);
         moveQueueTimer.restart();
     }
 
@@ -136,7 +132,7 @@ Singleton {
     }
 
     function getQueue() {
-        if (queueFetcher.running || !root.player.dbusName.includes("mpd"))
+        if (queueFetcher.running || !root.player.dbusName.includes("mpv"))
             return;
         queueFetcher.running = true;
     }
@@ -152,7 +148,7 @@ Singleton {
     }
 
     function openUrl() {
-        NoonUtils.execDetached(["gio", "open", "http://localhost:" + opts.players.webClient.port]);
+        NoonUtils.execDetached(["gio", "open", "http://localhost:" + opts.webClientPort]);
     }
     function openWebClient() {
         webClientProc.running = true;
@@ -183,24 +179,22 @@ Singleton {
     }
     Process {
         id: webClientProc
-        command: [...baseCmd, "serve", "--port", opts.players.webClient.port]
+        command: [...baseCmd, "serve", "--port", opts.webClientPort]
         onStarted: openUrl()
     }
     Process {
         id: mainProc
-        command: [...baseCmd, "--player", "main", ""]
+        command: [...baseCmd, ""]
     }
 
     Fetcher {
         id: libraryFetcher
-        command: [...baseCmd, "--player", "main", "library"]
-        onDataChanged: if (data)
-            opts.players.main.library = data
+        command: [...baseCmd, "library"]
     }
 
     Fetcher {
         id: queueFetcher
-        command: [...baseCmd, "queue", "--player", "main"]
+        command: [...baseCmd, "queue"]
     }
 
     Timer {

@@ -80,7 +80,7 @@ StyledRect {
         readonly property int columns: controls.listMode ? 1 : root.expanded ? 4 : 2
         cellWidth: width / columns
         cellHeight: controls.listMode ? 76 : cellWidth
-        property string libPath: Mem.beats.players.main.musicDirectory + "/"
+        property string libPath: Mem.beats.directory + "/"
         delegate: TrackItem {
             
             listMode: controls?.listMode ?? false

@@ -50,13 +50,14 @@ StyledRect {
         }
 
         StyledTextArea {
-            visible: text.length.trim() > 0
+            visible: text.trim().length > 0
             font: Fonts.request("reading", "large")
             text: modelData?.content ?? ""
             color: Colors.colOnLayer2
             Layout.fillWidth: true
             Layout.fillHeight: true
             readOnly: true
+            background: null
             textFormat: TextEdit.MarkdownText
         }
 

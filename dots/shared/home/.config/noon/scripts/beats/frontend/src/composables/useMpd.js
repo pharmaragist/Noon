@@ -2,13 +2,9 @@ import { reactive, ref, shallowRef } from 'vue'
 
 const STORAGE_KEY = 'beats-player'
 
-class MPDClient {
+class BeatsClient {
   ws = null
   player = null
-  _password = ''
-  _pending = []
-  _accResp = []
-  _poller = null
   _reconnectTimer = null
 
   connected = ref(false)
@@ -19,42 +15,33 @@ class MPDClient {
   onConnected = null
   onDisconnected = null
 
-  connect(player, password = '') {
+  connect(player) {
     if (this.ws) return
     this.player = player
-    this._password = password
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ player, password }))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ player }))
     this.ws = new WebSocket(`ws://${location.host}/${player}`)
-    this.ws.onopen = async () => {
+    this.ws.onopen = () => {
       this.connected.value = true
-      if (password) await this._send(`password ${password}`)
       this.onConnected?.()
-      this._poll()
-    }
-    this.ws.onclose = () => {
-      this.connected.value = false
-      clearInterval(this._poller)
-      this._poller = null
-      this._accResp = []
-      while (this._pending.length) this._pending.shift()(null)
-      this.onDisconnected?.()
-      if (this.player) {
-        this._reconnectTimer = setTimeout(() => {
-          this.ws = null
-          this.connect(this.player, this._password)
-        }, 3000)
-      }
     }
     this.ws.onmessage = (e) => this._onMsg(e.data)
+    this.ws.onclose = () => {
+      this.connected.value = false
+      this.ws = null
+      this.onDisconnected?.()
+      if (this.player) {
+        this._reconnectTimer = setTimeout(() => this.connect(this.player), 3000)
+      }
+    }
   }
 
   restore() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return false
     try {
-      const { player, password } = JSON.parse(raw)
+      const { player } = JSON.parse(raw)
       if (player) {
-        this.connect(player, password || '')
+        this.connect(player)
         return true
       }
     } catch (_) {}
@@ -63,8 +50,6 @@ class MPDClient {
 
   disconnect() {
     clearTimeout(this._reconnectTimer)
-    clearInterval(this._poller)
-    this._poller = null
     if (this.ws) {
       this.ws.onclose = null
       this.ws.close()
@@ -72,7 +57,6 @@ class MPDClient {
     }
     this.connected.value = false
     this.player = null
-    this._password = ''
     this.queue.value = []
     this.currentSong.value = {}
     for (const k of Object.keys(this.status)) delete this.status[k]
@@ -81,56 +65,85 @@ class MPDClient {
   }
 
   _onMsg(raw) {
-    if (raw === 'OK') {
-      const cb = this._pending.shift()
-      if (cb) cb(this._accResp)
-      this._accResp = []
-    } else if (raw.startsWith('ACK ')) {
-      this._pending.shift()?.(null)
-      this._accResp = []
-    } else {
-      this._accResp.push(raw)
-    }
-  }
-
-  _send(cmd) {
-    return new Promise((resolve) => {
-      this._pending.push(resolve)
-      this.ws.send(cmd + '\n')
-    })
-  }
-
-  cmd(...args) {
-    return this._send(args.join(' '))
-  }
-
-  do(cmd, ...args) {
-    return this.cmd(cmd, ...args).then(() => this.refresh())
-  }
-
-  async refresh() {
-    const [sStat, sSong] = await Promise.all([this.cmd('status'), this.cmd('currentsong')])
-    if (sStat) Object.assign(this.status, this._parseKv(sStat))
-    if (sSong) this.currentSong.value = this._parseKv(sSong)
-    else this.currentSong.value = {}
+    let msg
     try {
-      const res = await fetch('/api/queue')
-      if (res.ok) this.queue.value = await res.json()
-    } catch (_) {}
-  }
-
-  _parseKv(lines) {
-    const map = {}
-    for (const l of lines) {
-      const idx = l.indexOf(': ')
-      if (idx > 0) map[l.slice(0, idx)] = l.slice(idx + 2)
+      msg = JSON.parse(raw)
+    } catch (_) {
+      return
     }
-    return map
+    if (msg.type === 'status') {
+      const { type, ...fields } = msg
+      Object.assign(this.status, fields)
+      this.currentSong.value = {
+        title: fields.title,
+        artist: fields.artist,
+        album: fields.album,
+        file: fields.file,
+        duration: fields.duration,
+      }
+    } else if (msg.type === 'queue') {
+      this.queue.value = msg.queue
+    }
   }
 
-  _poll() {
-    this.refresh()
-    this._poller = setInterval(() => this.refresh(), 1000)
+  _send(cmd, a, b) {
+    if (this.ws) this.ws.send(JSON.stringify({ cmd, a, b }))
+  }
+
+  toggle() {
+    this._send(this.status.state === 'play' ? 'pause' : 'resume')
+  }
+
+  pause() {
+    this._send('pause')
+  }
+
+  resume() {
+    this._send('resume')
+  }
+
+  next() {
+    this._send('next')
+  }
+
+  prev() {
+    this._send('prev')
+  }
+
+  stop() {
+    this._send('stop')
+  }
+
+  seekTo(pos) {
+    this._send('seekTo', pos)
+  }
+
+  seekBy(delta) {
+    this._send('seekBy', delta)
+  }
+
+  setVolume(v) {
+    this._send('setVolume', Math.max(0, Math.min(100, Math.round(v))))
+  }
+
+  setRepeat(v) {
+    this._send('setRepeat', !!v)
+  }
+
+  playIndex(i) {
+    this._send('playIndex', i)
+  }
+
+  playByName(name) {
+    this._send('playByName', name)
+  }
+
+  playFiles(paths) {
+    this._send('playFiles', paths)
+  }
+
+  queueMove(from, to) {
+    this._send('queueMove', from, to)
   }
 
   coverUrl(rel) {
@@ -138,7 +151,7 @@ class MPDClient {
   }
 }
 
-const mpd = new MPDClient()
+const beats = new BeatsClient()
 export function useMpd() {
-  return mpd
+  return beats
 }

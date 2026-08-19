@@ -30,12 +30,6 @@ ColumnLayout {
         button.onCheckedChanged: () => Mem.states.services.beats.shuffleHits = button.checked
     }
 
-    OptionSwitch {
-        title: "Normalize Audio"
-        button.checked: Mem.beats.players.main.volumeNormalization.enabled
-        button.onCheckedChanged: () => Mem.beats.players.main.volumeNormalization.enabled = button.checked
-    }
-
     component OptionCombo: RowLayout {
         property alias values: combo.model
         property alias title: title.text
