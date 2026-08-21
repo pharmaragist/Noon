@@ -10,12 +10,8 @@ import qs.common.functions
 import qs.services
 import qs.store
 
-AppWindow {
+Item {
     id: root
-    visible: true
-    maximumSize: Qt.size(450, 800)
-    minimumSize: Qt.size(450, 800)
-    title: "Beam Cheats"
 
     readonly property var current: BeamData.config
     readonly property var array: {

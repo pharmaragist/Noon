@@ -194,6 +194,11 @@ Singleton {
             searchable: true,
             stealth: true
         },
+        "Hints": {
+            componentPath: "etc/HintsLoader",
+            shape: "Clover8Leaf",
+            stealth: true
+        },
         "Bars": {
             componentPath: "etc/BarSwitcher",
             shape: "Ghostish",

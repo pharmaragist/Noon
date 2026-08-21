@@ -18,7 +18,7 @@ PanelRect {
         BeamData.executeCommand();
         BeamData.reset();
         hide();
-        inputField.text = ""
+        inputField.text = "";
     }
 
     Binding {
@@ -56,8 +56,8 @@ PanelRect {
         MouseArea {
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: Globals.main.beam.showCheats = !Globals.main.beam.showCheats
             cursorShape: Qt.PointingHandCursor
+            onClicked: Globals.main.beam.reason = "hints"
 
             StyledToolTip {
                 content: "Need Help ? Click for cheats"

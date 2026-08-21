@@ -62,11 +62,6 @@ Variants {
                 opts.show = false;
         }
 
-        WidgetLoader {
-            active: Globals.main.beam.showCheats
-            HintsWindow {}
-        }
-
         ScrimOverlay {
             shown: !!root?.currentModeData?.dim
             onHide: root.hide()

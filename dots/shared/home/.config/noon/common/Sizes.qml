@@ -32,6 +32,7 @@ Singleton {
         readonly property size popupMaxSize: Qt.size(1200, 600)
         readonly property size screenshot: Qt.size(340, 60)
         readonly property size weather: Qt.size(440, 300)
+        readonly property size hints: Qt.size(1200, 600)
         readonly property size music: Qt.size(400, 160)
         readonly property size drop: Qt.size(600, 280)
         readonly property size dictate: Qt.size(200, 55)

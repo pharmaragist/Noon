@@ -67,6 +67,7 @@ Singleton {
     readonly property QtObject main: QtObject {
 
         property var sidebar
+        property var sidebarTempItem
         property var lock
         property var dock
 
@@ -79,7 +80,6 @@ Singleton {
 
         property QtObject beam: QtObject {
             property bool show: false
-            property bool showCheats: false
             property string reason: "default"
         }
 

@@ -10,10 +10,6 @@ import qs.common.utils
 import qs.services
 import qs.store
 
-
-
-
-
 RowLayout {
     spacing: Padding.large
 
@@ -104,7 +100,6 @@ RowLayout {
                         font: Fonts.request("reading", 11)
                         color: view.colors.colSubtext
                         text: {
-                            
                             const byIdentity = view.player?.identity;
                             const byDBus = view.player?.dbusName?.replace("org.mpris.MediaPlayer2.", "");
                             const byIndex = "Player " + (BeatsService.selectedPlayerIndex + 1);
@@ -259,9 +254,7 @@ RowLayout {
                     property: "height"
                     to: iconSize
                     duration: Animations.durations.large
-                }            
-                
-
+                }
             }
 
             onSelectedIndexChanged: {
@@ -299,7 +292,7 @@ RowLayout {
                     MouseArea {
                         cursorShape: Qt.PointingHandCursor
                         anchors.fill: parent
-                        
+
                         onClicked: BeatsService.selectedPlayerIndex = index
                         StyledToolTip {
                             extraVisibleCondition: parent.containsMouse

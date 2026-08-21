@@ -394,6 +394,13 @@ Singleton {
             size: sizes.music,
             component: "MusicContentView"
         },
+        "hints": {
+            dim: true,
+            radius: 48,
+            timeout: false,
+            size: sizes.hints,
+            component: "HintsContentView"
+        },
         "weather": {
             dim: true,
             radius: 48,
