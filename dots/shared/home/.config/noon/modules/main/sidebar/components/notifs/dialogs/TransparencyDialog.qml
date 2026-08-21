@@ -34,6 +34,15 @@ BottomDialog {
                 checked: Mem.options.appearance.transparency.enabled
                 action: Mem.options.appearance.transparency.enabled = checked
             }
+
+            OptionsSection {
+                icon: "blur_on"
+                title: "Blur Shell"
+                enabled: !Globals.conservativeMode
+                checked: Mem.hypr.blur
+                action: Mem.hypr.blur = !Mem.hypr.blur
+            }
+
             OptionsSection {
                 icon: "rocket_launch"
                 title: "Blur Applications"

@@ -15,7 +15,6 @@ BarGroup {
         extraVisibleCondition: hoverTarget.containsMouse
     }
 
-    
     function getItemPropById(id, prop) {
         const item = content.find(i => i.id === id);
         if (!!item[prop])
@@ -68,6 +67,7 @@ BarGroup {
         {
             id: "bluetooth",
             dialog: "Bluetooth",
+            visible: BluetoothService?.connectedDevices?.length > 0,
             icon: BluetoothService.currentDeviceIcon,
             text: () => {
                 if (!BluetoothService.connectedDevices.length > 0)

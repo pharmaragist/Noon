@@ -20,7 +20,7 @@ StyledPanel {
 
     name: "bar"
     shell: "noon"
-    _layer: autoHide ? "Top" : "Bottom"
+    _layer: "Top"
 
     implicitWidth: barWidth + 100
     exclusiveZone: autoHide ? (hovered && !useBg ? barWidth : peekSize) : barWidth

@@ -34,7 +34,9 @@ Singleton {
 
     readonly property var players: Mpris?.players?.values
     readonly property var baseCmd: ["python3", Paths.scriptsDir + "/beats_service.py"]
-    onOptsChanged: _daemonCmd(["refresh-config"])
+
+    Component.onCompleted: _daemonCmd(["init"])
+    onOptsChanged: if (!!opts) _daemonCmd(["refresh-config"])
     onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
 
     function playerIndex() {
@@ -65,7 +67,7 @@ Singleton {
         refreshTracks();
         NoonUtils.inlineTimer(() => {
             libraryFetcher.running = true;
-        }, 200);
+        }, 400);
     }
 
     function isPlaying(player) {
@@ -152,13 +154,14 @@ Singleton {
     function openUrl() {
         NoonUtils.execDetached(["gio", "open", "http://localhost:" + opts.webClientPort]);
     }
+
     function openWebClient() {
-        webClientProc.running = true;
-        webClientProc.onRunningChanged.connect(() => {
-            if (webClientProc.running)
+        NoonUtils.execDetached([...baseCmd, "serve", "--port", opts.webClientPort])
+        NoonUtils.inlineTimer(()=> {
                 openUrl();
-        });
+        },200)
     }
+
     function addNewFolder() {
         addFolderDialog.open();
     }
@@ -179,11 +182,7 @@ Singleton {
         running: root.player && root._playing
         onTriggered: root.player.positionChanged()
     }
-    Process {
-        id: webClientProc
-        command: [...baseCmd, "serve", "--port", opts.webClientPort]
-        onStarted: openUrl()
-    }
+
     Process {
         id: mainProc
         command: [...baseCmd, ""]
