@@ -16,9 +16,6 @@ Scope {
             NoonUtils.requestDialog("dino");
         }
 
-        function build_shaders(): void {
-            Shaders.rebuild();
-        }
         function open_note(fileName: string): void {
             NotesService.openNote(fileName);
         }

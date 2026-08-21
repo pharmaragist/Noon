@@ -24,7 +24,5 @@ Loader {
             color: root.toggled ? Colors.colOnPrimary : Colors.colOnSecondaryContainer
             text: root.icon
         }
-
     }
-
 }

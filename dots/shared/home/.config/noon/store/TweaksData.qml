@@ -16,25 +16,11 @@ Singleton {
             "shell": "Global",
             "items": [
                 {
-                    "icon": "blur_on",
-                    "name": "Use Shaders",
-                    "hint": "Enables Shaders On Panels",
-                    "key": "appearance.effects.shaders"
-                },
-                {
                     "icon": "animation",
                     "name": "Animation Curve",
                     "type": "combobox",
                     "values": Object.keys(Animations.curves),
                     "key": "appearance.animations.curve"
-                },
-                {
-                    "icon": "blur_on",
-                    "name": "Shader Type",
-                    "hint": "Effect Style by Shaders",
-                    "key": "appearance.effects.currentShader",
-                    "type": "combobox",
-                    "values": Shaders.available
                 },
                 {
                     "icon": "rounded_corner",
