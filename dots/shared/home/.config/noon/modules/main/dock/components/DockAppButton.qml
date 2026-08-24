@@ -1,6 +1,3 @@
-import qs.services
-import qs.common
-import qs.common.widgets
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
@@ -9,6 +6,10 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 
+import qs.services
+import qs.common
+import qs.common.widgets
+
 DockButton {
     id: root
 
@@ -16,6 +17,7 @@ DockButton {
     property real countDotWidth: 10
 
     property var desktopEntry: DesktopEntries.byId(appToplevel.appId)
+    readonly property var previewSource: appToplevel.toplevels.find(t => t.activated === true) ?? appToplevel.toplevels[0] ?? null
     colBackground: "transparent"
 
     StyledToolTip {
@@ -72,14 +74,28 @@ DockButton {
     contentItem: Item {
         anchors.fill: parent
 
-        Loader {
-            id: iconImageLoader
-            anchors.centerIn: parent
-            width: root.iconSize - Padding.large
-            height: root.iconSize - Padding.large
-            sourceComponent: StyledIconImage {
-                source: NoonUtils.iconPath(root.desktopEntry ? (root.desktopEntry.icon || root.desktopEntry.genericIcon || "applications-system") : appToplevel.appId)
+        StyledScreencopyView {
+            anchors.fill: parent
+            captureSource: root.previewSource
+            visible: root.previewSource !== null
+        }
+
+        StyledIconImage {
+            id: iconImage
+
+            readonly property real margin: Padding.verysmall
+            readonly property bool showBadge: root.previewSource !== null
+
+            implicitSize: showBadge ? 14 : root.iconSize - Padding.large
+            x: showBadge ? parent.width - implicitSize - margin : (parent.width - implicitSize) / 2
+            y: showBadge ? parent.height - implicitSize - margin : (parent.height - implicitSize) / 2
+            Behavior on x {
+                Anim {}
             }
+            Behavior on y {
+                Anim {}
+            }
+            source: NoonUtils.iconPath(root.desktopEntry ? (root.desktopEntry.icon || root.desktopEntry.genericIcon || "applications-system") : appToplevel.appId)
         }
 
         RowLayout {
@@ -87,7 +103,7 @@ DockButton {
             height: countDotHeight
             width: countDotWidth * Math.min(appToplevel.toplevels.length, 2)
             anchors {
-                top: iconImageLoader.bottom
+                top: iconImage.bottom
                 topMargin: countDotHeight
                 horizontalCenter: parent.horizontalCenter
             }

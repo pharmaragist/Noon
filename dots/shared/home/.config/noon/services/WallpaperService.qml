@@ -71,10 +71,6 @@ Singleton {
         _cmd("mode", "toggle");
     }
 
-    function resetWallpaper() {
-        applyWallpaper(Paths.wallpapers.defaultBg);
-    }
-
     function _cmd(...args) {
         if (mainProc.running)
             mainProc.running = false;

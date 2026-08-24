@@ -3,6 +3,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -86,8 +87,6 @@ def _process_chunk(args: tuple) -> list:
         if not os.path.exists(out_path):
             img_hash = hashlib.md5(data).hexdigest()[:16]
             if img_hash in local_dedup:
-                import shutil
-
                 try:
                     os.link(local_dedup[img_hash], out_path)
                 except OSError:
@@ -132,15 +131,13 @@ def _scan_mtimes(music_dir: str) -> dict:
 def _read_tags(music_dir: str, rel: str) -> dict | None:
     abs_path = os.path.join(music_dir, rel)
     audio = None
-    try:
-        audio = File(abs_path, easy=True)
-    except Exception:
-        pass
-    if audio is None:
+    for easy in (True, False):
         try:
-            audio = File(abs_path)
+            audio = File(abs_path, easy=easy) or None
         except Exception:
-            return None
+            audio = None
+        if audio is not None:
+            break
     if audio is None:
         return None
 
@@ -181,22 +178,17 @@ class LibraryManager:
             music_dir = conf_require("directory")["directory"]
         self.music_dir = os.path.expanduser(music_dir)
         self.covers_dir = os.path.join(self.music_dir, ".coverarts")
-
-    def _cover_map_path(self) -> str:
-        return os.path.join(self.music_dir, ".covermap.json")
+        self.cover_map_path = os.path.join(self.music_dir, ".covermap.json")
 
     def _load_cover_map(self) -> dict:
-        path = self._cover_map_path()
-        if os.path.exists(path):
-            try:
-                with open(path) as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return {}
+        try:
+            with open(self.cover_map_path) as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {}
 
     def _save_cover_map(self, cover_map: dict):
-        with open(self._cover_map_path(), "w") as f:
+        with open(self.cover_map_path, "w") as f:
             json.dump(cover_map, f, indent=2, ensure_ascii=False)
 
     def build_covers(self):
@@ -274,29 +266,28 @@ class LibraryManager:
                     continue
                 track["last_modified"] = mtimes[rel]
                 tracks.append(track)
-            cover_map = self._load_cover_map()
-            for t in tracks:
-                t["cover"] = cover_map.get(t["file"], "")
             with open(TEMP_FILE, "w", encoding="utf-8") as f:
                 json.dump(tracks, f, ensure_ascii=False, indent=2)
-        else:
-            cover_map = self._load_cover_map()
-            for t in tracks:
-                t["cover"] = cover_map.get(t["file"], "")
+        cover_map = self._load_cover_map()
+        for t in tracks:
+            t["cover"] = cover_map.get(t["file"], "")
         tracks.sort(key=lambda t: t["last_modified"], reverse=True)
         return tracks
 
     def track_index(self) -> dict:
         return {t["file"]: t for t in self.get_library()}
 
+    def _unique(self, field: str) -> list:
+        return sorted({t[field] for t in self.get_library() if t[field]})
+
     def list_artists(self) -> list:
-        return sorted({t["artist"] for t in self.get_library() if t["artist"]})
+        return self._unique("artist")
 
     def list_albums(self) -> list:
-        return sorted({t["album"] for t in self.get_library() if t["album"]})
+        return self._unique("album")
 
     def list_genres(self) -> list:
-        return sorted({t["genre"] for t in self.get_library() if t["genre"]})
+        return self._unique("genre")
 
 
 def track_index(music_dir: str) -> dict:

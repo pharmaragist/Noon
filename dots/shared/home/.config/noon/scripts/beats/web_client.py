@@ -27,6 +27,11 @@ def _coerce(v):
         return v
 
 
+def _library():
+    from .library import LibraryManager
+    return LibraryManager()
+
+
 def _load_cover(path: str) -> tuple[bytes, str]:
     mime, _ = mimetypes.guess_type(path)
     with open(path, "rb") as f:
@@ -69,18 +74,13 @@ class BeatsWebServer:
             return _resp(200, f.read(), mime or "application/octet-stream", cache)
 
     def _api(self, path: str, qs: dict) -> Response | None:
-        if path == "/api/library":
-            from .library import LibraryManager
-            lib = LibraryManager()
-            return _resp(200, json.dumps(lib.get_library()), "application/json")
-
-        if path == "/api/status":
-            return _resp(200, json.dumps(self.controller.handle("status")),
-                         "application/json")
-
-        if path == "/api/queue":
-            return _resp(200, json.dumps(self.controller.handle("queue")),
-                         "application/json")
+        json_endpoints = {
+            "/api/library": lambda: _library().get_library(),
+            "/api/status": lambda: self.controller.handle("status"),
+            "/api/queue": lambda: self.controller.handle("queue"),
+        }
+        if path in json_endpoints:
+            return _resp(200, json.dumps(json_endpoints[path]()), "application/json")
 
         if path == "/api/refresh-config":
             self.mpv.refresh_config()
@@ -125,19 +125,17 @@ class BeatsWebServer:
             rel = urllib.parse.unquote(path.removeprefix("/api/covers/"))
             if not rel:
                 return _resp(400, "Bad Request")
-            from .library import LibraryManager
-            lib = LibraryManager()
+            lib = _library()
             music_dir = lib.music_dir
-            cover_map = lib._load_cover_map()
-
-            cover_rel = cover_map.get(rel)
+            cover_rel = lib._load_cover_map().get(rel)
             if not cover_rel:
                 dir_path = os.path.dirname(os.path.join(music_dir, rel))
                 for name in ("cover.jpg", "cover.png", "folder.jpg", "folder.png",
                              "AlbumArt.jpg", "AlbumArt.png", "front.jpg", "front.png"):
-                    candidate = os.path.join(dir_path, name)
-                    if os.path.isfile(candidate):
-                        cover_rel = os.path.relpath(candidate, music_dir)
+                    if os.path.isfile(os.path.join(dir_path, name)):
+                        cover_rel = os.path.relpath(
+                            os.path.join(dir_path, name), music_dir
+                        )
                         break
 
             if not cover_rel:
@@ -246,8 +244,7 @@ class BeatsWebServer:
 
     async def start(self):
         from .mpris import MprisService
-        from .library import LibraryManager
-        lib = LibraryManager()
+        lib = _library()
 
         def cover_url(rel: str) -> str:
             if not rel:

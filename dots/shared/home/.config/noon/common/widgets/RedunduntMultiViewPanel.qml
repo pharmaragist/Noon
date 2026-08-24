@@ -139,7 +139,7 @@ SidebarItemContainer {
             }
         }
     }
-    
+
     Connections {
         target: root.item
         ignoreUnknownSignals: true

@@ -28,6 +28,10 @@ Item {
         return map;
     }
 
+    readonly property int prefixColW: 100
+    readonly property int nameColW: 200
+    readonly property int colSpacing: Padding.large
+
     StyledRect {
         id: bg
         z: 0
@@ -37,7 +41,7 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Padding.large
-        spacing: Padding.huge
+        spacing: Padding.normal
 
         PageHeader {
             title: "Beam Cheatsheet"
@@ -46,163 +50,149 @@ Item {
 
         StyledRect {
             color: Colors.colLayer1
-            radius: Rounding.huge
+            radius: Rounding.silly + 6
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            StyledListView {
-                id: list
+            Item {
+                id: content
                 anchors.fill: parent
-                anchors.margins: Padding.huge
-                model: root.array
-                radius: Rounding.huge
-                clip: true
-                hint: true
-                hinter.color: Colors.colLayer1
-                spacing: Padding.normal
+                anchors.margins: Padding.large
 
-                delegate: StyledRect {
-                    id: entry
-                    required property var modelData
-                    required property int index
-                    anchors.left: parent?.left
-                    anchors.right: parent?.right
-                    implicitHeight: entryContent.implicitHeight + Padding.massive
-                    color: Colors.colLayer2
-                    radius: Rounding.large
+                RowLayout {
+                    id: header
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: Padding.normal
+                    spacing: root.colSpacing
 
-                    ColumnLayout {
-                        id: entryContent
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.margins: Padding.huge
-                        spacing: Padding.large
+                    StyledText {
+                        Layout.preferredWidth: root.prefixColW
+                        text: "Prefix"
+                        font: Fonts.request("title", 18)
+                        color: Colors.colSubtext
+                    }
 
-                        RowLayout {
-                            spacing: Padding.huge
+                    StyledText {
+                        Layout.preferredWidth: root.nameColW
+                        text: "Name"
+                        font: Fonts.request("title", 18)
+                        color: Colors.colSubtext
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: "Description"
+                        font: Fonts.request("title", 18)
+                        color: Colors.colSubtext
+                    }
+                }
+
+                StyledListView {
+                    id: list
+                    anchors.top: header.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.topMargin: Padding.huge
+                    model: root.array
+                    clip: true
+                    hint: true
+                    hinter.color: Colors.colLayer1
+                    spacing: Padding.large
+
+                    delegate: RowLayout {
+                        id: entry
+
+                        required property var modelData
+                        readonly property var subs: entry.modelData?.subStates ? ObjectUtils.arrayFrom(entry.modelData.subStates, "name").filter(i => !!i.description && i.prefix) : []
+
+                        anchors.left: parent?.left
+                        anchors.right: parent?.right
+                        anchors.margins: Padding.normal
+                        spacing: root.colSpacing
+
+                        StyledText {
+                            Layout.preferredWidth: root.prefixColW
+                            Layout.alignment: Qt.AlignTop
+                            text: entry.modelData?.name !== BeamData.defaultState ? (entry.modelData?.prefix ?? "") : "Default"
+                            font: Fonts.request("title", 18)
+                            color: Colors.colPrimary
+                        }
+
+                        ColumnLayout {
                             Layout.fillWidth: true
+                            Layout.minimumWidth: root.nameColW
+                            Layout.maximumWidth: root.nameColW
+                            Layout.alignment: Qt.AlignTop
+                            spacing: Padding.small
 
-                            Item {
-                                id: prefixIconContainer
-                                Layout.alignment: Qt.AlignTop
-                                implicitWidth: 54
-                                implicitHeight: 54
-                                visible: modelData?.name !== BeamData.defaultState
-
-                                MaterialShapeWrappedSymbol {
-                                    anchors.fill: parent
-                                    text: (hoverHandler.containsMouse ? modelData?.icon : modelData?.prefix) ?? ""
-                                    font: Fonts.request((hoverHandler.containsMouse ? "materialIcons" : "mono"), 20)
-                                    _shape: modelData?.shape ?? "Pill"
-                                    fill: 1
-                                    color: hoverHandler.containsMouse ? Colors.colPrimary : Colors.colPrimaryContainer
-                                    colSymbol: hoverHandler.containsMouse ? Colors.colOnPrimary : Colors.colOnPrimaryContainer
-
-                                    Behavior on opacity {
-                                        Anim {}
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: hoverHandler
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                }
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: methods.capitalizeFirstLetter(entry.modelData?.name) ?? " "
+                                font: Fonts.request("title", 18)
+                                color: Colors.colOnLayer1
                             }
 
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: Padding.small
+                            Repeater {
+                                model: entry.subs
 
-                                StyledText {
+                                delegate: StyledText {
+                                    required property var modelData
+
                                     Layout.fillWidth: true
-                                    horizontalAlignment: Text.AlignLeft
-                                    text: methods.capitalizeFirstLetter(modelData?.name) ?? ""
-                                    font: Fonts.request("title", 24)
-                                    color: Colors.colOnLayer2
+                                    text: modelData?.prefix ?? "none"
+                                    font: Fonts.request("mono", 24)
+                                    color: Colors.colSecondary
                                 }
+                            }
+                        }
 
-                                StyledText {
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: Padding.tiny
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: methods.capitalizeFirstLetter(entry.modelData?.description) ?? ""
+                                font: Fonts.request("reading", 16)
+                                color: Colors.colSubtext
+                                truncate: true
+                            }
+
+                            Repeater {
+                                model: entry.subs
+
+                                delegate: StyledText {
+                                    required property var modelData
+
                                     Layout.fillWidth: true
-                                    horizontalAlignment: Text.AlignLeft
-                                    text: methods.capitalizeFirstLetter(modelData?.description) ?? ""
-                                    font: Fonts.request("reading", 18)
+                                    text: modelData?.description ?? ""
+                                    font: Fonts.request("main", 14)
                                     color: Colors.colSubtext
                                     wrapMode: Text.Wrap
                                 }
                             }
                         }
-
-                        RowLayout {
-                            visible: !!modelData?.subStates
-                            Layout.fillWidth: true
-                            Layout.leftMargin: Padding.huge + 54 + Padding.huge
-                            spacing: Padding.normal
-
-                            Rectangle {
-                                Layout.fillHeight: true
-                                width: 2
-                                radius: 1
-                                color: Colors.colOutline
-                            }
-
-                            ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 4
-
-                                Repeater {
-                                    id: subStatesRepeater
-                                    model: ObjectUtils.arrayFrom(modelData?.subStates, "name").filter(i => !!i.description && i.prefix)
-                                    delegate: StyledRect {
-                                        id: subState
-                                        required property var modelData
-                                        required property int index
-                                        Layout.fillWidth: true
-                                        Layout.preferredHeight: subStateContent.implicitHeight + Padding.large
-                                        color: Colors.colLayer3
-                                        radius: Rounding.normal
-
-                                        RowLayout {
-                                            id: subStateContent
-                                            anchors.left: parent.left
-                                            anchors.right: parent.right
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            anchors.margins: Padding.large
-                                            spacing: Padding.large
-
-                                            StyledRect {
-                                                implicitWidth: Math.max(28, subTxtPrefix.contentWidth + Padding.normal)
-                                                implicitHeight: 26
-                                                radius: Rounding.small
-                                                color: Colors.colSecondaryContainer
-
-                                                StyledText {
-                                                    id: subTxtPrefix
-                                                    text: subState.modelData?.prefix ?? ""
-                                                    color: Colors.colOnSecondaryContainer
-                                                    anchors.centerIn: parent
-                                                    font: Fonts.request("mono", 14, {
-                                                        weight: Font.DemiBold
-                                                    })
-                                                }
-                                            }
-
-                                            StyledText {
-                                                text: subState.modelData?.description ?? ""
-                                                color: Colors.colOnLayer3
-                                                Layout.fillWidth: true
-                                                horizontalAlignment: Text.AlignLeft
-                                                font: Fonts.request("main", 16)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
+                }
+
+                Separator {
+                    x: root.prefixColW + root.colSpacing / 2
+                }
+
+                Separator {
+                    x: root.prefixColW + root.nameColW + root.colSpacing * 1.5
                 }
             }
         }
+    }
+    component Separator: Rectangle {
+        width: 1
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        color: Colors.colOutline
+        opacity: 0.35
     }
 }

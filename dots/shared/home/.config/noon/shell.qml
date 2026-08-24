@@ -42,7 +42,7 @@ ShellRoot {
     Loader {
         active: !deload && Mem.ready
         source: "modules/" + root.currentShellPath
-        onLoaded: Globals.handle_init(root.mode)
+        onLoaded: console.log(root.mode.toUpperCase() + " Initialized");
     }
 
     WidgetLoader {

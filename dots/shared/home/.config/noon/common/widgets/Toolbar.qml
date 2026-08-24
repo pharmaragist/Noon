@@ -8,7 +8,7 @@ Item {
 
     property var colors: Colors
     property real padding: 8
-    property alias colBackground: background.color
+    property color colBackground: colors.colLayer1
     property alias spacing: toolbarLayout.spacing
     default property alias data: toolbarLayout.data
     property alias radius: background.radius
@@ -20,7 +20,7 @@ Item {
         id: background
 
         anchors.fill: parent
-        colBackground: root.colors.colLayer1
+        colBackground: root.colBackground
         implicitHeight: Math.max(toolbarLayout.implicitHeight + root.padding * 2, 56)
         implicitWidth: toolbarLayout.implicitWidth + root.padding * 2
         radius: height / 2

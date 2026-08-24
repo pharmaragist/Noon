@@ -32,7 +32,7 @@ shadows_range = 30
 gaps_in = 5
 gaps_out = 20
 gaps_special = 40
-borders = 0
+borders = 1
 rounding = 27
 rounding_power = 2
 layers_alpha = 0.4
@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "right"
+bar_location = "left"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

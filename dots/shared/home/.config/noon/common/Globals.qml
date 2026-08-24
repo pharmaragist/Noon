@@ -23,16 +23,6 @@ Singleton {
             Globals.main.locked = true
     }
 
-    function handle_init(mode) {
-        FirstRunService.setup();
-        NightLightService.reload();
-        NoonUtils.playSound("device_unlocked");
-        ScreenTimeService.tracker.init(root);
-        TimerService.reload();
-        ClipboardService.refresh();
-        console.log(mode.toUpperCase() + " Initialized");
-    }
-
     readonly property QtObject common: QtObject {
         readonly property QtObject toasts: QtObject {
             property var data: []
@@ -140,6 +130,11 @@ Singleton {
 
         Component.onCompleted: {
             Globals.deload = false
+            NightLightService.reload();
+            ScreenTimeService.tracker.init(root);
+            TimerService.reload();
+            ClipboardService.refresh();
+            NoonUtils.playSound("device_unlocked");
         }
 
         function onReloadFailed(error) {

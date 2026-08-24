@@ -8,12 +8,12 @@ RedunduntMultiViewPanel {
     id: root
     path: Qt.resolvedUrl("./")
     readonly property string currentPagePath: "pages/" + (Mem.beats.options.homePageStyle ?? "MaterialNoon")
-    colors: BeatsService.colors
+    colors: BeatsService?.colors
     padding: Padding.huge
     clip: false
     tabButtonList: [
         {
-            
+
             "icon": "music_note",
             "name": "Home",
             "preload": "expanded",
@@ -34,13 +34,13 @@ RedunduntMultiViewPanel {
             "preloadData": root.expanded,
             "component": "pages/HitsPage"
         }
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     ]
     Rectangle {
         id:backdrop

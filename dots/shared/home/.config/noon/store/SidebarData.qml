@@ -17,7 +17,7 @@ Singleton {
     property var registry: ({})
     readonly property QtObject sizes: Sizes.sidebar
     readonly property list<string> appearanceModes: ["float", "sharp", "convex", "concave"]
-    readonly property var contentOptions:Mem.options.sidebar.content
+    readonly property var contentOptions: Mem.options.sidebar.content
 
     readonly property var shellReg: {
         "Apps": {
@@ -306,10 +306,12 @@ Singleton {
     function isDetached(id) {
         return SidebarData.detachedContent.includes(id);
     }
-    function currentSize(barMode, expanded, id) {
+    function currentSize(barMode, expanded, id, aux = false) {
         const content = registry[id];
         if (barMode || !content)
             return sizes.bar;
+        if (aux)
+            return (content?.baseSize ?? sizes.quarter) - sizes.bar;
         if (expanded && content.expandable)
             return content.expandSize ?? sizes.half;
         else

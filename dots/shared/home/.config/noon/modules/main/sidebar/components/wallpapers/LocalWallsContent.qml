@@ -126,6 +126,9 @@ LayerRect {
                 } else {
                     currentIndex -= root._columns;
                 }
+            } else if (event.key === Qt.Key_Delete) {
+                const selectedData = filteredModel.values[currentIndex];
+                NoonUtils.trash(selectedData.fileUrl);
             } else if (event.key === Qt.Key_Down) {
                 const next = currentIndex + root._columns;
                 if (next < count)

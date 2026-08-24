@@ -12,6 +12,29 @@ from .config import load_conf, conf_require, _write
 
 LOG_FILE = os.path.expanduser("~/.cache/noon/beats/daemon.log")
 
+# cli command -> (daemon cmd, arg field or None); None args mean no parameter
+DAEMON_COMMANDS = {
+    "play-file": ("playFile", "file"),
+    "play-url": ("playUrl", "url"),
+    "play-by-name": ("playByName", "name"),
+    "play-pause": ("playPause", None),
+    "next": ("next", None),
+    "prev": ("prev", None),
+    "stop": ("stop", None),
+    "seek": ("seekBy", "seconds"),
+    "volume": ("setVolume", "volume"),
+    "status": ("status", None),
+    "queue": ("queue", None),
+    "queue-add": ("queueAdd", "add_path"),
+    "queue-remove": ("queueRemove", "index"),
+    "queue-move": ("queueMove", "index"),  # + new-index
+    "queue-clear": ("queueClear", None),
+    "build-playlist": ("buildPlaylist", "list_titles"),
+    "refresh-config": ("refreshConfig", None),
+}
+LOCAL_COMMANDS = ["serve", "init", "kill", "fetch"]
+LIBRARY_COMMANDS = ["library", "list-artists", "list-albums", "list-genres"]
+
 
 def _proc_args(pid: int) -> list:
     try:
@@ -21,30 +44,24 @@ def _proc_args(pid: int) -> list:
         return []
 
 
-def _kill_pid(pid: int):
-    try:
-        os.kill(pid, signal.SIGKILL)
-    except (ProcessLookupError, PermissionError):
-        pass
-
-
 def _serve_pids() -> list:
     pids = []
     for entry in os.listdir("/proc"):
         if not entry.isdigit():
             continue
-        pid = int(entry)
-        args = _proc_args(pid)
-        if not args or "serve" not in args:
-            continue
-        if any(a.endswith("beats_service.py") for a in args):
-            pids.append(pid)
+        args = _proc_args(int(entry))
+        if "serve" in args and any(
+            a.endswith("beats_service.py") for a in args
+        ):
+            pids.append(int(entry))
     return pids
 
 
 def _daemon_script() -> str:
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        "beats_service.py")
+    return os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "beats_service.py",
+    )
 
 
 def init():
@@ -71,7 +88,10 @@ def init():
 
 def kill():
     for pid in _serve_pids():
-        _kill_pid(pid)
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
     time.sleep(1)
     print("All stopped.", file=sys.stderr)
 
@@ -79,8 +99,10 @@ def kill():
 def _forward(cmd: str, a=None, b=None):
     port = conf_require("webClientPort")["webClientPort"]
     if not _serve_pids():
-        print("beats daemon is not running (start it with 'serve' or 'init').",
-              file=sys.stderr)
+        print(
+            "beats daemon is not running (start it with 'serve' or 'init').",
+            file=sys.stderr,
+        )
         sys.exit(1)
     params = [("cmd", cmd)]
     if a is not None:
@@ -93,9 +115,7 @@ def _forward(cmd: str, a=None, b=None):
             f"http://127.0.0.1:{port}/api/cmd?{query}", timeout=10
         ) as resp:
             body = resp.read().decode()
-            if cmd in ("status", "queue"):
-                print(body)
-            elif body != '{"ok": true}':
+            if body != '{"ok": true}':
                 print(body)
     except Exception as e:
         print(f"daemon error: {e}", file=sys.stderr)
@@ -106,36 +126,8 @@ def main():
     parser = argparse.ArgumentParser(description="beats - mpv player controller")
     parser.add_argument("-d", "--directory", type=str, default=None,
                         help="override music directory")
-    parser.add_argument(
-        "command",
-        choices=[
-            "play-file",
-            "play-url",
-            "play-by-name",
-            "play-pause",
-            "next",
-            "prev",
-            "stop",
-            "seek",
-            "volume",
-            "status",
-            "queue",
-            "queue-add",
-            "queue-remove",
-            "queue-move",
-            "queue-clear",
-            "build-playlist",
-            "library",
-            "list-artists",
-            "list-albums",
-            "list-genres",
-            "fetch",
-            "serve",
-            "init",
-            "kill",
-            "refresh-config",
-        ],
-    )
+    parser.add_argument("command",
+                        choices=[*DAEMON_COMMANDS, *LOCAL_COMMANDS, *LIBRARY_COMMANDS])
     parser.add_argument("--port", type=int, default=8090)
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--index", type=int, default=0)
@@ -153,57 +145,30 @@ def main():
         conf["directory"] = os.path.expanduser(args.directory)
         _write(conf)
 
-    if args.command == "init":
-        init()
-        return
-
-    if args.command == "kill":
-        kill()
-        return
-
     if args.command == "serve":
         import asyncio
         from .web_client import BeatsWebServer
         asyncio.run(BeatsWebServer(args.port, args.host).start())
-        return
-
-    if args.command == "library":
-        from .library import LibraryManager
-        print(json.dumps(LibraryManager().get_library()))
-        return
-
-    if args.command in ("list-artists", "list-albums", "list-genres"):
-        from .library import LibraryManager
-        lib = LibraryManager()
-        print(json.dumps(getattr(lib, args.command)()))
-        return
-
-    if args.command == "fetch":
+    elif args.command == "init":
+        init()
+    elif args.command == "kill":
+        kill()
+    elif args.command == "fetch":
         from .library import LibraryManager
         lib = LibraryManager()
         lib.build_covers()
         lib.get_library()
         print("Fetch complete.", file=sys.stderr)
-        return
-
-    daemon = {
-        "play-file": ("playFile", args.file),
-        "play-url": ("playUrl", args.url),
-        "play-by-name": ("playByName", args.name),
-        "play-pause": ("playPause", None),
-        "next": ("next", None),
-        "prev": ("prev", None),
-        "stop": ("stop", None),
-        "seek": ("seekBy", str(args.seconds)),
-        "volume": ("setVolume", str(args.volume)),
-        "status": ("status", None),
-        "queue": ("queue", None),
-        "queue-add": ("queueAdd", args.url or args.file),
-        "queue-remove": ("queueRemove", str(args.index)),
-        "queue-move": ("queueMove", str(args.index), str(args.new_index)),
-        "queue-clear": ("queueClear", None),
-        "build-playlist": ("buildPlaylist", args.list_titles),
-        "refresh-config": ("refreshConfig", None),
-    }
-    cmd, a, *b = daemon[args.command]
-    _forward(cmd, a, b[0] if b else None)
+    elif args.command in LIBRARY_COMMANDS:
+        from .library import LibraryManager
+        attr = args.command.replace("-", "_")
+        print(json.dumps(getattr(LibraryManager(), attr)()))
+    else:
+        daemon_cmd, arg_field = DAEMON_COMMANDS[args.command]
+        a = getattr(args, arg_field) if arg_field else None
+        if arg_field == "add_path":
+            a = args.url or args.file
+        b = str(args.new_index) if args.command == "queue-move" else None
+        _forward(daemon_cmd,
+                 str(a) if isinstance(a, int) else a,
+                 b)

@@ -109,7 +109,6 @@ Item {
         const isCtrl = mods === Qt.ControlModifier;
         const isShift = mods === Qt.ShiftModifier || mods === (Qt.ControlModifier | Qt.ShiftModifier);
 
-        
         if (key === Qt.Key_Slash)
             return focusMainSearchInput(), event.accepted = true;
         if (key === Qt.Key_Escape)
@@ -119,7 +118,6 @@ Item {
             return target && changeContent(target), event.accepted = true;
         }
 
-        
         const ctrlMap = {
             [Qt.Key_O]: () => SidebarData.isExpandable(selectedCategory) && !auxVisible && (panelWindow.expanded = !panelWindow.expanded),
             [Qt.Key_P]: () => panelWindow.pinned = !panelWindow.pinned,
@@ -214,13 +212,13 @@ Item {
                     StyledLoader {
                         id: auxLoader
                         asynchronous: true
-                        visible: active
+                        visible: root.auxVisible
                         active: root.auxVisible
                         Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: SidebarData.currentSize(false, false, root.auxCategory)
+                        width: SidebarData.currentSize(false, false, root.auxCategory, true)
 
                         sourceComponent: ContentChild {
+                            anchors.margins: SidebarData.getPadding(root.auxCategory) ?? Padding.huge
                             _aux: true
                             category: auxCategory
                             colors: Colors

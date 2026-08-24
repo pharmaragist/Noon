@@ -5,10 +5,6 @@ m_bind("CTRL+Period", hl.dsp.exec_cmd("wl-paste -p | xargs -0 " .. ipc .. " noon
 m_bind("L", hl.dsp.exec_cmd(ipc .. " global lock"))
 m_bind("SHIFT+R", hl.dsp.exec_cmd(ipc .. " global pick_random_wall"))
 m_bind("ALT+D", hl.dsp.exec_cmd(ipc .. " global toggle_dormant_state"))
-m_bind("SHIFT+S", hl.dsp.exec_cmd(ipc .. " noon reveal_beam shot"))
-m_bind("ALT+M", hl.dsp.exec_cmd(ipc .. " noon reveal_beam music"))
-m_bind("ALT+W", hl.dsp.exec_cmd(ipc .. " noon reveal_beam weather"))
-m_bind("S", hl.dsp.exec_cmd(ipc .. " noon reveal_beam appearance"))
 
 -- Media
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd(ipc .. " global toggle_playing"))
@@ -32,7 +28,15 @@ hl.bind(
 )
 
 -- IPC
-local sidebar = {
+local beam_actions = {
+    shot = "SHIFT+S",
+    music = "ALT+M",
+    weather = "ALT+W",
+    hints = "ALT+Slash",
+    appearance = "S",
+}
+
+local sidebar_actions = {
     Apps = "Space",
     Walls = "W",
     View = "CTRL+Tab",
@@ -77,6 +81,8 @@ local xp_actions = {
 
 loop_ipc(xp_actions, "xp", "")
 loop_ipc(nobuntu_actions, "nobuntu", "")
+
 loop_ipc(noon_actions, "noon", "")
-loop_ipc(sidebar, "sidebar reveal", "")
-loop_ipc(sidebar, "sidebar reveal_aux", "SHIFT")
+loop_ipc(beam_actions, "noon reveal_beam ", "")
+loop_ipc(sidebar_actions, "sidebar reveal", "")
+loop_ipc(sidebar_actions, "sidebar reveal_aux", "SHIFT")

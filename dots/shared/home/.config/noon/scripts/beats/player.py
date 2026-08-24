@@ -1,7 +1,9 @@
 import os
+import random
 import subprocess
 import sys
 import threading
+from collections import deque
 
 import mpv
 
@@ -15,6 +17,16 @@ class MpvPlayer:
         self.music_dir = os.path.expanduser(conf_require("directory")["directory"])
         self.seek_hook = None
         self.queue_version = 0
+        # ponytail: mpv's `shuffle` option only shuffles at playlist load time and
+        # is a no-op when set at runtime, so random mode is our own shuffled play
+        # order walked by next()/prev(). Upgrade path: reshuffle on wrap.
+        self.random = False
+        self._order = None
+        self._order_cur = 0
+        # ponytail: bounded backtrack for prev() in random mode; survives
+        # reshuffles and queue edits (dead ids are skipped lazily).
+        self._history = deque(maxlen=256)
+        self._order_lock = threading.Lock()
         self._real_dur = {}
         self._probing = set()
         self.player = mpv.MPV(
@@ -22,8 +34,18 @@ class MpvPlayer:
             vo="null",
             input_default_bindings=False,
             input_vo_keyboard=False,
-            keep_open=True,
+            # never auto-advance: end-of-track flows through next(), which honors
+            # random. keep_open="always" parks mpv at EOF of every file instead.
+            keep_open="always",
         )
+
+        # ponytail: with keep_open mpv never auto-advances and emits no end-file
+        # at natural EOF, so watch eof-reached instead; all advancement (and thus
+        # random order) flows through next().
+        @self.player.property_observer("eof-reached")
+        def _on_eof(name, reached):
+            if reached and not self.player.loop_file:
+                self.next()
 
     def refresh_config(self):
         self.music_dir = os.path.expanduser(conf_require("directory")["directory"])
@@ -80,7 +102,7 @@ class MpvPlayer:
             "rate": float(p.speed or 1.0),
             "repeat": bool(p.loop_playlist),
             "loop_track": bool(p.loop_file),
-            "random": bool(p.shuffle),
+            "random": self.random,
             "queue_length": len(playlist),
             "playlist_pos": pl_pos,
         }
@@ -110,47 +132,28 @@ class MpvPlayer:
     def play_by_name(self, name: str):
         from .library import track_index
 
-        index = track_index(self.music_dir)
         name_lower = name.lower()
 
-        target = None
-        playlist = self.player.playlist or []
-        for pos, entry in enumerate(playlist):
-            f = entry.get("filename", "")
-            rel = self._rel(f)
-            if name_lower in rel.lower():
-                target = (pos, f)
-                break
+        # prefer an entry already in the queue
+        for pos, entry in enumerate(self.player.playlist or []):
+            if name_lower in self._rel(entry.get("filename", "")).lower():
+                self.player.playlist_play_index(pos)
+                return
 
-        if target is None and name in index:
-            target = (None, self._resolve(name))
-
-        if target is None:
-            for f in index:
-                if name_lower in f.lower():
-                    target = (None, self._resolve(f))
-                    break
-
-        if target is None:
-            for f, track in index.items():
-                if name_lower in track["title"].lower():
-                    target = (None, self._resolve(f))
-                    break
-
-        if target is None:
+        index = track_index(self.music_dir)
+        if name in index:
+            matches = [name]
+        else:
+            matches = [f for f in index if name_lower in f.lower()]
+            if not matches:
+                matches = [f for f, t in index.items() if name_lower in t["title"].lower()]
+        if not matches:
             print(f"Track not found: {name}", file=sys.stderr)
             return
 
-        if target[0] is not None:
-            self.player.playlist_play_index(target[0])
-            return
-
-        paths = [target[1]]
-        for f in index:
-            resolved = self._resolve(f)
-            if resolved != target[1]:
-                paths.append(resolved)
-        self._replace_and_play(paths)
+        target = self._resolve(matches[0])
+        rest = [self._resolve(f) for f in index if self._resolve(f) != target]
+        self._replace_and_play([target] + rest)
 
     def play_file(self, filepath: str):
         self._replace_and_play([self._resolve(filepath)])
@@ -187,20 +190,116 @@ class MpvPlayer:
         p.playlist_clear()
         for path in paths:
             p.playlist_append(path)
+        self._order = None
         self.queue_version += 1
         if paths:
             p.playlist_play_index(0)
 
     def next(self):
         p = self.player
-        if p.playlist_pos >= len(p.playlist or []) - 1:
-            if not p.loop_playlist:
-                self.stop()
+        playlist = p.playlist or []
+        if not playlist:
             return
-        p.playlist_next()
+        if not self.random:
+            pos = p.playlist_pos
+            if pos >= len(playlist) - 1 and not p.loop_playlist:
+                self.stop()
+            else:
+                p.playlist_next()
+            return
+        # ponytail: order is entry-id based and reconciled against the live
+        # playlist on every step, so queue edits never stale it. The eof hook
+        # runs on mpv's thread, so cursor math takes this lock.
+        with self._order_lock:
+            self._ensure_order()
+            at_end = self._order_cur >= len(self._order) - 1
+            if at_end and not p.loop_playlist:
+                self.stop()
+                return
+            cur_id = self._current_entry_id(playlist)
+            if cur_id is not None:
+                self._history.append(cur_id)
+            if at_end:  # repeat on: reshuffle anchored at current track
+                self._order = None
+                self._ensure_order()
+                self._order_cur = 0
+            self._order_cur += 1
+            if self._order_cur >= len(self._order):
+                self._order_cur = 0
+            self._play_order_entry()
 
     def prev(self):
-        self.player.playlist_prev()
+        p = self.player
+        if not self.random:
+            p.playlist_prev()
+            return
+        if not (p.playlist or []):
+            return
+        with self._order_lock:
+            self._ensure_order()
+            while self._history:  # retrace across reshuffles; skip dead ids
+                pid = self._history.pop()
+                idx = next(
+                    (
+                        i
+                        for i, e in enumerate(p.playlist or [])
+                        if e.get("id") == pid
+                    ),
+                    -1,
+                )
+                if idx < 0:
+                    continue
+                if pid in self._order:
+                    self._order_cur = self._order.index(pid)
+                p.playlist_play_index(idx)
+                return
+            # no history yet: re-walk within current cycle (replays anchor)
+            self._order_cur = max(0, self._order_cur - 1)
+            self._play_order_entry()
+
+    def _current_entry_id(self, playlist=None):
+        playlist = self.player.playlist or [] if playlist is None else playlist
+        pos = self.player.playlist_pos
+        if 0 <= pos < len(playlist):
+            return playlist[pos].get("id")
+        return None
+
+    def _play_order_entry(self):
+        """play_index for the id at _order[_order_cur]."""
+        pid = self._order[self._order_cur]
+        idx = next(
+            (
+                i
+                for i, e in enumerate(self.player.playlist or [])
+                if e.get("id") == pid
+            ),
+            -1,
+        )
+        if idx >= 0:
+            self.player.playlist_play_index(idx)
+
+    def _ensure_order(self):
+        """Shuffled play order of entry ids, anchored at the current track.
+
+        Reconciled against the live playlist each call: removed ids drop out,
+        newly added ones are spliced in right after the cursor.
+        """
+        p = self.player
+        live_ids = [e.get("id") for e in (p.playlist or [])]
+        cur_id = self._current_entry_id()
+        if self._order is None:
+            rest = [i for i in live_ids if i != cur_id]
+            random.shuffle(rest)
+            self._order = ([cur_id] if cur_id is not None else []) + rest
+            self._order_cur = 0 if cur_id is not None else -1
+            return
+        kept = [i for i in self._order if i in set(live_ids)]
+        added = [i for i in live_ids if i not in set(kept)]
+        random.shuffle(added)
+        splice_at = kept.index(cur_id) + 1 if cur_id in kept else len(kept)
+        kept[splice_at:splice_at] = added
+        self._order = kept
+        self._order_cur = kept.index(cur_id) if cur_id in kept else (-1 if not kept else 0)
 
     def stop(self):
         self.player.stop(keep_playlist=True)
@@ -279,9 +378,11 @@ class MpvPlayer:
         self.player.loop_file = bool(enabled)
 
     def set_random(self, enabled: bool):
-        self.player.shuffle = bool(enabled)
+        self.random = bool(enabled)
+        self._order = None
 
     def play_index(self, index: int):
+        self._order = None  # re-anchor the shuffle order here
         self.player.playlist_play_index(index)
 
     def queue_add(self, url_or_path: str):
@@ -311,6 +412,7 @@ class MpvPlayer:
             p.stop(keep_playlist=True)
         if p.playlist:
             p.playlist_remove(0)
+        self._order = None
         self.queue_version += 1
 
     def get_queue(self) -> list:
@@ -319,8 +421,31 @@ class MpvPlayer:
         index = track_index(self.music_dir)
         playlist = self.player.playlist or []
         current_pos = self.player.playlist_pos
+        cur_id = self._current_entry_id(playlist)
+
+        if self.random and playlist:
+            # display the real play order: current first, then upcoming, then
+            # already-played; "index" stays the true playlist position so
+            # playIndex/queueMove round-trips keep working.
+            with self._order_lock:
+                self._ensure_order()
+            pos_by_id = {e.get("id"): pos for pos, e in enumerate(playlist)}
+            if self._order_cur >= 0:
+                ids = (
+                    self._order[self._order_cur :]
+                    + self._order[: self._order_cur]
+                )
+            else:
+                ids = list(self._order)
+            rows = [
+                (pos_by_id[i], i == cur_id) for i in ids if i in pos_by_id
+            ]
+        else:
+            rows = [(pos, pos == current_pos) for pos in range(len(playlist))]
+
         queue = []
-        for pos, entry in enumerate(playlist):
+        for pos, current in rows:
+            entry = playlist[pos]
             rel = self._rel(entry.get("filename", ""))
             track = index.get(rel, {})
             queue.append(
@@ -332,10 +457,10 @@ class MpvPlayer:
                     "artist": track.get("artist", ""),
                     "album": track.get("album", ""),
                     "duration": track.get("duration", 0),
-                    "current": pos == current_pos,
+                    "current": current,
                 }
             )
-        if current_pos >= 0 and current_pos < len(queue):
+        if not self.random and 0 <= current_pos < len(queue):
             return queue[current_pos:] + queue[:current_pos]
         return queue
 
