@@ -10,12 +10,14 @@ Item {
     property string targetFile: ""
     readonly property alias running: downloadProc.running
 
+    readonly property string coversDir: Paths.methods.trim(Mem.beats?.directory ?? Paths.standard.music) + "/.beats/coverarts"
+
     onInputChanged: {
         if (!active)
             return;
 
         const online = input.startsWith("https://") || input.startsWith("http://");
-        targetFile = Paths.beats.coverArt + "/" + Qt.md5(input) + ".jpg";
+        targetFile = coversDir + "/" + Qt.md5(input) + ".jpg";
         downloadProc.running = false;
 
         if (online) {
@@ -40,8 +42,7 @@ Item {
     Process {
         id: downloadProc
 
-
-        command: ["curl", "--range", "0-99999", "--max-filesize", 100000, "-o", targetFile,  input]
+        command: ["sh", "-c", "mkdir -p '" + root.coversDir + "' && curl --range 0-99999 --max-filesize 100000 -o '$1' '$2'", "sh", targetFile, input]
         onExited: exitCode => {
             if (exitCode === 0) {
                 output = Qt.resolvedUrl(targetFile);

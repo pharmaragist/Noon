@@ -232,8 +232,8 @@ async function fetchLyrics() {
             return;
         }
         const data = await resp.json();
-        if (data.syncedLyrics) {
-            syncedLines.value = data.syncedLyrics
+        if (data.text) {
+            syncedLines.value = data.text
                 .split("\n")
                 .map((l) => {
                     const m = l.match(/\[(\d+):(\d+\.?\d*)\](.*)/);
@@ -244,10 +244,10 @@ async function fetchLyrics() {
                     };
                 })
                 .filter((l) => l && l.text);
-            plainLyrics.value = "";
+            plainLyrics.value = syncedLines.value.length ? "" : data.text;
         } else {
             syncedLines.value = [];
-            plainLyrics.value = data.plainLyrics || "";
+            plainLyrics.value = "";
         }
         lyricsLoaded.value = true;
         if (s.value.state === "play") startLyricsLoop();
