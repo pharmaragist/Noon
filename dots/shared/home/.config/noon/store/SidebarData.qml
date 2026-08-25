@@ -95,7 +95,7 @@ Singleton {
             shape: "Bun",
             padding: 0,
             enabled: contentOptions.beats,
-            colors: BeatsService.colors
+            colors: MediaPlayerService?.colors
         },
         "Games": {
             enabled: contentOptions.games,

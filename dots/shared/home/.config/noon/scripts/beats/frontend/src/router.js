@@ -1,13 +1,13 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import WelcomePage from './components/WelcomePage.vue'
 import NowPlaying from './components/NowPlaying.vue'
 import LibraryView from './components/LibraryView.vue'
 import LibraryViewV1 from './components/LibraryViewV1.vue'
+import HitsPage from './components/HitsPage.vue'
 
 const routes = [
-  { path: '/', redirect: '/welcome' },
-  { path: '/welcome', name: 'welcome', component: WelcomePage },
+  { path: '/', redirect: '/player' },
   { path: '/player', name: 'player', component: NowPlaying },
+  { path: '/hits', name: 'hits', component: HitsPage },
   { path: '/tracks', name: 'tracks', component: LibraryView },
   { path: '/albums', name: 'albums', component: LibraryView },
   { path: '/artists', name: 'artists', component: LibraryView },

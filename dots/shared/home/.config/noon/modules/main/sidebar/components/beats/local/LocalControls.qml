@@ -19,7 +19,7 @@ StyledRect {
     anchors.horizontalCenter: parent.horizontalCenter
     radius: Rounding.silly
     color: colors.colLayer2
-    colors: BeatsService.colors
+    colors: MediaPlayerService?.colors
     onIsSearchingChanged: if (isSearching)
         inputArea.forceActiveFocus()
     inputArea.onFocusChanged: if (!inputArea.focus)
@@ -52,7 +52,7 @@ StyledRect {
         readonly property var dict: {
             "folders": foldersComp
         }
-        shown: root._expanded
+        shown: bg._expanded
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top

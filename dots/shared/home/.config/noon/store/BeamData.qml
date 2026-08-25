@@ -209,7 +209,7 @@ Singleton {
                     icon: "music_note",
                     shape: "Bun",
                     exec: query => {
-                        BeatsHitsService.search(query);
+                        BeatsService.search(query);
                         Globals.main.sidebar.setTab(2);
                         revealSidebar("Beats");
                     }
@@ -353,7 +353,7 @@ Singleton {
     readonly property var applets: [
         {
             name: "music",
-            visible: BeatsService.players.length > 0,
+            visible: MediaPlayerService.players.length > 0,
             path: "applets/Music"
         },
         {

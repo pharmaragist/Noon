@@ -12,7 +12,7 @@ StyledRect {
     id: root
 
     radius: Rounding.large
-    color: BeatsService.colors.colSecondaryContainer
+    color: MediaPlayerService?.colors.colSecondaryContainer
     clip: true
     property alias source: coverImage.source
     property alias tintColor: coverImage.tintColor
@@ -24,11 +24,11 @@ StyledRect {
         z: 99
         tint: true
         tintLevel: 0.8
-        tintColor: BeatsService.colors.colSecondaryContainer
+        tintColor: MediaPlayerService?.colors.colSecondaryContainer
         visible: true
         anchors.fill: parent
         sourceSize: Qt.size(root.implicitSize, root.implicitSize)
-        source: BeatsService.artUrl
+        source: MediaPlayerService.artUrl
         mipmap: true
         radius: root.radius
     }
@@ -39,6 +39,6 @@ StyledRect {
         anchors.centerIn: parent
         text: "music_note"
         font.pixelSize: (parent.height + parent.width) / 2 - Padding.verylarge
-        color: BeatsService.colors.colSecondary
+        color: MediaPlayerService?.colors.colSecondary
     }
 }

@@ -10,6 +10,11 @@ import "../"
 StyledRect {
     id: root
 
+    signal dismiss
+    signal searchFocusRequested
+    signal contentFocusRequested
+    signal expandRequested
+
     property bool expanded
     property string debouncedQuery
     Connections {
@@ -68,7 +73,7 @@ StyledRect {
 
     radius: Rounding.verylarge
     color: colors.colLayer1
-    colors: BeatsService.colors
+    colors: MediaPlayerService?.colors
 
     StyledGridView {
         id: grid
@@ -82,7 +87,6 @@ StyledRect {
         cellHeight: controls.listMode ? 76 : cellWidth
         property string libPath: Mem.beats.directory + "/"
         delegate: TrackItem {
-            
             listMode: controls?.listMode ?? false
             implicitHeight: grid.cellHeight - margins
             implicitWidth: grid.cellWidth - margins
@@ -98,7 +102,7 @@ StyledRect {
                     menu.popup();
                 }
             }
-            
+
             TrackContextMenu {
                 id: menu
                 trackPath: grid.libPath + modelData.file

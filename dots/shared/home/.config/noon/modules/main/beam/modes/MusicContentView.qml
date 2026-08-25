@@ -17,10 +17,10 @@ RowLayout {
 
     StyledRect {
         id: view
-        readonly property MprisPlayer player: BeatsService.player
+        readonly property MprisPlayer player: MediaPlayerService.player
         Layout.fillHeight: true
         Layout.fillWidth: true
-        colors: BeatsService.colors
+        colors: MediaPlayerService?.colors
         color: colors.colLayer2
         enableBorders: true
         radius: 42
@@ -102,7 +102,7 @@ RowLayout {
                         text: {
                             const byIdentity = view.player?.identity;
                             const byDBus = view.player?.dbusName?.replace("org.mpris.MediaPlayer2.", "");
-                            const byIndex = "Player " + (BeatsService.selectedPlayerIndex + 1);
+                            const byIndex = "Player " + (MediaPlayerService.selectedPlayerIndex + 1);
                             if (/\//.test(byIdentity) && byIdentity.length > 25) {
                                 return byIdentity.split('/')[0].replace(/on|via|by|to+/g, "") || byDBus || byIndex;
                             } else
@@ -196,7 +196,7 @@ RowLayout {
         Layout.bottomMargin: -10
         color: root.colors.colLayer2
 
-        property var colors: BeatsService.colors
+        property var colors: MediaPlayerService?.colors
         readonly property int iconSize: 24
 
         function getPlayerIcon(dbus) {
@@ -293,7 +293,7 @@ RowLayout {
                         cursorShape: Qt.PointingHandCursor
                         anchors.fill: parent
 
-                        onClicked: BeatsService.selectedPlayerIndex = index
+                        onClicked: MediaPlayerService.selectedPlayerIndex = index
                         StyledToolTip {
                             extraVisibleCondition: parent.containsMouse
                             content: root.getPlayerName(modelData, index)

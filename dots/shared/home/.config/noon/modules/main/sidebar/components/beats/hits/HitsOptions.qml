@@ -49,7 +49,7 @@ ColumnLayout {
             onActivated: index => {
                 if (index >= 0 && index < values.length && key !== values[index]) {
                     key = values[index];
-                    BeatsHitsService.refresh();
+                    BeatsService.feed();
                 }
             }
         }

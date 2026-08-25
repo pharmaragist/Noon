@@ -81,12 +81,8 @@ Item {
                         "action": () => BeatsService.restartDaemon()
                     },
                     {
-                        "icon": "globe",
-                        "action": () => BeatsService.openWebClient()
-                    },
-                    {
                         "icon": "close",
-                        "action": () => BeatsService.stopPlayer()
+                        "action": () => MediaPlayerService.stopPlayer()
                     }
                 ]
             }

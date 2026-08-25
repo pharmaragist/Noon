@@ -7,7 +7,7 @@ StyledMenu {
     property string trackPath: ""
     property string trackName: ""
 
-    colors: BeatsService.colors
+    colors: MediaPlayerService?.colors
     content: [
         {
             "text": "Play",

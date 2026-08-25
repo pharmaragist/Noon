@@ -13,7 +13,7 @@ import qs.common.functions
 Singleton {
     id: root
 
-    readonly property list<string> cmd: ["uv", "run", Paths.scriptsDir + "/dlpHelper.py"]
+    readonly property list<string> cmd: ["python3", Paths.scriptsDir + "/dlpHelper.py"]
 
     function toast(info) {
         NoonUtils.toast({
@@ -52,7 +52,7 @@ Singleton {
 
         if (info.toast)
             root.toast(info);
-        console.error(final)
+        console.error(final.join(" "))
         Quickshell.execDetached(final);
     }
 }

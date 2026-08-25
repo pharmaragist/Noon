@@ -138,6 +138,10 @@ class BeatsClient {
     this._send('playByName', name)
   }
 
+  playUrl(url) {
+    this._send('playUrl', url)
+  }
+
   playFiles(paths) {
     this._send('playFiles', paths)
   }

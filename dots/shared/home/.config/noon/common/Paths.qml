@@ -9,7 +9,7 @@ Singleton {
     id: root
     readonly property QtObject methods: FileUtils
 
-    
+
     readonly property string venv: methods.trim(standard.state + "/.venv")
     readonly property string records: methods.trim(standard.videos + "/records")
     readonly property string sounds: methods.trim(assets + "/sounds")
@@ -23,7 +23,7 @@ Singleton {
     readonly property string hyprConfigs: methods.trim(standard.config + "/hypr")
     readonly property string userOptions: shellConfigs + "/user/"
 
-    
+
     readonly property QtObject standard: QtObject {
         readonly property string home: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
         readonly property string config: StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0]
@@ -37,7 +37,7 @@ Singleton {
         readonly property string videos: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
     }
 
-    
+
     readonly property QtObject services: QtObject {
         readonly property string notifications: methods.trim(standard.cache + "/notifications/notifications.json")
         readonly property string latex: methods.trim(standard.cache + "/media/latex")
@@ -50,7 +50,7 @@ Singleton {
         readonly property string clipboardCache: methods.trim(standard.cache + "/media/clipboard")
     }
 
-    
+
     readonly property QtObject wallpapers: QtObject {
         readonly property string defaultBg: methods.trim(root.assets + "/images/default_wallpaper.png")
         readonly property string colGenScript: methods.trim(root.scriptsDir + "/colgen_service.py")
@@ -61,17 +61,6 @@ Singleton {
         readonly property string favorite: methods.trim(standard.pictures + "/favourite")
     }
 
-    
-    readonly property QtObject beats: QtObject {
-        readonly property string main: methods.trim(standard.cache + "/beats")
-        readonly property string mpd: methods.trim(main + "/mpd")
-        readonly property string downloads: methods.trim(standard.home + "/Music")
-        readonly property string coverArt: methods.trim(main + "/coverart")
-        readonly property string lyrics: methods.trim(main + "/lyrics")
-        readonly property string tracks: methods.trim(standard.music)
-    }
-
-    
     readonly property QtObject plugins: QtObject {
         readonly property string main: methods.trim(standard.home + "/.noon_plugins")
         readonly property string dock: main + "/dock"
@@ -81,17 +70,16 @@ Singleton {
 
     Component.onCompleted: {
         methods.mkdir([
-            
+
             standard.state, standard.cache,
-            
+
             venv, assets, records, gallery, sounds, scriptsDir, shellConfigs, favicons, userOptions,
-            
+
             services.latex, services.gamesCoverArts, services.screenshots, services.screenTimeDB, services.clipboardCache,
-            
+
             wallpapers.main, wallpapers.colGenScript, wallpapers.depthDir, wallpapers.gowallDir, wallpapers.favorite,
-            
-            beats.main, beats.mpd, beats.coverArt, beats.lyrics, beats.tracks,
-            
+
+
             plugins.main, plugins.palettes, plugins.sidebar, plugins.dock]);
     }
 }

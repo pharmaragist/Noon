@@ -7,7 +7,7 @@ CONF_PATH = os.path.expanduser("~/.noon/user/beats.json")
 
 def load_conf() -> dict:
     try:
-        with open(CONF_PATH, "r") as f:
+        with open(CONF_PATH) as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError, IOError):
         return {}

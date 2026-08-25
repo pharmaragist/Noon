@@ -28,7 +28,7 @@ WidgetContainer {
         },
         {
             icon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat",
-            action: () => BeatsService.cycleRepeat(root?.player)
+            action: () => MediaPlayerService.cycleRepeat(root?.player)
         }
     ]
     readonly property PaletteGenerator palette: PaletteGenerator {

@@ -18,14 +18,14 @@ StyledPopup {
         id: content
         spacing: 2
         Repeater {
-            model: BeatsService.players
+            model: MediaPlayerService.players
             delegate: PlayerItem {
                 required property var modelData
                 required property int index
                 player: modelData
                 Layout.fillWidth: true
                 topRadius: index === 0 ? Rounding.verylarge : Rounding.tiny
-                bottomRadius: index === BeatsService.players.length - 1 ? Rounding.verylarge : Rounding.tiny
+                bottomRadius: index === MediaPlayerService.players.length - 1 ? Rounding.verylarge : Rounding.tiny
 
                 implicitWidth: 320
                 Layout.preferredHeight: 70
@@ -47,7 +47,7 @@ StyledPopup {
 
             CircularProgress {
                 implicitSize: 40
-                value: BeatsService.currentTrackProgressRatio(root.player)
+                value: MediaPlayerService.currentTrackProgressRatio(root.player)
                 sperm: true
                 lineWidth: 4
                 colSecondary: "transparent"

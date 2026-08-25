@@ -40,16 +40,9 @@ Singleton {
     }
 
     function changeSystemFont(fontVar) {
-        if (typeof fontVar === "string") {
-            execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar, "--size", Fonts.sizes.small]);
-            Mem.hypr.font_main = fontVar;
-            Mem.options.appearance.fonts.main = fontVar;
-        } else {
-            Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", fontVar.size]);
-            Mem.hypr.font_main = fontVar.family;
-            Mem.options.appearance.fonts.main = fontVar.family;
-            Mem.options.appearance.fonts.sizes.scale = fontVar.size / 10;
-        }
+        Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", Fonts.sizes.verysmall]);
+        Mem.hypr.font_main = fontVar.family;
+        Mem.options.appearance.fonts.main = fontVar.family;
     }
 
     FontDialog {

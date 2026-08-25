@@ -10,9 +10,9 @@ Item {
     id: root
 
     property bool hasLyrics: false
-    readonly property MprisPlayer player: BeatsService.player
+    readonly property MprisPlayer player: MediaPlayerService.player
     readonly property bool isPlaying: player.playbackState === MprisPlaybackState.Playing
-    readonly property var trackColors: BeatsService.colors
+    readonly property var trackColors: MediaPlayerService?.colors
 
     Layout.fillWidth: true
     height: children[0]?.implicitHeight
@@ -41,7 +41,7 @@ Item {
                     CroppedImage {
                         anchors.centerIn: parent
                         radius: Rounding.large
-                        source: BeatsService.artUrl
+                        source: MediaPlayerService.artUrl
                         implicitSize: 75
                         tint: true
                         tintLevel: 0.8
@@ -193,7 +193,7 @@ Item {
                 materialIcon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
                 enabled: root.player && root.player.canControl
                 toggled: root.player?.loopState !== MprisLoopState.None
-                releaseAction: () => BeatsService.cycleRepeat()
+                releaseAction: () => MediaPlayerService.cycleRepeat()
             }
 
             ControlButton {
@@ -210,7 +210,7 @@ Item {
             }
 
             ControlButton {
-                readonly property string currentTrackPath: Mem.beats.directory + "/" + BeatsService.currentTrackIndexedInfo.file
+                readonly property string currentTrackPath: Mem.beats.directory + "/" + (BeatsService.currentTrackIndexedInfo?.file ?? "")
                 leftRadius: this.down ? this.buttonRadiusPressed : Rounding.verysmall
                 symbol.anchors.horizontalCenterOffset: -2
                 materialIcon: "delete"
@@ -277,7 +277,7 @@ Item {
         baseSize: 50
         baseWidth: 70
         layerNumber: 4
-        colors: BeatsService.colors
+        colors: MediaPlayerService?.colors
         buttonRadius: Rounding.huge
         buttonRadiusPressed: Rounding.veryhuge
         symbol {
@@ -289,7 +289,7 @@ Item {
         baseSize: 82
         baseWidth: 100
         layerNumber: 3
-        colors: BeatsService.colors
+        colors: MediaPlayerService?.colors
         buttonRadius: Rounding.silly
         buttonRadiusPressed: Rounding.large
         iconSize: 30

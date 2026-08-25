@@ -19,7 +19,7 @@ StyledRect {
     property int margins: listMode ? Padding.small : Padding.large
     clip: true
     color: colors.colLayer2
-    colors: BeatsService.colors
+    colors: MediaPlayerService?.colors
 
     topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.tiny) : Rounding.huge
     bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.tiny) : Rounding.huge
@@ -28,16 +28,16 @@ StyledRect {
 
     MouseArea {
         id: eventArea
-        z: 99999
+        z: 99
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         propagateComposedEvents: true
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         anchors.fill: parent
-        onClicked: {
-            feedAnim.running = true;
+        onClicked: event => {
+            root.animate()
             if (action)
-                action();
+                action(event);
         }
     }
 
@@ -113,7 +113,9 @@ StyledRect {
             cache: true
         }
     }
-
+    function animate() {
+        feedAnim.running = true;
+    }
     SequentialAnimation {
         id: feedAnim
         running: false

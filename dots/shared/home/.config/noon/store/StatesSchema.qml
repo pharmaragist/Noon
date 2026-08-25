@@ -1,7 +1,7 @@
 import qs.common.utils
 
 JsonAdapter {
-    
+
     property JO applications: JO {
         property JO settings: JO {
             property string cat: ""
@@ -95,7 +95,6 @@ JsonAdapter {
 
         property JO beats: JO {
             property int pageIndex: 0
-            property var previewData: ({})
             property bool discoverMode: false
             property bool shuffleTracks: false
             property bool shuffleHits: false

@@ -1,5 +1,5 @@
 <template>
-  <div id="app-root" :class="{ welcome: isWelcome }">
+  <div id="app-root">
     <div class="global-bg" :class="{ active: bgLoaded }">
       <img
         v-if="coverUrl"
@@ -39,7 +39,6 @@ function toast(msg) {
   toastTimer = setTimeout(() => { toastMsg.value = '' }, 2500)
 }
 
-const isWelcome = computed(() => route.name === 'welcome')
 
 const activePlayerCount = ref(1)
 provide('activePlayerCount', activePlayerCount)
@@ -77,12 +76,10 @@ async function fetchPlayers() {
 mpd.onConnected = () => {
   toast('Connected to ' + mpd.player)
   fetchPlayers()
-  router.push('/player')
 }
 
 mpd.onDisconnected = () => {
   toast('Disconnected')
-  router.push('/welcome')
 }
 
 function onKey(e) {
@@ -125,10 +122,7 @@ function onKey(e) {
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
-  const restored = mpd.restore()
-  if (!restored) {
-    fetchPlayers()
-  }
+  if (!mpd.restore()) mpd.connect('noon')
 })
 
 onUnmounted(() => {
@@ -142,14 +136,6 @@ onUnmounted(() => {
   height: 100vh;
   width: 100%;
   position: relative;
-}
-#app-root.welcome #sidebar,
-#app-root.welcome #bottom-nav { display: none; }
-#app-root.welcome #main {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .global-bg {

@@ -11,22 +11,33 @@ StyledRect {
     color: Colors.colLayer1
     radius: Rounding.verylarge
     property bool expanded
-    property bool isSearching: BeatsHitsService.lastQuery.length > 0
+    property bool isSearching: BeatsService.hitsQuery.length > 0
     property rect previewOrigin: Qt.rect(0, 0, 0, 0)
 
     onIsSearchingChanged: controls.inputArea.forceActiveFocus()
 
     function loadMore() {
-        if (BeatsHitsService.isBusy)
+        if (BeatsService.isLoading)
             return;
         if (isSearching)
-            BeatsHitsService.searchMore(controls.inputArea.text);
+            BeatsService.search(controls.inputArea.text, true);
         else
-            BeatsHitsService.request();
+            BeatsService.feed(false);
     }
 
     ScrollEdgeFade {
         target: grid
+    }
+    MaterialLoadingIndicator {
+        anchors.top: parent.top
+        anchors.topMargin: BeatsService.isLoading ? Padding.massive: - Padding.massive * 5
+        anchors.horizontalCenter: parent.horizontalCenter
+        loading: BeatsService.isLoading
+        z: 999
+
+        Behavior on anchors.topMargin {
+            Anim {}
+        }
     }
 
     StyledGridView {
@@ -40,22 +51,57 @@ StyledRect {
         reuseItems: false
         _model: {
             if (root.isSearching)
-                return BeatsHitsService.searchResults;
+                return BeatsService.searchResults;
             else if (Mem.states.services.beats.shuffleHits)
-                return BeatsHitsService.hits.sort(() => Math.random() - 0.5);
+                return BeatsService.hits.sort(() => Math.random() - 0.5);
             else
-                return BeatsHitsService.hits;
+                return BeatsService.hits;
         }
         delegate: TrackItem {
+            id: delegated
             implicitSize: grid.cellWidth - Padding.large
             title: modelData.title
             artist: modelData.artist
             coverArt: modelData.thumbnail
             isPlaylist: modelData.isPlaylist
-            action: () => {
-                Mem.states.services.beats.previewData = modelData;
-                controls._expanded = true;
-                controls.mode = "preview";
+            eventArea.onClicked: event => {
+                if (event.button === Qt.RightButton) {
+                    menu.popup();
+                    return;
+                }
+                BeatsService.previewURL(modelData.url);
+                delegated.animate();
+            }
+            StyledMenu {
+                id: menu
+                z: 999
+                content: [
+                    {
+                        "text": "Download",
+                        "materialIcon": "download",
+                        "action": () => {
+                            if (modelData && modelData.url) {
+                                DlpService.request({
+                                    url: modelData?.url,
+                                    audio: true,
+                                    quality: "best",
+                                    debug: true,
+                                    toast: true,
+                                    directory: Mem.beats.directory
+                                });
+                            }
+                        }
+                    },
+                    {
+                        "text": "Play",
+                        "materialIcon": "play_arrow",
+                        "action": () => {
+                            if (modelData && modelData.url) {
+                                BeatsService.previewURL(modelData.url);
+                            }
+                        }
+                    }
+                ]
             }
         }
         onContentYChanged: {
@@ -69,15 +115,6 @@ StyledRect {
 
     HitsControls {
         id: controls
-        songData: Mem.states.services.beats.previewData
-    }
-    StyledIndeterminateProgressBar {
-        z: 2
-        height: 4
-        visible: BeatsHitsService.isBusy
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.left: parent.left
     }
     StyledRect {
         z: controls.z - 1

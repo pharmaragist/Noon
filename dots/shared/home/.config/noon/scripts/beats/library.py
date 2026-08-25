@@ -13,16 +13,18 @@ from mutagen import File
 from .config import conf_require
 
 WORKERS = os.cpu_count() or 4
-TEMP_FILE = os.path.expanduser("~/.local/state/noon/user/generated/beats_library.json")
 AUDIO_EXTS = {".mp3", ".flac", ".ogg", ".opus", ".m4a", ".aac", ".wav", ".wma", ".mp4"}
 
 
+def _atomic_json(path: str, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+    os.replace(tmp, path)
+
+
 def _process_chunk(args: tuple) -> list:
-    """
-    Runs in a worker process.
-    Returns list of (rel_path, rel_cover_path).
-    Writes cover files directly to disk.
-    """
     chunk, music_dir, covers_dir = args
 
     from mutagen.flac import Picture
@@ -58,11 +60,7 @@ def _process_chunk(args: tuple) -> list:
                     covers = audio.tags.get("covr", [])
                     if covers:
                         data = bytes(covers[0])
-                        img_ext = (
-                            "png"
-                            if covers[0].imageformat == MP4Cover.FORMAT_PNG
-                            else "jpg"
-                        )
+                        img_ext = "png" if covers[0].imageformat == MP4Cover.FORMAT_PNG else "jpg"
             elif ext == ".flac":
                 if audio.pictures:
                     pic = audio.pictures[0]
@@ -104,7 +102,7 @@ def _process_chunk(args: tuple) -> list:
 
 def _make_chunks(items: list, n: int) -> list:
     size = math.ceil(len(items) / n) if items else 1
-    return [items[i : i + size] for i in range(0, len(items), size)]
+    return [items[i:i + size] for i in range(0, len(items), size)]
 
 
 def _iso_mtime(st_mtime: float) -> str:
@@ -112,10 +110,9 @@ def _iso_mtime(st_mtime: float) -> str:
 
 
 def _scan_mtimes(music_dir: str) -> dict:
-    """Rel path -> ISO mtime for every audio file under music_dir (fast walk)."""
     mtimes = {}
     for root, dirs, files in os.walk(music_dir):
-        dirs[:] = [d for d in dirs if d != ".coverarts"]
+        dirs[:] = [d for d in dirs if d != ".beats"]
         for f in files:
             if os.path.splitext(f)[1].lower() not in AUDIO_EXTS:
                 continue
@@ -177,76 +174,54 @@ class LibraryManager:
         if music_dir is None:
             music_dir = conf_require("directory")["directory"]
         self.music_dir = os.path.expanduser(music_dir)
-        self.covers_dir = os.path.join(self.music_dir, ".coverarts")
-        self.cover_map_path = os.path.join(self.music_dir, ".covermap.json")
+        self.covers_dir = os.path.join(self.music_dir, ".beats", "coverarts")
+        self.library_path = os.path.join(self.music_dir, ".beats", "library.json")
 
-    def _load_cover_map(self) -> dict:
+    def _read_library(self) -> list | None:
         try:
-            with open(self.cover_map_path) as f:
+            with open(self.library_path) as f:
                 return json.load(f)
         except (OSError, json.JSONDecodeError):
-            return {}
-
-    def _save_cover_map(self, cover_map: dict):
-        with open(self.cover_map_path, "w") as f:
-            json.dump(cover_map, f, indent=2, ensure_ascii=False)
+            return None
 
     def build_covers(self):
-        os.makedirs(self.covers_dir, exist_ok=True)
-        cover_map = self._load_cover_map()
-        stale = [
-            rel for rel in cover_map
-            if not os.path.exists(os.path.join(self.music_dir, rel))
+        tracks = self.get_library()
+        pending = [
+            t["file"] for t in tracks if not t.get("cover") or not os.path.exists(os.path.join(self.music_dir, t["cover"]))
         ]
-        for rel in stale:
-            del cover_map[rel]
-        if stale:
-            self._save_cover_map(cover_map)
-            print(f"  Pruned {len(stale)} stale cover entries.")
-
-        tracks = sorted(_scan_mtimes(self.music_dir))
-        pending = [rel for rel in tracks if rel not in cover_map]
-
-        total = len(tracks)
-        cached = total - len(pending)
-        print(f"  Total:   {total}")
-        print(f"  Cached:  {cached}")
+        print(f"  Total:   {len(tracks)}")
+        print(f"  Cached:  {len(tracks) - len(pending)}")
         print(f"  Pending: {len(pending)}")
         print(f"  Workers: {WORKERS}\n")
 
         if not pending:
             print("  Nothing to do.")
-            return cover_map
+            return
 
+        os.makedirs(self.covers_dir, exist_ok=True)
+        by_file = {t["file"]: t for t in tracks}
         chunks = _make_chunks(pending, WORKERS)
         chunk_args = [(chunk, self.music_dir, self.covers_dir) for chunk in chunks]
 
         done = 0
         with ProcessPoolExecutor(max_workers=WORKERS) as pool:
-            futures = {
-                pool.submit(_process_chunk, arg): i for i, arg in enumerate(chunk_args)
-            }
+            futures = {pool.submit(_process_chunk, arg): i for i, arg in enumerate(chunk_args)}
             for future in as_completed(futures):
                 try:
                     for rel_path, rel_cover in future.result():
-                        cover_map[rel_path] = rel_cover
+                        by_file[rel_path]["cover"] = rel_cover
                         done += 1
                         print(f"  [{done}/{len(pending)}] {rel_path}", flush=True)
                 except Exception as e:
                     print(f"  [CHUNK ERR] {e}", file=sys.stderr)
 
-        self._save_cover_map(cover_map)
+        if done:
+            _atomic_json(self.library_path, tracks)
         print(f"\nDone. {done} new covers extracted.")
-        return cover_map
 
     def _cache_valid(self, mtimes: dict) -> list | None:
-        """Return cached library if it matches the current filesystem, else None."""
-        if not os.path.exists(TEMP_FILE):
-            return None
-        try:
-            with open(TEMP_FILE) as f:
-                tracks = json.load(f)
-        except (json.JSONDecodeError, IOError):
+        tracks = self._read_library()
+        if tracks is None:
             return None
         if len(tracks) != len(mtimes):
             return None
@@ -257,38 +232,23 @@ class LibraryManager:
 
     def get_library(self) -> list:
         mtimes = _scan_mtimes(self.music_dir)
+        rebuilt = False
         tracks = self._cache_valid(mtimes)
         if tracks is None:
+            rebuilt = True
             tracks = []
             for rel in sorted(mtimes):
                 track = _read_tags(self.music_dir, rel)
                 if track is None:
                     continue
                 track["last_modified"] = mtimes[rel]
+                track["cover"] = ""
                 tracks.append(track)
-            with open(TEMP_FILE, "w", encoding="utf-8") as f:
-                json.dump(tracks, f, ensure_ascii=False, indent=2)
-        cover_map = self._load_cover_map()
-        for t in tracks:
-            t["cover"] = cover_map.get(t["file"], "")
         tracks.sort(key=lambda t: t["last_modified"], reverse=True)
+        if rebuilt:
+            _atomic_json(self.library_path, tracks)
         return tracks
-
-    def track_index(self) -> dict:
-        return {t["file"]: t for t in self.get_library()}
-
-    def _unique(self, field: str) -> list:
-        return sorted({t[field] for t in self.get_library() if t[field]})
-
-    def list_artists(self) -> list:
-        return self._unique("artist")
-
-    def list_albums(self) -> list:
-        return self._unique("album")
-
-    def list_genres(self) -> list:
-        return self._unique("genre")
 
 
 def track_index(music_dir: str) -> dict:
-    return LibraryManager(music_dir=music_dir).track_index()
+    return {t["file"]: t for t in LibraryManager(music_dir=music_dir).get_library()}

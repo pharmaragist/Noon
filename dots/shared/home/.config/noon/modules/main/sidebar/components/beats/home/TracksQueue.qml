@@ -59,12 +59,6 @@ StyledRect {
                     }
                 }
             }
-
-            RippleButtonWithIcon {
-                implicitSize: 28
-                materialIcon: "refresh"
-                releaseAction: () => BeatsService.getQueue()
-            }
         }
 
         StyledListView {
@@ -80,8 +74,9 @@ StyledRect {
             highlightMoveVelocity: -1
             keyNavigationEnabled: true
             focus: true
+            currentIndex: model.findIndex(t => t?.current) ?? -1;
 
-            _model: {
+            model: {
                 let fullQueue = BeatsService.queue || [];
                 if (root.searchQuery === "") {
                     return fullQueue;
@@ -91,18 +86,6 @@ StyledRect {
                     let artistMatch = item?.artist?.toLowerCase().includes(root.searchQuery);
                     return titleMatch || artistMatch;
                 });
-            }
-            currentIndex: updateIndex()
-            Connections {
-                target: BeatsService
-                function onTitleChanged() {
-                    list.updateIndex();
-                }
-            }
-            function updateIndex() {
-                const title = BeatsService.player.trackTitle;
-                const model = BeatsService.queue;
-                list.currentIndex = model?.findIndex(t => t.title === title) ?? -1;
             }
 
             highlight: Item {

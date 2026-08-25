@@ -8,7 +8,7 @@ RedunduntMultiViewPanel {
     id: root
     path: Qt.resolvedUrl("./")
     readonly property string currentPagePath: "pages/" + (Mem.beats.options.homePageStyle ?? "MaterialNoon")
-    colors: BeatsService?.colors
+    colors: MediaPlayerService?.colors
     padding: Padding.huge
     clip: false
     tabButtonList: [

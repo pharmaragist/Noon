@@ -23,7 +23,7 @@ BarGroup {
 
             ClippedFilledCircularProgress {
                 anchors.centerIn: parent
-                value: BeatsService.currentTrackProgressRatio()
+                value: MediaPlayerService.currentTrackProgressRatio()
                 lineWidth: 2
                 implicitSize: 20
             }
@@ -33,7 +33,7 @@ BarGroup {
                 anchors.centerIn: parent
                 fill: 1
                 animateChange: true
-                icon: BeatsService._playing ? "pause" : "music_note"
+                icon: MediaPlayerService._playing ? "pause" : "music_note"
                 iconSize: 14
                 color: Colors.colOnSecondary
             }
@@ -47,7 +47,7 @@ BarGroup {
             Layout.fillWidth: true
             Layout.maximumWidth: 200
             horizontalAlignment: Text.AlignHCenter
-            text: BeatsService.title
+            text: MediaPlayerService.title
         }
     }
 
@@ -63,7 +63,7 @@ BarGroup {
         hoverEnabled: true
 
         onPressed: event => {
-            const activePlayer = BeatsService.player;
+            const activePlayer = MediaPlayerService.player;
             switch (event.button) {
             case Qt.MiddleButton:
             case Qt.BackButton:

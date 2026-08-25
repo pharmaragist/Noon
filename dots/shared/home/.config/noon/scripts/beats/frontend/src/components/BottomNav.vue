@@ -10,14 +10,6 @@
             <span class="icon">{{ t.icon }}</span>
             <span class="label">{{ t.label }}</span>
         </div>
-        <div
-            v-show="activePlayerCount > 1"
-            class="tab"
-            @click="switchPlayer"
-        >
-            <span class="icon">swap_horiz</span>
-            <span class="label">Switch</span>
-        </div>
     </nav>
 </template>
 
@@ -35,11 +27,13 @@ const tabs = [
     { view: "player", icon: "music_note", label: "Now Playing" },
     { view: "tracks", icon: "library_music", label: "Tracks" },
     { view: "library", icon: "grid_view", label: "Library" },
+    { view: "hits", icon: "explore", label: "Discover" },
 ];
 
 function navigate(view) {
     const map = {
         player: "/player",
+        hits: "/hits",
         tracks: "/tracks",
         albums: "/albums",
         artists: "/artists",
@@ -48,10 +42,6 @@ function navigate(view) {
     router.push(map[view] || "/player");
 }
 
-function switchPlayer() {
-    mpd.disconnect();
-    router.push("/welcome");
-}
 </script>
 
 <style scoped>

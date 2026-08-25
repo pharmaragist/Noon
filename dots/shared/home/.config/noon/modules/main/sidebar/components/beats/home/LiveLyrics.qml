@@ -15,14 +15,12 @@ Item {
 
     opacity: showContent ? 1 : 0
 
-    readonly property bool isSynced: syncedLines.length > 0
-    readonly property var displayLines: isSynced ? syncedLines : plainLines
-    readonly property bool loading: LyricsService.state === "loading"
-    readonly property bool showContent: !loading && displayLines.length > 0 && Mem.beats.options.showLyrics
+    readonly property bool isSynced: lines.some(l => l.t > 0)
+    readonly property var displayLines: lines
+    readonly property bool showContent: displayLines.length > 0 && Mem.beats.options.showLyrics
     property int currentLine: -1
 
-    property var syncedLines: []
-    property var plainLines: []
+    property var lines: []
 
     Behavior on opacity {
         Anim {}
@@ -71,26 +69,22 @@ Item {
     }
 
     function updateLyrics() {
-        syncedLines = LyricsService.syncedLyrics ? parseLyrics(LyricsService.syncedLyrics, true) : [];
-        if (!isSynced)
-            plainLines = LyricsService.plainLyrics ? parseLyrics(LyricsService.plainLyrics, false) : [];
+        lines = parseLyrics(BeatsService.lyricText, true);
     }
 
     Component.onCompleted: updateLyrics()
 
     Connections {
-        target: LyricsService
-        function onStateChanged() {
-            if (LyricsService.state === "loaded")
-                updateLyrics();
+        target: BeatsService
+        function onLyricTextChanged() {
+            updateLyrics();
         }
     }
 
     Connections {
-        target: BeatsService
+        target: MediaPlayerService
         function onTitleChanged() {
-            syncedLines = [];
-            plainLines = [];
+            lines = [];
             currentLine = -1;
         }
     }
@@ -101,9 +95,9 @@ Item {
         repeat: true
         onTriggered: {
             let idx = 0;
-            const currentPos = BeatsService.player.position;
-            for (let i = syncedLines.length - 1; i >= 0; i--) {
-                if (currentPos >= syncedLines[i].t) {
+            const currentPos = MediaPlayerService.player.position;
+            for (let i = lines.length - 1; i >= 0; i--) {
+                if (currentPos >= lines[i].t) {
                     idx = i;
                     break;
                 }
@@ -115,13 +109,6 @@ Item {
         }
     }
 
-    MaterialLoadingIndicator {
-        anchors.centerIn: parent
-        visible: root.loading
-        implicitSize: 240
-        color: BeatsService.colors.colPrimary
-        shapeColor: BeatsService.colors.colOnPrimary
-    }
 
     Item {
         id: viewContainer
@@ -179,7 +166,7 @@ Item {
                 text: modelData.s
                 font: Fonts.request("lyrics", "title")
                 leftPadding: Padding.large
-                color: BeatsService.colors.colOnLayer2
+                color: MediaPlayerService?.colors.colOnLayer2
                 wrapMode: Text.Wrap
                 horizontalAlignment: isSynced ? Text.AlignLeft : Text.AlignCenter
 

@@ -20,14 +20,6 @@
                 <span class="icon">{{ t.icon }}</span>
                 <span class="tab-label">{{ t.label }}</span>
             </button>
-            <button
-                v-show="activePlayerCount > 1"
-                class="tab"
-                @click="switchPlayer"
-            >
-                <span class="icon">swap_horiz</span>
-                <span class="tab-label">Switch Player</span>
-            </button>
         </nav>
         <div id="theme-switcher">
             <button
@@ -71,6 +63,7 @@ const collapsed = ref(false);
 
 const tabs = [
     { view: "player", icon: "music_note", label: "Now Playing" },
+    { view: "hits", icon: "explore", label: "Discover" },
     { view: "tracks", icon: "library_music", label: "Tracks" },
     { view: "library", icon: "grid_view", label: "Library" },
 ];
@@ -102,6 +95,7 @@ function toggleCollapse() {
 function navigate(view) {
     const map = {
         player: "/player",
+        hits: "/hits",
         tracks: "/tracks",
         albums: "/albums",
         artists: "/artists",
@@ -110,10 +104,6 @@ function navigate(view) {
     router.push(map[view] || "/player");
 }
 
-function switchPlayer() {
-    mpd.disconnect();
-    router.push("/welcome");
-}
 
 onMounted(() => {
     collapsed.value = localStorage.getItem("beats-sidebar-collapsed") === "1";

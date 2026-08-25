@@ -4,10 +4,7 @@ import QtQuick
 import QtQuick.Dialogs
 import Quickshell
 import Quickshell.Io
-import Quickshell.Services.Mpris
 
-import Noon.Utils
-import qs.store
 import qs.common
 import qs.common.utils
 import qs.common.widgets
@@ -17,36 +14,58 @@ Singleton {
     id: root
 
     readonly property var opts: Mem.beats
-    readonly property var currentTrackIndexedInfo: library?.find(t => t.title === root.title)
-    readonly property string tracksDir: Paths.methods.trim(opts.directory || Paths.standard.music)
-    readonly property string tracksUrl: Qt.resolvedUrl(opts.directory)
-    readonly property var library: libraryFetcher?.data ?? []
-    readonly property var queue: queueFetcher?.data ?? []
-
-
-    property int selectedPlayerIndex: 0
-    readonly property bool _playing: player && isPlaying(root.player)
-    readonly property var player: players[selectedPlayerIndex] ?? null
-    readonly property var colors: palette.colors
-    readonly property string artUrl: player?.trackArtUrl ?? ""
-    readonly property string title: player ? TextUtils.cleanMusicTitle(player.trackTitle) : "No Title"
-    readonly property string artist: player ? TextUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
-
-    readonly property var players: Mpris?.players?.values
+    readonly property var currentTrackIndexedInfo: library?.find(t => t.title === MediaPlayerService.title)
+    readonly property string tracksDir: Paths.methods.trim(opts.directory ?? Paths.standard.music)
+    readonly property var hits: opts?.hits?.feed ?? []
+    readonly property var searchResults: opts?.hits?.searchResults ?? []
+    readonly property string lyricText: getData(lyricsFile)?.text ?? ""
+    readonly property var library: getData(libraryFile)
+    readonly property var queue: getData(queueFile)?.queue ?? []
     readonly property var baseCmd: ["python3", Paths.scriptsDir + "/beats_service.py"]
+    readonly property bool isLoading: hitsProc.running
+
+    property string hitsQuery: ""
+    property int _hitsLimit: opts.options.fetchLimit
+
 
     Component.onCompleted: _daemonCmd(["init"])
-    onOptsChanged: if (!!opts) _daemonCmd(["refresh-config"])
-    onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
 
-    function playerIndex() {
-        if (!players || players.length === 0)
-            return 0;
-        const baets = players.findIndex(p => /noon/.test(p?.dbusName.toLowerCase()));
-        if (baets >= 0)
-        return baets;
-        const playingIndex = players.findIndex(p => p.isPlaying);
-        return playingIndex >= 0 ? playingIndex : 0;
+    function search(query, more = false) {
+        hitsQuery = query;
+        _hitsLimit = more ? _hitsLimit += 64 : (opts.options.fetchLimit);
+        _hitsCmd("search", ["--query", query, "--limit", _hitsLimit]);
+    }
+
+    function feed(reset = true) {
+        if (reset)
+            opts.hits.feed = [];
+        const kind = Mem.states.services.beats.discoverMode ? "discover" : "recommend";
+        _hitsCmd(kind, ["--limit", opts.options.fetchLimit]);
+    }
+
+    function _hitsCmd(kind, extra) {
+        hitsProc._kind = kind;
+        hitsProc.running = false;
+        hitsProc.command = [...baseCmd, kind, ...extra];
+        hitsProc.running = true;
+    }
+
+    onOptsChanged: if (!!opts)
+        _daemonCmd(["refresh-config"])
+
+    function getData(fileView) {
+        const data = fileView.data();
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return []; // empty read before async load finishes is normal at startup
+        }
+    }
+
+
+    function fetchLyrics() {
+        lyricText = "";
+        _daemonCmd(["lyrics-refetch"]);
     }
 
     function restartDaemon() {
@@ -54,33 +73,20 @@ Singleton {
         Qt.callLater(() => _daemonCmd(["init"]));
     }
 
-    function refreshTracks() {
-        if (fetchTrackProc.running)
-            return;
-        fetchTrackProc.command = [...baseCmd, "fetch"];
-        fetchTrackProc.running = true;
-    }
-
-    function fetchLibrary() {
-        if (libraryFetcher.running)
-            return;
-        refreshTracks();
-        NoonUtils.inlineTimer(() => {
-            libraryFetcher.running = true;
-        }, 400);
-    }
-
-    function isPlaying(player) {
-        if (player)
-            return player.playbackState === MprisPlaybackState.Playing;
-    }
-
     function switchToFolder(folder) {
-        Mem.beats.directory = folder;
+        opts.directory = folder;
     }
 
     function playTrackByFile(file) {
-        _daemonCmd(["play-by-name", "--name", `${file}`]);
+        _daemonCmd(["play-by-name", "--name", file]);
+    }
+
+    function playTrackByPath(path) {
+        _daemonCmd(["play-file", "--file", path]);
+    }
+
+    function fetchLibrary() {
+        NoonUtils.execDetached([...baseCmd, "fetch"]);
     }
 
     function playCustomPlaylist(...args) {
@@ -93,73 +99,14 @@ Singleton {
         mainProc.running = true;
     }
 
-    function stopPlayer() {
-        root.player.stop();
-    }
-
     function previewURL(url) {
         if (!url)
             return;
-        NoonUtils.toast({
-            id: 2,
-            header: "Beats",
-            icon: "music_note",
-            shape: "Bun",
-            content: "Your Track is Playing Soon !"
-        });
-        NoonUtils.execDetached(["mpv", `${decodeURI(url)}`]);
-    }
-
-    function currentTrackProgressRatio(p = root.player) {
-        const pos = p?.position ?? 0;
-        const len = p?.length ?? 0;
-        const ratio = len > 0 ? Math.max(0.0, Math.min(1.0, pos / len)) : 0.0;
-        return ratio;
+        _daemonCmd(["preview", "--url", url]);
     }
 
     function moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx) {
-        _daemonCmd(["queue-move", "--index", `${fromMpdIdx}`, "--new-index", `${toMpdIdx}`]);
-        moveQueueTimer.restart();
-    }
-
-    function moveQueueItem(fromUiIndex, toUiIndex) {
-        const q = queue;
-        if (!q || fromUiIndex < 0 || fromUiIndex >= q.length || toUiIndex < 0 || toUiIndex >= q.length)
-            return;
-        const fromMpdIdx = q[fromUiIndex]?.index;
-        const toMpdIdx = q[toUiIndex]?.index;
-        if (fromMpdIdx == null || toMpdIdx == null)
-            return;
-        moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx);
-    }
-
-    function getQueue() {
-        if (queueFetcher.running)
-            return;
-        if (!root.players.some(p => /noon/.test(p.dbusName)))
-            return;
-        queueFetcher.running = true;
-    }
-
-    function cycleRepeat(p = root.player) {
-        if (!p?.canControl)
-            return;
-        p.loopState = ({
-                [MprisLoopState.None]: MprisLoopState.Playlist,
-                [MprisLoopState.Playlist]: MprisLoopState.Track,
-                [MprisLoopState.Track]: MprisLoopState.None
-            })[p.loopState] ?? MprisLoopState.None;
-    }
-
-    function openUrl() {
-        NoonUtils.execDetached(["gio", "open", "http://localhost:" + opts.webClientPort]);
-    }
-
-    function openWebClient() {
-        NoonUtils.execDetached([...baseCmd, "serve", "--port", opts.webClientPort])
-        NoonUtils.inlineTimer(()=> {
-                openUrl();
-        },200)
+        _daemonCmd(["queue-move", "--index", fromMpdIdx, "--new-index", toMpdIdx]);
     }
 
     function addNewFolder() {
@@ -169,18 +116,7 @@ Singleton {
     FolderDialog {
         id: addFolderDialog
         title: "Select Folder"
-        onAccepted: {
-            root.opts.folders.push(Paths.methods.trim(currentFolder));
-            Qt.callLater(fetchLibrary);
-        }
-    }
-
-    Timer {
-        id: positionTimer
-        interval: 100
-        repeat: true
-        running: root.player && root._playing
-        onTriggered: root.player.positionChanged()
+        onAccepted: root.opts.folders.push(Paths.methods.trim(currentFolder))
     }
 
     Process {
@@ -188,43 +124,50 @@ Singleton {
         command: [...baseCmd, ""]
     }
 
-    Fetcher {
-        id: libraryFetcher
-        command: [...baseCmd, "library"]
-    }
-
-    Fetcher {
-        id: queueFetcher
-        command: [...baseCmd, "queue"]
-    }
-
-    Timer {
-        id: moveQueueTimer
-        interval: 350
-        onTriggered: getQueue()
-    }
-
     Process {
-        id: fetchTrackProc
-    }
-
-    FileSystemWatcher {
-        folder: root.tracksUrl
-        onContentsChanged: {
-            console.log("[BEATS]: contentChanged");
-            root.fetchLibrary();
+        id: hitsProc
+        property string _kind: ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const items = JSON.parse(text.trim());
+                    const h = opts.hits;
+                    if (hitsProc._kind === "search") {
+                        h.searchResults = items;
+                    } else {
+                        const seen = new Set(h.feed.map(t => t.videoId || t.url));
+                        h.feed = [...h.feed, ...items.filter(t => !seen.has(t.videoId || t.url))];
+                    }
+                } catch (e) {}
+            }
         }
     }
 
-    SourceDownloader {
-        id: coverFetch
-        active: root.artUrl.startsWith("http") || root.artUrl.startsWith("https")
-        input: root.artUrl
+    FileView {
+        id: queueFile
+        path: Qt.resolvedUrl(root.tracksDir) + "/.beats/queue.json"
+        watchChanges: true
+        preload: true
+        blockWrites: true
+        onFileChanged: queueFile.reload()
     }
 
-    PaletteGenerator {
-        id: palette
-        active: root.artUrl.length > 0 && Mem.beats.options.adaptiveTheme
-        source: coverFetch.output || root.artUrl
+    FileView {
+        id: lyricsFile
+        path: Qt.resolvedUrl(root.tracksDir) + "/.beats/lyrics.json"
+        watchChanges: true
+        preload: true
+        blockWrites: true
+        printErrors: false // daemon writes it after first track starts
+        onFileChanged: lyricsFile.reload()
+    }
+
+    FileView {
+        id: libraryFile
+        path: Qt.resolvedUrl(root.tracksDir) + "/.beats/library.json"
+        watchChanges: true
+        preload: true
+        blockWrites: true
+        onFileChanged: libraryFile.reload()
     }
 }

@@ -18,7 +18,7 @@ Item {
     clip: false
     Repeater {
         id: repeater
-        model: BeatsService.players
+        model: MediaPlayerService.players
         GNotifsMediaItem {
             required property var modelData
             required property var index

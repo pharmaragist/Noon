@@ -19,8 +19,15 @@ JsonAdapter {
             "dependencies": ["requests_oauth2client", "urllib3"]
         },
         {
+            "name": "beats",
+            "icon": "music_note",
+            "description": "For Beats/Feed",
+            "type": "python",
+            "dependencies": ["mpv", "dbus_next", "mutagen", "ytmusicapi", "yt-dlp"]
+        },
+        {
             "name": "misc",
-            "icon": "misc",
+            "icon": "tune",
             "description": "For some tertiary features and Qol",
             "type": "python",
             "dependencies": ["feedparser"]

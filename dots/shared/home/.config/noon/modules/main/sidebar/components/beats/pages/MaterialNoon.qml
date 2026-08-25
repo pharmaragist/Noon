@@ -12,19 +12,19 @@ import "../home/noon"
 SidebarItemContainer {
     id: root
 
-    readonly property bool playing: BeatsService.player?.playbackState === MprisPlaybackState.Playing
+    readonly property bool playing: MediaPlayerService.player?.playbackState === MprisPlaybackState.Playing
     readonly property bool displayingLyrics: activeLyrics.showContent
-    readonly property var colors: BeatsService?.colors ?? Colors
+    readonly property var colors: MediaPlayerService?.colors ?? Colors
 
     Keys.onPressed: event => {
         const ctrl = event.modifiers & Qt.ControlModifier;
         const shift = event.modifiers & Qt.ShiftModifier;
-        const player = BeatsService.player;
+        const player = MediaPlayerService.player;
 
         if (ctrl && shift) {
             switch (event.key) {
             case Qt.Key_R:
-                LyricsService.fetchLyrics(BeatsService.artist || "", BeatsService.title || "");
+                BeatsService.fetchLyrics(MediaPlayerService.artist || "", MediaPlayerService.title || "");
                 break;
             case Qt.Key_Right:
                 player?.canControl && player.next();
@@ -39,7 +39,7 @@ SidebarItemContainer {
                 return;
             }
         } else if (ctrl && event.key === Qt.Key_R) {
-            BeatsService.cycleRepeat();
+            MediaPlayerService.cycleRepeat();
         } else {
             switch (event.key) {
             case Qt.Key_Up:
@@ -79,7 +79,7 @@ SidebarItemContainer {
             }
             StyledRectangularShadow {
                 target: bigCover
-                show: LyricsService.syncedLyrics.length === 0
+                show: BeatsService.lyricText === ""
             }
             StyledLoader {
                 id: bigCover

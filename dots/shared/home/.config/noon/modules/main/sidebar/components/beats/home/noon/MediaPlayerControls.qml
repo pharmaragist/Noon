@@ -10,9 +10,9 @@ ColumnLayout {
     id: root
 
     property bool showCover: false
-    readonly property MprisPlayer player: BeatsService.player
+    readonly property MprisPlayer player: MediaPlayerService.player
     readonly property bool isPlaying: player.playbackState === MprisPlaybackState.Playing
-    readonly property var trackColors: BeatsService.colors
+    readonly property var trackColors: MediaPlayerService?.colors
     property int spermFrequency: 6
 
     spacing: Padding.veryhuge
@@ -35,7 +35,7 @@ ColumnLayout {
                 CroppedImage {
                     anchors.centerIn: parent
                     radius: Rounding.large
-                    source: BeatsService.artUrl
+                    source: MediaPlayerService.artUrl
                     implicitSize: 75
                     tint: true
                     tintLevel: 0.8
@@ -70,9 +70,9 @@ ColumnLayout {
         }
     }
 
-    
+
     StyledProgressBar {
-        value: BeatsService.currentTrackProgressRatio()
+        value: MediaPlayerService.currentTrackProgressRatio()
         sperm:true
         highlightColor: root.trackColors.colPrimary
         trackColor: root.trackColors.colSecondaryContainer
@@ -109,7 +109,7 @@ ColumnLayout {
         }
     }
 
-    
+
     RowLayout {
         spacing: Padding.small
         Layout.fillWidth: true
@@ -141,7 +141,7 @@ ColumnLayout {
                 fill: 1
                 iconSize: 42
                 property double dummy: 0
-                property real progress: BeatsService.currentTrackProgressRatio()
+                property real progress: MediaPlayerService.currentTrackProgressRatio()
                 rotation: dummy + progress * 360
 
                 RotationAnimation on dummy {
@@ -178,7 +178,7 @@ ColumnLayout {
             materialIcon: root.player?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
             enabled: root.player && root.player.canControl
             toggled: root.player?.loopState !== MprisLoopState.None
-            releaseAction: () => BeatsService.cycleRepeat()
+            releaseAction: () => MediaPlayerService.cycleRepeat()
         }
     }
 
@@ -186,7 +186,7 @@ ColumnLayout {
         Layout.fillHeight: false
         Layout.fillWidth: false
         implicitSize: 44
-        colors: BeatsService.colors
+        colors: MediaPlayerService?.colors
         buttonRadius: Rounding.verylarge
         buttonRadiusPressed: Rounding.tiny
     }

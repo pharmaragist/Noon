@@ -6,9 +6,6 @@ import qs.common.utils
 import qs.common.functions
 
 
-
-
-
 Singleton {
     id: root
     readonly property bool firstRun: Mem.states.desktop.firstRun

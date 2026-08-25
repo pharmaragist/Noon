@@ -39,7 +39,7 @@ BarGroup {
         maximumFlickVelocity: 2000
         flickDeceleration: 3500
         interactive: false
-        model: BeatsService.players
+        model: MediaPlayerService.players
 
         delegate: Disc {
             required property var modelData
@@ -129,7 +129,7 @@ BarGroup {
             opacity: 0.6
             colPrimary: root.colors.colPrimary
             colSecondary: "transparent"
-            value: BeatsService.currentTrackProgressRatio(root.player)
+            value: MediaPlayerService.currentTrackProgressRatio(root.player)
             anchors.centerIn: parent
             implicitSize: root.implicitSize
         }
@@ -139,7 +139,7 @@ BarGroup {
             fill: 1
             anchors.centerIn: parent
             font.pixelSize: Math.round(root.implicitSize * 0.65)
-            text: BeatsService.isPlaying(root.player) ? "music_note" : "pause"
+            text: MediaPlayerService.isPlaying(root.player) ? "music_note" : "pause"
             color: root.colors.colLayer0
         }
     }

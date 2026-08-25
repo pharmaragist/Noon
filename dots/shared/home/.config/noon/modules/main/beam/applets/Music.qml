@@ -9,14 +9,14 @@ BeamApplet {
     id: root
     _shape: "Pill"
     viewId: "music"
-    colors: BeatsService.colors
+    colors: MediaPlayerService?.colors
     color: colors.colPrimaryContainer
 
-    
-    
-    
-    
-    
+
+
+
+
+
 
     Symbol {
         z: 2
