@@ -10,14 +10,14 @@ class DoubleMapper {
     constructor(...mappings) {
         this.sourceValues = [];
         this.targetValues = [];
-        
+
         for (const mapping of mappings) {
             this.sourceValues.push(mapping.a);
             this.targetValues.push(mapping.b);
         }
     }
 
-    
+
 
 
 
@@ -25,7 +25,7 @@ class DoubleMapper {
         return linearMap(this.sourceValues, this.targetValues, x);
     }
 
-    
+
 
 
 

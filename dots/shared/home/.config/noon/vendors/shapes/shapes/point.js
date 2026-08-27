@@ -10,7 +10,7 @@ function createPoint(x, y) {
 }
 
 class Point {
-    
+
 
 
 
@@ -19,7 +19,7 @@ class Point {
         this.y = y;
     }
 
-    
+
 
 
 
@@ -28,21 +28,21 @@ class Point {
         return new Point(x, y);
     }
 
-    
+
 
 
     getDistance() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    
+
 
 
     getDistanceSquared() {
         return this.x * this.x + this.y * this.y;
     }
 
-    
+
 
 
 
@@ -50,7 +50,7 @@ class Point {
         return this.x * other.x + this.y * other.y;
     }
 
-    
+
 
 
 
@@ -59,7 +59,7 @@ class Point {
         return this.x * otherX + this.y * otherY;
     }
 
-    
+
 
 
 
@@ -67,7 +67,7 @@ class Point {
         return this.x * other.y - this.y * other.x > 0;
     }
 
-    
+
 
 
     getDirection() {
@@ -75,14 +75,14 @@ class Point {
         return this.div(d);
     }
 
-    
+
 
 
     negate() {
         return new Point(-this.x, -this.y);
     }
 
-    
+
 
 
 
@@ -90,7 +90,7 @@ class Point {
         return new Point(this.x - other.x, this.y - other.y);
     }
 
-    
+
 
 
 
@@ -98,7 +98,7 @@ class Point {
         return new Point(this.x + other.x, this.y + other.y);
     }
 
-    
+
 
 
 
@@ -106,7 +106,7 @@ class Point {
         return new Point(this.x * operand, this.y * operand);
     }
 
-    
+
 
 
 
@@ -114,7 +114,7 @@ class Point {
         return new Point(this.x / operand, this.y / operand);
     }
 
-    
+
 
 
 
@@ -122,7 +122,7 @@ class Point {
         return new Point(this.x % operand, this.y % operand);
     }
 
-    
+
 
 
 
@@ -135,7 +135,7 @@ class Point {
         );
     }
 
-    
+
 
 
 
@@ -144,11 +144,10 @@ class Point {
         return new Point(result.x, result.y);
     }
 
-    
+
 
 
     rotate90() {
         return new Point(-this.y, this.x);
     }
 }
-

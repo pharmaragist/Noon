@@ -4,7 +4,7 @@ import os
 import sys
 
 from . import lyrics
-from .library import LibraryManager
+from .library import LibraryManager, track_index
 from .player import MpvPlayer
 
 
@@ -104,46 +104,6 @@ class BeatsDaemon:
         self._lyrics_last = None
         self._pending_embed = []
 
-    async def _flush_embeds(self):
-        pending, self._pending_embed = self._pending_embed, []
-        if not pending:
-            return
-
-        def work():
-            done = 0
-            for rel, text in pending:
-                try:
-                    if lyrics.embed_track(self.lib.music_dir, rel, text):
-                        done += 1
-                except Exception:
-                    pass
-            return done
-
-        n = await asyncio.to_thread(work)
-        if n:
-            print(f"  beats: embedded {n} lyric tags", flush=True)
-        self._preview_task = asyncio.get_running_loop().create_task(self._preview(url))
-
-    async def _preview(self, url: str):
-        proc = await asyncio.create_subprocess_exec(
-            "mpv",
-            "--really-quiet",
-            "--no-video",
-            url,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
-            start_new_session=True,
-        )
-        try:
-            await proc.wait()
-        except asyncio.CancelledError:
-            try:
-                proc.kill()
-                await proc.wait()
-            except ProcessLookupError:
-                pass
-            raise
-
     async def _startup_embed(self):
         async def work():
             try:
@@ -155,6 +115,38 @@ class BeatsDaemon:
         n = await work()
         if n:
             print(f"  beats: embedded {n} lyric tags from cache", flush=True)
+
+        removed = 0
+        try:
+            with open(self._lyrics_path.replace("lyrics.json", "library.json")) as f:
+                tracks = json.load(f)
+        except Exception:
+            return
+        covers_ref, lrc_valid = set(), set()
+        for t in tracks:
+            rel = t.get("file", "")
+            if rel:
+                lrc_valid.add(os.path.splitext(rel)[0] + ".lrc")
+            c = t.get("cover", "")
+            if c:
+                covers_ref.add(os.path.basename(c))
+        ca = os.path.join(self.lib.music_dir, ".beats", "coverarts")
+        ly = os.path.join(self.lib.music_dir, ".beats", "lyrics")
+        for d, valid in ((ca, covers_ref), (ly, lrc_valid)):
+            if not os.path.isdir(d):
+                continue
+            for root, _, files in os.walk(d):
+                for f in files:
+                    rel = os.path.relpath(os.path.join(root, f), d)
+                    target = f if d == ca else rel
+                    if target not in valid:
+                        try:
+                            os.unlink(os.path.join(root, f))
+                            removed += 1
+                        except OSError:
+                            pass
+        if removed:
+            print(f"  beats: pruned {removed} orphan art/lyric files", flush=True)
 
     async def _lyrics_loop(self):
         while True:
@@ -171,7 +163,7 @@ class BeatsDaemon:
                         "text": "",
                     })
                     text = await asyncio.to_thread(
-                        lyrics.get_lyrics, s["title"], s["artist"], self.lib.music_dir, s["file"])
+                        lyrics.get_lyrics, s["title"], s["artist"], self.lib.music_dir, s["file"], s["duration"])
                     if text:
                         _atomic_json(self._lyrics_path, {
                             "title": s["title"],
@@ -247,11 +239,14 @@ class BeatsDaemon:
         def cover_url(rel: str) -> str:
             if not rel:
                 return ""
-            for t in self.lib.get_library():
-                if t["file"] == rel and t.get("cover"):
-                    full = os.path.normpath(os.path.join(self.lib.music_dir, t["cover"]))
-                    if full.startswith(os.path.normpath(self.lib.music_dir)) and os.path.isfile(full):
-                        return f"file://{full}"
+            # track_index is mtime-cached (single stat), unlike get_library()
+            # which rescans the whole tree every call -- this runs on every
+            # MPRIS sync emission so it must be cheap
+            t = track_index(self.lib.music_dir).get(rel)
+            if t and t.get("cover"):
+                full = os.path.normpath(os.path.join(self.lib.music_dir, t["cover"]))
+                if full.startswith(os.path.normpath(self.lib.music_dir)) and os.path.isfile(full):
+                    return f"file://{full}"
             return ""
 
         mpris = MprisService(self.mpv, cover_url=cover_url)
@@ -264,13 +259,17 @@ class BeatsDaemon:
         loop.create_task(self._queue_loop())
         loop.create_task(self._lyrics_loop())
 
-        web = WebServer(
-            self.lib.music_dir,
-            self.mpv.snapshot,
-            self.mpv.get_queue,
-            lambda: self.mpv.queue_version,
-            self._execute,
-        )
-        loop.create_task(web.start())
+        # webui is auxiliary (qs talks to us via MPRIS + .beats/ files), so it
+        # only starts when BEATS_PORT is set -- that var also chooses the port
+        port = os.environ.get("BEATS_PORT")
+        if port:
+            web = WebServer(
+                self.lib.music_dir,
+                self.mpv.snapshot,
+                self.mpv.get_queue,
+                lambda: self.mpv.queue_version,
+                self._execute,
+            )
+            loop.create_task(web.start(port=int(port)))
 
         await asyncio.Event().wait()

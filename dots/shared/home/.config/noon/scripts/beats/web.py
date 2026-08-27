@@ -88,7 +88,7 @@ class WebServer:
                                     break
                     except (OSError, json.JSONDecodeError):
                         pass
-                if not full.startswith(base):
+                if full is not None and not full.startswith(base):
                     await self._json(writer, {"error": "forbidden"}, 403)
                 elif full and os.path.isfile(full):
                     await self._send_file(writer, full)

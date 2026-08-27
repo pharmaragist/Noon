@@ -3,10 +3,6 @@ import QtQuick
 import qs.common.utils
 import qs.common
 
-
-
-
-
 Item {
     id: root
     visible: false
@@ -15,7 +11,7 @@ Item {
     property alias depth: quantizer.depth
     property alias rescaleSize: quantizer.rescaleSize
     property bool active: source.length > 0
-    
+
     readonly property bool isBase64: source.startsWith("data:") || source.length > 512
 
     ColorQuantizer {

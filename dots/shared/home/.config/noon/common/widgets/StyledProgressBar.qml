@@ -17,21 +17,21 @@ ProgressBar {
     property var colors: Colors
     property real valueBarWidth: 120
     property real valueBarHeight: 4
-    property real highlightHeight: valueBarHeight 
-    property real valueBarGap: 4 
+    property real highlightHeight: valueBarHeight
+    property real valueBarGap: 4
     property color indicatorColor: colors?.colOnLayer0
     property color highlightColor: colors?.colPrimary ?? "#685496"
     property color trackColor: colors?.colPrimaryContainer ?? "#F1D3F9"
-    property bool sperm: false 
+    property bool sperm: false
     property bool animateSperm: true
-    property real spermAmplitude: sperm ? 3 : 0 
-    property real wavelength: 40 
+    property real spermAmplitude: sperm ? 3 : 0
+    property real wavelength: 40
     property real trackHeight: Math.max(sperm ? highlightHeight + spermAmplitude * 2 : highlightHeight, valueBarHeight)
     property real spermFps: 60
     property real rounding: Rounding.full
     property bool showProgressIndicator: true
-    property bool vertical: false 
-    property bool showDot: false 
+    property bool vertical: false
+    property bool showDot: false
     property bool animateOnStart: true
     Behavior on spermAmplitude {
         Anim {}
@@ -74,7 +74,7 @@ ProgressBar {
                 ctx.clearRect(0, 0, width, height);
                 var progress = root.visualPosition;
                 if (vertical) {
-                    
+
                     var fillHeight = progress * parent.height;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;
@@ -97,7 +97,7 @@ ProgressBar {
                     }
                     ctx.stroke();
                 } else {
-                    
+
                     var fillWidth = progress * width;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;
@@ -170,7 +170,7 @@ ProgressBar {
         }
         Rectangle {
             id: remaining
-            
+
             radius: root.rounding
             color: root.trackColor
             visible: !vertical
@@ -181,7 +181,7 @@ ProgressBar {
         }
 
         Rectangle {
-            
+
             radius: root.rounding
             color: root.trackColor
             visible: vertical
@@ -196,7 +196,7 @@ ProgressBar {
 
         Rectangle {
             visible: root.showDot
-            
+
             anchors.right: vertical ? undefined : parent.right
             anchors.verticalCenter: vertical ? undefined : parent.verticalCenter
             anchors.rightMargin: vertical ? 0 : 6

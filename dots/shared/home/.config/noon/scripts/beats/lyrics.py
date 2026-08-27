@@ -42,7 +42,7 @@ def _lrc_path(music_dir: str, rel: str) -> str:
     return os.path.join(music_dir, ".beats", "lyrics", stem + ".lrc")
 
 
-def get_lyrics(title: str, artist: str = "", music_dir: str = "", rel: str = "", cached_only: bool = False) -> str:
+def get_lyrics(title: str, artist: str = "", music_dir: str = "", rel: str = "", cached_only: bool = False, duration: float = 0.0) -> str:
     title, artist = title.strip(), artist.strip()
     if not title or not rel:
         return ""
@@ -60,26 +60,55 @@ def get_lyrics(title: str, artist: str = "", music_dir: str = "", rel: str = "",
         return ""
 
     try:
-        c_artist = clean_artist(artist)
-        c_title = clean_title(title, c_artist)
-        attempts = [
-            f"{LRCLIB}?track_name={quote(c_title)}&artist_name={quote(c_artist)}",
-            f"{LRCLIB}?q={quote(title + ' ' + artist)}",
+        # LRCLib's structured search fails on non-latin scripts; use plain q= there
+        segs = []
+        for s in re.split(r"[|｜/]| - ", title):
+            s = s.strip()
+            if len(s) >= 4 and s not in segs:
+                segs.append(s)
+        if len(segs) > 1:
+            attempts = [f"{LRCLIB}?q={quote(s)}" for s in segs[:4]]
+        elif all(ord(ch) < 0x600 for ch in title):
+            attempts = [
+                f"{LRCLIB}?track_name={quote(clean_title(title, clean_artist(artist)))}&artist_name={quote(clean_artist(artist))}",
+                f"{LRCLIB}?q={quote(title + ' ' + artist)}",
+            ]
+        else:
+            attempts = [f"{LRCLIB}?q={quote(title + ' ' + artist)}"]
+
+        def duration_ok(d):
+            try:
+                return not duration or not d.get("duration") or abs(float(d["duration"]) - duration) <= 3
+            except (TypeError, ValueError):
+                return True
+
+        # a result must share at least one significant word with the query,
+        # otherwise segment queries like a bare artist name match random songs
+        tokens = [
+            w.lower() for w in re.findall(r"[\w\u0600-\u06FF]+", title + " " + artist)
+            if len(w) >= (3 if any(ord(c) >= 0x600 for c in w) else 4)
         ]
+
+        def name_ok(d):
+            if not tokens:
+                return True
+            hay = ((d.get("trackName") or "") + " " + (d.get("artistName") or "")).lower()
+            return any(t in hay for t in tokens)
+
         synced = plain = ""
         for url in attempts:
             with urlopen(Request(url, headers={"User-Agent": UA}), timeout=10) as r:
                 data = json.loads(r.read().decode())
             if not isinstance(data, list):
                 continue
-            # prefer the first result that actually has timed lyrics
             for d in data:
-                if d.get("syncedLyrics"):
+                if not duration_ok(d) or not name_ok(d):
+                    continue
+                if not synced and d.get("syncedLyrics"):
                     synced = d["syncedLyrics"]
-                    break
                 if not plain and d.get("plainLyrics"):
                     plain = d["plainLyrics"]
-            if synced or plain:
+            if synced:
                 break
         if synced:
             os.makedirs(os.path.dirname(lrc_path), exist_ok=True)

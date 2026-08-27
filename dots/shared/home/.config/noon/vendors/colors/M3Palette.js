@@ -286,7 +286,7 @@ function variantPalettes(hct, m3, scheme) {
                 n2: T(h, 12),
             };
         case "scheme-tonal-spot":
-        default: 
+        default:
             return { a1: T(h, 36), a2: T(h, 16), a3: T(sanitizeDegreesDouble(h + 60), 24), n1: T(h, 6), n2: T(h, 8) };
     }
 }
@@ -301,7 +301,7 @@ function build(keyColor, dark, m3, scheme) {
     const t = (palette, tone) => argbToCss(palette.tone(tone));
     const A = (argb) => argbToCss(argb);
 
-    
+
     const primary = dark ? { color: 80, on: 20, container: 30, onContainer: 90 }
                          : { color: 40, on: 100, container: 90, onContainer: 10 };
     const error = primary;

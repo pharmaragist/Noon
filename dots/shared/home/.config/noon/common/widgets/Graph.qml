@@ -48,7 +48,7 @@ GraphsView {
         subGridVisible: false
     }
 
-    
+
     AreaSeries {
         borderWidth: 0
         upperSeries: line

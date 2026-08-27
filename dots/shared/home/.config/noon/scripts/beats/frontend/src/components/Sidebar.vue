@@ -65,7 +65,6 @@ const tabs = [
     { view: "player", icon: "music_note", label: "Now Playing" },
     { view: "hits", icon: "explore", label: "Discover" },
     { view: "tracks", icon: "library_music", label: "Tracks" },
-    { view: "library", icon: "grid_view", label: "Library" },
 ];
 
 const themeOpts = [
@@ -99,7 +98,6 @@ function navigate(view) {
         tracks: "/tracks",
         albums: "/albums",
         artists: "/artists",
-        library: "/library",
     };
     router.push(map[view] || "/player");
 }

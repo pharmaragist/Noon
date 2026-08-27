@@ -20,10 +20,10 @@ Button {
     property real buttonEffectiveRadius: root.down ? root.buttonRadiusPressed : root.buttonRadius
     property int rippleDuration: 1200
     property bool rippleEnabled: true
-    property var downAction 
-    property var releaseAction 
-    property var altAction 
-    property var middleClickAction 
+    property var downAction
+    property var releaseAction
+    property var altAction
+    property var middleClickAction
     property color colBackground: colors.colLayer1 || "transparent"
     property color colBackgroundHover: colors.colLayer1Hover ?? "#E5DFED"
     property color colBackgroundToggled: colors.colPrimary ?? "#65558F"
@@ -93,7 +93,7 @@ Button {
             if (root.releaseAction)
                 root.releaseAction();
 
-            root.click(); 
+            root.click();
             if (!root.rippleEnabled)
                 return;
 
@@ -162,7 +162,7 @@ Button {
         id: buttonBackground
         topRadius: root.buttonEffectiveRadius
         bottomRadius: root.buttonEffectiveRadius
-        
+
         implicitHeight: 30
         color: root.buttonColor
         layer.enabled: true

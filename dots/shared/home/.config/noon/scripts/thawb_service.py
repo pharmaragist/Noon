@@ -48,14 +48,14 @@ FALLBACK_DIR = os.path.join(HOME, ".local", "share", "thawb")
 
 
 def parse_ocs_url(raw: str) -> dict:
-    
+
     if "?" not in raw:
         raise ValueError(f"No query string in URL: {raw}")
 
     query = raw[raw.index("?") + 1 :]
     params = urllib.parse.parse_qs(query, keep_blank_values=True)
 
-    
+
     def get(key):
         return params.get(key, [None])[0]
 

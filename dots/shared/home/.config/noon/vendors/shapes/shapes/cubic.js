@@ -12,7 +12,7 @@ var distance = UtilsModule.distance;
 
 
 class Cubic {
-    
+
 
 
     constructor(points) {
@@ -28,7 +28,7 @@ class Cubic {
     get anchor1X() { return this.points[6]; }
     get anchor1Y() { return this.points[7]; }
 
-    
+
 
 
 
@@ -44,7 +44,7 @@ class Cubic {
         ]);
     }
 
-    
+
 
 
 
@@ -62,7 +62,7 @@ class Cubic {
         );
     }
 
-    
+
 
 
     zeroLength() {
@@ -70,7 +70,7 @@ class Cubic {
                Math.abs(this.anchor0Y - this.anchor1Y) < DistanceEpsilon;
     }
 
-    
+
 
 
 
@@ -81,7 +81,7 @@ class Cubic {
         return convex(prevVertex, currVertex, nextVertex);
     }
 
-    
+
 
 
 
@@ -89,7 +89,7 @@ class Cubic {
         return Math.abs(value) < DistanceEpsilon;
     }
 
-    
+
 
 
 
@@ -115,7 +115,7 @@ class Cubic {
             return;
         }
 
-        
+
         const xa = -this.anchor0X + 3 * this.control0X - 3 * this.control1X + this.anchor1X;
         const xb = 2 * this.anchor0X - 4 * this.control0X + 2 * this.control1X;
         const xc = -this.anchor0X + this.control0X;
@@ -148,7 +148,7 @@ class Cubic {
             }
         }
 
-        
+
         const ya = -this.anchor0Y + 3 * this.control0Y - 3 * this.control1Y + this.anchor1Y;
         const yb = 2 * this.anchor0Y - 4 * this.control0Y + 2 * this.control1Y;
         const yc = -this.anchor0Y + this.control0Y;
@@ -186,7 +186,7 @@ class Cubic {
         bounds[3] = maxY;
     }
 
-    
+
 
 
 
@@ -217,7 +217,7 @@ class Cubic {
         };
     }
 
-    
+
 
 
     reverse() {
@@ -229,7 +229,7 @@ class Cubic {
         ]);
     }
 
-    
+
 
 
 
@@ -237,7 +237,7 @@ class Cubic {
         return new Cubic(other.points.map((_, index) => this.points[index] + other.points[index]));
     }
 
-    
+
 
 
 
@@ -245,7 +245,7 @@ class Cubic {
         return new Cubic(this.points.map(v => v * x));
     }
 
-    
+
 
 
 
@@ -253,7 +253,7 @@ class Cubic {
         return this.times(1 / x);
     }
 
-    
+
 
 
 
@@ -261,7 +261,7 @@ class Cubic {
         return this.points.every((p, i) => other.points[i] === p);
     }
 
-    
+
 
 
 
@@ -271,7 +271,7 @@ class Cubic {
         return newCubic;
     }
 
-    
+
 
 
 
@@ -291,7 +291,7 @@ class Cubic {
         ]);
     }
 
-    
+
 
 
 
@@ -307,15 +307,15 @@ class Cubic {
         const rotatedP1 = p1d.rotate90();
         const clockwise = rotatedP0.dotProductScalar(x1 - centerX, y1 - centerY) >= 0;
         const cosa = p0d.dotProduct(p1d);
-        
+
         if (cosa > 0.999) {
             return Cubic.straightLine(x0, y0, x1, y1);
         }
 
-        const k = distance(x0 - centerX, y0 - centerY) * 4/3 * 
-                 (Math.sqrt(2 * (1 - cosa)) - Math.sqrt(1 - cosa * cosa)) / 
+        const k = distance(x0 - centerX, y0 - centerY) * 4/3 *
+                 (Math.sqrt(2 * (1 - cosa)) - Math.sqrt(1 - cosa * cosa)) /
                  (1 - cosa) * (clockwise ? 1 : -1);
-                 
+
         return new Cubic([
             x0, y0,
             x0 + rotatedP0.x * k,
@@ -326,7 +326,7 @@ class Cubic {
         ]);
     }
 
-    
+
 
 
 
@@ -337,7 +337,7 @@ class Cubic {
 }
 
 class MutableCubic extends Cubic {
-    
+
 
 
     transform(f) {
@@ -347,7 +347,7 @@ class MutableCubic extends Cubic {
         this.transformOnePoint(f, 6);
     }
 
-    
+
 
 
 
@@ -358,7 +358,7 @@ class MutableCubic extends Cubic {
         }
     }
 
-    
+
 
 
 

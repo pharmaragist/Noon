@@ -10,7 +10,7 @@ import qs.modules.main.sidebar.components.settings
 AppWindow {
     id: root
 
-    
+
 
 
 

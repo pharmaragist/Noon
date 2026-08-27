@@ -11,8 +11,8 @@ Switch {
     id: root
 
     property var colors: Colors
-    property real scale: 0.85 
-    
+    property real scale: 0.85
+
     property color activeColor: colors.colPrimary ?? "#685496"
     property color inactiveColor: colors.colSurfaceContainerHigh ?? "#45464F"
     property color activeBorderColor: colors.colPrimary ?? "#685496"
@@ -26,7 +26,7 @@ Switch {
 
     PointingHandInteraction {}
     text: ""
-    
+
     background: Rectangle {
         width: parent.width
         height: parent.height
@@ -44,7 +44,7 @@ Switch {
         }
     }
 
-    
+
     indicator: StyledRect {
         width: (root.pressed || root.down) ? (28 * root.scale) : root.checked ? (24 * root.scale) : (16 * root.scale)
         height: (root.pressed || root.down) ? (28 * root.scale) : root.checked ? (24 * root.scale) : (16 * root.scale)

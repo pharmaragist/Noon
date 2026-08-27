@@ -40,7 +40,7 @@ Singleton {
     }
 
     function changeSystemFont(fontVar) {
-        Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", Fonts.sizes.verysmall]);
+        Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", fontVar.family, "--size", 10]);
         Mem.hypr.font_main = fontVar.family;
         Mem.options.appearance.fonts.main = fontVar.family;
     }

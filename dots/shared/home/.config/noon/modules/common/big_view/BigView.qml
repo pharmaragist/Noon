@@ -30,7 +30,7 @@ Scope {
                 item: bg
             }
 
-            PaletteGenerator {
+            MaterialColorsGenerator {
                 id: paletteGenerator
                 source: root.currentPage === 1 && gameCarousel ? Qt.resolvedUrl(gameCarousel.currentItem?.modelData?.coverImage ?? "") : ""
             }

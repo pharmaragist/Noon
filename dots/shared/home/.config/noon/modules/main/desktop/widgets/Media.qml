@@ -31,7 +31,7 @@ WidgetContainer {
             action: () => MediaPlayerService.cycleRepeat(root?.player)
         }
     ]
-    readonly property PaletteGenerator palette: PaletteGenerator {
+    readonly property PaletteGenerator palette: MaterialColorsGenerator {
         active: source !== null
         source: player?.trackArtUrl
     }

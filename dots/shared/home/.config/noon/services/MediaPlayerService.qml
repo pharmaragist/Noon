@@ -82,7 +82,7 @@ Singleton {
         input: root.artUrl
     }
 
-    PaletteGenerator {
+    MaterialColorsGenerator {
         id: palette
         active: root.artUrl.length > 0 && Mem.beats.options.adaptiveTheme
         source: coverFetch.output || root.artUrl

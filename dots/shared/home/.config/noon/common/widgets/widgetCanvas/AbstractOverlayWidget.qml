@@ -8,6 +8,6 @@ import qs.common
 AbstractWidget {
     id: root
 
-    property bool pinned: false 
-    property bool clickthrough: true 
+    property bool pinned: false
+    property bool clickthrough: true
 }

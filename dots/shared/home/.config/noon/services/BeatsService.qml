@@ -122,6 +122,9 @@ Singleton {
     Process {
         id: mainProc
         command: [...baseCmd, ""]
+        environment: ({
+            "BEATS_PORT": opts.port
+        })
     }
 
     Process {

@@ -9,7 +9,7 @@ import qs.common.utils
 Item {
     id: root
 
-    
+
     readonly property var filterPresets: {
         "ALL": {
             "name": "All files",
@@ -40,7 +40,7 @@ Item {
             "patterns": NameFilters.document
         }
     }
-    
+
     property string title: "Select File"
     property bool multipleSelection: false
     property bool directoryMode: false
@@ -50,12 +50,12 @@ Item {
     property var fileFilters: filterPresets[filter]
     property string separator: "\n"
 
-    
+
     signal fileSelected(var files)
     signal cancelled
     signal error(string message)
 
-    
+
     function open() {
         if (pickerLoader.item && pickerLoader.item.running) {
             console.warn("[FilePicker] Picker already running");
@@ -70,12 +70,12 @@ Item {
         });
     }
 
-    
+
     function buildKDialogFilter() {
         if (fileFilters.length === 0)
             return "";
 
-        
+
         const filterStrings = fileFilters.map(filter => {
             if (filter.name && filter.patterns) {
                 const patterns = Array.isArray(filter.patterns) ? filter.patterns.join(" ") : filter.patterns;
@@ -88,7 +88,7 @@ Item {
         return filterStrings.join("|");
     }
 
-    
+
     LazyLoader {
         id: pickerLoader
 
@@ -106,11 +106,11 @@ Item {
 
                 command: {
                     let args = ["kdialog"];
-                    
+
                     if (root.title)
                         args.push("--title", root.title);
 
-                    
+
                     if (root.directoryMode) {
                         args.push("--getexistingdirectory");
                         args.push(root.currentFolder);
@@ -121,14 +121,14 @@ Item {
                         if (filter)
                             args.push(filter);
                     } else {
-                        
+
                         args.push("--getopenfilename");
                         args.push(root.currentFolder);
                         const filter = root.buildKDialogFilter();
                         if (filter)
                             args.push(filter);
 
-                        
+
                         if (root.multipleSelection) {
                             args.push("--multiple");
                             args.push("--separate-output");
@@ -153,13 +153,13 @@ Item {
                             root.cancelled();
                         }
                     } else if (exitCode === 1) {
-                        
+
                         root.cancelled();
                     } else {
-                        
+
                         root.error(errorOutput.trim() || "File picker failed");
                     }
-                    
+
                     output = "";
                     errorOutput = "";
                 }

@@ -22,7 +22,7 @@ Singleton {
     }
 
     Connections {
-        
+
         target: sink?.audio ?? null
         property bool lastReady: false
         property real lastVolume: 0

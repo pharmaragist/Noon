@@ -5,7 +5,7 @@ import Quickshell
 Singleton {
     id: root
 
-    
+
 
 
 
@@ -15,7 +15,7 @@ Singleton {
         return str.replace(/{(\d+)}/g, (match, index) => typeof args[index] !== 'undefined' ? args[index] : match);
     }
 
-    
+
 
 
 
@@ -25,7 +25,7 @@ Singleton {
         return match ? match[1] : null;
     }
 
-    
+
 
 
 
@@ -35,18 +35,18 @@ Singleton {
         return match ? match[1] : null;
     }
 
-    
+
 
 
 
 
     function shellSingleQuoteEscape(str) {
         return String(str)
-        
+
         .replace(/'/g, "'\\''");
     }
 
-    
+
 
 
 
@@ -55,7 +55,7 @@ Singleton {
         if (typeof markdown !== 'string')
             return [];
         const regex = /```(\w+)?\n([\s\S]*?)```|<think>([\s\S]*?)<\/think>/g;
-        
+
 
 
         let result = [];
@@ -91,10 +91,10 @@ Singleton {
             }
             lastIndex = regex.lastIndex;
         }
-        
+
         if (lastIndex < markdown.length) {
             const text = markdown.slice(lastIndex);
-            
+
             const thinkStart = text.indexOf('<think>');
             const codeStart = text.indexOf('```');
             if (thinkStart !== -1 && (codeStart === -1 || thinkStart < codeStart)) {
@@ -121,7 +121,7 @@ Singleton {
                         content: beforeCode
                     });
                 }
-                
+
                 const codeLangMatch = text.slice(codeStart + 3).match(/^(\w+)?\n/);
                 let lang = "";
                 let codeContentStart = codeStart + 3;
@@ -147,11 +147,11 @@ Singleton {
                 });
             }
         }
-        
+
         return result;
     }
 
-    
+
 
 
 
@@ -160,7 +160,7 @@ Singleton {
         return str.replace(/\\/g, '\\\\');
     }
 
-    
+
 
 
 
@@ -186,7 +186,7 @@ Singleton {
         return lines.join("\n");
     }
 
-    
+
 
 
 
@@ -194,20 +194,20 @@ Singleton {
     function cleanMusicTitle(title) {
         if (!title)
             return "";
-        
-        title = title.replace(/^ *\([^)]*\) */g, " "); 
-        title = title.replace(/^ *\[[^\]]*\] */g, " "); 
-        title = title.replace(/^ *\{[^\}]*\} */g, " "); 
-        
-        title = title.replace(/^ *【[^】]*】/, ""); 
-        title = title.replace(/^ *《[^》]*》/, ""); 
-        title = title.replace(/^ *「[^」]*」/, ""); 
-        title = title.replace(/^ *『[^』]*』/, ""); 
+
+        title = title.replace(/^ *\([^)]*\) */g, " ");
+        title = title.replace(/^ *\[[^\]]*\] */g, " ");
+        title = title.replace(/^ *\{[^\}]*\} */g, " ");
+
+        title = title.replace(/^ *【[^】]*】/, "");
+        title = title.replace(/^ *《[^》]*》/, "");
+        title = title.replace(/^ *「[^」]*」/, "");
+        title = title.replace(/^ *『[^』]*』/, "");
 
         return title.trim();
     }
 
-    
+
 
 
 
@@ -226,7 +226,7 @@ Singleton {
         }
     }
 
-    
+
 
 
 
@@ -237,7 +237,7 @@ Singleton {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    
+
 
 
 
@@ -246,7 +246,7 @@ Singleton {
         return str.replace(/^\d+\t/, "");
     }
 
-    
+
 
 
 
@@ -261,7 +261,7 @@ Singleton {
         return false;
     }
 
-    
+
 
 
 
@@ -274,7 +274,7 @@ Singleton {
         return str;
     }
 
-    
+
 
 
 
@@ -289,13 +289,13 @@ Singleton {
         return str;
     }
 
-    
+
 
 
 
 
     function toTitleCase(str) {
-        
+
         return str.replace(/[-_]/g, " ").replace(/\w\S*/g, function (txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
@@ -312,7 +312,7 @@ Singleton {
 
         return `${unitIndex === 0 ? bytes : bytes.toFixed(2)} ${units[unitIndex]}`;
     }
-    
+
 
 
 
@@ -321,7 +321,7 @@ Singleton {
         return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').replace(/\b./g, s => s.toUpperCase());
     }
 
-    
+
 
 
 
@@ -332,7 +332,7 @@ Singleton {
             return "";
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
-    
+
 
 
 

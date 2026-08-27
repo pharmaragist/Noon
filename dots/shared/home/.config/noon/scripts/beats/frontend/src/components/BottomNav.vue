@@ -26,7 +26,6 @@ const activePlayerCount = inject("activePlayerCount", ref(1));
 const tabs = [
     { view: "player", icon: "music_note", label: "Now Playing" },
     { view: "tracks", icon: "library_music", label: "Tracks" },
-    { view: "library", icon: "grid_view", label: "Library" },
     { view: "hits", icon: "explore", label: "Discover" },
 ];
 
@@ -37,7 +36,6 @@ function navigate(view) {
         tracks: "/tracks",
         albums: "/albums",
         artists: "/artists",
-        library: "/library",
     };
     router.push(map[view] || "/player");
 }

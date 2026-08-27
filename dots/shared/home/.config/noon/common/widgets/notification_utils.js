@@ -23,7 +23,7 @@ function findSuitableMaterialSymbol(summary = "") {
         'control': 'settings',
         'upscale': 'compare',
         'install': 'deployed_code_update',
-        'startswith:file': 'folder_copy', 
+        'startswith:file': 'folder_copy',
     };
 
     const lowerSummary = summary.toLowerCase();
@@ -52,26 +52,26 @@ const getFriendlyNotifTimeString = (timestamp) => {
     const now = new Date();
     const diffMs = now.getTime() - messageTime.getTime();
 
-    
-    if (diffMs < 60000) 
+
+    if (diffMs < 60000)
         return 'Now';
-    
-    
+
+
     if (messageTime.toDateString() === now.toDateString()) {
         const diffMinutes = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
-        
+
         if (diffHours > 0) {
             return `${diffHours}h`;
         } else {
             return `${diffMinutes}m`;
         }
     }
-    
-    
-    if (messageTime.toDateString() === new Date(now.getTime() - 86400000).toDateString()) 
+
+
+    if (messageTime.toDateString() === new Date(now.getTime() - 86400000).toDateString())
         return 'Yesterday';
-    
-    
+
+
     return Qt.formatDateTime(messageTime, "MMMM dd");
 };

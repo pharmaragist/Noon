@@ -28,7 +28,7 @@ DAEMON_COMMANDS = {
     "refresh-config": ("refreshConfig", None),
     "preview": ("preview", "url"),
 }
-LOCAL_COMMANDS = ["serve", "init", "kill", "fetch", "embed-lyrics"]
+LOCAL_COMMANDS = ["serve", "init", "kill", "fetch", "embed-lyrics", "fetch-all-lyrics"]
 HITS_COMMANDS = {"search": "query", "recommend": None, "discover": None}
 LIBRARY_FIELDS = {
     "list-artists": "artist",
@@ -148,6 +148,7 @@ def main():
     parser.add_argument("--name", type=str, default="")
     parser.add_argument("--query", type=str, default="")
     parser.add_argument("--limit", type=int, default=18)
+    parser.add_argument("--workers", type=int, default=5)
     parser.add_argument("--list", type=str, default="", dest="list_titles")
     args = parser.parse_args()
 
@@ -165,6 +166,10 @@ def main():
         init()
     elif args.command == "kill":
         kill()
+    elif args.command == "fetch-all-lyrics":
+        from .fetch_all_lyrics import main as _fetch_all
+
+        _fetch_all(_music_dir(), args.limit, args.workers)
     elif args.command == "embed-lyrics":
         from . import lyrics as _lyrics
 

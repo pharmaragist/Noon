@@ -91,4 +91,3 @@ function coerceIn(value, min, max) {
 function positiveModulo(value, mod) {
     return ((value % mod) + mod) % mod;
 }
-

@@ -79,8 +79,6 @@ class MprisPlayer(ServiceInterface):
         if s.get('duration'):
             meta['mpris:length'] = Variant('x', int(s['duration'] * 1000000))
         meta['mpris:trackid'] = Variant('o', '/org/mpris/MediaPlayer2/Track/' + hashlib.sha1(file_rel.encode()).hexdigest())
-        if not file_rel.startswith(('http://', 'https://')):
-            meta['xesam:url'] = Variant('s', f'file://{file_rel}')
         if self._cover_url:
             url = self._cover_url(file_rel)
             if url:
@@ -261,4 +259,4 @@ class MprisService:
                     iface.emit(changed)
             except Exception:
                 pass
-            await asyncio.sleep(SYNC_INTERVAL)
+            await asyncio.sleep(0.25)

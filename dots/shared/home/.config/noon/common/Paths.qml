@@ -70,16 +70,11 @@ Singleton {
 
     Component.onCompleted: {
         methods.mkdir([
-
             standard.state, standard.cache,
-
             venv, assets, records, gallery, sounds, scriptsDir, shellConfigs, favicons, userOptions,
-
             services.latex, services.gamesCoverArts, services.screenshots, services.screenTimeDB, services.clipboardCache,
-
             wallpapers.main, wallpapers.colGenScript, wallpapers.depthDir, wallpapers.gowallDir, wallpapers.favorite,
-
-
-            plugins.main, plugins.palettes, plugins.sidebar, plugins.dock]);
+            plugins.main, plugins.palettes, plugins.sidebar, plugins.dock
+        ]);
     }
 }

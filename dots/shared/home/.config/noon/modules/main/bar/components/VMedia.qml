@@ -101,7 +101,7 @@ BarGroup {
         id: root
         required property var player
         readonly property var colors: palette?.colors || Colors
-        readonly property PaletteGenerator palette: PaletteGenerator {
+        readonly property PaletteGenerator palette: MaterialColorsGenerator {
             active: true
             source: root.player?.trackArtUrl || ""
         }

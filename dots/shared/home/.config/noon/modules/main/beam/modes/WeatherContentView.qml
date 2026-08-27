@@ -6,10 +6,6 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-
-
-
-
 Item {
     id: view
     readonly property var stats: WeatherService.weatherData

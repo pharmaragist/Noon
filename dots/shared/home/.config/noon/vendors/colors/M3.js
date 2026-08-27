@@ -155,7 +155,7 @@ function labInvf(ft) {
 
 
 var ViewingConditions = class _ViewingConditions {
-  
+
 
 
 
@@ -213,7 +213,7 @@ var ViewingConditions = class _ViewingConditions {
     const aw = (2 * rgbA[0] + rgbA[1] + 0.05 * rgbA[2]) * nbb;
     return new _ViewingConditions(n, aw, nbb, ncb, c, nc, rgbD, fl, Math.pow(fl, 0.25), z);
   }
-  
+
 
 
 
@@ -237,7 +237,7 @@ ViewingConditions.DEFAULT = ViewingConditions.make();
 
 
 var Cam16 = class _Cam16 {
-  
+
 
 
 
@@ -268,7 +268,7 @@ var Cam16 = class _Cam16 {
     this.astar = astar;
     this.bstar = bstar;
   }
-  
+
 
 
 
@@ -281,7 +281,7 @@ var Cam16 = class _Cam16 {
     const dE = 1.41 * Math.pow(dEPrime, 0.63);
     return dE;
   }
-  
+
 
 
 
@@ -289,7 +289,7 @@ var Cam16 = class _Cam16 {
   static fromInt(argb) {
     return _Cam16.fromIntInViewingConditions(argb, ViewingConditions.DEFAULT);
   }
-  
+
 
 
 
@@ -342,7 +342,7 @@ var Cam16 = class _Cam16 {
     const bstar = mstar * Math.sin(hueRadians);
     return new _Cam16(hue, c, j, q, m, s, jstar, astar, bstar);
   }
-  
+
 
 
 
@@ -350,7 +350,7 @@ var Cam16 = class _Cam16 {
   static fromJch(j, c, h) {
     return _Cam16.fromJchInViewingConditions(j, c, h, ViewingConditions.DEFAULT);
   }
-  
+
 
 
 
@@ -369,7 +369,7 @@ var Cam16 = class _Cam16 {
     const bstar = mstar * Math.sin(hueRadians);
     return new _Cam16(h, c, j, q, m, s, jstar, astar, bstar);
   }
-  
+
 
 
 
@@ -379,7 +379,7 @@ var Cam16 = class _Cam16 {
   static fromUcs(jstar, astar, bstar) {
     return _Cam16.fromUcsInViewingConditions(jstar, astar, bstar, ViewingConditions.DEFAULT);
   }
-  
+
 
 
 
@@ -401,7 +401,7 @@ var Cam16 = class _Cam16 {
     const j = jstar / (1 - (jstar - 100) * 7e-3);
     return _Cam16.fromJchInViewingConditions(j, c, h, viewingConditions);
   }
-  
+
 
 
 
@@ -409,7 +409,7 @@ var Cam16 = class _Cam16 {
   toInt() {
     return this.viewed(ViewingConditions.DEFAULT);
   }
-  
+
 
 
 
@@ -445,8 +445,8 @@ var Cam16 = class _Cam16 {
     const argb = argbFromXyz(x, y, z);
     return argb;
   }
-  
-  
+
+
   static fromXyzInViewingConditions(x, y, z, viewingConditions) {
     const rC = 0.401288 * x + 0.650173 * y - 0.051461 * z;
     const gC = -0.250268 * x + 1.204414 * y + 0.045854 * z;
@@ -485,7 +485,7 @@ var Cam16 = class _Cam16 {
     const bstar = mstar * Math.sin(hueRadians);
     return new _Cam16(hue, C, J, Q, M, s, jstar, astar, bstar);
   }
-  
+
   xyzInViewingConditions(viewingConditions) {
     const alpha = this.chroma === 0 || this.j === 0 ? 0 : this.chroma / Math.sqrt(this.j / 100);
     const t = Math.pow(alpha / Math.pow(1.64 - Math.pow(0.29, viewingConditions.n), 0.73), 1 / 0.9);
@@ -520,7 +520,7 @@ var Cam16 = class _Cam16 {
 
 
 var HctSolver = class _HctSolver {
-  
+
 
 
 
@@ -530,7 +530,7 @@ var HctSolver = class _HctSolver {
   static sanitizeRadians(angle) {
     return (angle + Math.PI * 8) % (Math.PI * 2);
   }
-  
+
 
 
 
@@ -553,7 +553,7 @@ var HctSolver = class _HctSolver {
     const af = Math.pow(Math.abs(component), 0.42);
     return signum(component) * 400 * af / (af + 27.13);
   }
-  
+
 
 
 
@@ -573,7 +573,7 @@ var HctSolver = class _HctSolver {
     const deltaAC = _HctSolver.sanitizeRadians(c - a);
     return deltaAB < deltaAC;
   }
-  
+
 
 
 
@@ -591,7 +591,7 @@ var HctSolver = class _HctSolver {
       source[2] + (target[2] - source[2]) * t
     ];
   }
-  
+
 
 
 
@@ -609,7 +609,7 @@ var HctSolver = class _HctSolver {
   static isBounded(x) {
     return 0 <= x && x <= 100;
   }
-  
+
 
 
 
@@ -654,7 +654,7 @@ var HctSolver = class _HctSolver {
       }
     }
   }
-  
+
 
 
 
@@ -710,7 +710,7 @@ var HctSolver = class _HctSolver {
   static criticalPlaneAbove(x) {
     return Math.ceil(x - 0.5);
   }
-  
+
 
 
 
@@ -761,7 +761,7 @@ var HctSolver = class _HctSolver {
     const base = Math.max(0, 27.13 * adaptedAbs / (400 - adaptedAbs));
     return signum(adapted) * Math.pow(base, 1 / 0.42);
   }
-  
+
 
 
 
@@ -814,7 +814,7 @@ var HctSolver = class _HctSolver {
     }
     return 0;
   }
-  
+
 
 
 
@@ -840,7 +840,7 @@ var HctSolver = class _HctSolver {
     const linrgb = _HctSolver.bisectToLimit(y, hueRadians);
     return argbFromLinrgb(linrgb);
   }
-  
+
 
 
 
@@ -1154,7 +1154,7 @@ var Hct = class _Hct {
   static from(hue, chroma, tone) {
     return new _Hct(HctSolver.solveToInt(hue, chroma, tone));
   }
-  
+
 
 
 
@@ -1164,14 +1164,14 @@ var Hct = class _Hct {
   toInt() {
     return this.argb;
   }
-  
+
 
 
 
   get hue() {
     return this.internalHue;
   }
-  
+
 
 
 
@@ -1182,7 +1182,7 @@ var Hct = class _Hct {
   get chroma() {
     return this.internalChroma;
   }
-  
+
 
 
 
@@ -1190,11 +1190,11 @@ var Hct = class _Hct {
   set chroma(newChroma) {
     this.setInternalState(HctSolver.solveToInt(this.internalHue, newChroma, this.internalTone));
   }
-  
+
   get tone() {
     return this.internalTone;
   }
-  
+
 
 
 
@@ -1217,7 +1217,7 @@ var Hct = class _Hct {
     this.internalTone = lstarFromArgb(argb);
     this.argb = argb;
   }
-  
+
 
 
 
@@ -1242,7 +1242,7 @@ var Hct = class _Hct {
 
 
 var TonalPalette = class _TonalPalette {
-  
+
 
 
 
@@ -1250,14 +1250,14 @@ var TonalPalette = class _TonalPalette {
     const hct = Hct.fromInt(argb);
     return _TonalPalette.fromHct(hct);
   }
-  
+
 
 
 
   static fromHct(hct) {
     return new _TonalPalette(hct.hue, hct.chroma, hct);
   }
-  
+
 
 
 
@@ -1272,7 +1272,7 @@ var TonalPalette = class _TonalPalette {
     this.keyColor = keyColor;
     this.cache =  new Map();
   }
-  
+
 
 
 
@@ -1284,7 +1284,7 @@ var TonalPalette = class _TonalPalette {
     }
     return argb;
   }
-  
+
 
 
 
@@ -1299,7 +1299,7 @@ var KeyColor = class {
     this.chromaCache =  new Map();
     this.maxChromaValue = 200;
   }
-  
+
 
 
 
@@ -1335,7 +1335,7 @@ var KeyColor = class {
     }
     return Hct.from(this.hue, this.requestedChroma, lowerTone);
   }
-  
+
   maxChroma(tone) {
     if (this.chromaCache.has(tone)) {
       return this.chromaCache.get(tone);
@@ -1348,25 +1348,25 @@ var KeyColor = class {
 
 
 var CorePalette = class _CorePalette {
-  
+
 
 
   static of(argb) {
     return new _CorePalette(argb, false);
   }
-  
+
 
 
   static contentOf(argb) {
     return new _CorePalette(argb, true);
   }
-  
+
 
 
   static fromColors(colors) {
     return _CorePalette.createPaletteFromColors(false, colors);
   }
-  
+
 
 
   static contentFromColors(colors) {

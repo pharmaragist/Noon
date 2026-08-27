@@ -1,6 +1,5 @@
 import os
 import random
-import subprocess
 import sys
 import threading
 from collections import deque
@@ -19,9 +18,20 @@ class MpvPlayer:
         self._order_cur = 0
         self._history = deque(maxlen=256)
         self._order_lock = threading.Lock()
-        self._real_dur = {}
-        self._probing = set()
         self.player = mpv.MPV(ytdl=True, vo='null', input_default_bindings=False, input_vo_keyboard=False, keep_open='always')
+        # property cache fed by observers (event thread) so the polling loops in
+        # snapshot() never block on libmpv -- the synchronous reads were the CPU
+        # spike (every _get_property marshals a node while the A/V threads fight
+        # over libmpv's core lock)
+        self._state = {
+            'playlist': [], 'playlist_pos': -1, 'idle_active': True,
+            'pause': False, 'metadata': {}, 'time_pos': 0.0, 'volume': 0,
+            'speed': 1.0, 'loop_playlist': False, 'loop_file': False, 'duration': 0.0,
+        }
+        for prop in ('playlist', 'playlist-pos', 'idle-active', 'pause', 'metadata',
+                     'time-pos', 'volume', 'speed', 'loop-playlist', 'loop-file', 'duration'):
+            key = prop.replace('-', '_')
+            self.player.observe_property(prop, lambda _n, val, k=key: self._state.__setitem__(k, val))
 
         @self.player.property_observer('eof-reached')
         def _on_eof(name, reached):
@@ -51,23 +61,19 @@ class MpvPlayer:
         return os.path.join(self.music_dir, path)
 
     def snapshot(self) -> dict:
-        p = self.player
-        try:
-            playlist = p.playlist or []
-        except Exception:
-            playlist = []
-        pl_pos = p.playlist_pos
-        idle = bool(p.idle_active)
-        if idle or pl_pos < 0 or pl_pos >= len(playlist):
+        st = self._state
+        playlist = st.get('playlist') or []
+        pl_pos = st.get('playlist_pos')
+        idle = bool(st.get('idle_active'))
+        if idle or pl_pos is None or pl_pos < 0 or pl_pos >= len(playlist):
             file_abs = ''
             state = 'stop'
         else:
             file_abs = playlist[pl_pos].get('filename', '')
-            state = 'pause' if p.pause else 'play'
-        meta = p.metadata or {}
+            state = 'pause' if st.get('pause') else 'play'
+        meta = st.get('metadata') or {}
         file_rel = self._rel(file_abs)
-        self._probe_real_duration(file_abs)
-        return {'state': state, 'title': meta.get('title') or (os.path.basename(file_abs) if file_abs else ''), 'artist': meta.get('artist', ''), 'album': meta.get('album', ''), 'file': file_rel, 'position': float(p.time_pos or 0), 'duration': self._effective_duration(file_abs), 'volume': int(round(p.volume or 0)), 'rate': float(p.speed or 1.0), 'repeat': bool(p.loop_playlist), 'loop_track': bool(p.loop_file), 'random': self.random, 'playlist_pos': pl_pos}
+        return {'state': state, 'title': meta.get('title') or (os.path.basename(file_abs) if file_abs else ''), 'artist': meta.get('artist', ''), 'album': meta.get('album', ''), 'file': file_rel, 'position': float(st.get('time_pos') or 0), 'duration': self._effective_duration(), 'volume': int(round(st.get('volume') or 0)), 'rate': float(st.get('speed') or 1.0), 'repeat': bool(st.get('loop_playlist')), 'loop_track': bool(st.get('loop_file')), 'random': self.random, 'playlist_pos': pl_pos}
 
     def play_pause(self):
         snap = self.snapshot()
@@ -201,8 +207,13 @@ class MpvPlayer:
             self._play_order_entry()
 
     def _current_entry_id(self, playlist=None):
-        playlist = self.player.playlist or [] if playlist is None else playlist
-        pos = self.player.playlist_pos
+        # read from the observer cache, never block on libmpv (this runs on
+        # every queue render / random-order step)
+        if playlist is None:
+            playlist = self._state.get('playlist') or []
+        pos = self._state.get('playlist_pos')
+        if pos is None:
+            return None
         if 0 <= pos < len(playlist):
             return playlist[pos].get('id')
         return None
@@ -237,38 +248,15 @@ class MpvPlayer:
     def seek(self, seconds: float, relative: bool=True):
         p = self.player
         target = seconds if not relative else float(p.time_pos or 0) + seconds
-        playlist = p.playlist or []
-        pos = p.playlist_pos
-        max_dur = self._effective_duration(playlist[pos].get('filename', '') if 0 <= pos < len(playlist) else '')
+        max_dur = self._effective_duration()
         if max_dur > 0:
             target = min(target, max(max_dur - 1.0, 0.0))
         p.seek(max(0.0, target), reference='absolute')
         if self.seek_hook:
             self.seek_hook()
 
-    def _probe_real_duration(self, path: str):
-        if path in self._real_dur or path in self._probing:
-            return
-        if not os.path.isfile(path):
-            return
-        self._probing.add(path)
-        threading.Thread(target=self._probe_worker, args=(path,), daemon=True).start()
-
-    def _probe_worker(self, path: str):
-        try:
-            out = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0', '-show_entries', 'frame=pts_time,duration_time', '-of', 'csv=p=0', path], capture_output=True, text=True, timeout=20)
-            line = out.stdout.strip().splitlines()[-1]
-            pts, dur = (float(x) for x in line.split(',')[:2])
-            real = pts + dur
-            if real > 0:
-                self._real_dur[path] = real
-        except Exception:
-            pass
-        finally:
-            self._probing.discard(path)
-
-    def _effective_duration(self, path: str) -> float:
-        return self._real_dur.get(path) or float(self.player.duration or 0)
+    def _effective_duration(self) -> float:
+        return float(self._state.get('duration') or 0)
 
     def set_volume(self, volume: int):
         self.player.volume = max(0, min(100, volume))
@@ -323,8 +311,10 @@ class MpvPlayer:
     def get_queue(self) -> list:
         from .library import track_index
         index = track_index(self.music_dir)
-        playlist = self.player.playlist or []
-        current_pos = self.player.playlist_pos
+        playlist = self._state.get('playlist') or []
+        current_pos = self._state.get('playlist_pos')
+        if current_pos is None:
+            current_pos = -1
         cur_id = self._current_entry_id(playlist)
         if self.random and playlist:
             with self._order_lock:

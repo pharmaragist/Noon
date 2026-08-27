@@ -28,7 +28,7 @@ Singleton {
                 entry: a
             }))
 
-    function fuzzyQuery(search: string): var { 
+    function fuzzyQuery(search: string): var {
         if (root.sloppySearch) {
             const results = list.map(obj => ({
                         entry: obj,
@@ -63,13 +63,13 @@ Singleton {
         if (!str || str.length == 0)
             return "image-missing";
 
-        
+
         if (substitutions[str])
             return substitutions[str];
         if (substitutions[str.toLowerCase()])
             return substitutions[str.toLowerCase()];
 
-        
+
         for (let i = 0; i < regexSubstitutions.length; i++) {
             const substitution = regexSubstitutions[i];
             const replacedName = str.replace(substitution.regex, substitution.replace);
@@ -77,11 +77,11 @@ Singleton {
                 return replacedName;
         }
 
-        
+
         if (iconExists(str))
             return str;
 
-        
+
         const lowercased = str.toLowerCase();
         if (iconExists(lowercased))
             return lowercased;
@@ -98,7 +98,7 @@ Singleton {
         if (iconExists(kebabNormalizedGuess))
             return kebabNormalizedGuess;
 
-        
+
         const iconSearchResults = Fuzzy.go(str, preppedIcons, {
             all: true,
             key: "name"
@@ -118,7 +118,7 @@ Singleton {
                 return guess;
         }
 
-        
+
         return str;
     }
     function genericSymbolFor(cls) {

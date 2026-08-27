@@ -185,7 +185,7 @@ Singleton {
         }
     }
 
-    PaletteGenerator {
+    MaterialColorsGenerator {
         id: colorsgen
         active: Mem.games.options.adaptiveTheme
         source: Qt.resolvedUrl(selectedInfo.coverImage)

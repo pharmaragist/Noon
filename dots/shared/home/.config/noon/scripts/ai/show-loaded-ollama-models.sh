@@ -53,9 +53,9 @@ compare_running_models_and_modelfiles() {
     OLDIFS=$IFS
     for ((i=0; i<${
         for blob in "${blobs[@]}"; do
-            IFS=',', read -ra fields <<< "${model_name_paths[i]}"    
-            if [ "${fields[1]}" == "$blob" ]; then  
-                matching_models+=( '{ "model": "'"${fields[0]}"'", "path": "'"${fields[1]}"'"}') 
+            IFS=',', read -ra fields <<< "${model_name_paths[i]}"
+            if [ "${fields[1]}" == "$blob" ]; then
+                matching_models+=( '{ "model": "'"${fields[0]}"'", "path": "'"${fields[1]}"'"}')
             fi
         done
     done

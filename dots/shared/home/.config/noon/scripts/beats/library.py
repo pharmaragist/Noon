@@ -184,11 +184,17 @@ class LibraryManager:
         except (OSError, json.JSONDecodeError):
             return None
 
+    def _cover_ok(self, rel_cover: str) -> bool:
+        if not rel_cover:
+            return False
+        full = os.path.join(self.music_dir, rel_cover)
+        # require a non-empty file — a 0-byte or corrupt cover from a crashed
+        # run would otherwise be treated as cached forever (flaky covers)
+        return os.path.isfile(full) and os.path.getsize(full) > 0
+
     def build_covers(self):
         tracks = self.get_library()
-        pending = [
-            t["file"] for t in tracks if not t.get("cover") or not os.path.exists(os.path.join(self.music_dir, t["cover"]))
-        ]
+        pending = [t["file"] for t in tracks if not self._cover_ok(t.get("cover"))]
         print(f"  Total:   {len(tracks)}")
         print(f"  Cached:  {len(tracks) - len(pending)}")
         print(f"  Pending: {len(pending)}")
@@ -250,5 +256,29 @@ class LibraryManager:
         return tracks
 
 
+_index_cache: dict[str, tuple] = {}
+
+
 def track_index(music_dir: str) -> dict:
-    return {t["file"]: t for t in LibraryManager(music_dir=music_dir).get_library()}
+    # cache the index keyed on library.json's mtime: reading it is a single
+    # stat, whereas LibraryManager.get_library() rescans the whole tree and
+    # may rebuild every tag (a 250MB/1000-file library reads for ~3s). That
+    # rebuild belongs in the explicit scan commands, never in the hot path
+    # (track_index runs on every queue render and every MPRIS artUrl emit).
+    lib_file = os.path.join(music_dir, ".beats", "library.json")
+    try:
+        mtime = os.path.getmtime(lib_file)
+    except OSError:
+        mtime = None
+    entry = _index_cache.get(music_dir)
+    if entry and entry[0] == mtime:
+        return entry[1]
+    try:
+        with open(lib_file, encoding="utf-8") as f:
+            tracks = json.load(f)
+        idx = {t["file"]: t for t in tracks}
+    except (OSError, json.JSONDecodeError, KeyError):
+        # fall back to a full scan only if library.json is unreadable
+        idx = {t["file"]: t for t in LibraryManager(music_dir=music_dir).get_library()}
+    _index_cache[music_dir] = (mtime, idx)
+    return idx

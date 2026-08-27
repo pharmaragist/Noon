@@ -12,7 +12,7 @@ import qs.services
 ListView {
     id: root
 
-    property real removeOvershoot: 100 
+    property real removeOvershoot: 100
     property int dragIndex: -1
     property real dragDistance: 0
     property bool popin: true
@@ -24,7 +24,7 @@ ListView {
     property bool reverseRemoveDirection: false
     property bool fasterInteractions: Mem.options.interactions.scrolling.fasterTouchpadScroll
     property var _model
-    
+
     property alias hinter: hinter
     property real scrollTargetY: 0
     property real touchpadScrollFactor: Mem.options.interactions.scrolling.touchpadScrollFactor ?? 100
@@ -44,7 +44,7 @@ ListView {
     spacing: 5
     maximumFlickVelocity: 1000
     boundsBehavior: Flickable.StopAtBounds
-    
+
     onContentYChanged: {
         if (!scrollAnim.running)
             root.scrollTargetY = root.contentY;
@@ -198,7 +198,7 @@ ListView {
         }
     }
 
-    
+
     removeDisplaced: Transition {
         ParallelAnimation {
             Anim {

@@ -3,13 +3,13 @@ pragma ComponentBehavior: Bound
 import Quickshell
 
 Singleton {
-    
+
 
 
 
     id: root
 
-    
+
 
 
 
@@ -19,7 +19,7 @@ Singleton {
     function colorWithHueOf(color1, color2) {
         var c1 = Qt.color(color1);
         var c2 = Qt.color(color2);
-        
+
         var hue = c2.hsvHue;
         var sat = c1.hsvSaturation;
         var val = c1.hsvValue;
@@ -27,7 +27,7 @@ Singleton {
         return Qt.hsva(hue, sat, val, alpha);
     }
 
-    
+
 
 
 
@@ -48,14 +48,14 @@ Singleton {
         if (typeof str !== "string")
             return false;
 
-        
+
         const hexRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
-        
+
         const rgbRegex = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/;
         return hexRegex.test(str) || rgbRegex.test(str);
     }
 
-    
+
 
 
 
@@ -67,7 +67,7 @@ Singleton {
         return Qt.hsla(c.hslHue, c.hslSaturation, lightness, c.a);
     }
 
-    
+
 
 
 
@@ -79,7 +79,7 @@ Singleton {
         return colorWithLightness(color1, c2.hslLightness);
     }
 
-    
+
 
 
 
@@ -96,7 +96,7 @@ Singleton {
         return Qt.hsla(hue, sat, light, alpha);
     }
 
-    
+
 
 
 
@@ -110,7 +110,7 @@ Singleton {
         return Qt.rgba(percentage * c1.r + (1 - percentage) * c2.r, percentage * c1.g + (1 - percentage) * c2.g, percentage * c1.b + (1 - percentage) * c2.b, percentage * c1.a + (1 - percentage) * c2.a);
     }
 
-    
+
 
 
 
@@ -121,7 +121,7 @@ Singleton {
         var c = Qt.color(color);
         return Qt.rgba(c.r, c.g, c.b, c.a * (1 - percentage));
     }
-    
+
 
 
 
@@ -135,15 +135,15 @@ Singleton {
             return Qt.color("#1C1B1F");
 
         if (c.hslLightness > threshold) {
-            
+
             return mix("#1C1B1F", bgColor, 0.92);
         } else {
-            
+
             return mix("#FFFFFF", bgColor, 0.92);
         }
     }
 
-    
+
 
 
 

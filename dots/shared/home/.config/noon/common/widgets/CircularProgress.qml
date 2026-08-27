@@ -15,7 +15,7 @@ Item {
     property real value: 0
     property color colPrimary: Colors.m3.m3onSecondaryContainer
     property color colSecondary: Colors.colSecondaryContainer
-    property real gapDistance: 4 
+    property real gapDistance: 4
     property bool fill: false
     property int fillOverflow: 2
     property int animationDuration: 1000
@@ -29,8 +29,8 @@ Item {
     property real startAngle: -90
     property bool sperm: false
     property bool animateSperm: true
-    property real spermAmplitude: sperm ? 1.6 : 0 
-    property real wavelength: 15 
+    property real spermAmplitude: sperm ? 1.6 : 0
+    property real wavelength: 15
     property real spermFps: 60
 
     width: implicitSize
@@ -52,7 +52,7 @@ Item {
         layer.smooth: true
         preferredRendererType: Shape.CurveRenderer
 
-        
+
         ShapePath {
             id: secondaryPath
 
@@ -71,7 +71,7 @@ Item {
             }
         }
 
-        
+
         ShapePath {
             id: primaryPath
 

@@ -7,14 +7,14 @@ var Cubic = CubicModule.Cubic;
 
 
 class Feature {
-    
+
 
 
     constructor(cubics) {
         this.cubics = cubics;
     }
 
-    
+
 
 
 
@@ -22,7 +22,7 @@ class Feature {
         return new Edge(cubics);
     }
 
-    
+
 
 
 
@@ -30,7 +30,7 @@ class Feature {
         return new Edge([cubic]);
     }
 
-    
+
 
 
 
@@ -38,7 +38,7 @@ class Feature {
         return new Corner(cubics, true);
     }
 
-    
+
 
 
 
@@ -56,7 +56,7 @@ class Edge extends Feature {
         this.isConcaveCorner = false;
     }
 
-    
+
 
 
 
@@ -64,7 +64,7 @@ class Edge extends Feature {
         return new Edge(this.cubics.map(c => c.transformed(f)));
     }
 
-    
+
 
 
     reversed() {
@@ -73,7 +73,7 @@ class Edge extends Feature {
 }
 
 class Corner extends Feature {
-    
+
 
 
 
@@ -86,7 +86,7 @@ class Corner extends Feature {
         this.isConcaveCorner = !convex;
     }
 
-    
+
 
 
 
@@ -94,7 +94,7 @@ class Corner extends Feature {
         return new Corner(this.cubics.map(c => c.transformed(f)), this.convex);
     }
 
-    
+
 
 
     reversed() {

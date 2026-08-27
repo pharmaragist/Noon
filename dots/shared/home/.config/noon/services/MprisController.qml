@@ -65,10 +65,10 @@ Singleton {
         }
 
         function onTrackArtUrlChanged() {
-            
+
             if (root.activePlayer.uniqueId == root.activeTrack.uniqueId && root.activePlayer.trackArtUrl != root.activeTrack.artUrl) {
-                
-                
+
+
                 const r = root.__reverse;
                 root.updateTrack();
                 root.__reverse = r;
@@ -138,7 +138,7 @@ Singleton {
         if (targetPlayer && this.activePlayer) {
             this.__reverse = Mpris.players.indexOf(targetPlayer) < Mpris.players.indexOf(this.activePlayer);
         } else {
-            
+
             this.__reverse = false;
         }
 

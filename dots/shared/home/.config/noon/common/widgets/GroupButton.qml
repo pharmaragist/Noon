@@ -16,11 +16,11 @@ Button {
     property string buttonText
     property real buttonRadius: Rounding.small ?? 8
     property real buttonRadiusPressed: Rounding.small ?? 6
-    property var downAction 
-    property var releaseAction 
-    property var altAction 
-    property var holdAction 
-    property var middleClickAction 
+    property var downAction
+    property var releaseAction
+    property var altAction
+    property var holdAction
+    property var middleClickAction
     property bool bounce: true
     property int buttonTextPadding
     property real baseWidth: baseSize
@@ -98,7 +98,7 @@ Button {
                 return;
             if (root.releaseAction)
                 root.releaseAction();
-            root.click(); 
+            root.click();
         }
         onCanceled: event => {
             root.down = false;

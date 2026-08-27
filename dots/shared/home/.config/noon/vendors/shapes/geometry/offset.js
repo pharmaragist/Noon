@@ -10,7 +10,7 @@ function createOffset(x, y) {
 }
 
 class Offset {
-    
+
 
 
 
@@ -19,7 +19,7 @@ class Offset {
         this.y = y;
     }
 
-    
+
 
 
 
@@ -28,56 +28,56 @@ class Offset {
         return new Offset(x, y);
     }
 
-    
+
 
 
     getDistance() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
-    
+
 
 
     getDistanceSquared() {
         return this.x * this.x + this.y * this.y;
     }
 
-    
+
 
 
     isValid() {
         return isFinite(this.x) && isFinite(this.y);
     }
 
-    
+
 
 
     get isFinite() {
         return isFinite(this.x) && isFinite(this.y);
     }
 
-    
+
 
 
     get isSpecified() {
         return !this.isUnspecified;
     }
 
-    
+
 
 
     get isUnspecified() {
         return Object.is(this.x, NaN) && Object.is(this.y, NaN);
     }
 
-    
+
 
 
     negate() {
         return new Offset(-this.x, -this.y);
     }
 
-    
+
 
 
 
@@ -85,7 +85,7 @@ class Offset {
         return new Offset(this.x - other.x, this.y - other.y);
     }
 
-    
+
 
 
 
@@ -93,7 +93,7 @@ class Offset {
         return new Offset(this.x + other.x, this.y + other.y);
     }
 
-    
+
 
 
 
@@ -101,7 +101,7 @@ class Offset {
         return new Offset(this.x * operand, this.y * operand);
     }
 
-    
+
 
 
 
@@ -109,7 +109,7 @@ class Offset {
         return new Offset(this.x / operand, this.y / operand);
     }
 
-    
+
 
 
 
@@ -117,7 +117,7 @@ class Offset {
         return new Offset(this.x % operand, this.y % operand);
     }
 
-    
+
 
 
     toString() {
@@ -128,7 +128,7 @@ class Offset {
         }
     }
 
-    
+
 
 
 
@@ -141,7 +141,7 @@ class Offset {
         );
     }
 
-    
+
 
 
 
@@ -149,14 +149,14 @@ class Offset {
         return this.isSpecified ? this : block();
     }
 
-    
+
 
 
     angleDegrees() {
         return Math.atan2(this.y, this.x) * 180 / Math.PI;
     }
 
-    
+
 
 
 

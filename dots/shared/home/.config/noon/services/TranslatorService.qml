@@ -13,32 +13,32 @@ import qs.common
 Singleton {
     id: service
 
-    
+
     property string translatedText: ""
     property list<string> languages: []
     property bool isTranslating: false
 
-    
+
     property string targetLanguage: Mem.options.services.translator.targetLanguage ?? "en"
     property string sourceLanguage: Mem.options.services.translator.sourceLanguage ?? "auto"
 
-    
+
     property string _currentInputText: ""
     property var _translationCallback: null
 
-    
+
     Component.onCompleted: {
         loadLanguages();
     }
 
-    
+
 
 
     function loadLanguages() {
         getLanguagesProc.running = true;
     }
 
-    
+
 
 
 
@@ -55,13 +55,13 @@ Singleton {
         service._translationCallback = callback;
         service.isTranslating = true;
 
-        
+
         translateProc.running = false;
         translateProc.buffer = "";
         translateProc.running = true;
     }
 
-    
+
 
 
 
@@ -73,7 +73,7 @@ Singleton {
         }
     }
 
-    
+
 
 
 
@@ -87,7 +87,7 @@ Singleton {
     function play(text: string) {
         NoonUtils.execDetached(["trans", "-p", text]);
     }
-    
+
     Process {
         id: translateProc
         command: ["bash", "-c", `trans -no-theme -no-bidi` + ` -source '${TextUtils.shellSingleQuoteEscape(service.sourceLanguage)}'` + ` -target '${TextUtils.shellSingleQuoteEscape(service.targetLanguage)}'` + ` -no-ansi '${TextUtils.shellSingleQuoteEscape(service._currentInputText)}'`]
@@ -100,22 +100,22 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
-            
+
             const sections = translateProc.buffer.trim().split(/\n\s*\n/);
 
-            
+
             const result = sections.length > 1 ? sections[1].trim() : "";
             service.translatedText = result;
             service.isTranslating = false;
 
-            
+
             if (service._translationCallback) {
                 service._translationCallback(result);
             }
         }
     }
 
-    
+
     Process {
         id: getLanguagesProc
         command: ["trans", "-list-languages", "-no-bidi"]
@@ -129,7 +129,7 @@ Singleton {
         }
 
         onExited: (exitCode, exitStatus) => {
-            
+
             let langs = getLanguagesProc.bufferList.filter(lang => lang.trim().length > 0 && lang !== "auto").sort((a, b) => a.localeCompare(b));
             langs.unshift("auto");
             service.languages = langs;

@@ -15,7 +15,7 @@ import Quickshell.Services.Notifications
 
 
 
-Item { 
+Item {
     id: root
     property var notificationGroup
     property var notifications: notificationGroup?.notifications ?? []
@@ -28,9 +28,9 @@ Item {
     property color color: Colors.colLayer2
     implicitHeight: background.implicitHeight
 
-    property real dragConfirmThreshold: 70 
-    property real dismissOvershoot: 20 
-    property var qmlParent: root.parent.parent 
+    property real dragConfirmThreshold: 70
+    property real dismissOvershoot: 20
+    property var qmlParent: root.parent.parent
     property var parentDragIndex: qmlParent.dragIndex
     property var parentDragDistance: qmlParent.dragDistance
     property var dragIndexDiff: Math.abs(parentDragIndex - index)
@@ -38,11 +38,11 @@ Item {
 
     function destroyWithAnimation() {
         root.qmlParent.resetDrag();
-        background.anchors.leftMargin = background.anchors.leftMargin; 
+        background.anchors.leftMargin = background.anchors.leftMargin;
         destroyAnimation.running = true;
     }
 
-    SequentialAnimation { 
+    SequentialAnimation {
         id: destroyAnimation
         running: false
 
@@ -68,7 +68,7 @@ Item {
         root.expanded = !root.expanded;
     }
 
-    DragManager { 
+    DragManager {
         id: dragManager
         anchors.fill: parent
         interactive: !expanded
@@ -105,7 +105,7 @@ Item {
         visible: popup
     }
 
-    Rectangle { 
+    Rectangle {
         id: background
         anchors.left: parent.left
         width: parent.width
@@ -129,7 +129,7 @@ Item {
             Anim {}
         }
 
-        RowLayout { 
+        RowLayout {
             id: row
             anchors.top: parent.top
             anchors.left: parent.left
@@ -138,7 +138,7 @@ Item {
             spacing: 10
 
             NotificationAppIcon {
-                
+
                 Layout.alignment: Qt.AlignTop
                 Layout.fillWidth: false
                 image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
@@ -147,17 +147,17 @@ Item {
             }
 
             ColumnLayout {
-                
+
                 Layout.fillWidth: true
                 spacing: expanded ? (root.multipleNotifications ? (notificationGroup?.notifications[root.notificationCount - 1].image != "") ? 35 : 5 : 0) : 0
-                
+
                 Behavior on spacing {
                     Anim {}
                 }
 
-                Item { 
+                Item {
                     id: topRow
-                    
+
                     Layout.fillWidth: true
                     property real fontSize: Fonts.sizes.verysmall
                     property bool showAppName: root.multipleNotifications
@@ -179,7 +179,7 @@ Item {
                         }
                         StyledText {
                             id: timeText
-                            
+
                             Layout.rightMargin: 10
                             horizontalAlignment: Text.AlignLeft
                             text: NotificationUtils.getFriendlyNotifTimeString(notificationGroup?.time)
@@ -200,12 +200,12 @@ Item {
                     }
                 }
 
-                StyledListView { 
+                StyledListView {
                     id: notificationsColumn
                     implicitHeight: contentHeight
                     Layout.fillWidth: true
                     spacing: expanded ? 5 : 3
-                    
+
                     interactive: false
                     Behavior on spacing {
                         Anim {}
