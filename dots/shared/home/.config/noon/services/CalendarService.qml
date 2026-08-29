@@ -14,6 +14,36 @@ Singleton {
 
     Component.onCompleted: Qt.callLater(pull)
 
+    // Helpers
+    function getTasksOfDate(dateString) {
+        const todayEvents = CalendarService.list.filter(e => e.start === dateString);
+        const allTasks = TodoService?.list ?? [];
+        const tasks = allTasks.map(item => ({
+                    content: item?.content ?? "",
+                    start: item?.due + '/' + DateTimeService.year ?? "",
+                    isTask: true
+                })).filter(task => task.start === dateString);
+        return [...todayEvents, ...tasks];
+    }
+
+    function getUpcomingEvents(daysAhead) {
+        let result = [];
+        const base = new Date();
+        for (let i = 1; i <= daysAhead; i++) {
+            const d = new Date(base);
+            d.setDate(base.getDate() + i);
+            const dateString = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
+            const tasks = getTasksOfDate(dateString);
+            for (const t of tasks)
+                result.push({
+                    content: t.content,
+                    dateLabel: Qt.formatDateTime(d, "ddd d")
+                });
+        }
+        return result;
+    }
+
+    //
     function addEvent(desc, start, time, duration = 60, end = start) {
         store.events.push({
             content: desc,

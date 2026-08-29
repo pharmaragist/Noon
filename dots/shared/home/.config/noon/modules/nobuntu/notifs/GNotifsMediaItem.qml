@@ -25,9 +25,9 @@ StyledRect {
         z: 999
         anchors.fill: parent
         hoverEnabled: true
-        
+
         acceptedButtons: Qt.NoButton
-        
+
     }
 
     StyledRectangularShadow {
@@ -42,7 +42,7 @@ StyledRect {
         color: "transparent"
         clip: true
 
-        BlurImage {
+        BlurredImage {
             id: backdrop
             z: 1
             blur: true

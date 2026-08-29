@@ -19,7 +19,7 @@ BarGroup {
     readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - 1) / number)
     readonly property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - 1) % number
 
-    
+
     readonly property int number: Mem.options.bar.workspaces.number
     readonly property bool showBigAppOnly: Mem.options.bar.workspaces.showBigAppOnly ?? false
     readonly property bool genericSymbols: Mem.options.bar.workspaces.genericSymbols ?? false
@@ -241,7 +241,7 @@ BarGroup {
                                         return true;
                                     }
                                     readonly property real badgeSize: Math.max(10, button.iconSize * 0.62)
-                                    readonly property string genericSymbol: root.genericSymbols ? AppSearch.genericSymbolFor(windowData.class) : ""
+                                    readonly property string genericSymbol: root.genericSymbols ? SymbolsData.getGenericAppSymbolFor(windowData.class) : ""
                                     readonly property var desktopEntry: DesktopEntries?.byId(windowData.class)
 
                                     implicitWidth: button.iconSize

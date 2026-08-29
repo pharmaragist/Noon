@@ -67,12 +67,13 @@ SidebarItemContainer {
         spacing: Padding.huge
 
         anchors.fill: parent
-        anchors.margins: detached ? Padding.massive : Padding.large
 
         Item {
             id: content
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.margins: root.detached ? Padding.massive : Padding.large
+
             LiveLyrics {
                 id: activeLyrics
             }
@@ -115,6 +116,7 @@ SidebarItemContainer {
             shown: root.expanded
             fade: true
             Layout.maximumWidth: 340
+            Layout.minimumWidth: 340
             Layout.rightMargin: root.detached ? Padding.massive : 0
             Layout.fillWidth: true
             Layout.fillHeight: true

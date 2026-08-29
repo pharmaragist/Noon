@@ -255,13 +255,17 @@ class BeatsDaemon:
 
         loop = asyncio.get_running_loop()
         loop.create_task(self._startup_embed())
+
+        loop.create_task(self._startup_embed())
         loop.create_task(self._cmd_loop())
         loop.create_task(self._queue_loop())
         loop.create_task(self._lyrics_loop())
 
         # webui is auxiliary (qs talks to us via MPRIS + .beats/ files), so it
-        # only starts when BEATS_PORT is set -- that var also chooses the port
-        port = os.environ.get("BEATS_PORT")
+        # only starts when a port is configured. read the port from the config
+        # options.webPort, with the shell-injected BEATS_PORT as fallback
+        from .config import load_conf
+        port = (load_conf().get("options") or {}).get("webPort") or os.environ.get("BEATS_PORT")
         if port:
             web = WebServer(
                 self.lib.music_dir,

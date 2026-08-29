@@ -12,10 +12,12 @@ import "osd"
 import "sidebar"
 import "desktop"
 import "clipboard"
+// import qs.modules.applications.beats
 
 Scope {
-    Desktop {}
     NIPC {}
+    Desktop {}
+    // Beats {}
 
     WidgetLoader {
         enabled: Notifications.popupAppNameList.length > 0

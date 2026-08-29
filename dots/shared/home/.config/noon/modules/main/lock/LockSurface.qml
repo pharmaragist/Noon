@@ -16,7 +16,7 @@ Rectangle {
     property alias blurredArt: backgroundImage
     color: "black"
 
-    BlurImage {
+    BlurredImage {
         id: backgroundImage
         z: 0
         anchors.fill: parent

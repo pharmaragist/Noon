@@ -9,7 +9,7 @@ import qs.services
 
 StyledPopup {
     id: root
-    extraVisibilityCondition: BeatsService?.title?.length > 0 ?? false
+    extraVisibilityCondition: MediaPlayerService?.title?.length > 0 ?? false
     contentMargins: 0
     popupBackgroundMargin: 0
     popupBackgroundBorders: false

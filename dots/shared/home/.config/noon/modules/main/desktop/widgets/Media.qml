@@ -35,7 +35,7 @@ WidgetContainer {
         active: source !== null
         source: player?.trackArtUrl
     }
-    readonly property MprisPlayer player: BeatsService?.players?.find(p => /noon/.test(p?.dbusName?.toLowerCase()))
+    readonly property MprisPlayer player: BeatsService.player
     colors: (palette?.colors ?? Colors)
     xlarge: Item {
         anchors.fill: parent
@@ -270,7 +270,7 @@ WidgetContainer {
     component ArtImage: StyledRect {
         property alias blur: img.blur
         clip: true
-        BlurImage {
+        BlurredImage {
             id: img
             anchors.fill: parent
             source: root.player.trackArtUrl ?? ""

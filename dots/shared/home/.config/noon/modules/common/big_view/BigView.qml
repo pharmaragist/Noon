@@ -92,8 +92,8 @@ Scope {
                 Item {
                     anchors.fill: parent
 
-                    BlurImage {
-                        id: blurImage
+                    BlurredImage {
+                        id: blurredImage
                         z: 0
                         visible: root.registry[root.currentPage]?.hasBackground ?? true
                         anchors.fill: parent

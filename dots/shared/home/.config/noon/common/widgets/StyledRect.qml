@@ -7,7 +7,7 @@ import QtQuick.Effects
 
 Rectangle {
     id: root
-    readonly property int diaglonal: Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+    readonly property int diagonal: Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
     property bool enableAnimations: true
     property bool enableShadows: false
     property bool enableBorders: false

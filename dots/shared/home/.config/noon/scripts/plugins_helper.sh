@@ -8,7 +8,7 @@ TARGET="$3"
 FORCE=0
 GROUP_OVERRIDE=""
 
-for ((i=2; i<=$
+for ((i=2; i<=$#; i++)); do
     case "${!i}" in
         -f) FORCE=1 ;;
         -g) next=$((i+1)); GROUP_OVERRIDE="${!next}"; ((i++)) ;;

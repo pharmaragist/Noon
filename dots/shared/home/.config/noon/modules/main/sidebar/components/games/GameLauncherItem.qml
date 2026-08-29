@@ -23,7 +23,7 @@ StyledRect {
     signal gameStarted
     property var colors: Colors
 
-    BlurImage {
+    BlurredImage {
         id: coverImageBackdrop
         z: 0
         blur: true

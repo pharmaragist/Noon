@@ -36,7 +36,7 @@ BottomDialog {
             Layout.fillHeight: true
             Layout.fillWidth: true
             clip: true
-            spacing: 4
+            spacing: 2
             reuseItems: false
             _model: NetworkService.manager.wifiNetworks
             delegate: WifiNetworkItem {

@@ -16,13 +16,15 @@ StyledRect {
     property bool isPlaylist
     property var action
     property bool listMode: false
-    property int margins: listMode ? Padding.small : Padding.large
+    property int margins: listMode ? Padding.tiny : Padding.large
+    readonly property real fontScale: listMode ? 1 : 0.9
+
     clip: true
     color: colors.colLayer2
     colors: MediaPlayerService?.colors
 
-    topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.tiny) : Rounding.huge
-    bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.tiny) : Rounding.huge
+    topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.verytiny) : Rounding.huge
+    bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.verytiny) : Rounding.huge
 
     signal preview(url: string, x: int, y: int)
 
@@ -35,7 +37,7 @@ StyledRect {
         cursorShape: Qt.PointingHandCursor
         anchors.fill: parent
         onClicked: event => {
-            root.animate()
+            root.animate();
             if (action)
                 action(event);
         }
@@ -68,17 +70,19 @@ StyledRect {
                 spacing: -Padding.tiny
 
                 StyledText {
-                    font: Fonts.request("title", Fonts.sizes.small)
+                    font: Fonts.request("title", 18 * root.fontScale)
                     text: root.title
+                    Layout.preferredHeight: 21
                     Layout.fillWidth: true
                     truncate: true
                     color: root.colors.colOnLayer0
                 }
 
                 StyledText {
-                    font.pixelSize: Fonts.sizes.verysmall
+                    font: Fonts.request("main", 14 * root.fontScale)
                     text: root.artist
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 21
                     truncate: true
                     opacity: 0.75
                     color: root.colors.colOnLayer0

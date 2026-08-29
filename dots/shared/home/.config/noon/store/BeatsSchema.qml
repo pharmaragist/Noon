@@ -4,7 +4,6 @@ import qs.common.utils
 JsonAdapter {
     property string directory: Paths.methods.trim(Paths.standard.music)
     property list<string> folders: []
-    property int prort: 8090
 
     property JO options: JO {
         property int fetchLimit: 72
@@ -13,6 +12,7 @@ JsonAdapter {
         property list<string> excludedPlayers: ["playerctld", "kdeconnectd"]
         property bool showLyrics: true
         property string homePageStyle: "PixelPlayer"
+        property int webPort: 8090
     }
 
     property JO hits: JO {

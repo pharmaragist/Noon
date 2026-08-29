@@ -64,25 +64,25 @@ BottomDialog {
             Layout.fillWidth: true
             Layout.margins: Padding.large
             clip: true
-            spacing: 3
+            spacing: 2
 
             model: ScriptModel {
                 values: BluetoothService.allDevices.filter(d => {
                     return d && d.name && d.name.trim();
                 }).sort((a, b) => {
-                    
+
                     let conn = (b.connected - a.connected) || (b.paired - a.paired);
                     if (conn !== 0)
                         return conn;
 
-                    
+
                     const macRegex = /^([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}$/;
                     const aIsMac = macRegex.test(a.name);
                     const bIsMac = macRegex.test(b.name);
                     if (aIsMac !== bIsMac)
                         return aIsMac ? 1 : -1;
 
-                    
+
                     return a.name.localeCompare(b.name);
                 })
             }

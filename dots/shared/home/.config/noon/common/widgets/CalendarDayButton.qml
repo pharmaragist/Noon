@@ -3,6 +3,7 @@ import qs.common
 import qs.common.widgets
 import QtQuick
 import QtQuick.Layouts
+
 StyledRect {
     id: button
     property string day
@@ -12,7 +13,6 @@ StyledRect {
     property string dateString
     property var releaseAction
     property var window
-    property var getTasksOfDate
     Layout.fillWidth: false
     Layout.fillHeight: false
     implicitSize: 24
@@ -35,7 +35,9 @@ StyledRect {
             text: button.day
             horizontalAlignment: Text.AlignHCenter
             color: (isToday === 1) ? Colors.m3.m3onPrimary : (isToday === 0) ? Colors.colOnLayer1 : Colors.colOutlineVariant
-            font: Fonts.request("main", Fonts.sizes.verysmall, { weight: bold ? 800 : 500 })
+            font: Fonts.request("main", Fonts.sizes.verysmall, {
+                weight: bold ? 800 : 500
+            })
         }
         Item {
             visible: button.hasEvents && isToday !== -1
@@ -62,14 +64,14 @@ StyledRect {
                 font.pixelSize: Fonts.sizes.huge
             }
             ItemSeparator {}
-                ColumnLayout {
-                    spacing: Padding.tiny
-                    Repeater {
-                        id: tasksRepeater
-                        model: ScriptModel {
-                            values: button.getTasksOfDate ? button.getTasksOfDate(button.dateString) : []
-                        }
-                        delegate: ColumnLayout {
+            ColumnLayout {
+                spacing: Padding.tiny
+                Repeater {
+                    id: tasksRepeater
+                    model: ScriptModel {
+                        values: CalendarService.getTasksOfDate(button.dateString)
+                    }
+                    delegate: ColumnLayout {
                         required property var modelData
                         required property int index
                         Layout.fillWidth: true
@@ -77,6 +79,7 @@ StyledRect {
                             Layout.fillWidth: true
                             StyledRadioButton {}
                             StyledText {
+                                font: Fonts.request("numbers", button.implicitSize / 2.125)
                                 text: modelData.content
                                 Layout.fillWidth: true
                                 truncate: true

@@ -13,7 +13,7 @@ StyledRect {
     property bool _expanded: mode !== ""
     property alias inputArea: inputArea
     property bool isSearching: false
-    property bool listMode: false
+    readonly property bool listMode: Mem.states.services.beats.listMode
     anchors.margins: Padding.huge
     anchors.bottom: parent.bottom
     anchors.horizontalCenter: parent.horizontalCenter
@@ -142,8 +142,8 @@ StyledRect {
                             action: () => BeatsService.fetchLibrary()
                         },
                         {
-                            icon: listMode ? "list" : "window",
-                            action: () => listMode = !listMode
+                            icon: Mem.states.services.beats.listMode ? "list" : "window",
+                            action: () => Mem.states.services.beats.listMode = !Mem.states.services.beats.listMode
                         },
                         {
                             icon: "folder",

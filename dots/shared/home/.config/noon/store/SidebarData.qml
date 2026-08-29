@@ -51,6 +51,7 @@ Singleton {
             icon: "notifications",
             activeIcon: "notifications_active",
             shell: "main",
+            padding: 0,
             componentPath: "notifs/Notifs",
             expandSize: sizes.quarter,
             enabled: contentOptions.notifs

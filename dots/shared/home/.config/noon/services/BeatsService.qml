@@ -14,6 +14,7 @@ Singleton {
     id: root
 
     readonly property var opts: Mem.beats
+    readonly property var player: MediaPlayerService?.players?.find(p => /noon/.test(p?.dbusName?.toLowerCase()))
     readonly property var currentTrackIndexedInfo: library?.find(t => t.title === MediaPlayerService.title)
     readonly property string tracksDir: Paths.methods.trim(opts.directory ?? Paths.standard.music)
     readonly property var hits: opts?.hits?.feed ?? []
@@ -122,9 +123,6 @@ Singleton {
     Process {
         id: mainProc
         command: [...baseCmd, ""]
-        environment: ({
-            "BEATS_PORT": opts.port
-        })
     }
 
     Process {

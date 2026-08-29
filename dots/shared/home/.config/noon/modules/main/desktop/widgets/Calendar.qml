@@ -10,40 +10,12 @@ import qs.common.widgets
 WidgetContainer {
     id: root
 
-    property var calendarLayout: CalendarUtils.getCalendarLayout(viewingDate, monthShift === 0)
+    property var upcomingEvents: CalendarService.getUpcomingEvents(7)
     property int monthShift: 0
+    property var calendarLayout: CalendarUtils.getCalendarLayout(viewingDate, monthShift === 0)
     property var viewingDate: CalendarUtils.getDateInXMonthsTime(monthShift)
-    property var upcomingEvents: getUpcomingEvents(7)
     readonly property string today: DateTimeService.request("d/M/yyyy")
     Component.onCompleted: CalendarService.pull()
-
-    function getTasksOfDate(dateString) {
-        const todayEvents = CalendarService.list.filter(e => e.start === dateString);
-        const allTasks = TodoService?.list ?? [];
-        const tasks = allTasks.map(item => ({
-                    content: item?.content ?? "",
-                    start: item?.due + '/' + DateTimeService.year ?? "",
-                    isTask: true
-                })).filter(task => task.start === dateString);
-        return [...todayEvents, ...tasks];
-    }
-
-    function getUpcomingEvents(daysAhead) {
-        let result = [];
-        const base = new Date();
-        for (let i = 1; i <= daysAhead; i++) {
-            const d = new Date(base);
-            d.setDate(base.getDate() + i);
-            const dateString = d.getDate() + "/" + (d.getMonth() + 1) + "/" + d.getFullYear();
-            const tasks = getTasksOfDate(dateString);
-            for (const t of tasks)
-                result.push({
-                    content: t.content,
-                    dateLabel: Qt.formatDateTime(d, "ddd d")
-                });
-        }
-        return result;
-    }
 
     small: ColumnLayout {
         anchors.fill: parent
@@ -100,15 +72,7 @@ WidgetContainer {
         anchors.fill: parent
         anchors.margins: Padding.normal
 
-        MonthCalendar {
-            viewingDate: root.viewingDate
-            calendarLayout: root.calendarLayout
-            window: root.window
-            getTasksOfDate: root.getTasksOfDate
-            monthShift: root.monthShift
-            onShiftMonth: delta => root.monthShift += delta
-            onJumpToday: root.monthShift = 0
-        }
+        MonthCalendar {}
     }
 
     large: RowLayout {
@@ -200,15 +164,7 @@ WidgetContainer {
             }
         }
 
-        MonthCalendar {
-            viewingDate: root.viewingDate
-            calendarLayout: root.calendarLayout
-            window: root.window
-            getTasksOfDate: root.getTasksOfDate
-            monthShift: root.monthShift
-            onShiftMonth: delta => root.monthShift += delta
-            onJumpToday: root.monthShift = 0
-        }
+        MonthCalendar {}
     }
 
     xlarge: ColumnLayout {
@@ -300,101 +256,8 @@ WidgetContainer {
                     }
                 }
             }
-            MonthCalendar {
-                viewingDate: root.viewingDate
-                calendarLayout: root.calendarLayout
-                window: root.window
-                getTasksOfDate: root.getTasksOfDate
-                monthShift: root.monthShift
-                onShiftMonth: delta => root.monthShift += delta
-                onJumpToday: root.monthShift = 0
-            }
+            MonthCalendar {}
         }
         Spacer {}
-    }
-
-    component MonthCalendar: ColumnLayout {
-        id: monthCalendar
-        required property var viewingDate
-        required property var calendarLayout
-        required property var window
-        required property var getTasksOfDate
-        required property int monthShift
-        signal shiftMonth(int delta)
-        signal jumpToday
-
-        readonly property int cellSize: 23
-        readonly property int gridWidth: cellSize * 7
-        readonly property int gridHeight: cellSize * 6
-        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-        spacing: Padding.tiny
-        Layout.fillHeight: false
-        Layout.fillWidth: true
-
-        RowLayout {
-            id: headerRow
-            spacing: Padding.verysmall
-            Layout.fillWidth: true
-
-            Repeater {
-                model: ["today", "chevron_left", "chevron_right"]
-                delegate: RippleButtonWithIcon {
-                    Layout.alignment: Qt.AlignRight
-                    required property string modelData
-                    visible: modelData === "today" ? monthCalendar.monthShift !== 0 : true
-                    materialIcon: modelData
-                    implicitSize: 24
-                    colBackground: Colors.colLayer3
-                    onClicked: {
-                        if (modelData === "today")
-                            monthCalendar.jumpToday();
-                        else
-                            monthCalendar.shiftMonth(modelData === "chevron_right" ? 1 : -1);
-                    }
-                }
-            }
-
-            StyledText {
-                leftPadding: Padding.huge
-                text: Qt.formatDateTime(monthCalendar.viewingDate, "MMMM")
-                color: Colors.colPrimary
-                font: Fonts.request("main", Fonts.sizes.small)
-            }
-        }
-
-        GridLayout {
-            Layout.fillHeight: false
-            Layout.fillWidth: false
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-            columns: 7
-            rowSpacing: 2
-            columnSpacing: 2
-
-            Repeater {
-                model: CalendarUtils.weekDays
-                delegate: CalendarDayButton {
-                    day: qsTr(modelData.day)
-                    isToday: modelData.today
-                    bold: true
-                    enabled: false
-                }
-            }
-
-            Repeater {
-                model: 35
-                delegate: CalendarDayButton {
-                    id: dayButton
-                    readonly property int row: Math.floor(index / 7)
-                    readonly property int col: index % 7
-                    window: monthCalendar.window
-                    day: monthCalendar.calendarLayout[row][col].day
-                    isToday: monthCalendar.calendarLayout[row][col].today
-                    dateString: monthCalendar.calendarLayout[row][col].day + "/" + (monthCalendar.viewingDate.getMonth() + 1) + "/" + monthCalendar.viewingDate.getFullYear()
-                    hasEvents: monthCalendar.calendarLayout[row][col].today !== -1 && monthCalendar.getTasksOfDate(dateString).length > 0
-                    getTasksOfDate: monthCalendar.getTasksOfDate
-                    releaseAction: () => CalendarService.pull()
-                }
-            }
-        }
     }
 }

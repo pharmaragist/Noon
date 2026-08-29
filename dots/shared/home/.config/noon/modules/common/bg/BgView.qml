@@ -50,7 +50,7 @@ Item {
 
     anchors.fill: parent
 
-    BlurImage {
+    BlurredImage {
         z: 0
         anchors.fill: parent
         blur: true
@@ -77,8 +77,8 @@ Item {
         const pos = BarData?.position;
         const controls = (controlsSize?.height ?? 100) + Padding.huge;
 
-        
-        
+
+
 
         if (pos === direction)
             _margin += (base + bar);

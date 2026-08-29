@@ -95,6 +95,7 @@ JsonAdapter {
 
         property JO beats: JO {
             property int pageIndex: 0
+            property bool listMode: false
             property bool discoverMode: false
             property bool shuffleTracks: false
             property bool shuffleHits: false

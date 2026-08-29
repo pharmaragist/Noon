@@ -36,6 +36,7 @@ BarGroup {
         },
         {
             id: "battery",
+            visible: BatteryService.available,
             icon: BatteryService.materialIcon,
             mode: Mem.options.bar.statusIcons.batteryMode,
             text: () => {

@@ -68,7 +68,6 @@ MouseArea {
     StyledIconImage {
         id: trayIcon
         tint: 0.5
-        colorize: true
         source: root.item.icon
         anchors.centerIn: parent
         implicitSize: root.implicitSize
@@ -79,16 +78,13 @@ MouseArea {
         extraVisibleCondition: root.containsMouse
         alternativeVisibleCondition: extraVisibleCondition
         anchorEdges: {
-            switch (Mem.options.bar.behavior.position) {
-            case "top":
-                return Edges.Bottom;  
-            case "bottom":
-                return Edges.Top;     
-            case "left":
-                return Edges.Right;   
-            case "right":
-                return Edges.Left;    
+            const pairs = {
+                 "top": "Bottom",
+                 "bottom": "Top",
+                 "left": "Right",
+                 "right": "Left"
             }
+            return Edges[pairs[BarData.position]]
         }
     }
 }

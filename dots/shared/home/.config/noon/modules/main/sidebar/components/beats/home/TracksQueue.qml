@@ -9,7 +9,7 @@ StyledRect {
     id: root
 
     z: 99
-    radius: Rounding.massive
+    topRadius: Rounding.massive
     color: colors.colLayer1
     colors: parent.colors
     clip: true

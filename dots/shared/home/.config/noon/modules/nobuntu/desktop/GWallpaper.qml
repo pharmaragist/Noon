@@ -52,7 +52,7 @@ Scope {
                     z: -1
                     active: _overview_enabled
                     anchors.fill: parent
-                    sourceComponent: BlurImage {
+                    sourceComponent: BlurredImage {
                         blur: true
                         anchors.fill: parent
                         source: wallpaper

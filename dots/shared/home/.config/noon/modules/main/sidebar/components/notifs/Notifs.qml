@@ -10,6 +10,7 @@ SidebarItemContainer {
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.margins: Padding.huge
         spacing: Padding.normal
 
         UpperWidgetGroup {}

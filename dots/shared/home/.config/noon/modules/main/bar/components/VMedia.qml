@@ -114,7 +114,7 @@ BarGroup {
         clip: true
         implicitSize: 30
 
-        BlurImage {
+        BlurredImage {
             z: 1
             blur: true
             tint: true

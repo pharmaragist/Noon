@@ -2,7 +2,7 @@ import QtQuick
 import qs.common
 
 StyledRect {
-    clip: true
+    // clip: true
     radius: Rounding.verylarge
     color: "transparent"
     property bool detached: false

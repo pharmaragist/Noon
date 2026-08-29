@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 
+import qs.store
 import qs.common
 import qs.common.utils
 import qs.common.widgets
@@ -22,11 +23,10 @@ Singleton {
     readonly property string artist: player ? TextUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
 
     readonly property var players: Mpris?.players?.values.filter(p => {
-        return !!p.dbusName && !Mem.beats.options.excludedPlayers.includes(p)
+        return !!p.dbusName && !Mem.beats.options.excludedPlayers.includes(p);
     })
 
     onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
-
 
     function playerIndex() {
         if (!players || players.length === 0)
@@ -43,11 +43,9 @@ Singleton {
             return player.playbackState === MprisPlaybackState.Playing;
     }
 
-
     function stopPlayer() {
         root.player.stop();
     }
-
 
     function currentTrackProgressRatio(p = root.player) {
         const pos = p?.position ?? 0;
@@ -55,7 +53,6 @@ Singleton {
         const ratio = len > 0 ? Math.max(0.0, Math.min(1.0, pos / len)) : 0.0;
         return ratio;
     }
-
 
     function cycleRepeat(p = root.player) {
         if (!p?.canControl)
@@ -67,6 +64,20 @@ Singleton {
             })[p.loopState] ?? MprisLoopState.None;
     }
 
+    function getIconForPlayer(p, fallback = "music_note") {
+        if (!p) return fallback;
+
+        const dic = SymbolData?.mediaMap ?? ({});
+        const criteria = ["identity", "desktopEntry", "dbusName"];
+        const matches = (str, target) => {
+            return str.toLowerCase().includes(target);
+        };
+
+        for (const [key, result] of Object.entries(dic)) {
+            if (criteria.some(rule => matches(p[rule], key)))
+                return result ?? fallback;
+        }
+    }
 
     Timer {
         id: positionTimer

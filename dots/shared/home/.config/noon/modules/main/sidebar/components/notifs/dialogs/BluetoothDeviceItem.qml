@@ -12,8 +12,8 @@ StyledRect {
     anchors.right: parent?.right
     anchors.left: parent?.left
     implicitHeight: contentCol.implicitHeight + Padding.massive
-    topRadius: index === 0 ? Rounding.huge : Rounding.verysmall
-    bottomRadius: index === (list.count - 1) ? Rounding.huge : Rounding.verysmall
+    topRadius: index === 0 ? Rounding.huge : Rounding.verytiny
+    bottomRadius: index === (list.count - 1) ? Rounding.huge : Rounding.verytiny
 
     color: Colors.colLayer3
     property bool expanded: false

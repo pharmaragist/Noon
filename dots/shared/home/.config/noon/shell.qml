@@ -1,6 +1,5 @@
 //@ pragma UseQApplication
 //@ pragma RespectSystemStyle
-
 //@ pragma Env QML_DISK_CACHE=aot,qmlc
 //@ pragma Env QT_AUTO_SCREEN_SCALE_FACTOR=1
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic

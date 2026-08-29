@@ -35,7 +35,7 @@ RowLayout {
             cache: false
             asynchronous: true
             fillMode: Image.PreserveAspectCrop
-            radius: 41
+            radius: 42
             anchors.margins: 1
         }
 
@@ -50,7 +50,7 @@ RowLayout {
                 }
                 GradientStop {
                     position: 0.5
-                    color: Colors.methods.transparentize(view.colors.colPrimaryContainer, 0.35)
+                    color: Colors.methods.transparentize(view.colors.colPrimaryContainer, 0.7)
                 }
             }
         }
@@ -199,26 +199,6 @@ RowLayout {
         property var colors: MediaPlayerService?.colors
         readonly property int iconSize: 24
 
-        function getPlayerIcon(dbus) {
-            if (!dbus)
-                return "music_note";
-            const dic = {
-                "spotify": "queue_music",
-                "firefox": "web",
-                "vlc": "play_circle",
-                "mpv": "video_library"
-            };
-            for (const [key, val] of Object.entries(dic)) {
-                if (dbus.includes(key))
-                    return val;
-            }
-            return "music_note";
-        }
-
-        function getPlayerName(player, index) {
-            return player?.identity || player?.dbusName?.replace("org.mpris.MediaPlayer2.", "") || "Player " + (index + 1);
-        }
-
         Rectangle {
             id: activeIndicator
             z: 1
@@ -228,7 +208,7 @@ RowLayout {
             radius: Rounding.full
             color: colors.colPrimary
 
-            readonly property int selectedIndex: BeatsService?.selectedPlayerIndex ?? 0
+            readonly property int selectedIndex: MediaPlayerService?.selectedPlayerIndex ?? 0
 
             y: {
                 repeater.count;
@@ -271,7 +251,7 @@ RowLayout {
 
             Repeater {
                 id: repeater
-                model: BeatsService?.players
+                model: MediaPlayerService?.players
 
                 delegate: Item {
                     id: symbolItem
@@ -285,7 +265,7 @@ RowLayout {
                         anchors.centerIn: parent
                         fill: 1
                         font.pixelSize: 16
-                        text: root.getPlayerIcon(modelData?.dbusName)
+                        text: MediaPlayerService.getIconForPlayer(modelData)
                         color: symbolItem.isSelected ? root.colors.colOnPrimary : root.colors.colOnLayer2
                     }
 
@@ -296,7 +276,7 @@ RowLayout {
                         onClicked: MediaPlayerService.selectedPlayerIndex = index
                         StyledToolTip {
                             extraVisibleCondition: parent.containsMouse
-                            content: root.getPlayerName(modelData, index)
+                            content: modelData.identity ?? modelData.desktopEntry ?? modelData.dbusName
                         }
                     }
                 }
