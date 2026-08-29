@@ -27,31 +27,6 @@ Singleton {
         readonly property QtObject toasts: QtObject {
             property var data: []
         }
-
-        readonly property GamePadLongPress _longPress: GamePadLongPress {
-            gamepad: GamePadService.main
-            _watchButton: "MenuStart"
-            onTriggered: Globals.common.openGameUI = true
-        }
-        property bool openGameUI: false
-    }
-
-    readonly property QtObject applications: QtObject {
-        property QtObject mediaplayer: QtObject {
-            property bool show: false
-            property var queue: []
-        }
-        property QtObject reader: QtObject {
-            property bool show: false
-            property string currentPath: Qt.resolvedUrl(Paths.standard.documents)
-
-            property var document_page_view
-        }
-        property QtObject editor: QtObject {
-            property bool show: false
-            property string currentPath: Qt.resolvedUrl(Paths.shellConfigs)
-            property string currentFile: ""
-        }
     }
 
     readonly property QtObject main: QtObject {
@@ -130,7 +105,6 @@ Singleton {
 
         Component.onCompleted: {
             Globals.deload = false
-            NightLightService.reload();
             ScreenTimeService.tracker.init(root);
             TimerService.reload();
             ClipboardService.refresh();

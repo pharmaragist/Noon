@@ -8,6 +8,7 @@ import qs.store
 import qs.common
 import qs.common.utils
 import Noon.Hypr
+import Noon.Protocols.Hypr
 
 Singleton {
     id: root
@@ -24,16 +25,24 @@ Singleton {
     readonly property string keyboardLayoutShortName: currentKeyboardLayout.substring(0, 2).toUpperCase()
     readonly property list<string> availableAnimations: root.availableAnimationsModel.getArray("fileBaseName")
 
+    readonly property NightLightManager nightlight: NightLightManager {
+        enabled: Mem.states.services.nightLight.enabled
+        temperature:Mem.states.services.nightLight.temperature
+        gamma: Mem.states.services.nightLight.gamma
+    }
+
     readonly property FolderListModel availableAnimationsModel: FolderListModel {
         folder: Paths.standard.config + "/hypr/lua/animations/"
         nameFilters: ["*.lua"]
     }
 
+    function switchKeyboardLayout() {
+        NoonUtils.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
+    }
 
-
-
-
-
+    function focusWs(ws) {
+        Hyprland.dispatch(`hl.dsp.focus({ workspace = ${ws} })`);
+    }
 
     BatchBinding {
         target: Mem.hypr
@@ -42,14 +51,5 @@ Singleton {
                 bar_width: () => BarData.currentBarExclusiveSize,
                 terminal_opacity: () => Mem.env.TERMINAL_OPACITY
             })
-    }
-
-
-    function switchKeyboardLayout() {
-        NoonUtils.execDetached(["hyprctl", "switchxkblayout", "current", "next"]);
-    }
-
-    function focusWs(ws) {
-        Hyprland.dispatch(`hl.dsp.focus({ workspace = ${ws} })`);
     }
 }

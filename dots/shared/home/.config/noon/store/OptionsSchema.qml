@@ -27,7 +27,7 @@ JsonAdapter {
         property JO transparency: JO {
             property bool blur: true
             property bool enabled: false
-            property real scale: 0
+            property real scale: 0.35
         }
 
         property JO rounding: JO {

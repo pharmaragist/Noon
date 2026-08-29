@@ -67,31 +67,6 @@ BottomDialog {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: "Shell Transparency"
-                        color: Colors.colOnSurfaceVariant
-                    }
-
-                    StyledSlider {
-                        Layout.minimumWidth: 80
-                        Layout.fillWidth: true
-                        from: 0
-                        to: 0.9 - Mem.hypr.layers_alpha
-                        value: Mem.options.appearance.transparency.scale
-                        onMoved: Mem.options.appearance.transparency.scale = value
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Padding.small
-
-                    Symbol {
-                        text: "tune"
-                        font.pixelSize: Fonts.sizes.verylarge
-                        color: Colors.colOnSurfaceVariant
-                    }
-
-                    StyledText {
-                        Layout.fillWidth: true
                         text: "Apps Transparency"
                         color: Colors.colOnSurfaceVariant
                     }

@@ -46,7 +46,7 @@ BottomDialog {
 
                 StyledSwitch {
                     checked: Mem.states.services.nightLight.enabled
-                    onToggled: Mem.states.services.nightLight.enabled = checked
+                    onToggled: Mem.states.services.nightLight.enabled = !Mem.states.services.nightLight.enabled
                 }
             }
 
@@ -68,7 +68,7 @@ BottomDialog {
 
                 StyledSwitch {
                     checked: Mem.options.services.time.autoNightLightCycle
-                    onToggled: Mem.options.services.time.autoNightLightCycle = checked
+                    onToggled: Mem.options.services.time.autoNightLightCycle = !Mem.states.services.nightLight.autoNightLightCycle
                 }
             }
 
@@ -89,7 +89,7 @@ BottomDialog {
                 }
 
                 StyledText {
-                    text: NightLightService.temperature + "K"
+                    text: Mem.states.services.nightLight.temperature + "K"
                     color: Colors.colOnSurfaceVariant
                     opacity: 0.7
                 }
@@ -99,9 +99,9 @@ BottomDialog {
                 Layout.fillWidth: true
                 from: 3000
                 to: 6500
-                value: NightLightService.temperature
-                enabled: NightLightService.temperature
-                onMoved: NightLightService.temperature = value
+                value: Mem.states.services.nightLight.temperature
+                enabled: Mem.states.services.nightLight.temperature
+                onMoved: Mem.states.services.nightLight.temperature = value
                 enableTooltip: false
             }
 

@@ -128,7 +128,7 @@ Item {
             snapMode: ListView.SnapToItem
             orientation: Qt.Horizontal
 
-            model: ["CaffieneToggle", "EasyEffectsToggle", "RecordToggle", "GameModeToggle", "InputToggle", "BacklightToggle"]
+            model: ["CaffieneToggle", "EasyEffectsToggle", "RecordToggle", "InputToggle", "BacklightToggle"]
             delegate: StyledLoader {
                 anchors.verticalCenter: parent?.verticalCenter
                 required property var modelData

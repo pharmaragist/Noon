@@ -76,6 +76,7 @@ JsonAdapter {
         property JO nightLight: JO {
             property bool enabled: false
             property int temperature: 3600
+            property real gamma: 1
         }
 
         property JO power: JO {

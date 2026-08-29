@@ -22,7 +22,6 @@ import "modules/xp"
 import "modules/zen"
 import "modules/main"
 import "modules/nobuntu"
-import "modules/applications"
 import "modules/common"
 
 ShellRoot {
@@ -59,5 +58,4 @@ ShellRoot {
     DeloadBanner {}
     MCP {}
     GlobalIPC {}
-    // AppsIPC {}
 }
