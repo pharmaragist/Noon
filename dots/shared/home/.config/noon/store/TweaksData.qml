@@ -294,6 +294,12 @@ Singleton {
                 },
                 {
                     "icon": "blur_on",
+                    "name": "Blur",
+                    "store": "hypr",
+                    "key": "blur"
+                },
+                {
+                    "icon": "blur_on",
                     "name": "Blur Passes",
                     "store": "hypr",
                     "key": "blur_passes",
@@ -773,7 +779,7 @@ Singleton {
                     "icon": "location_on",
                     "name": "Location",
                     "hint": "Default location for weather services",
-                    "key": "services.location",
+                    "key": "services.weather.location",
                     "type": "text"
                 },
                 {

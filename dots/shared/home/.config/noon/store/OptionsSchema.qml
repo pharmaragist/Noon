@@ -100,10 +100,15 @@ JsonAdapter {
 
         property JO weather: JO {
             property bool useFehrenheit: false
+            property string location: "Cairo"
         }
 
         property JO nightLight: JO {
             property bool autoNightLightCycle: false
+            property string autoStart: "20:00"
+            property string autoEnd: "06:00"
+            property int autoDayTemp: 6400
+            property int autoNightTemp: 3500
         }
 
         property JO translator: JO {
@@ -119,7 +124,6 @@ JsonAdapter {
 
         property string backlightDevice: "dell::kbd_backlight"
         property bool easyEffects: false
-        property string location: "Cairo"
         property list<string> autoExecAppsList: ["vesktop", "kitty"]
     }
 

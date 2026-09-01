@@ -118,29 +118,29 @@ Singleton {
             NoonUtils.execDetached(`systemctl suspend`);
         }
     }
-    property var _conservativeSnapshot
-    readonly property var conservativeOptions: [
-        {
-            target: Mem.options.appearance.transparency,
-            prop: "enabled"
-        },
-        {
-            target: Mem.hypr,
-            prop: "blur"
-        },
-        {
-            target: Mem.hypr,
-            prop: "unblur_apps",
-            off: true
-        }
-    ]
-    onConservativeModeChanged: {
-        if (root.conservativeMode) {
-            root._conservativeSnapshot = root.conservativeOptions.map(o => o.target[o.prop]);
-            root.conservativeOptions.forEach(o => o.target[o.prop] = o.off || false);
-        } else if (root._conservativeSnapshot) {
-            root.conservativeOptions.forEach((o, i) => o.target[o.prop] = root._conservativeSnapshot[i]);
-            root._conservativeSnapshot = null;
-        }
-    }
+    // property var _conservativeSnapshot
+    // readonly property var conservativeOptions: [
+    //     {
+    //         target: Mem.options.appearance.transparency,
+    //         prop: "enabled"
+    //     },
+    //     {
+    //         target: Mem.hypr,
+    //         prop: "blur"
+    //     },
+    //     {
+    //         target: Mem.hypr,
+    //         prop: "unblur_apps",
+    //         off: true_conservativeSnapshot
+    //     }
+    // ]
+    // onConservativeModeChanged: {
+    //     if (root.conservativeMode) {
+    //         root._conservativeSnapshot = root.conservativeOptions.map(o => o.target[o.prop]);
+    //         root.conservativeOptions.forEach(o => o.target[o.prop] = o.off || false);
+    //     } else if (root._conservativeSnapshot) {
+    //         root.conservativeOptions.forEach((o, i) => o.target[o.prop] = root._conservativeSnapshot[i]);
+    //         root._conservativeSnapshot = null;
+    //     }
+    // }
 }

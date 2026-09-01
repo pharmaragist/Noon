@@ -12,7 +12,6 @@ import "osd"
 import "sidebar"
 import "desktop"
 import "clipboard"
-// import qs.modules.applications.beats
 
 Scope {
     NIPC {}
@@ -20,7 +19,7 @@ Scope {
     // Beats {}
 
     WidgetLoader {
-        enabled: Notifications.popupAppNameList.length > 0
+        enabled: !(Globals?.topLevel?.fullscreen ?? false) && Notifications.popupAppNameList.length > 0 && Globals.main.canNotify
         NotificationPopup {}
     }
 

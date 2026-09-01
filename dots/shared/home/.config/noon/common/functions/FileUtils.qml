@@ -144,7 +144,7 @@ Singleton {
         if (!filePath)
             return;
         if (filePath.startsWith("~")) {
-            return Directories.standard.home + filePath.substring(1);
+            return Paths.standard.home + filePath.substring(1);
         }
     }
     function mkdir(dirs) {

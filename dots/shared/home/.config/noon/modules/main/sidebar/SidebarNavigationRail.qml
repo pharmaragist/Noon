@@ -32,12 +32,6 @@ Item {
 
     signal showContextMenu(string category, int globalX, int globalY)
 
-    StyledRectangularShadow {
-        id: dropShadow
-        target: bg
-        show: root.selectedCategory?.length > 0
-    }
-
     StyledRect {
         id: stealthPill
         z: 99999
@@ -96,6 +90,12 @@ Item {
         state: root.mode
         states: [
             State {
+                name: "sharp"
+            },
+            State {
+                name: "concave"
+            },
+            State {
                 name: "clear"
                 PropertyChanges {
                     target: bg
@@ -106,12 +106,6 @@ Item {
                     target: dropShadow
                     show: false
                 }
-            },
-            State {
-                name: "sharp"
-            },
-            State {
-                name: "concave"
             },
             State {
                 name: "float"
@@ -202,5 +196,15 @@ Item {
                 }
             }
         }
+    }
+    StyledRect {
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: panel.rightMode ? parent.left : undefined
+        anchors.right: !panel.rightMode ? parent.right : undefined
+
+        color: root.colors.colLayer3
+        implicitWidth: 1
+        opacity: !panel.show ? 0 : 1
     }
 }

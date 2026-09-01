@@ -13,7 +13,7 @@ Scope {
     id: root
     property bool showOsdValues: false
     property bool userInteracting: false
-    property var focusedScreen: MonitorsInfo.focused
+    property var focusedScreen: MonitorsInfo.focused[0]
     property var brightnessMonitor: BrightnessService.getMonitorForScreen(focusedScreen)
 
     function triggerOsd() {

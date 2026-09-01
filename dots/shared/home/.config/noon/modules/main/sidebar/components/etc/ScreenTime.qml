@@ -63,7 +63,7 @@ SidebarItemContainer {
         var range = timeRanges[activeRange];
         timeFrom = range.from;
         timeTo = range.to;
-        var raw = timeFrom === 0 && timeTo === 86400 ? ScreenTimeService.tracker.getDayTotals(currentDay) : ScreenTimeService.tracker.getDayTimeline(currentDay, timeFrom, timeTo);
+        var raw = timeFrom === 0 && timeTo === 86400 ? HyprlandService.screenTimeManager.getDayTotals(currentDay) : HyprlandService.screenTimeManager.getDayTimeline(currentDay, timeFrom, timeTo);
         raw.sort(function (a, b) {
             return b.timeSeconds - a.timeSeconds;
         });
@@ -95,7 +95,7 @@ SidebarItemContainer {
     Component.onCompleted: loadDay(todayStr())
 
     Connections {
-        target: ScreenTimeService
+        target: HyprlandService.screenTimeManager
         function onAppTimesChanged() {
             if (currentDay === todayStr())
                 refreshData();

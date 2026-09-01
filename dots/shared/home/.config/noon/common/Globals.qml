@@ -96,7 +96,7 @@ Singleton {
     }
 
     CustomShortcut {
-        id:superHeldShortcut
+        id: superHeldShortcut
         name: "superHeld"
     }
 
@@ -104,8 +104,6 @@ Singleton {
         target: Quickshell
 
         Component.onCompleted: {
-            Globals.deload = false
-            ScreenTimeService.tracker.init(root);
             TimerService.reload();
             ClipboardService.refresh();
             NoonUtils.playSound("device_unlocked");

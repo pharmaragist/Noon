@@ -226,5 +226,14 @@ Item {
                 }
             }
         }
+
+        StyledText {
+            id: sourceHint
+            Layout.alignment: Qt.AlignHCenter
+            horizontalAlignment: Text.AlignHCenter
+            font: Fonts.request("main", "small")
+            color: Colors.colSubtext
+            text: "Source: MET"
+        }
     }
 }

@@ -9,7 +9,7 @@ Item {
     Layout.fillWidth: true
     Layout.preferredHeight: 45
 
-    property var focusedScreen: MonitorsInfo.focused
+    property var focusedScreen: MonitorsInfo.focused[0]
     property var brightnessMonitor: BrightnessService.getMonitorForScreen(focusedScreen)
 
     StyledProgressBar {

@@ -6,7 +6,7 @@ import qs.common.functions
 
 StyledRect {
     id: root
-    property var account: AuthManager.oauthData[0]?.account ?? {}
+    property var account: AuthManager?.oauthData[0]?.account ?? ({})
     color: "transparent"
     radius: Rounding.verylarge
 

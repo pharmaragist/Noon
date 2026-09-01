@@ -409,7 +409,7 @@ Singleton {
             component: "WeatherContentView"
         },
         "appearance": {
-            dim: Globals.topLevel?.activated,
+            dim: false,
             radius: Rounding.full,
             timeout: false,
             size: sizes.appearance,

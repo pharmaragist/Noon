@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import qs.store
 import qs.common
 import qs.common.utils
+
 import Noon.Hypr
 import Noon.Protocols.Hypr
 
@@ -25,10 +26,18 @@ Singleton {
     readonly property string keyboardLayoutShortName: currentKeyboardLayout.substring(0, 2).toUpperCase()
     readonly property list<string> availableAnimations: root.availableAnimationsModel.getArray("fileBaseName")
 
-    readonly property NightLightManager nightlight: NightLightManager {
-        enabled: Mem.states.services.nightLight.enabled
-        temperature:Mem.states.services.nightLight.temperature
-        gamma: Mem.states.services.nightLight.gamma
+    readonly property ScreenTimeManager screenTimeManager: ScreenTimeManager {
+        bridge: root.bridge ?? null
+        dbPath: Paths.services.screenTimeDB
+        saveInterval: 12000
+        Component.onCompleted: this.init(root)
+    }
+
+    readonly property NightLightManager nightLightManager: NightLightManager {
+        screen: MonitorsInfo?.monitors?.main ?? null
+        enabled: Mem?.states.services.nightLight.enabled
+        temperature: Mem?.states.services.nightLight.temperature
+        gamma: Mem?.states.services.nightLight.gamma
     }
 
     readonly property FolderListModel availableAnimationsModel: FolderListModel {

@@ -7,10 +7,12 @@ JsonAdapter {
     }
 
     property JO services: JO {
+        property JO weather: JO {
+            property var data: ({})
+        }
         property JO colors: JO {
             property list<var> palettes: []
         }
-
         property JO backlight: JO {
             property list<var> devices: []
         }

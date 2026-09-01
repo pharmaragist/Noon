@@ -25,22 +25,22 @@ Singleton {
         {
             "name": "Neutral",
             "value": "scheme-neutral",
-            "icon": "contrast"
+            "icon": "filter_b_and_w"
         },
         {
             "name": "Expressive",
             "value": "scheme-expressive",
-            "icon": "colorize"
+            "icon": "emoji_nature"
         },
         {
             "name": "Fidelity",
             "value": "scheme-fidelity",
-            "icon": "image"
+            "icon": "auto_awesome"
         },
         {
             "name": "Monochrome",
             "value": "scheme-monochrome",
-            "icon": "monochrome_photos"
+            "icon": "contrast"
         },
         {
             "name": "Rainbow",

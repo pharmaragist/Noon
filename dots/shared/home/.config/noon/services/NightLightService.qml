@@ -8,82 +8,46 @@ pragma ComponentBehavior: Bound
 Singleton {
     id: root
 
-    property bool enabled: Mem.states.services.nightLight.enabled
-    property int temperature: Mem.states.services.nightLight.temperature ?? 6400
-    property bool autoEnabled: Mem.options.services.nightLight.autoNightLightCycle ?? false
+    readonly property var manager: HyprlandService?.nightLightManager ?? null
+    readonly property bool autoEnabled: Mem.options.services.nightLight.autoNightLightCycle ?? false
 
-    function reload() {
-        if (enabled) {
-            mainProc.running = false;
-            mainProc.running = true;
-        } else {
-            mainProc.running = false;
-            NoonUtils.execDetached("killall hyprsunset");
-        }
-    }
-
-    function debounced_reload() {
-        debounceTimer.restart();
-    }
-
-    function syncWithSunset() {
-        if (!autoEnabled)
-            return ;
-
-        const now = new Date();
-        const currentHour = now.getHours() + now.getMinutes() / 60;
-        const sr = WeatherService.weatherData.sunrise;
-        const ss = WeatherService.weatherData.sunset;
-        if (!sr || !ss)
+    function sync() {
+        if (!root.autoEnabled)
             return;
-        const [sunriseH, sunriseM] = sr.split(":").map(Number);
-        const [sunsetH, sunsetM] = ss.split(":").map(Number);
-        const sunrise = sunriseH + sunriseM / 60;
-        const sunset = sunsetH + sunsetM / 60;
-        const isNight = currentHour < sunrise || currentHour > sunset;
-        isNight ? enable() : disable();
+
+        const [startH, startM] = (Mem.options.services.nightLight.autoStart ?? "20:00").split(":").map(Number);
+        const [endH, endM] = (Mem.options.services.nightLight.autoEnd ?? "06:00").split(":").map(Number);
+        const start = startH * 60 + (startM || 0);
+        const end = endH * 60 + (endM || 0);
+
+        const d = DateTimeService.clock.date;
+        const now = d.getHours() * 60 + d.getMinutes();
+
+        // Window crossing midnight (start > end): progress wraps past 1440.
+        let offset = now - start;
+        if (offset < 0)
+            offset += 1440;
+        const span = start > end ? end + 1440 - start : end - start;
+        const progress = span === 0 ? 0 : Math.min(Math.max(offset / span, 0), 1);
+
+        const isNight = progress > 0 && progress < 1;
+        Mem.states.services.nightLight.enabled = isNight;
+
+        // Ramp temperature: day temp at window start, coldest deep into the window.
+        const day = Mem.options.services.nightLight.autoDayTemp ?? 6400;
+        const night = Mem.options.services.nightLight.autoNightTemp ?? 3500;
+        Mem.states.services.nightLight.temperature = Math.round(day - (day - night) * progress);
     }
 
-    onEnabledChanged: () => {
-        return reload();
-    }
-    onTemperatureChanged: () => {
-        return debounced_reload();
-    }
-    onAutoEnabledChanged: {
-        if (autoEnabled)
-            syncWithSunset();
-
-    }
+    onAutoEnabledChanged: root.sync()
 
     Timer {
-        id: debounceTimer
+        id: autoCheckTimer
 
-        interval: 200
-        onTriggered: reload()
+        interval: 60_000
+        running: root.autoEnabled
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.sync()
     }
-
-    Process {
-        id: mainProc
-
-        command: ["bash", "-c", `hyprsunset -t ${temperature}`]
-    }
-
-    Process {
-        running: true
-        command: ["pidof", "hyprsunset"]
-        onExited: (exitCode) => {
-            return Mem.states.services.nightLight.enabled = (exitCode === 0);
-        }
-    }
-
-    Connections {
-        function onWeatherDataChanged() {
-            if (root.autoEnabled)
-                root.syncWithSunset();
-        }
-
-        target: WeatherService
-    }
-
 }

@@ -5,49 +5,53 @@ import qs.services
 import qs.common
 import qs.common.widgets
 
-Scope {
-    Variants {
-        model: MonitorsInfo.all
-        StyledPanel {
-            id: root
-            required property var modelData
-            name: "noanim_blurred_layer"
-            _layer: "Overlay"
-            exclusiveZone: 0
-            fill: true
-            screen: modelData
-            mask: Region {
-                item: listview
+Variants {
+    model: MonitorsInfo.focused
+
+    StyledPanel {
+        id: root
+        required property var modelData
+        name: "noanim_blurred_layer"
+        _layer: "Top"
+        exclusiveZone: 0
+        fill: true
+        screen: modelData
+        mask: Region {
+            item: listview
+        }
+        NotificationListView {
+            id: listview
+
+            hint: false
+            clip: false
+            popup: true
+
+            implicitWidth: Sizes.notificationPopupWidth - anchors.margins * 2
+            implicitHeight: listview.contentItem.childrenRect.height
+
+            readonly property string pos: Mem.options.desktop.popups?.notifications ?? "TopCenter"
+
+            function getAnc(side) {
+                return pos.toLowerCase().includes(side) ? side === "center" ? parent.horizontalCenter : parent[side] : undefined;
             }
-            NotificationListView {
-                id: listview
 
-                hint: false
-                clip: false
-                popup: true
+            anchors {
+                top: getAnc("top")
+                left: getAnc("left")
+                right: getAnc("right")
+                bottom: getAnc("bottom")
+                horizontalCenter: getAnc("center")
+            }
 
-                implicitWidth: Sizes.notificationPopupWidth - anchors.margins * 2
-                implicitHeight: listview.contentItem.childrenRect.height
+            popupProps: ({
+                    overshoot: Screen.width,
+                    threshold: 20
+                })
 
-                readonly property string _pos: pos.toLowerCase()
-                readonly property string pos: Mem.options.desktop.popups?.notifications ?? "TopCenter"
-                
-
-                anchors.top: _pos.includes("top") ? parent.top : undefined
-                anchors.left: _pos.includes("left") ? parent.left : undefined
-                anchors.right: _pos.includes("right") ? parent.right : undefined
-                anchors.bottom: _pos.includes("bottom") ? parent.bottom : undefined
-                anchors.horizontalCenter: _pos.includes("center") ? parent.horizontalCenter : undefined
-
-                popupProps: ({
-                        overshoot: Screen.width,
-                        threshold: 20
-                    })
-                Anim on anchors.margins {
-                    from: -height
-                    to: Sizes.elevationMargin
-                    duration: Animations.durations.normal
-                }
+            Anim on anchors.margins {
+                from: -height
+                to: Sizes.elevationMargin
+                duration: Animations.durations.normal
             }
         }
     }

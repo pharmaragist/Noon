@@ -18,7 +18,7 @@ task_manager = ipc .. "sidebar reveal TaskManager"
 task_manager_alt = terminal .. ' fish -c "nvtop"'
 
 -- Decoration & Layout
-blur = false
+blur = true
 unblur_apps = true
 blur_size = 6
 blur_passes = 3
@@ -33,10 +33,10 @@ gaps_in = 5
 gaps_out = 5
 gaps_special = 40
 borders = 1
-rounding = 5
+rounding = 12
 rounding_power = 2
 layers_alpha = 0.4
-applications_opacity = 0.9053245756590826
+applications_opacity = 1
 hypr_col_alpha = 50
 font_main = "Google Sans Flex"
 layout = "master"

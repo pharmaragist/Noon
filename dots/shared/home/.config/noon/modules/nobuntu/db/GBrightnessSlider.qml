@@ -15,7 +15,7 @@ RowLayout {
     Layout.leftMargin: Padding.normal
     spacing: Padding.large
 
-    property var focusedScreen: MonitorsInfo.focused
+    property var focusedScreen: MonitorsInfo.focused[0]
     property var brightnessMonitor: BrightnessService.getMonitorForScreen(focusedScreen)
 
     readonly property var levels: ({

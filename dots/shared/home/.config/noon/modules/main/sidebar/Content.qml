@@ -174,8 +174,8 @@ Item {
                     cat: root?.selectedCategory ?? ""
                 }
                 readonly property Component contentRow: RowLayout {
-                    spacing: Padding.normal
                     anchors.fill: parent
+                    spacing: 0
 
                     StyledLoader {
                         id: mainLoader

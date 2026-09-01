@@ -56,30 +56,30 @@ Item {
                 anchors.left: highlight.rightMode ? undefined : parent.left
                 anchors.right: !highlight.rightMode ? undefined : parent.right
                 anchors.margins: Padding.tiny
-                anchors.verticalCenter: parent.verticalCenter
                 width: 5
                 radius: Rounding.small
-                color: root.colors.colPrimary
+                color: root.colors.colSecondaryContainer
+
+                readonly property real baseH: Math.max(1, highlight.height - Padding.large)
+                readonly property real boom: baseH * 1.6
+                readonly property real boomPad: Math.max(Padding.large, baseH * 0.6)
+                property real ext: 0
+
+                height: baseH + ext
+                y: 0
+                anchors.verticalCenter: parent.verticalCenter
+
                 Connections {
                     target: highlight
                     function onYChanged() {
-                        expand.running = true
+                        ext = boomPad
                     }
                 }
-                SequentialAnimation {
-                    id: expand
-                    PropertyAnimation {
-                        target: pillBg
-                        property: "height"
-                        to: highlight?.height - Padding.large
-                        from: highlight?.height + Padding.verylarge
+
+                Behavior on ext {
+                    Anim {
                         duration: Animations.durations.large
-                        easing.type: Easing.OutQuad
                     }
-                }
-                Anim on height {
-                    from: 0
-                    to: highlight?.height - Padding.large
                 }
             }
         }

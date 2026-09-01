@@ -1,4 +1,4 @@
-import Noon.Utils
+import Noon.Utils.CavaWatcher as CavaWatcher
 import QtQuick
 import qs.common
 import qs.common.utils

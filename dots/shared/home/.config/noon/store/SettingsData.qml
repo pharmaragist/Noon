@@ -574,7 +574,7 @@ Singleton {
                         {
                             "icon": "location_city",
                             "name": "City",
-                            "key": "services.location",
+                            "key": "services.weather.location",
                             "type": "text"
                         },
                         {

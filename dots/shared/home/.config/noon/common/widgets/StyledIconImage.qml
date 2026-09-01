@@ -18,7 +18,7 @@ Kirigami.Icon {
 
     roundToIconSize: false
     animated: true
-    source: NoonUtils.iconPath(_source.toLowerCase()) ?? ""
+    source: NoonUtils.iconPath(_source) ?? ""
 
     Loader {
         opacity: 1 - root.tint
