@@ -4,7 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 

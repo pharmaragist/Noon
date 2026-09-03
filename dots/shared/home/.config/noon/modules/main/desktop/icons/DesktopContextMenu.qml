@@ -4,7 +4,7 @@ import QtQuick.Controls.Material
 import Qt5Compat.GraphicalEffects
 import qs.common
 import qs.common.utils
-import qs.store
+import qs.data
 
 Menu {
     id: contextMenu

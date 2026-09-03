@@ -7,7 +7,7 @@ import qs.common.utils
 import qs.common.widgets
 import qs.common.functions
 import qs.services
-import qs.store
+import qs.data
 import QtMultimedia
 
 StyledToolTip {
@@ -35,8 +35,8 @@ StyledToolTip {
                     return docsComponent;
                 case "video":
                     return videoComponent;
-                
-                
+
+
                 default:
                     return null;
                 }
@@ -47,7 +47,7 @@ StyledToolTip {
                 }
             }
             Component {
-                
+
                 id: onlineUrlComponent
                 WebView {
                     url: root.path

@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 import qs.common.widgets

@@ -7,7 +7,7 @@ import qs.common
 import qs.common.widgets
 import qs.modules.common.bg
 import qs.services
-import qs.store
+import qs.data
 
 Rectangle {
     id: root

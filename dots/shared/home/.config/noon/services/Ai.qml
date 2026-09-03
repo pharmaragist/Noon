@@ -4,7 +4,7 @@ import Noon.Utils
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 import qs.common.functions

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 import qs.common.widgets

@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.utils
 import qs.common.widgets
-import qs.store
+import qs.data
 import qs.services
 
 PanelRect {

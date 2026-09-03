@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.store
+import qs.data
 import qs.common
 import qs.services
 import qs.common.widgets

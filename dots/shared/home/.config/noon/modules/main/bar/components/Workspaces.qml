@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 
-import qs.store
+import qs.data
 import qs.services
 import qs.common
 import qs.common.widgets

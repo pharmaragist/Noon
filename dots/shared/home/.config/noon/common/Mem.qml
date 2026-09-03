@@ -4,7 +4,7 @@ import QtQuick
 import Noon.Utils
 import Noon.Hypr
 import qs.common.utils
-import qs.store
+import qs.data
 
 Singleton {
     id: root

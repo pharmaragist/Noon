@@ -2,7 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 import qs.common.functions

@@ -8,7 +8,7 @@ import qs.common
 import qs.common.widgets
 import qs.common.utils
 import qs.services
-import qs.store
+import qs.data
 
 RowLayout {
     spacing: Padding.large

@@ -1,6 +1,6 @@
 import QtQuick
 import qs.services
-import qs.store
+import qs.data
 import qs.common
 import qs.common.utils
 

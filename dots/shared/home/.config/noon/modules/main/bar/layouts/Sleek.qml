@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
-import qs.store
+import qs.data
 import qs.services
 import qs.common
 import qs.common.widgets

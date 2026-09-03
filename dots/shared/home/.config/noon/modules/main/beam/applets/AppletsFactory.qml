@@ -1,7 +1,7 @@
 import QtQuick
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 RLayout {
     id: appletsArea

@@ -5,7 +5,7 @@ import Quickshell.Wayland
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 import "components/plugins"
 import "components/games"

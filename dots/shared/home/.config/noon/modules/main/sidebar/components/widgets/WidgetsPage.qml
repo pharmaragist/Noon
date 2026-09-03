@@ -1,5 +1,5 @@
 import QtQuick
-import qs.store
+import qs.data
 import qs.common
 import qs.common.widgets
 import qs.modules.main.desktop.widgets

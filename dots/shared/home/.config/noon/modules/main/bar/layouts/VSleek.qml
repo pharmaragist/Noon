@@ -4,7 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
 import qs.services
-import qs.store
+import qs.data
 import qs.common
 import qs.common.widgets
 import "./../components"

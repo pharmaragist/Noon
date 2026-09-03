@@ -4,7 +4,7 @@ import qs.common
 import qs.common.functions
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 Item {
     id: root

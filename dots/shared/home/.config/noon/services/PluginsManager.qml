@@ -7,7 +7,7 @@ import Qt.labs.platform
 import qs.common
 import qs.common.utils
 import qs.common.functions
-import qs.store
+import qs.data
 
 Singleton {
     id: root

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
-import qs.store
+import qs.data
 import qs.common
 import qs.services
 import qs.common.functions

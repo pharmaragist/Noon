@@ -6,7 +6,7 @@ import Quickshell.Widgets
 import Quickshell
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 StyledPopup {
     id: root

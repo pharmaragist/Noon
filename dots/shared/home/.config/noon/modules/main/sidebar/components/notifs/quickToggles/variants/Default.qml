@@ -3,7 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 GroupButton {
     id: root

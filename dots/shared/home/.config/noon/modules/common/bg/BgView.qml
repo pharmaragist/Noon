@@ -9,7 +9,7 @@ import qs.common.utils
 import qs.common.widgets
 import qs.common.functions
 import qs.services
-import qs.store
+import qs.data
 import qs.modules.main.desktop.widgets
 
 Item {
