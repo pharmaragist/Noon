@@ -122,18 +122,20 @@ Singleton {
         }
     }
 
-    function getFileInfo(filePath) {
-        if (!filePath || typeof filePath !== "string")
-            return null;
-
-        try {
-            const trimmed = trim(filePath);
-            return Io.fileInfo(trimmed);
-        } catch (error) {
-            console.warn("GetFileInfo error:", error);
-            return null;
-        }
+    function isFile(filePath) {
+        if (typeof filePath !== "string")
+            return false;
+        const p = trim(filePath);
+        if (/[\\/]$/.test(p))
+            return false;
+        const base = p.split(/[\\/]/).pop() ?? "";
+        return base.includes(".") && !base.startsWith(".");
     }
+
+    function isDirectory(filePath) {
+        return typeof filePath === "string" && !isFile(filePath);
+    }
+
     function collapsePath(path) {
         if (!path)
             return;

@@ -32,7 +32,6 @@ Singleton {
 
 
     readonly property QtObject services: QtObject {
-        readonly property string notifications: methods.trim(standard.cache + "/notifications/notifications.json")
         readonly property string latex: methods.trim(standard.cache + "/media/latex")
         readonly property string opencodeDb: methods.trim(standard.share + "/opencode/opencode.db")
         readonly property string skills: methods.trim(standard.config + "/opencode/skills")

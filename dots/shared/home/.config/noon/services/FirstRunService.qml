@@ -16,7 +16,7 @@ Singleton {
         doPaths();
         doEnv();
         WallpaperService.applyWallpaper(Paths.wallpapers.defaultBg);
-        console.warn("All Done !")
+        console.warn("All Done !");
     }
 
     function doEnv() {
@@ -30,7 +30,7 @@ Singleton {
         for (const [key, value] of Object.entries(needed)) {
             Mem?.envView?.ensure(key, value);
         }
-        console.warn("Environment Variables Are Set")
+        console.warn("Environment Variables Are Set");
     }
 
     function doPaths() {
@@ -39,22 +39,22 @@ Singleton {
         const batchCreate = group => {
             const gp = ObjectUtils.toPlainObject(p[group]);
             for (const path of Object.values(gp)) {
+                if (p.methods.isFile(path))
+                    return;
                 p.methods.mkdir(path);
             }
         };
-        batchCreate("standard");
-        batchCreate("services");
-        batchCreate("wallpapers");
-        batchCreate("plugins");
+        const all = ["standard", "services", "wallpapers", "plugins"];
+        all.forEach(gp => batchCreate(gp))
 
         p.methods.mkdir([p.venv, p.shellConfigs]);
-        console.warn("Paths Are Set")
+        console.warn("Paths Are Set");
     }
 
     function doFlags() {
         Mem.states.desktop.firstRun = false;
         Mem.options.desktop.shell.mode = "main";
-        console.warn("Flags Are Set")
+        console.warn("Flags Are Set");
     }
 
     function doXDPH() {
@@ -63,6 +63,6 @@ Singleton {
         Paths.methods.createFileWith(config + "/hypr/xdph.conf", `
             screencopy { custom_picker_binary = ${config}/noon/scripts/screen_share_watcher }
         `);
-        console.warn("Screen Sharing Hack is Set")
+        console.warn("Screen Sharing Hack is Set");
     }
 }
