@@ -53,6 +53,13 @@ PanelRect {
         bottomMargin: elevationValue
     }
 
+    Component.onCompleted: {
+        if (Mem.options.sidebar.behavior.rememberTabIndex) {
+            return;
+        } else
+            Mem.states.sidebar.tabIndexCache = ({});
+    }
+
     transform: Translate {
         y: root.translateY
     }

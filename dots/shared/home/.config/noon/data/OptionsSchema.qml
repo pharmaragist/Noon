@@ -176,6 +176,7 @@ JsonAdapter {
             property bool preExpand: false
             property bool aiTextFadeIn: false
             property bool enableResizeOverlay: true
+            property bool rememberTabIndex: true
         }
 
         property JO navRail: JO {

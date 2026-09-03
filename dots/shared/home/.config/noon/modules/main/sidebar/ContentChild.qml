@@ -75,7 +75,6 @@ Item {
                     return;
 
                 const binds = {
-                    "selectedTabIndex": () => panel.selectedTabIndex,
                     "searchQuery": () => searchBar.searchText,
                     "debouncedQuery": () => searchBar.debouncedQuery,
                     "detached": () => panel._detached,
@@ -100,6 +99,24 @@ Item {
 
                 if (_item.dismiss)
                     _item.dismiss.connect(panel.parentRoot.hide);
+
+                if ("selectedTabIndex" in _item) {
+                    const states = Mem.states.sidebar;
+                    const cached = states.tabIndexCache;
+                    const cacheIndex = () => {
+                        states.tabIndexCache = Object.assign({}, cached, {
+                            [panel.category]: _item.selectedTabIndex
+                        });
+                    };
+                    if (panel.category in cached)
+                        _item.selectedTabIndex = cached[panel.category];
+                    else
+                        cacheIndex();
+
+                    _item.onSelectedTabIndexChanged.connect(() => {
+                        cacheIndex();
+                    });
+                }
             }
         }
 
