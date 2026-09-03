@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import qs.store
 import qs.common
 import qs.common.utils
 import qs.common.widgets
@@ -58,7 +59,7 @@ Variants {
 
                     function getMargins(side) {
                         const base = Sizes.frameThickness
-                        return Mem.options.bar.behavior.position === side ? base / 2 : base;
+                        return BarData.currentModeInfo.position === side ? base / 2 : base;
                     }
 
                     radius: Rounding.veryhuge

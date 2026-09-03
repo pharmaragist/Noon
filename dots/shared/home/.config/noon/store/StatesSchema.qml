@@ -1,22 +1,6 @@
 import qs.common.utils
 
 JsonAdapter {
-
-    property JO applications: JO {
-        property JO settings: JO {
-            property string cat: ""
-            property bool sidebar_expanded: true
-            property bool sidebar_pinned: true
-            property int appearance_mode: 1
-        }
-        property JO reader: JO {
-            property string currentFile: ""
-            property bool sidebar_expanded: true
-            property bool sidebar_pinned: true
-            property int appearance_mode: 1
-        }
-    }
-
     property JO desktop: JO {
         property bool firstRun: true
 
@@ -120,7 +104,9 @@ JsonAdapter {
     property JO dock: JO {
         property bool pinned: false
     }
-
+    property JO bar: JO {
+        property string currentLayout: "vertical"
+    }
     property JO sidebar: JO {
         property JO shelf: JO {
             property list<string> filePaths: []

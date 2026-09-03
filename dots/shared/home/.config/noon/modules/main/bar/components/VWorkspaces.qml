@@ -180,7 +180,7 @@ BarGroup {
                 readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || windowCount === 0
                 readonly property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
                 readonly property real buttonHeight: Math.max(root.workspaceButtonHeight, windowCount * iconSize + Math.max(0, windowCount - 1) * (showNumber ? 0 : root.iconSpacing) + root.buttonVPadding) + (windowCount > 1 ? root.bgPadding : 0)
-                readonly property int positionMultiplier: Mem.options.bar.behavior.position === "left" ? -1 : 1
+                readonly property int positionMultiplier: root.position === "left" ? -1 : 1
 
                 Layout.fillWidth: true
                 height: buttonHeight

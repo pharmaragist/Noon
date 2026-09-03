@@ -18,8 +18,8 @@ LazyLoader {
     property real popupBackgroundMargin: Padding.verylarge
     property int contentMargins: 40
     property bool extraVisibilityCondition: true
-    
-    readonly property string barPosition: Mem.options.bar.behavior.position
+
+    readonly property string barPosition: BarData.currentModeInfo.position
     active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
     property bool focus: false
     component: StyledPanel {
@@ -46,7 +46,7 @@ LazyLoader {
         }
         margins {
             left: {
-                
+
                 if (barPosition === "top" || barPosition === "bottom") {
                     const mapped = root.QsWindow?.mapFromItem(root.hoverTarget, (root.hoverTarget.width - popupBackground.implicitWidth) / 2, 0);
                     if (!mapped)
@@ -55,7 +55,7 @@ LazyLoader {
                     const screenWidth = root.QsWindow?.screen?.width || 1920;
                     const popupWidth = popupBackground.implicitWidth + Sizes.elevationMargin * 2 + root.popupBackgroundMargin;
 
-                    
+
                     let leftPos = mapped.x;
                     if (leftPos < 0)
                         leftPos = 0;
@@ -65,7 +65,7 @@ LazyLoader {
                     return Math.max(0, leftPos);
                 }
 
-                
+
                 if (barPosition === "left")
                     return BarData.currentBarExclusiveSize + (Sizes.hyprland.gapsOut / 2);
 
@@ -73,7 +73,7 @@ LazyLoader {
             }
 
             top: {
-                
+
                 if (barPosition === "left" || barPosition === "right") {
                     const mapped = root.QsWindow?.mapFromItem(root.hoverTarget, 0, (root.hoverTarget.height - popupBackground.implicitHeight) / 2);
                     if (!mapped)
@@ -82,7 +82,7 @@ LazyLoader {
                     const screenHeight = root.QsWindow?.screen?.height || 1080;
                     const popupHeight = popupBackground.implicitHeight + Sizes.elevationMargin * 2 + root.popupBackgroundMargin;
 
-                    
+
                     let topPos = mapped.y;
                     if (topPos < 0)
                         topPos = 0;
@@ -92,7 +92,7 @@ LazyLoader {
                     return Math.max(0, topPos);
                 }
 
-                
+
                 if (barPosition === "top")
                     return BarData.currentBarExclusiveSize + (Sizes.hyprland.gapsOut / 2);
 

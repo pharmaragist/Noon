@@ -35,7 +35,6 @@ Item {
             previousCategory = category;
             return;
         }
-        contentStack.slideDirection = SidebarData.getCategoryDirection(previousCategory, category);
         contentStack.replace(null, SidebarData.getComponentPath(category));
         previousCategory = category;
     }
@@ -69,7 +68,6 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            slideDirection: 1
 
             onCurrentItemChanged: {
                 const _item = contentStack.currentItem;

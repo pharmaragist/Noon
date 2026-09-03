@@ -12,6 +12,7 @@ StyledRect {
     property bool verticalMode: false
     property bool active: BarData.currentModeInfo.appearance.barGroup
     property color colBackground: Colors.colSurfaceContainer
+    property string position: "top"
     readonly property real padding: Padding.small
     color: active ? colBackground : "transparent"
     radius: Rounding.large

@@ -22,7 +22,7 @@ BarGroup {
         spacing: Padding.tiny
 
         Repeater {
-            model: [DateTimeService.hour, DateTimeService.minute, DateTimeService.request("ddd")]
+            model: [DateTimeService.hour, DateTimeService.minute]
             StyledText {
                 required property var modelData
                 required property int index

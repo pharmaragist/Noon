@@ -9,9 +9,9 @@ import qs.services
 BottomDialog {
     id: root
 
-    collapsedHeight: parent.height / 2
-
+    baseHeight: Math.min((180 * devicesList?.count) + 50, parent.height / 2)
     contentItem: ColumnLayout {
+        id: content
         anchors.fill: parent
         anchors.margins: Padding.veryhuge
         spacing: Padding.large
@@ -130,16 +130,6 @@ BottomDialog {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignLeft
                 }
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
             }
         }
     }

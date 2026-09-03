@@ -26,7 +26,6 @@ Scope {
             WlrLayershell.exclusionMode: ExclusionMode.Ignore
             color: "transparent"
 
-
             readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode
             readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
             property string wallpaper: WallpaperService.currentWallpaper
@@ -65,7 +64,7 @@ Scope {
                             return Math.max(0, Math.min(1, workspaceOffset));
                         }
 
-                        property int widgetMargin: Mem.options.desktop.bg.parallax.widgetParallax && enableParallax && Globals.main.sidebar.expanded ? (Mem.options.bar.behavior.position === "left" ? -1 : 1) * Math.max(Mem.options.desktop.bg.parallax.parallaxStrength, 0.1) * 12 * (SidebarData.launcherWidth > 500 ? 20 : 50) : 0
+                        property int widgetMargin: Mem.options.desktop.bg.parallax.widgetParallax && enableParallax && Globals.main.sidebar.expanded ? (BarData.currentModeInfo.position === "left" ? -1 : 1) * Math.max(Mem.options.desktop.bg.parallax.parallaxStrength, 0.1) * 12 * (SidebarData.launcherWidth > 500 ? 20 : 50) : 0
                         sourceSize: Qt.size(screen.width, screen.height)
                         width: imageLoaded ? parent.width * effectiveWallpaperScale : parent.width
                         height: imageLoaded ? parent.height * effectiveWallpaperScale : parent.height

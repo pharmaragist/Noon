@@ -7,7 +7,7 @@ import qs.services
 
 BottomDialog {
     id: root
-    collapsedHeight: 450
+    baseHeight: 450
     enableStagedReveal: false
 
     property var cmd: []

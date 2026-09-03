@@ -23,20 +23,15 @@ Item {
     RLayout {
         anchors.fill: parent
         spacing: Padding.large
-        GP {
-            implicitWidth: 115
-            RLayout {
-                anchors.fill: parent
-                anchors.rightMargin: Padding.normal
-                anchors.leftMargin: Padding.normal
-                spacing: 2
-                MainButton {}
-                HSeparator {}
-                WsIndicator {
-                    bar: root.panel
-                }
-            }
+
+        Logo {}
+        HSeparator {}
+        ProgressWs {
+            bar: root.panel
         }
+
+        Spacer {}
+
         GP {
             Layout.alignment: Qt.AlignRight
             implicitWidth: rLay.implicitWidth + Padding.massive * 2
@@ -54,29 +49,6 @@ Item {
         }
     }
 
-    component MainButton: RippleButtonWithIcon {
-        materialIcon: "keyboard_command_key"
-        implicitSize: height
-        Layout.fillHeight: true
-        Layout.margins: Padding.tiny
-        releaseAction: () => {
-            NoonUtils.callIpc("noon toggle_beam");
-        }
-    }
-
-    component WsIndicator: Item {
-        required property var bar
-        Layout.preferredWidth: height
-        Layout.fillHeight: true
-        StyledText {
-            anchors.verticalCenterOffset: 2
-            anchors.centerIn: parent
-            horizontalAlignment: Text.AlignVCenter | Text.AlignHCenter
-            text: MonitorsInfo.monitorFor(bar?.screen).activeWorkspace?.id
-            color: Colors.colOnLayer1
-            font: Fonts.request("mono", "normal", { weight: 900 })
-        }
-    }
     component Clock: StyledText {
         Layout.alignment: Qt.AlignRight
         text: DateTimeService.time

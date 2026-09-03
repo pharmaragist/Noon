@@ -80,15 +80,7 @@ Singleton {
     }
 
     function getMaterialIcon() {
-        switch (currentLevel) {
-        case 0:
-            return "backlight_high_off";
-        case 1:
-            return "backlight_low";
-        case 2:
-            return "backlight_high";
-        default:
-            return "backlight_high";
-        }
+        const icons = ["backlight_high_off", "backlight_low", "backlight_high"];
+        return icons[currentLevel ?? 2] ?? "backlight_high";
     }
 }

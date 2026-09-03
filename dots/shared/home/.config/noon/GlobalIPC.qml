@@ -30,7 +30,7 @@ Scope {
 
         function trigger_autostart_apps(): void {
             Mem.options.services.autoExecAppsList.forEach(cmd => {
-                NoonUtils.execDetached(["bash", "-c", cmd]);
+                Quickshell.execDetached(["bash", "-c", cmd]);
             });
         }
 

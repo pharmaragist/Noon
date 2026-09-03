@@ -27,6 +27,22 @@ Singleton {
     EnvManager {
         id: envView
         path: Paths.standard.home + "/.env"
+
+        Component.onCompleted: {
+            const needed = {
+                "NOON_TASKS_ID": "",
+                "NOON_TASKS_SECRET": "",
+                "NOON_CALENDAR_SECRET": "",
+                "NOON_CALENDAR_ID": "",
+                "XCURSOR_THEME": "Adwaita",
+                "TERMINAL_OPACITY": 1,
+                "USE_POKEMON": true,
+                "GTK_CSD": 0
+            };
+            for (const [key, value] of Object.entries(needed)) {
+                envView.ensure(key, value);
+            }
+        }
     }
 
     HyprParser {

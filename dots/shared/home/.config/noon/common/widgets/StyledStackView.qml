@@ -2,14 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import qs.common
 
-
-
-
-
 StackView {
     id: root
-
-    property int slideDirection: 1
 
     replaceEnter: Transition {
         ParallelAnimation {

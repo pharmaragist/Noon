@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import qs.store
 import qs.common
 import qs.common.widgets
 import qs.modules.main.bar.components
@@ -9,7 +10,7 @@ import qs.services
 StyledPanel {
     id: root
     readonly property int barHeight: 60
-    readonly property string pos: Mem.options.bar.behavior.position
+    readonly property string pos: BarData.currentModeInfo.position
     readonly property int maxChunkWidth: 250
 
     name: "bar"
@@ -81,7 +82,7 @@ StyledPanel {
                     }
 
                     StatusIcons {}
-                    
+
                 }
             }
         }

@@ -13,9 +13,6 @@ JsonAdapter {
         property JO colors: JO {
             property list<var> palettes: []
         }
-        property JO backlight: JO {
-            property list<var> devices: []
-        }
         property JO cursors: JO {
             property list<string> availableCursors: []
         }

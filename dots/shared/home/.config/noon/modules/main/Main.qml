@@ -1,5 +1,6 @@
 import QtQuick
 import qs.services
+import qs.store
 import qs.common
 import qs.common.utils
 
@@ -24,7 +25,7 @@ Scope {
     }
 
     WidgetLoader {
-        reloadOn: Mem.options.bar.behavior.position
+        reloadOn: BarData.currentModeInfo.position
         Sidebar {}
     }
 
@@ -39,7 +40,7 @@ Scope {
     }
 
     WidgetLoader {
-        reloadOn: Mem.options.bar.behavior.position
+        reloadOn: BarData.currentModeInfo.position
         Bar {}
     }
 

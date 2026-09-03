@@ -7,7 +7,7 @@ import qs.common.widgets
 PanelRect {
     id: bg
 
-    readonly property string side: Mem.options.bar.behavior.position
+    readonly property string side: BarData.currentModeInfo.position
     readonly property bool showCorners: state === "concave"
     readonly property bool isBottom: side === "bottom"
     readonly property bool isTop: side === "top" || side === ""

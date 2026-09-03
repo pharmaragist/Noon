@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import qs.store
 import qs.common
 import qs.common.widgets
 import Quickshell.Services.SystemTray
@@ -10,7 +11,7 @@ RippleButtonWithIcon {
     property var bar
     property bool verticalMode
     property bool reveal: false
-    readonly property string pos: Mem.options.bar.behavior.position
+    readonly property string pos: BarData.currentModeInfo.position
     materialIcon: {
         let dic = {
             "top": "down",

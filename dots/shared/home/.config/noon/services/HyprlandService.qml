@@ -56,7 +56,7 @@ Singleton {
     BatchBinding {
         target: Mem.hypr
         data: ({
-                bar_location: () => BarData.position,
+                bar_location: () => BarData.currentModeInfo.position,
                 bar_width: () => BarData.currentBarExclusiveSize,
                 terminal_opacity: () => Mem.env.TERMINAL_OPACITY
             })

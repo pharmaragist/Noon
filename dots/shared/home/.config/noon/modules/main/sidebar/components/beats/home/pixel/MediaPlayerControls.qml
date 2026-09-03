@@ -231,7 +231,7 @@ Item {
         }
         colors: root.trackColors
         scrim: false
-        collapsedHeight: 165
+        baseHeight: 165
         revealOnWheel: false
         enableStagedReveal: false
         bottomAreaReveal: false

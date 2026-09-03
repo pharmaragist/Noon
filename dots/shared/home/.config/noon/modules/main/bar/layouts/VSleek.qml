@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
 import qs.services
+import qs.store
 import qs.common
 import qs.common.widgets
 import "./../components"
@@ -15,7 +16,7 @@ StyledPanel {
     exclusiveZone: bg.implicitWidth
     fill: true
     _layer: "Bottom"
-    readonly property string pos: Mem.options.bar.behavior.position
+    readonly property string pos: BarData.currentModeInfo.position
     readonly property bool isRight: bg.side === "right"
 
     anchors.left: !isRight

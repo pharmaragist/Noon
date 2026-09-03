@@ -45,7 +45,6 @@ LayerRect {
 
     onQueryChanged: debounceTimer.restart()
     onContentFocusRequested: gridView.forceActiveFocus()
-    Component.onCompleted: OnlineWallpaperService._doFetch(1, false)
 
     Timer {
         id: debounceTimer
@@ -74,10 +73,12 @@ LayerRect {
         cellWidth: root._cellWidth
         cellHeight: root._cellHeight
         boundsBehavior: Flickable.StopAtBounds
-        model: OnlineWallpaperService.results ?? []
+        _model: OnlineWallpaperService.results ?? []
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 300
-
+        onModelChanged: if (count < 1) {
+            OnlineWallpaperService._doFetch(1, false)
+        }
         onContentYChanged: maybeLoadMore()
         onContentHeightChanged: maybeLoadMore()
 

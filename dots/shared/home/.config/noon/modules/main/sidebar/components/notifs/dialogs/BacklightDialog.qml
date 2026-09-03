@@ -7,7 +7,7 @@ import qs.services
 
 BottomDialog {
     id: root
-    collapsedHeight: 400
+    baseHeight: 400
     enableStagedReveal: false
     color: Colors.colLayer1
 

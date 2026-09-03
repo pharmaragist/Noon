@@ -12,16 +12,15 @@ import qs.common.widgets
 BarGroup {
     id: root
 
-    implicitWidth: Math.min(listView.contentWidth, 400)
-    implicitHeight: Math.min(listView.contentHeight, 400)
+    implicitWidth: Math.max(listView.contentWidth + Padding.silly, 400)
+    implicitHeight: Math.max(listView.contentHeight + Padding.silly, 400)
 
     ListView {
         id: listView
-        spacing: 2
+        spacing: 4
         orientation: root.vertical ? ListView.Vertical : ListView.Horizontal
-
+        interactive: false
         anchors.fill: parent
-        
 
         model: ScriptModel {
             values: {
@@ -65,7 +64,6 @@ BarGroup {
                 return values;
             }
         }
-
         delegate: DelegateChooser {
             role: "appId"
             DelegateChoice {

@@ -47,7 +47,7 @@ SidebarItemContainer {
     BottomDialog {
         id: addDialog
         expandedHeight: 640
-        collapsedHeight: 360
+        baseHeight: 360
         enableStagedReveal: !addDialog.alarmMode
         bottomAreaReveal: true
         hoverHeight: 200

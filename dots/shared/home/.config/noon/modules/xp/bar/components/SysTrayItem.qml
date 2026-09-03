@@ -78,15 +78,15 @@ MouseArea {
         extraVisibleCondition: root.containsMouse
         alternativeVisibleCondition: extraVisibleCondition
         anchorEdges: {
-            switch (Mem.options.bar.behavior.position) {
+            switch (BarData.currentModeInfo.position) {
             case "top":
-                return Edges.Bottom;  
+                return Edges.Bottom;
             case "bottom":
-                return Edges.Top;     
+                return Edges.Top;
             case "left":
-                return Edges.Right;   
+                return Edges.Right;
             case "right":
-                return Edges.Left;    
+                return Edges.Left;
             }
         }
     }

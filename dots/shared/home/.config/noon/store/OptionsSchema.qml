@@ -5,14 +5,6 @@ import QtQuick
 import Quickshell
 
 JsonAdapter {
-    property JO applications: JO {
-        property JO windowControls: JO {
-            property bool minimize: false
-            property bool maximize: false
-            property bool close: false
-        }
-    }
-
     property JO appearance: JO {
         property real paddingScale: 1
 
@@ -124,7 +116,7 @@ JsonAdapter {
 
         property string backlightDevice: "dell::kbd_backlight"
         property bool easyEffects: false
-        property list<string> autoExecAppsList: ["vesktop", "kitty"]
+        property list<string> autoExecAppsList: ["vesktop", "telegram-desktop"]
     }
 
     property JO battery: JO {
@@ -313,7 +305,9 @@ JsonAdapter {
     }
 
     property JO bar: JO {
+
         property JO horizontal: JO {
+            property string position: "top"
             property string layout: "Dynamic"
             property list<var> presets: []
 
@@ -336,6 +330,7 @@ JsonAdapter {
         }
 
         property JO vertical: JO {
+            property string position: "left"
             property string layout: "VDynamic"
             property list<var> presets: []
 
@@ -358,7 +353,6 @@ JsonAdapter {
         }
 
         property JO behavior: JO {
-            property string position: "left"
             property bool autoHide: false
             property bool showOnAll: true
         }

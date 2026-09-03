@@ -114,7 +114,7 @@ Scope {
 
                         property bool imageLoaded: status === Image.Ready
                         property bool verticalParallaxMode: Mem.options.desktop.bg.parallax.verticalParallax
-                        property int widgetMargin: Mem.options.desktop.bg.parallax.widgetParallax && enableParallax && Globals.main.sidebar.expanded ? (Mem.options.bar.behavior.position === "left" ? -1 : 1) * Math.max(Mem.options.desktop.bg.parallax.parallaxStrength, 0.1) * 12 * (SidebarData.launcherWidth > 500 ? 20 : 50) : 0
+                        property int widgetMargin: Mem.options.desktop.bg.parallax.widgetParallax && enableParallax && Globals.main.sidebar.expanded ? (BarData.currentModeInfo.position === "left" ? -1 : 1) * Math.max(Mem.options.desktop.bg.parallax.parallaxStrength, 0.1) * 12 * (SidebarData.launcherWidth > 500 ? 20 : 50) : 0
 
                         property real parallaxFactor: {
                             const firstId = workspaceList[0]?.id || 1;

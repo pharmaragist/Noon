@@ -57,7 +57,7 @@ Scope {
         }
 
         function toggle_bar_mode() {
-            Mem.options.bar.behavior.position = BarData.toggleLayout();
+            BarData.toggleLayout();
         }
         function swap_bar_position() {
             BarData.swapPosition();

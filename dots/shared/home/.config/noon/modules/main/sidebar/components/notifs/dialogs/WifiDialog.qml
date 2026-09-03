@@ -8,7 +8,7 @@ import Quickshell
 BottomDialog {
     id: root
 
-    collapsedHeight: parent.height * 0.65
+    baseHeight: parent.height * 0.65
     property bool isScanning: false
 
     Timer {

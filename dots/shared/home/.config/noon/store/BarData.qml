@@ -10,21 +10,20 @@ Singleton {
     id: root
 
     readonly property var settings: Mem.options.bar
-
-    readonly property bool isVertical: ["left", "right"].includes(position)
+    readonly property var states: Mem.states.bar
+    readonly property bool isVertical: states.currentLayout === "vertical"
     readonly property var bars: barsModel.getArray("fileBaseName")
     readonly property var currentModeInfo: isVertical ? settings.vertical : settings.horizontal
 
     readonly property var verticalBarModes: bars.filter(i => i.toLowerCase().startsWith('v'))
     readonly property var horizontalBarModes: bars.filter(i => !i.toLowerCase().startsWith('v'))
 
-    readonly property string position: settings.behavior.position
+    readonly property string position: currentModeInfo.position
     readonly property list<string> appearanceModes: ["float", "sharp", "concave", "convex"]
     readonly property list<string> positions: ["left", "right", "bottom", "top"]
     readonly property list<string> layoutProps: ["fillHeight", "fillWidth", "preferredWidth", "preferredHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "margins", "implicitWidth", "implicitHeight", "width", "height", "minimumWidth", "minimumHeight", "maximumWidth", "maximumHeight"]
     readonly property int currentBarExclusiveSize: currentModeInfo.appearance.size
-    readonly property list<string> separatorStyles: ["dot", "slant", "thin", "thick" ,"dots","thins","thicks"]
-
+    readonly property list<string> separatorStyles: ["dot", "slant", "thin", "thick", "dots", "thins", "thicks"]
 
     readonly property var contentTable: {
         "spacer": "Spacer",
@@ -55,7 +54,6 @@ Singleton {
         "brightness": "BrightnessIndicator"
     }
 
-
     readonly property var horizontalSubstitutions: {
         "workspaces": "Workspaces",
         "title": "ActiveWindow",
@@ -65,36 +63,10 @@ Singleton {
         "separator": "HSeparator"
     }
 
-
-    function setPosition(pos) {
-        if (positions.indexOf(pos) > -1)
-            settings.behavior.position = pos;
-    }
-
-
-    function toggleLayout() {
-        const pairs = {
-            "left": "top",
-            "right": "bottom",
-            "bottom": "right",
-            "top": "left"
-        };
-        setPosition(pairs[position]);
-    }
-
-    function swapPosition() {
-        const pairs = {
-            "left": "right",
-            "right": "left",
-            "top": "bottom",
-            "bottom": "top"
-        };
-        setPosition(pairs[position]);
-    }
-
     function loadPreset(id, orientation) {
         const preset = currentModeInfo.presets[orientation].find(p => p.name === id);
-        if (!preset) return;
+        if (!preset)
+            return;
         ObjectUtils.applyToQtObject(root.settings[orientation[0] + "Map"], preset);
     }
 
@@ -109,7 +81,6 @@ Singleton {
                 name: id
             }, currentObjectData));
     }
-
 
     function savePreset(id, preset, orientation) {
         const validOrientations = ["horizontal", "vertical"];
@@ -128,12 +99,28 @@ Singleton {
         }, preset);
         store.push(data);
     }
+    /*
+        Switches Between Vertical - Horizontal Layouts
+    */
+    function toggleLayout() {
+        if (states.currentLayout === "horizontal")
+            states.currentLayout = "vertical";
+        else
+            states.currentLayout = "horizontal";
+    }
+    /*
+        Switch Positions in Same Layout
+    */
 
-    function cyclePosition() {
-        const positions = ["top", "left", "bottom", "right"];
-        const currentPosition = settings.behavior.position;
-        const position = (positions.indexOf(currentPosition) + 1) % 4;
-        setPosition(positions[position]);
+    function swapPosition() {
+        const pairs = {
+            "horizontal": ["top", "bottom"],
+            "vertical": ["left", "right"]
+        };
+        const pairArr = pairs[states.currentLayout];
+        const other = pairArr.find(pos => pos !== root.position);
+        if (other)
+            root.currentModeInfo.position = other;
     }
 
     FolderListModel {

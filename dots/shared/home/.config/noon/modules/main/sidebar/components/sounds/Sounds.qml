@@ -47,7 +47,7 @@ SidebarItemContainer {
                 shape: MaterialShape.Shape.Bun
             }
         }
-        
+
         StyledRect {
             Layout.fillWidth: true
             Layout.fillHeight: false
@@ -82,7 +82,7 @@ SidebarItemContainer {
     BottomDialog {
         id: bottomDialog
         show: root.showDeviceSelector
-        collapsedHeight: 240
+        baseHeight: 240
         enableStagedReveal: false
         bottomAreaReveal: false
         contentItem: ColumnLayout {

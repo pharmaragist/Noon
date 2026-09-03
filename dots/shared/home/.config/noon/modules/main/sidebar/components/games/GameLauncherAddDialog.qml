@@ -11,7 +11,7 @@ import qs.common.widgets
 BottomDialog {
     id: root
     focus: true
-    collapsedHeight: 560
+    baseHeight: 560
     revealOnWheel: true
     enableStagedReveal: false
     bottomAreaReveal: true
