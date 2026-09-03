@@ -1,8 +1,3 @@
-
-
-
-
-
 function findSuitableMaterialSymbol(summary = "") {
     const defaultType = 'chat';
     if(summary.length === 0) return defaultType;
@@ -38,13 +33,8 @@ function findSuitableMaterialSymbol(summary = "") {
             return type;
         }
     }
-
     return defaultType;
 }
-
-
-
-
 
 const getFriendlyNotifTimeString = (timestamp) => {
     if (!timestamp) return '';

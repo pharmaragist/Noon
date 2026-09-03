@@ -86,7 +86,7 @@ Singleton {
         bodyMarkupSupported: true
         bodySupported: true
         imageSupported: true
-        keepOnReload: false
+        keepOnReload: true
         persistenceSupported: true
 
         onNotification: notification => {

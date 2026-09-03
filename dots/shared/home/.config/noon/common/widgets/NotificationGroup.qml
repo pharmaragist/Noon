@@ -9,11 +9,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Hyprland
-import Quickshell.Services.Notifications
-
-
-
-
 
 Item {
     id: root
