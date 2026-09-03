@@ -19,7 +19,7 @@ LazyLoader {
     property int contentMargins: 40
     property bool extraVisibilityCondition: true
     property bool showShadow: false
-    readonly property string barPosition: BarData.currentInfo.position
+    readonly property string barPosition: BarData.position
     active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
     property bool focus: false
     component: StyledPanel {

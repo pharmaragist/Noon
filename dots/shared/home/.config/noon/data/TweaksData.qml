@@ -411,6 +411,7 @@ Singleton {
                     "icon": "height",
                     "name": "Vertical Mode Style",
                     "type": "combobox",
+                    "store": "states",
                     "values": BarData.verticalBarModes,
                     "key": "bar.vertical.layout"
                 },
@@ -418,6 +419,7 @@ Singleton {
                     "icon": "width",
                     "name": "Horizontal Mode Style",
                     "type": "combobox",
+                    "store": "states",
                     "values": BarData.horizontalBarModes,
                     "key": "bar.horizontal.layout"
                 },

@@ -10,7 +10,7 @@ StyledPanel {
 
     property bool hovered: false
 
-    readonly property string pos: BarData.currentInfo.position
+    readonly property string pos: BarData.position
     readonly property bool autoHide: Mem.options.bar.behavior.autoHide
     readonly property bool useBg: BarData.currentInfo.appearance.useBg
     readonly property int peekSize: 10

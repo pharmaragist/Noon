@@ -50,10 +50,9 @@ Scope {
         }
 
         function toggle_zen() {
-            if (BarData.isVertical)
-                Mem.options.bar.verticalLayout !== "VSleek" ? Mem.options.bar.verticalLayout = "VSleek" : Mem.options.bar.verticalLayout = "VDynamic";
-            else
-                Mem.options.bar.horizontalLayout !== "Sleek" ? Mem.options.bar.horizontalLayout = "Sleek" : Mem.options.bar.horizontalLayout = "Dynamic";
+            const prefix = BarData.isVertical ? "V" : "";
+            const set = n => BarData.currentInfo.layout = prefix + n.trim();
+            BarData.currentInfo.layout.includes("Sleek") ? set("Dynamic") : set("Sleek");
         }
 
         function toggle_bar_mode() {

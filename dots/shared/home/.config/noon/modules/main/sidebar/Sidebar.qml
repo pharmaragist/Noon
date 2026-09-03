@@ -59,7 +59,7 @@ Scope {
             readonly property bool show: !hoverMode
             readonly property bool revealCondition: (!hoverMode || hoverArea.containsMouse || content.hovered) || PolkitService.flow !== null
             readonly property int rounding: Rounding.verylarge
-            readonly property string barPosition: BarData.currentInfo.position
+            readonly property string barPosition: BarData.position
             readonly property int sidebarWidth: Math.min(Screen.width - 120, SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverArea: 2

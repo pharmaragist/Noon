@@ -10,7 +10,7 @@ import qs.services
 StyledPanel {
     id: root
     readonly property int barHeight: 60
-    readonly property string pos: BarData.currentInfo.position
+    readonly property string pos: BarData.position
     readonly property int maxChunkWidth: 250
 
     name: "bar"

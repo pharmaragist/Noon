@@ -23,7 +23,7 @@ Variants {
         property bool hasAttachedFile: false
         readonly property string revealReason: Globals.main.beam.reason
         readonly property bool reveal: Globals.main.beam.show
-        readonly property int elevationValue: Sizes.elevationMargin + (BarData.currentInfo.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
+        readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
         readonly property alias containsDrag: dropArea.containsDrag
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})

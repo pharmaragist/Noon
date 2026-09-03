@@ -53,8 +53,8 @@ MouseArea {
             trayItemMenuHandle: root.item.menu
             anchor {
                 item: root
-                edges: BarData.currentInfo.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
-                gravity: BarData.currentInfo.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                edges: BarData.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                gravity: BarData.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
             }
 
             onMenuOpened: window => root.menuOpened(window)

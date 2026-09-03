@@ -307,8 +307,6 @@ JsonAdapter {
     property JO bar: JO {
 
         property JO horizontal: JO {
-            property string position: "top"
-            property string layout: "Dynamic"
             property list<var> presets: []
 
             property JO map: JO {
@@ -330,8 +328,6 @@ JsonAdapter {
         }
 
         property JO vertical: JO {
-            property string position: "left"
-            property string layout: "VDynamic"
             property list<var> presets: []
 
             property JO map: JO {

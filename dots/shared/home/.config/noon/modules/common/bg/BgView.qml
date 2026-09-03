@@ -37,7 +37,7 @@ Item {
     function calculateWidgetMargin() {
         if (!Mem.options.desktop.bg.parallax.widgetParallax || !enableParallax)
             return 0;
-        const directionOffset = BarData.currentInfo.position === "left" ? -1 : 1;
+        const directionOffset = BarData.position === "left" ? -1 : 1;
         return directionOffset * Mem.options.desktop.bg.parallax.parallaxStrength * Globals.main.sidebar.sidebarWidth;
     }
 

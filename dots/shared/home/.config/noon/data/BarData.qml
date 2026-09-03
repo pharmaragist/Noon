@@ -13,12 +13,13 @@ Singleton {
     readonly property var states: Mem.states.bar
     readonly property bool isVertical: states.currentLayout === "vertical"
     readonly property var bars: barsModel.getArray("fileBaseName")
-    readonly property var currentInfo: isVertical ? settings.vertical : settings.horizontal
+    readonly property var currentInfo: settings[states.currentLayout]
+    readonly property var currentState: states[states.currentLayout]
 
     readonly property var verticalBarModes: bars.filter(i => i.toLowerCase().startsWith('v'))
     readonly property var horizontalBarModes: bars.filter(i => !i.toLowerCase().startsWith('v'))
 
-    readonly property string position: currentInfo.position
+    readonly property string position: currentState.position
     readonly property list<string> appearanceModes: ["float", "sharp", "concave", "convex"]
     readonly property list<string> positions: ["left", "right", "bottom", "top"]
     readonly property list<string> layoutProps: ["fillHeight", "fillWidth", "preferredWidth", "preferredHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "margins", "implicitWidth", "implicitHeight", "width", "height", "minimumWidth", "minimumHeight", "maximumWidth", "maximumHeight"]
@@ -120,7 +121,7 @@ Singleton {
         const pairArr = pairs[states.currentLayout];
         const other = pairArr.find(pos => pos !== root.position);
         if (other)
-            root.currentInfo.position = other;
+            root.currentState.position = other;
     }
 
     FolderListModel {

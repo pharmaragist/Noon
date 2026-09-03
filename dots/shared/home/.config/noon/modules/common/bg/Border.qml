@@ -59,7 +59,7 @@ Variants {
 
                     function getMargins(side) {
                         const base = Sizes.frameThickness
-                        return BarData.currentInfo.position === side ? base / 2 : base;
+                        return BarData.position === side ? base / 2 : base;
                     }
 
                     radius: Rounding.veryhuge

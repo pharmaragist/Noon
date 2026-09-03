@@ -78,7 +78,7 @@ MouseArea {
         extraVisibleCondition: root.containsMouse
         alternativeVisibleCondition: extraVisibleCondition
         anchorEdges: {
-            switch (BarData.currentInfo.position) {
+            switch (BarData.position) {
             case "top":
                 return Edges.Bottom;
             case "bottom":

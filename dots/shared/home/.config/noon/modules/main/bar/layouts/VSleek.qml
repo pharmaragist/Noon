@@ -16,7 +16,7 @@ StyledPanel {
     exclusiveZone: bg.implicitWidth
     fill: true
     _layer: "Bottom"
-    readonly property string pos: BarData.currentInfo.position
+    readonly property string pos: BarData.position
     readonly property bool isRight: bg.side === "right"
 
     anchors.left: !isRight

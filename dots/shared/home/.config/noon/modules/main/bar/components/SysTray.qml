@@ -12,7 +12,7 @@ Item {
 
     property var bar
     property int iconSize: BarData.currentBarExclusiveSize / 3
-    property bool verticalMode: BarData.currentInfo.position === "left" || BarData.currentInfo.position === "right"
+    property bool verticalMode: BarData.position === "left" || BarData.position === "right"
     readonly property var model: SystemTray.items
 
     implicitHeight: verticalMode ? content.implicitHeight + Padding.huge : parent.height

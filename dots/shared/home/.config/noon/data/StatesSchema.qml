@@ -106,6 +106,14 @@ JsonAdapter {
     }
     property JO bar: JO {
         property string currentLayout: "vertical"
+        property JO vertical: JO {
+            property string position: "left"
+            property string layout: "VDynamic"
+        }
+        property JO horizontal: JO {
+            property string position: "top"
+            property string layout: "Dynamic"
+        }
     }
     property JO sidebar: JO {
         property JO shelf: JO {
