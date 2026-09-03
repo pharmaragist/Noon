@@ -161,7 +161,7 @@ Item {
                     visible: modelData?.cat === root?.selectedCategory ?? true
 
                     Repeater {
-                        id: repeater
+                        id: subrepeater
                         model: ScriptModel {
                             values: modelData.bubbles
                         }
@@ -178,7 +178,9 @@ Item {
                     }
 
                     Separator {
-                        visible: modelData.cat === root.selectedCategory && repeater.model.length > 0
+                        visible: subrepeater.count > 0
+                        Layout.leftMargin: Padding.normal
+                        Layout.rightMargin: Padding.normal
                     }
                 }
             }
