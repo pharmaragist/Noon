@@ -17,7 +17,7 @@ Singleton {
             return "";
         try {
             const domain = new URL(url).hostname;
-            const path = Paths.favicons + "/" + domain + ".ico";
+            const path = Paths.services.favicons + "/" + domain + ".ico";
             faviconDownload.domain = domain;
             faviconDownload.path = path;
             faviconDownload.url = url;

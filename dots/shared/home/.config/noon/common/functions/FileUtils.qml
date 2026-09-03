@@ -147,12 +147,16 @@ Singleton {
             return Paths.standard.home + filePath.substring(1);
         }
     }
+
     function mkdir(dirs) {
         if (!dirs)
             return;
-
-        const trimmedDirs = dirs.map(dir => trim(dir));
-        NoonUtils.execDetached(`mkdir -p '${trimmedDirs.join("' '")}'`);
+        if (Array.isArray(dirs)) {
+            const clean = dirs.map(d => trim(d));
+            const stringified = clean.join("' '");
+            NoonUtils.execDetached(`mkdir -p '${stringified}'`);
+        } else
+            NoonUtils.execDetached(`mkdir -p '${trim(dirs)}'`);
     }
 
     function copyItem(item, target) {

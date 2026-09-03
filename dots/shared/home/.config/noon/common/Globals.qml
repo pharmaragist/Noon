@@ -104,6 +104,7 @@ Singleton {
         target: Quickshell
 
         Component.onCompleted: {
+            FirstRunService.init()
             TimerService.reload();
             ClipboardService.refresh();
             NoonUtils.playSound("device_unlocked");

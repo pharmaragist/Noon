@@ -77,7 +77,7 @@ Singleton {
 
     function startPlayer(obj) {
         const pack = `/${(obj.pack ?? "ui")}/`;
-        const path = Qt.resolvedUrl(Paths.sounds) + pack + obj.name + ".ogg";
+        const path = Qt.resolvedUrl(Paths.assets + "/sounds") + pack + obj.name + ".ogg";
         const repeats = obj.repeats < 0 ? MediaPlayer.Infinite : (obj?.repeats ?? 1);
 
         if (player.playbackState === MediaPlayer.PlayingState)

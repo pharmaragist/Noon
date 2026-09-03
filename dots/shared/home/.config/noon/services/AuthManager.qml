@@ -39,7 +39,7 @@ Singleton {
     }
     readonly property Process mainProc: Process {}
     readonly property FileView oauthView: FileView {
-        path: Qt.resolvedUrl(Paths.userOptions + "/oauth.json")
+        path: Qt.resolvedUrl(Paths.shellConfigs + "/user/oauth.json")
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound)
                 this.writeAdapter();

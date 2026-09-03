@@ -11,17 +11,11 @@ Singleton {
 
 
     readonly property string venv: methods.trim(standard.state + "/.venv")
-    readonly property string records: methods.trim(standard.videos + "/records")
-    readonly property string sounds: methods.trim(assets + "/sounds")
     readonly property string store: methods.trim(standard.config + "/noon/store")
     readonly property string assets: methods.trim(standard.config + "/noon/assets")
-    readonly property string gallery: methods.trim(standard.pictures + "/Gallary/")
     readonly property string shellConfigs: methods.trim(standard.home + "/.noon")
     readonly property string shellDir: methods.trim(standard.config + "/noon")
     readonly property string scriptsDir: shellDir + "/scripts"
-    readonly property string favicons: methods.trim(standard.cache + "/media/favicons")
-    readonly property string hyprConfigs: methods.trim(standard.config + "/hypr")
-    readonly property string userOptions: shellConfigs + "/user/"
 
 
     readonly property QtObject standard: QtObject {
@@ -48,6 +42,8 @@ Singleton {
         readonly property string screenshots: methods.trim(standard.pictures + "/Screenshots")
         readonly property string screenTimeDB: methods.trim(standard.state + "/screenTime")
         readonly property string clipboardCache: methods.trim(standard.cache + "/media/clipboard")
+        readonly property string records: methods.trim(standard.videos + "/records")
+        readonly property string favicons: methods.trim(standard.cache + "/media/favicons")
     }
 
 
