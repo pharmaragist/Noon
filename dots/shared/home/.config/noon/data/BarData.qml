@@ -27,6 +27,7 @@ Singleton {
     readonly property list<string> separatorStyles: ["off", "dot", "slant", "thin", "thick", "dots", "thins", "thicks"]
 
     readonly property var contentTable: {
+        "stats": "Stats",
         "spacer": "Spacer",
         "power": "PowerIcon",
         "workspaces": "VWorkspaces",

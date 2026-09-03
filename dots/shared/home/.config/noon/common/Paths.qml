@@ -7,9 +7,8 @@ import qs.common.functions
 
 Singleton {
     id: root
+
     readonly property QtObject methods: FileUtils
-
-
     readonly property string venv: methods.trim(standard.state + "/.venv")
     readonly property string store: methods.trim(standard.config + "/noon/store")
     readonly property string assets: methods.trim(standard.config + "/noon/assets")

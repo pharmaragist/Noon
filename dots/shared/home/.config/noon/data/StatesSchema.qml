@@ -45,6 +45,7 @@ JsonAdapter {
 
         property JO notifications: JO {
             property bool silent: false
+            property var list: []
         }
 
         property JO record: JO {

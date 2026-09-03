@@ -7,8 +7,8 @@ import qs.common.functions
 Singleton {
     id: root
 
-    function init() {
-        if (!Mem.ready && !Mem.states.desktop.firstRun)
+    function init(force = false) {
+        if (!force && !Mem.states.desktop.firstRun)
             return;
 
         doFlags();
