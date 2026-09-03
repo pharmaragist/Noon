@@ -6,7 +6,8 @@ import qs.common.utils
 
 Singleton {
     id: root
-    readonly property var oauthData: Object?.values(connections) ?? []
+    readonly property var oauthData: if (!!connections)
+        Object?.values(connections) ?? []
     readonly property var connections: {
         try {
             return JSON.parse(oauthView.text());

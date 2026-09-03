@@ -39,6 +39,12 @@ Singleton {
         temperature: Mem?.states.services.nightLight.temperature
         gamma: Mem?.states.services.nightLight.gamma
     }
+    readonly property IdleMonitor idleMonitor: IdleMonitor {
+        timeout: Mem.options.services.idle.timeOut
+        respectInhibitors: true
+        onIsIdleChanged: if (this.isIdle && !Mem.options.services.idle.inhibit && !(Globals.topLevel?.fullscreen ?? false))
+            Globals.main.locked = true
+    }
 
     readonly property FolderListModel availableAnimationsModel: FolderListModel {
         folder: Paths.standard.config + "/hypr/lua/animations/"

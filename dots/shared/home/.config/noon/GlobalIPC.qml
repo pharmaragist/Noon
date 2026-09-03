@@ -113,7 +113,6 @@ Scope {
 
         function lock() {
             Globals.main.locked = true;
-            IdleService.idleMonitor.reset();
         }
 
         function pause_all_players(): void {

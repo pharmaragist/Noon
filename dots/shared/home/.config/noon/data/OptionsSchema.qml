@@ -218,6 +218,12 @@ JsonAdapter {
         property JO branding: JO {
             property string logo: "distro"
             property string materialSymbol: "auto_awesome"
+
+            property JO distroInfo: JO {
+                property string id: "unknown"
+                property string name: "Unknown"
+                property string icon: "arch-symbolic"
+            }
         }
 
         property JO toasts: JO {
