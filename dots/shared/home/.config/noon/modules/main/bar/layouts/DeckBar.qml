@@ -10,12 +10,12 @@ StyledPanel {
 
     property bool hovered: false
 
-    readonly property string pos: BarData.currentModeInfo.position
+    readonly property string pos: BarData.currentInfo.position
     readonly property bool autoHide: Mem.options.bar.behavior.autoHide
-    readonly property bool useBg: BarData.currentModeInfo.appearance.useBg
+    readonly property bool useBg: BarData.currentInfo.appearance.useBg
     readonly property int peekSize: 10
     readonly property bool isBottom: pos === "bottom"
-    readonly property int barHeight: BarData.currentModeInfo.appearance.size
+    readonly property int barHeight: BarData.currentInfo.appearance.size
     readonly property int elevation: mode === 0 ? Sizes.barElevation : 0
     readonly property int hideMargin: autoHide && !hovered ? -(barHeight - peekSize) : 0
 

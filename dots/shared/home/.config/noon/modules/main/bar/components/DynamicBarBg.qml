@@ -7,19 +7,19 @@ import qs.common.widgets
 PanelRect {
     id: bg
 
-    readonly property string side: BarData.currentModeInfo.position
+    readonly property string side: BarData.currentInfo.position
     readonly property bool showCorners: state === "concave"
     readonly property bool isBottom: side === "bottom"
     readonly property bool isTop: side === "top" || side === ""
     readonly property bool isLeft: side === "left"
     readonly property bool isRight: side === "right"
-    readonly property bool useBg: BarData.currentModeInfo.appearance.useBg
+    readonly property bool useBg: BarData.currentInfo.appearance.useBg
     readonly property int exclusionOverride: bg.state && bg.state === "float" ? Sizes.barElevation : 0
 
     color: useBg ? Colors.colBackground : "transparent"
     anchors.fill: parent
     enableBorders: false
-    state: BarData.currentModeInfo.appearance?.style ?? "float"
+    state: BarData.currentInfo.appearance?.style ?? "float"
     animationDuration: 200
 
     function getGapsValue(anchor) {
@@ -58,7 +58,7 @@ PanelRect {
                 anchors.leftMargin: getGapsValue("left")
                 anchors.rightMargin: getGapsValue("right")
                 radius: Rounding.verylarge
-                enableBorders: BarData.currentModeInfo.appearance.outline
+                enableBorders: BarData.currentInfo.appearance.outline
             }
         },
         State {

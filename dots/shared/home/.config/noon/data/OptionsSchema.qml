@@ -344,7 +344,6 @@ JsonAdapter {
             property JO appearance: JO {
                 property string style: "concave"
                 property string separatorsMode: "thin"
-                property bool enableSeparators: true
                 property bool useBg: true
                 property bool barGroup: false
                 property bool outline: true

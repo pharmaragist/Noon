@@ -11,7 +11,7 @@ RippleButtonWithIcon {
     property var bar
     property bool verticalMode
     property bool reveal: false
-    readonly property string pos: BarData.currentModeInfo.position
+    readonly property string pos: BarData.currentInfo.position
     materialIcon: {
         let dic = {
             "top": "down",

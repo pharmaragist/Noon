@@ -17,7 +17,7 @@ Repeater {
         Layout.fillWidth: true
 
         binds: {
-            "position": () => BarData.currentModeInfo.position,
+            "position": () => BarData.currentInfo.position,
             "barSize": () => BarData.currentBarExclusiveSize,
             "bar": () => barRoot,
             "verticalMode": () => root.vertical,

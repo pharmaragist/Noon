@@ -428,12 +428,6 @@ Singleton {
                     "key": root.expandBarKey("appearance.barGroup")
                 },
                 {
-                    "icon": "border_horizontal",
-                    "name": "Separators",
-                    "hint": "Show dividers between bar sections",
-                    "key": root.expandBarKey("appearance.enableSeparators")
-                },
-                {
                     "icon": "border_vertical",
                     "name": "Separator Style",
                     "key": root.expandBarKey("appearance.separatorsMode"),

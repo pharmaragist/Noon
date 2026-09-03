@@ -25,7 +25,7 @@ Scope {
     }
 
     WidgetLoader {
-        reloadOn: BarData.currentModeInfo.position
+        reloadOn: BarData.currentInfo.position
         Sidebar {}
     }
 
@@ -40,7 +40,7 @@ Scope {
     }
 
     WidgetLoader {
-        reloadOn: BarData.currentModeInfo.position
+        reloadOn: BarData.currentInfo.position
         Bar {}
     }
 

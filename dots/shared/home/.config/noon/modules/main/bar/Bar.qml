@@ -13,7 +13,7 @@ Variants {
         id: loader
         required property var modelData
         shown: true
-        source: Qt.resolvedUrl(`layouts/${BarData.currentModeInfo.layout}.qml`)
+        source: Qt.resolvedUrl(`layouts/${BarData.currentInfo.layout}.qml`)
         onLoaded: this._item.screen = loader.modelData
     }
 }

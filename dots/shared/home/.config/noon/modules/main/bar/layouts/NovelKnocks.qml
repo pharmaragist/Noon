@@ -11,7 +11,7 @@ StyledPanel {
     readonly property int spacing: Padding.large
     readonly property int chunkWidth: 380
     readonly property int barHeight: 58
-    readonly property string pos: BarData.currentModeInfo.position
+    readonly property string pos: BarData.currentInfo.position
     name: "bar"
     shell: "noon"
     implicitHeight: barHeight + 100

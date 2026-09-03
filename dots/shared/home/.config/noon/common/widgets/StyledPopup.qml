@@ -18,8 +18,8 @@ LazyLoader {
     property real popupBackgroundMargin: Padding.verylarge
     property int contentMargins: 40
     property bool extraVisibilityCondition: true
-
-    readonly property string barPosition: BarData.currentModeInfo.position
+    property bool showShadow: false
+    readonly property string barPosition: BarData.currentInfo.position
     active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
     property bool focus: false
     component: StyledPanel {
@@ -106,6 +106,7 @@ LazyLoader {
         WlrLayershell.layer: WlrLayer.Overlay
 
         StyledRectangularShadow {
+            show:root.showShadow
             target: popupBackground
         }
 

@@ -13,17 +13,17 @@ Singleton {
     readonly property var states: Mem.states.bar
     readonly property bool isVertical: states.currentLayout === "vertical"
     readonly property var bars: barsModel.getArray("fileBaseName")
-    readonly property var currentModeInfo: isVertical ? settings.vertical : settings.horizontal
+    readonly property var currentInfo: isVertical ? settings.vertical : settings.horizontal
 
     readonly property var verticalBarModes: bars.filter(i => i.toLowerCase().startsWith('v'))
     readonly property var horizontalBarModes: bars.filter(i => !i.toLowerCase().startsWith('v'))
 
-    readonly property string position: currentModeInfo.position
+    readonly property string position: currentInfo.position
     readonly property list<string> appearanceModes: ["float", "sharp", "concave", "convex"]
     readonly property list<string> positions: ["left", "right", "bottom", "top"]
     readonly property list<string> layoutProps: ["fillHeight", "fillWidth", "preferredWidth", "preferredHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "margins", "implicitWidth", "implicitHeight", "width", "height", "minimumWidth", "minimumHeight", "maximumWidth", "maximumHeight"]
-    readonly property int currentBarExclusiveSize: currentModeInfo.appearance.size
-    readonly property list<string> separatorStyles: ["dot", "slant", "thin", "thick", "dots", "thins", "thicks"]
+    readonly property int currentBarExclusiveSize: currentInfo.appearance.size
+    readonly property list<string> separatorStyles: ["off", "dot", "slant", "thin", "thick", "dots", "thins", "thicks"]
 
     readonly property var contentTable: {
         "spacer": "Spacer",
@@ -64,7 +64,7 @@ Singleton {
     }
 
     function loadPreset(id, orientation) {
-        const preset = currentModeInfo.presets[orientation].find(p => p.name === id);
+        const preset = currentInfo.presets[orientation].find(p => p.name === id);
         if (!preset)
             return;
         ObjectUtils.applyToQtObject(root.settings[orientation[0] + "Map"], preset);
@@ -75,7 +75,7 @@ Singleton {
         const objMap = orientation[0] + "Map";
         const currentSettings = root.settings[objMap];
         const currentObjectData = ObjectUtils.toPlainObject(currentSettings);
-        const target = currentModeInfo.presets[orientation];
+        const target = currentInfo.presets[orientation];
         if (!target.find(p => p.name === id))
             target.push(Object.assign({
                 name: id
@@ -92,7 +92,7 @@ Singleton {
             return;
         }
         const objMap = orientation[0] + "Map";
-        const store = currentModeInfo.presets[objMap];
+        const store = currentInfo.presets[objMap];
 
         const data = Object.assign({
             name: id
@@ -120,7 +120,7 @@ Singleton {
         const pairArr = pairs[states.currentLayout];
         const other = pairArr.find(pos => pos !== root.position);
         if (other)
-            root.currentModeInfo.position = other;
+            root.currentInfo.position = other;
     }
 
     FolderListModel {

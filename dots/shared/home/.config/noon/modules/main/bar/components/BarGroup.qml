@@ -10,7 +10,7 @@ StyledRect {
     property int barSize: -1
     property bool vertical: false
     property bool verticalMode: false
-    property bool active: BarData.currentModeInfo.appearance.barGroup
+    property bool active: BarData.currentInfo.appearance.barGroup
     property color colBackground: Colors.colSurfaceContainer
     property string position: "top"
     readonly property real padding: Padding.small

@@ -22,7 +22,7 @@ StyledPopup {
             Layout.preferredHeight: headerLayout.implicitHeight + (Padding.huge * 2)
             Layout.fillWidth: true
             topRadius: Rounding.verylarge
-            bottomRadius: Rounding.tiny
+            bottomRadius: Rounding.verytiny
             color: Colors.colLayer0
 
             RowLayout {
@@ -66,7 +66,7 @@ StyledPopup {
             Layout.preferredWidth: root.sectionWidth
             Layout.preferredHeight: speedLayout.implicitHeight + (Padding.huge * 2)
             Layout.fillWidth: true
-            radius: Rounding.tiny
+            radius: Rounding.verytiny
             color: Colors.colLayer0
             visible: NetworkService.manager.ethernet || NetworkService.manager.wifi
 
@@ -136,7 +136,7 @@ StyledPopup {
             Layout.preferredWidth: root.sectionWidth
             Layout.preferredHeight: metadataLayout.implicitHeight + (Padding.huge * 2)
             Layout.fillWidth: true
-            topRadius: Rounding.tiny
+            topRadius: Rounding.verytiny
             bottomRadius: Rounding.verylarge
             color: Colors.colLayer0
 

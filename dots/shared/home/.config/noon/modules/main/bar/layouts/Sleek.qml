@@ -16,7 +16,7 @@ StyledPanel {
     exclusiveZone: bg.implicitHeight
     fill: true
     _layer: "Bottom"
-    readonly property string pos: BarData.currentModeInfo.position
+    readonly property string pos: BarData.currentInfo.position
     readonly property bool isBottom: bg.side === "bottom"
 
     anchors.bottom: pos === "bottom"
