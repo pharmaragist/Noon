@@ -7,7 +7,7 @@ ipc = shell_cmd .. " ipc call "
 mainMod = "SUPER"
 
 -- Apps
-terminal = "ghostty"
+terminal = "kitty"
 terminal_alt = "foot"
 terminal_opacity = 1
 browser = "firefox"
@@ -33,7 +33,7 @@ gaps_in = 5
 gaps_out = 5
 gaps_special = 40
 borders = 1
-rounding = 12
+rounding = 20
 rounding_power = 2
 layers_alpha = 0.4
 applications_opacity = 1
@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "left"
+bar_location = "right"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

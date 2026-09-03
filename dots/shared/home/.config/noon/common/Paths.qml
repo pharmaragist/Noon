@@ -58,7 +58,6 @@ Singleton {
         readonly property string main: methods.trim(standard.pictures + "/Wallpapers/")
         readonly property string depthDir: methods.trim(standard.cache + "/user/generated/depth/")
         readonly property string gowallDir: methods.trim(standard.cache + "/user/generated/gowall/")
-        readonly property string favorite: methods.trim(standard.pictures + "/favourite")
     }
 
     readonly property QtObject plugins: QtObject {
@@ -66,15 +65,5 @@ Singleton {
         readonly property string dock: main + "/dock"
         readonly property string sidebar: main + "/sidebar"
         readonly property string palettes: main + "/palettes"
-    }
-
-    Component.onCompleted: {
-        methods.mkdir([
-            standard.state, standard.cache,
-            venv, assets, records, gallery, sounds, scriptsDir, shellConfigs, favicons, userOptions,
-            services.latex, services.gamesCoverArts, services.screenshots, services.screenTimeDB, services.clipboardCache,
-            wallpapers.main, wallpapers.colGenScript, wallpapers.depthDir, wallpapers.gowallDir, wallpapers.favorite,
-            plugins.main, plugins.palettes, plugins.sidebar, plugins.dock
-        ]);
     }
 }
