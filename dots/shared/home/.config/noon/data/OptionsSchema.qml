@@ -19,7 +19,7 @@ JsonAdapter {
         property JO transparency: JO {
             property bool blur: true
             property bool enabled: false
-            property real scale: 0.35
+            property real scale: 0.3
         }
 
         property JO rounding: JO {
@@ -180,12 +180,14 @@ JsonAdapter {
             property bool aiTextFadeIn: false
             property bool enableResizeOverlay: true
             property bool rememberTabIndex: true
+            property bool rememberExpanded: true
         }
 
         property JO navRail: JO {
             property string style: "float"
             property string indicatorStyle: "button"
             property bool showNavTitles: false
+            property bool reverse: false
         }
 
         property JO appearance: JO {
@@ -360,6 +362,7 @@ JsonAdapter {
         property JO behavior: JO {
             property bool autoHide: false
             property bool showOnAll: true
+            property bool enableVisualizer: false
         }
 
         property JO resources: JO {

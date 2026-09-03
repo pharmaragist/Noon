@@ -11,47 +11,49 @@ SidebarItemContainer {
     id: root
 
     property int editIndex: -1
+    color: Colors.colLayer1
 
-    Component.onCompleted: TodoService.removeDone()
+    Component.onCompleted: NoonUtils.inlineTimer(() => {
+        TodoService.removeDone();
+    }, 1000)
+
     onContentFocusRequested: {
         list.currentIndex = 0;
         list.forceActiveFocus();
     }
 
-    ScrollEdgeFade {
-        target: list
-        vertical: true
-    }
-
     StyledListView {
         id: list
-        hint: false
-        anchors.topMargin: Padding.large
         anchors.fill: parent
+        anchors.margins: Padding.large
         clip: true
+        hinter.color: Colors.colLayer1
+
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 300
         animateAppearance: true
         animateMovement: true
         popin: true
         reuseItems: false
-        spacing: Padding.normal
+
+        spacing: 2
+
         model: ScriptModel {
             id: filteredModel
-            
             values: TodoService.list.filter(task => task?.content.toLowerCase().includes(root.searchQuery.toLowerCase())).filter((task, idx, arr) => arr.findIndex(t => t.content === task.content) === idx)
         }
+
         delegate: TodoItem {
             required property var modelData
             required property int index
             readonly property bool isSelected: list.focus && index === list.currentIndex
+            count: list.count
             taskData: modelData
             anchors.right: parent?.right
             anchors.left: parent?.left
         }
 
         Keys.onPressed: event => {
-            
             const selectedItem = list.model.values[list.currentIndex];
             const selectedItemIndex = list.currentIndex;
             if (event.modifiers === Qt.ControlModifier && selectedItemIndex > -1) {

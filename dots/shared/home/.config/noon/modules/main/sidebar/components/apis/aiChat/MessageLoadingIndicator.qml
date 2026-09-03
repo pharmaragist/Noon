@@ -5,7 +5,9 @@ import QtQuick
 Item {
     property var messageData
     property int blockCount: 0
-    property bool loading: blockCount === 0 && !(messageData?.done ?? false) && !(messageData?.queued ?? false)
+    property bool done: false
+    property bool queued: false
+    property bool loading: blockCount === 0 && !done && !queued
     anchors.left: parent.left
     implicitHeight: 40
     implicitWidth: 40

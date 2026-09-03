@@ -20,6 +20,7 @@ ColumnLayout {
     property bool isCommandRequest: segmentLang === "command"
     property var displayLang: (isCommandRequest ? "bash" : segmentLang)
     property var messageData: parent?.messageData ?? {}
+    property bool thinking: false
 
     property real codeBlockBackgroundRounding: Rounding.small
     property real codeBlockHeaderPadding: 3
@@ -212,7 +213,7 @@ ColumnLayout {
                         selectedTextColor: Colors.m3.m3onSecondaryContainer
                         selectionColor: Colors.colSecondaryContainer
 
-                        color: messageData.thinking ? Colors.colSubtext : Colors.colOnLayer1
+                        color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
 
                         text: segmentContent
                         onTextChanged: {

@@ -102,10 +102,6 @@ Item {
 
                     color: colors.colLayer0
                 }
-                PropertyChanges {
-                    target: dropShadow
-                    show: false
-                }
             },
             State {
                 name: "float"
@@ -200,11 +196,11 @@ Item {
     StyledRect {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.left: panel.rightMode ? parent.left : undefined
-        anchors.right: !panel.rightMode ? parent.right : undefined
+        anchors.left: Mem.options.sidebar.navRail.reverse ^ panel.rightMode ? parent.left : undefined
+        anchors.right: Mem.options.sidebar.navRail.reverse ^ !panel.rightMode ? parent.right : undefined
 
         color: root.colors.colLayer3
         implicitWidth: 1
-        opacity: !panel.show ? 0 : 1
+        opacity: (!panel.show || bg.state === "clear") ? 0 : 1
     }
 }

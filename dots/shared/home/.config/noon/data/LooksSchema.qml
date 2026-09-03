@@ -1,10 +1,6 @@
 import qs.common
 import qs.common.utils
 
-
-
-
-
 JsonAdapter {
     property bool showMatugenSmartScheme: false
     property bool autoTransparencySelection: true

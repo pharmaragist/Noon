@@ -14,7 +14,6 @@ Singleton {
 
     signal responseFinished
 
-    readonly property Component aiMessageComponent: AiMessageData {}
     readonly property int port: 4096
     readonly property string interfaceRole: "interface"
     readonly property bool isResponding: requester.running
@@ -29,6 +28,11 @@ Singleton {
         path: Paths.services.opencodeDb
         onLoaded: refreshSessions()
     }
+    // Reactive mirror of the in-flight streaming message so the view can
+    // re-render on plain-object mutations (plain JS objects don't notify).
+    property string liveContent: ""
+    property bool liveThinking: false
+    property bool liveDone: false
     property var sessions: []
     property var messageIDs: []
     property var messageQueue: []
@@ -38,6 +42,32 @@ Singleton {
     property var postResponseHook
     property var sseXhr: null
     property string sseBuffer: ""
+
+    Component.onCompleted: newSession()
+    function plainMessage(fields) {
+        return {
+            "role": fields.role ?? "",
+            "content": fields.content ?? "",
+            "rawContent": fields.rawContent ?? "",
+            "model": fields.model ?? "",
+            "thinking": fields.thinking ?? false,
+            "done": fields.done ?? true,
+            "queued": fields.queued ?? false,
+            "tools": fields.tools ?? [],
+            "files": fields.files ?? [],
+            "annotationSources": fields.annotationSources ?? [],
+            "visibleToUser": fields.visibleToUser ?? true,
+            "functionPending": fields.functionPending ?? false
+        };
+    }
+
+    function trimBlob(v, max) {
+        if (typeof v === "string")
+            return v.length > max ? v.slice(0, max) + "…" : v;
+        if (v && typeof v === "object" && typeof v.content === "string" && v.content.length > max)
+            return Object.assign({}, v, { content: v.content.slice(0, max) + "…" });
+        return v;
+    }
 
     function connectSSE() {
         if (root.sseXhr)
@@ -61,8 +91,6 @@ Singleton {
                         } catch (e) {}
                 });
             }
-            if (xhr.readyState === XMLHttpRequest.DONE)
-                root.sseXhr = null;
         };
         xhr.open("GET", `http://127.0.0.1:${port}/event`);
         xhr.send();
@@ -101,7 +129,7 @@ Singleton {
     function addMessage(message, role) {
         if (message.length === 0)
             return;
-        const aiMessage = aiMessageComponent.createObject(root, {
+        const aiMessage = root.plainMessage({
             "role": role,
             "content": message,
             "rawContent": message,
@@ -123,12 +151,11 @@ Singleton {
     }
 
     function clearMessages() {
-        root.messageIDs.forEach(function(id) {
-            var m = root.messageByID[id];
-            if (m && m !== requester.message) m.destroy();
-        });
         root.messageIDs = [];
         root.messageByID = ({});
+        root.liveContent = "";
+        root.liveThinking = false;
+        root.liveDone = false;
         root.tokenCount.input = -1;
         root.tokenCount.output = -1;
         root.tokenCount.total = -1;
@@ -208,7 +235,7 @@ Singleton {
 
     function finishSend(message) {
         const filePath = root.pendingFilePath;
-        const aiMessage = aiMessageComponent.createObject(root, {
+        const aiMessage = root.plainMessage({
             "role": "user",
             "content": message,
             "rawContent": message,
@@ -233,7 +260,7 @@ Singleton {
     function sendStealthMessage(message) {
         if (message.length === 0)
             return;
-        const aiMessage = aiMessageComponent.createObject(root, {
+        const aiMessage = root.plainMessage({
             "role": "user",
             "content": message,
             "rawContent": message,
@@ -301,6 +328,7 @@ Singleton {
             requester.message.done = true;
             requester.message.rawContent += "\n\n*[Stopped]*";
             requester.message.content += "\n\n*[Stopped]*";
+            requester.syncLive();
         }
         refreshSessions();
         root.responseFinished();
@@ -355,50 +383,65 @@ Singleton {
                 return;
             }
             rows.reverse();
-            const groups = {}, order = [];
+            const order = [], byId = {};
             rows.forEach(function(r) {
-                if (!groups[r.msg_id]) {
-                    groups[r.msg_id] = { d: JSON.parse(r.msg_data), p: [] };
+                if (!byId[r.msg_id]) {
+                    byId[r.msg_id] = { d: JSON.parse(r.msg_data), p: [] };
                     order.push(r.msg_id);
                 }
-                if (r.part_data) groups[r.msg_id].p.push(JSON.parse(r.part_data));
+                if (r.part_data) byId[r.msg_id].p.push(JSON.parse(r.part_data));
             });
-            let i = 0;
-            (function ins() {
-                const end = Math.min(i + 5, order.length);
-                const batch = [];
-                for (; i < end; ++i) {
-                    const g = groups[order[i]];
-                    const txt = g.p.filter(function(p) { return p.type === "text"; }).map(function(p) { return p.text; }).join("");
-                    const tools = g.p.filter(function(p) { return p.type === "tool"; }).map(function(p) {
-                        return { tool: p.tool, callID: p.callID, status: (p.state || {}).status, input: (p.state || {}).input, output: (p.state || {}).output };
-                    });
-                    const files = g.p.filter(function(p) { return p.type === "file"; }).map(function(p) { return p.url; }).filter(Boolean);
-                    if (!txt && !tools.length && !files.length) continue;
-                    const msg = root.aiMessageComponent.createObject(root, {
-                        role: g.d.role, content: txt, rawContent: txt,
-                        model: (g.d.model || {}).modelID ?? "", thinking: false, done: true,
-                        tools: tools, files: files
-                    });
-                    const id = root.idForMessage(msg);
-                    root.messageByID[id] = msg;
-                    batch.push(id);
-                }
-                if (batch.length) root.messageIDs = root.messageIDs.concat(batch);
-                if (i < order.length) Qt.callLater(ins);
-            })();
+            const batch = [];
+            for (let i = 0; i < order.length; ++i) {
+                const msg = root.shapeMessage(byId[order[i]]);
+                if (!msg) continue;
+                const id = root.idForMessage(msg);
+                root.messageByID[id] = msg;
+                batch.push(id);
+            }
+            if (batch.length) root.messageIDs = root.messageIDs.concat(batch);
         }
+    }
+
+    function shapeMessage(g) {
+        let txt = "";
+        const tools = [], files = [];
+        for (let i = 0; i < g.p.length; ++i) {
+            const p = g.p[i];
+            if (p.type === "text")
+                txt += p.text;
+            else if (p.type === "tool") {
+                const st = p.state || {};
+                tools.push({ tool: p.tool, callID: p.callID, status: st.status,
+                    input: root.trimBlob(st.input, 4000), output: root.trimBlob(st.output, 4000) });
+            } else if (p.type === "file" && p.url)
+                files.push(p.url);
+        }
+        if (txt.length > 30000) txt = txt.slice(0, 30000) + "\n\n…(truncated)";
+        if (!txt && !tools.length && !files.length)
+            return null;
+        return root.plainMessage({
+            role: g.d.role, content: txt, rawContent: txt,
+            model: (g.d.model || {}).modelID ?? "", thinking: false, done: true,
+            tools: tools, files: files
+        });
     }
 
     Item {
         id: requester
-        property AiMessageData message
+        property var message: null
         property bool startedReasoning: false
         property bool running: false
         property var _xhr: null
         property string _parsed: ""
         property string _userMessageId: ""
         property bool _sessionBusy: false
+
+        function syncLive() {
+            root.liveContent = requester.message ? requester.message.content : "";
+            root.liveThinking = requester.message ? requester.message.thinking : false;
+            root.liveDone = requester.message ? requester.message.done : true;
+        }
 
         function processPart(p) {
             if (p.type === "reasoning" && p.text) {
@@ -417,6 +460,7 @@ Singleton {
                 requester.message.content += p.text;
                 requester.message.rawContent += p.text;
             }
+            requester.syncLive();
         }
 
         function makeRequest(userMessage) {
@@ -425,13 +469,14 @@ Singleton {
             requester._parsed = "";
             requester._userMessageId = "";
 
-            requester.message = root.aiMessageComponent.createObject(root, {
+            requester.message = root.plainMessage({
                 "role": "assistant",
                 "content": "",
                 "rawContent": "",
                 "thinking": true,
                 "done": false
             });
+            requester.syncLive();
 
             const id = root.idForMessage(requester.message);
             root.messageByID[id] = requester.message;
@@ -484,6 +529,7 @@ Singleton {
 
             requester.message.done = true;
             requester.message.thinking = false;
+            requester.syncLive();
 
             refreshSessions();
             root.responseFinished();

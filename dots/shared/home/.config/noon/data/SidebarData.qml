@@ -298,9 +298,6 @@ Singleton {
     function isExpandable(id) {
         return !!_get(id)?.expandable;
     }
-    function usePreExpand(id) {
-        return !!_get(id)?.preExpand;
-    }
     function isStealth(id) {
         return !!_get(id)?.stealth;
     }

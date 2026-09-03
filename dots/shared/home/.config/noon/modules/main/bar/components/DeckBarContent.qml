@@ -14,7 +14,6 @@ Item {
         rightMargin: Padding.massive
         leftMargin: Padding.massive
     }
-
     TaskBar {
         anchors.centerIn: parent
         height: parent.height * 0.8
@@ -25,26 +24,28 @@ Item {
         spacing: Padding.large
 
         Logo {}
+
         HSeparator {}
-        ProgressWs {
-            bar: root.panel
-        }
+
+        ActiveWindow {}
 
         Spacer {}
+
+        Media {
+            visible: MediaPlayerService.players.length > 0
+        }
 
         GP {
             Layout.alignment: Qt.AlignRight
             implicitWidth: rLay.implicitWidth + Padding.massive * 2
             RSLayout {
                 id: rLay
-                Tray {
+                SysTray {
                     bar: root.panel
                 }
                 StatusIcons {}
                 HSeparator {}
                 Clock {}
-                HSeparator {}
-                MinimalBattery {}
             }
         }
     }

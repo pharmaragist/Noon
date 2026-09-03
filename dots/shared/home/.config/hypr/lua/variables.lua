@@ -18,7 +18,7 @@ task_manager = ipc .. "sidebar reveal TaskManager"
 task_manager_alt = terminal .. ' fish -c "nvtop"'
 
 -- Decoration & Layout
-blur = true
+blur = false
 unblur_apps = true
 blur_size = 2
 blur_passes = 3
@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "left"
+bar_location = "right"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

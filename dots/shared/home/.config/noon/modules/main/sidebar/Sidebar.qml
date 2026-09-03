@@ -137,7 +137,6 @@ Scope {
                 }
             }
 
-
             DropArea {
                 id: dropArea
                 anchors.fill: parent
@@ -251,6 +250,26 @@ Scope {
                 anchors.top: bg.top
                 anchors.topMargin: root.barPosition === "top" ? 0 : Sizes.frameThickness
             }
+            Connections {
+                target: root
+                enabled: Mem.options.sidebar.behavior.rememberExpanded
+
+                function onSelectedCategoryChanged() {
+                    root.expanded = Mem.states.sidebar._expanded.indexOf(selectedCategory) !== -1;
+                }
+
+                function onExpandedChanged() {
+                    const stt = Mem.states.sidebar;
+                    if (expanded) {
+                        if (stt._expanded.indexOf(selectedCategory) === -1)
+                            stt._expanded.push(selectedCategory);
+                    } else {
+                        const filtered = stt._expanded.filter(i => i !== selectedCategory);
+                        stt._expanded = filtered;
+                    }
+                }
+            }
+
             IpcHandler {
                 target: "sidebar"
 

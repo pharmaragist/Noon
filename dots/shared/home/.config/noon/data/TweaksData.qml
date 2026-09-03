@@ -476,6 +476,11 @@ Singleton {
                     "key": "bar.behavior.showOnAll"
                 },
                 {
+                    "icon": "graphic_eq",
+                    "name": "Enable Audio Visualizer",
+                    "key": "bar.behavior.enableVisualizer"
+                },
+                {
                     "icon": "padding",
                     "name": "Spacing",
                     "type": "spin",
@@ -593,6 +598,12 @@ Singleton {
                     "key": "sidebar.navRail.style",
                     "values": ["sidebar", "clear", ...SidebarData.appearanceModes],
                     "type": "combobox"
+                },
+                {
+                    "icon": "width",
+                    "name": "Swap Navigation Side",
+                    "hint": "Sets nav to the outer side of sidebar",
+                    "key": "sidebar.navRail.reverse"
                 },
                 {
                     "icon": "text_fields",

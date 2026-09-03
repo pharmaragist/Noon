@@ -117,6 +117,7 @@ JsonAdapter {
         }
     }
     property JO sidebar: JO {
+        property list<string> _expanded: []
         property var tabIndexCache: ({})
         property JO shelf: JO {
             property list<string> filePaths: []
@@ -124,17 +125,94 @@ JsonAdapter {
 
         property JO widgets: JO {
             property var items: [
-                { id: "cal", enabled: true, desktop: true, pin: true, pill: false, size: "large" },
-                { id: "resources", enabled: true, desktop: true, pin: false, pill: true, size: "large" },
-                { id: "battery", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
-                { id: "bluetooth", enabled: true, desktop: false, pin: true, pill: true, size: "normal" },
-                { id: "dino", enabled: true, desktop: true, pin: true, pill: true, size: "normal" },
-                { id: "combo", enabled: true, desktop: false, pin: false, pill: false, size: "normal" },
-                { id: "media", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
-                { id: "net", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
-                { id: "simple_clock", enabled: true, desktop: false, pin: false, pill: true, size: "normal" },
-                { id: "weather", enabled: false, desktop: false, pin: false, pill: false, size: "normal" },
-                { id: "screentime", enabled: true, desktop: false, pin: false, pill: false, size: "normal" }
+                {
+                    id: "cal",
+                    enabled: true,
+                    desktop: true,
+                    pin: true,
+                    pill: false,
+                    size: "large"
+                },
+                {
+                    id: "resources",
+                    enabled: true,
+                    desktop: true,
+                    pin: false,
+                    pill: true,
+                    size: "large"
+                },
+                {
+                    id: "battery",
+                    enabled: false,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                },
+                {
+                    id: "bluetooth",
+                    enabled: true,
+                    desktop: false,
+                    pin: true,
+                    pill: true,
+                    size: "normal"
+                },
+                {
+                    id: "dino",
+                    enabled: true,
+                    desktop: true,
+                    pin: true,
+                    pill: true,
+                    size: "normal"
+                },
+                {
+                    id: "combo",
+                    enabled: true,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                },
+                {
+                    id: "media",
+                    enabled: false,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                },
+                {
+                    id: "net",
+                    enabled: false,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                },
+                {
+                    id: "simple_clock",
+                    enabled: true,
+                    desktop: false,
+                    pin: false,
+                    pill: true,
+                    size: "normal"
+                },
+                {
+                    id: "weather",
+                    enabled: false,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                },
+                {
+                    id: "screentime",
+                    enabled: true,
+                    desktop: false,
+                    pin: false,
+                    pill: false,
+                    size: "normal"
+                }
             ]
         }
 

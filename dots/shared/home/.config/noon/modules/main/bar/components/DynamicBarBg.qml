@@ -22,6 +22,13 @@ PanelRect {
     state: BarData.currentInfo.appearance?.style ?? "float"
     animationDuration: 200
 
+    Visualizer {
+        z: 0
+        active: (isTop || isBottom) && Mem.options.bar.behavior.enableVisualizer
+        visualizerColor: Colors.methods.transparentize(Colors.colOnLayer0, 0.5)
+        _mode: "Filled"
+    }
+
     function getGapsValue(anchor) {
         if (!anchor)
             return;

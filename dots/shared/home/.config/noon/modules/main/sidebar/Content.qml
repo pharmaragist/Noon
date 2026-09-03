@@ -147,7 +147,7 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        layoutDirection: !panelWindow.rightMode ? Qt.LeftToRight : Qt.RightToLeft
+        layoutDirection: (panelWindow.rightMode ^ Mem.options.sidebar.navRail.reverse) ? Qt.RightToLeft : Qt.LeftToRight
         spacing: SidebarData.getPadding(root.selectedCategory) ?? Padding.normal
 
         SidebarNavigationRail {

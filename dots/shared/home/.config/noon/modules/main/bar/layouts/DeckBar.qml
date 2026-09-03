@@ -74,7 +74,9 @@ StyledPanel {
             }
             DynamicBarBg {
                 id: bg
+
                 DeckBarContent {
+                    z: 1
                     panel: bar
                 }
             }

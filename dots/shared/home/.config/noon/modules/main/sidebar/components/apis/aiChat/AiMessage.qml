@@ -18,7 +18,9 @@ Item {
     property bool renderMarkdown: true
     property bool editing: false
 
-    readonly property list<var> messageBlocks: TextUtils.splitMarkdownBlocks(root.messageData?.content)
+    readonly property bool isLive: root.messageData ? !root.messageData.done : false
+    readonly property list<var> messageBlocks: TextUtils.splitMarkdownBlocks(
+        root.isLive ? Ai.liveContent : (root.messageData?.content ?? ""))
 
     anchors.left: parent?.left
     anchors.right: parent?.right
@@ -33,6 +35,8 @@ Item {
         id: loading
         messageData: root.messageData
         blockCount: root.messageBlocks.length
+        done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? true)
+        queued: root.messageData?.queued ?? false
     }
 
     ColumnLayout {
@@ -69,7 +73,8 @@ Item {
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             messageData: root.messageData
-                            done: root.messageData?.done ?? false
+                            done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? false)
+                            thinking: root.isLive ? Ai.liveThinking : false
                             forceDisableChunkSplitting: root.messageData?.content?.includes("```") ?? true
                         }
                     }
@@ -83,6 +88,7 @@ Item {
                             segmentContent: modelData.content
                             segmentLang: modelData.lang
                             messageData: root.messageData
+                            thinking: root.isLive ? Ai.liveThinking : false
                         }
                     }
 
@@ -94,7 +100,7 @@ Item {
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             messageData: root.messageData
-                            done: root.messageData?.done ?? false
+                            done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? false)
                             completed: modelData.completed ?? false
                         }
                     }
@@ -133,7 +139,7 @@ Item {
 
         MessageActionBar {
             id: actionBar
-            visible: messageData?.done
+            visible: root.isLive ? Ai.liveDone : (messageData?.done ?? true)
             Layout.leftMargin: Padding.large
             Layout.alignment: Qt.AlignLeft
             messageIndex: root.messageIndex

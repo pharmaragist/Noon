@@ -17,6 +17,7 @@ ColumnLayout {
     property string segmentContent: ""
     property var messageData: {}
     property bool done: true
+    property bool thinking: false
     property bool forceDisableChunkSplitting: false
 
     property string shownText: ""
@@ -136,7 +137,7 @@ ColumnLayout {
             selectedTextColor: Colors.m3.m3onSecondaryContainer
             selectionColor: Colors.colSecondaryContainer
             wrapMode: TextEdit.Wrap
-            color: root.messageData?.thinking ? Colors.colSubtext : Colors.colOnLayer1
+            color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
             textFormat: renderMarkdown ? TextEdit.MarkdownText : TextEdit.PlainText
             text: modelData
 
