@@ -5,18 +5,24 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-StyledRect {
+Item {
     id: root
 
     property string tool
+    property string callID
     property var input
     property string output
     property string status
     property bool expanded: false
     property var messageData
+    property var raw
 
+    readonly property bool isPending: status === "pending"
     readonly property bool completed: status === "completed"
-    readonly property bool pendingApproval: status === "pending" && (messageData?.functionPending ?? false) && callID === messageData?.permissionCallID
+    readonly property bool pendingApproval: isPending && (messageData?.functionPending ?? false) && root.callID === messageData?.permissionCallID
+
+    readonly property string statusIcon: isPending ? "awaiting approval" : (completed ? "done" : status)
+    readonly property string statusTint: isPending ? Colors.colTertiary : Colors.colSubtext
 
     readonly property var dict: ({
             "bash": {
@@ -33,7 +39,7 @@ StyledRect {
             },
             "grep": {
                 "icon": "search",
-                "summary": (input?.pattern ?? "") + " " + (input?.path ?? "")
+                "summary": input?.pattern ?? ""
             },
             "glob": {
                 "icon": "folder_open",
@@ -49,107 +55,125 @@ StyledRect {
             "icon": "build",
             "summary": JSON.stringify(input ?? {})
         })
-    clip: true
-    color: Colors.colLayer2
-    radius: Rounding.normal
-    implicitWidth: parent?.width ?? 0
-    implicitHeight: mainColumn?.implicitHeight
+
+    Layout.fillWidth: true
+    implicitHeight: columnLayout.implicitHeight
+
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
+        onClicked: root.expanded = !root.expanded
+    }
 
     ColumnLayout {
-        id: mainColumn
+        id: columnLayout
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: Padding.tiny
+        anchors.top: parent.top
+        spacing: Padding.large
 
-        Item {
+        RowLayout {
+            Layout.preferredHeight: 40
+            Layout.maximumHeight: 40
             Layout.fillWidth: true
-            Layout.margins: Padding.normal
-            height: 30
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.expanded = !root.expanded
+            spacing: Padding.large
+
+            StyledRect {
+                implicitHeight: 35
+                radius: height / 2
+                implicitWidth: children[1].implicitWidth + Padding.massive
+                color: Colors.colLayer1
+                RowLayout {
+                    anchors.centerIn: parent
+                    Item {
+                        width: 24
+                        height: 24
+                        rotation: root.expanded ? 0 : 180
+
+                        Behavior on rotation {
+                            Anim {}
+                        }
+
+                        Symbol {
+                            anchors.centerIn: parent
+                            icon: "keyboard_arrow_down"
+                            iconSize: 24
+                            fill: 1
+                            color: Colors.colOnLayer1
+                            rotation: root.expanded ? 0 : 180
+                        }
+                    }
+
+                    Symbol {
+                        text: root.currentTool.icon
+                        iconSize: 20
+                        color: Colors.colOnLayer1
+                    }
+
+                    Symbol {
+                        text: root.statusIcon
+                        iconSize: 20
+                        color: root.statusTint
+                    }
+
+                }
             }
-            RowLayout {
-                anchors.fill: parent
-                spacing: Padding.small
-
-                Symbol {
-                    text: root.currentTool.icon
-                    font.pixelSize: 20
-                    color: root.completed ? Colors.colOnLayer2 : Colors.colSubtext
-                }
-
-                StyledText {
-                    text: root.tool
-                    font: Fonts.request("mono", Fonts.sizes.normal)
-                    color: Colors.colOnSurface
-                }
-
-                StyledText {
-                    text: root.currentTool.summary
-                    font.pixelSize: Fonts.sizes.small
-                    color: Colors.colSubtext
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                    maximumLineCount: 1
-                }
-
-                Symbol {
-                    text: root.expanded ? "expand_less" : "expand_more"
-                    font.pixelSize: Fonts.sizes.normal
-                    color: Colors.colSubtext
-                }
+            StyledText {
+                Layout.fillWidth: true
+                truncate: true
+                Layout.rightMargin: Padding.large
+                Layout.alignment: Qt.AlignLeft
+                text: this.methods.capitalizeFirstLetter(root.tool)
+                font: Fonts.request("mono", "normal")
             }
         }
 
         RowLayout {
             visible: root.pendingApproval
-            Layout.leftMargin: Padding.normal
-            Layout.rightMargin: Padding.normal
+            Layout.fillWidth: true
+            Layout.topMargin: Padding.small
             spacing: Padding.small
 
             StyledText {
-                text: "Pending approval"
-                font.pixelSize: Fonts.sizes.small
-                color: Colors.colSubtext
                 Layout.fillWidth: true
+                text: root.currentTool.summary
+                font: Fonts.request("mono", "large")
+                color: Colors.colOnLayer2
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
 
             RippleButton {
-                buttonText: "Reject"
-                colBackground: Colors.colLayer3
-                onClicked: Ai.rejectCommand(root.messageData)
+                buttonText: qsTr("Reject")
+                colBackground: Colors.colLayer2
+                downAction: () => Ai.rejectCommand(root.messageData)
             }
             RippleButton {
-                buttonText: "Approve"
-                colBackground: Colors.colLayer3
-                onClicked: Ai.approveCommand(root.messageData)
+                buttonText: qsTr("Approve")
+                colBackground: Colors.colLayer2
+                downAction: () => Ai.approveCommand(root.messageData)
             }
         }
 
-        StyledLoader {
-            shown: root.expanded
-            animationDuration: Animations.durations.verysmall
+        Revealer {
+            reveal: root.expanded
             Layout.fillWidth: true
-            Layout.leftMargin: Padding.normal
-            Layout.rightMargin: Padding.normal
-            Layout.bottomMargin: Padding.normal
+            vertical: true
+            revealChild: StyledRect {
+                color: Colors.colLayer1
+                radius: height / 5
+                implicitHeight: metaText.implicitHeight + 2 * Padding.large
+                Layout.fillWidth: true
 
-            sourceComponent: StyledRect {
-                color: Colors.colLayer3
-                radius: Rounding.normal
-                implicitHeight: outputText.implicitHeight + Padding.normal * 2
-                TextArea {
-                    id: outputText
+                StyledText {
+                    id: metaText
                     anchors.fill: parent
-                    anchors.margins: Padding.normal
-                    text: root.output?.length > 0 ? root.output : "No output"
-                    font: Fonts.request("mono", Fonts.sizes.small)
-                    color: Colors.colOnSurface
+                    anchors.margins: Padding.large
+                    text: root.currentTool.summary.length > 0 ? root.currentTool.summary + (root.output?.length > 0 ? "\n" + root.output : "") : root.output
+                    font: Fonts.request("mono", "normal")
+                    color: Colors.colOnLayer1
                     wrapMode: Text.WrapAnywhere
-                    textFormat: TextEdit.MarkdownText
-                    background: null
                 }
             }
         }

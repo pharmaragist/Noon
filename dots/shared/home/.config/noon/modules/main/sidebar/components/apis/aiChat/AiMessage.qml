@@ -113,9 +113,11 @@ Item {
                 required property var modelData
                 Layout.fillWidth: true
                 tool: modelData?.tool ?? ""
+                callID: modelData?.callID ?? ""
                 input: modelData?.input ?? ""
                 output: modelData?.output ?? ""
                 status: modelData.status
+                raw: modelData
                 messageData: root.messageData
             }
         }
