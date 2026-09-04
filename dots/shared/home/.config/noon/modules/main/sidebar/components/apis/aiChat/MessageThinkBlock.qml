@@ -3,7 +3,6 @@ import qs.common
 import qs.common.widgets
 import QtQuick
 import QtQuick.Layouts
-import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
@@ -15,27 +14,18 @@ Item {
     property bool done: parent?.done ?? true
     property bool completed: parent?.completed ?? false
 
-    property real thinkBlockBackgroundRounding: Rounding.small
-    property real thinkBlockHeaderPaddingVertical: 3
-    property real thinkBlockHeaderPaddingHorizontal: 10
-    property real thinkBlockComponentSpacing: 2
-
     property bool collapsed: completed
 
     Layout.fillWidth: true
-    implicitHeight: columnLayout.implicitHeight
-    layer.enabled: true
-    layer.effect: OpacityMask {
-        maskSource: Rectangle {
-            width: root.width
-            height: root.height
-            radius: thinkBlockBackgroundRounding
-        }
-    }
+    implicitHeight: Math.max(40, columnLayout.implicitHeight)
 
-    Behavior on implicitHeight {
-        enabled: root.completed ?? false
-        Anim {}
+    MouseArea {
+        id: mouseArea
+        enabled: root.completed
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
+        onClicked: root.collapsed = !root.collapsed
     }
 
     ColumnLayout {
@@ -45,108 +35,58 @@ Item {
         anchors.top: parent.top
         spacing: 0
 
-        Rectangle { 
-            id: header
-            color: Colors.colSurfaceContainerHighest
+        RowLayout {
+            id: headerRow
+            Layout.preferredHeight: 30
+            Layout.maximumHeight: 30
             Layout.fillWidth: true
-            implicitHeight: thinkBlockTitleBarRowLayout.implicitHeight + thinkBlockHeaderPaddingVertical * 2
+            spacing: Padding.normal
 
-            MouseArea { 
-                id: headerMouseArea
-                enabled: root.completed
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                hoverEnabled: true
-                onClicked: {
-                    root.collapsed = !root.collapsed;
+            Item {
+                width: 24
+                height: 24
+                rotation: root.collapsed ? 0 : 180
+
+                Behavior on rotation {
+                    Anim {}
+                }
+
+                Symbol {
+                    id: chevron
+                    anchors.centerIn: parent
+                    icon: "keyboard_arrow_down"
+                    iconSize: 24
+                    fill: 1
+                    color: Colors.colOnLayer1
+                    rotation: root.collapsed ? 0 : 180
                 }
             }
 
-            RowLayout { 
-                id: thinkBlockTitleBarRowLayout
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: thinkBlockHeaderPaddingHorizontal
-                anchors.rightMargin: thinkBlockHeaderPaddingHorizontal
-                spacing: 10
-
-                Symbol {
-                    Layout.fillWidth: false
-                    Layout.topMargin: 7
-                    Layout.bottomMargin: 7
-                    Layout.leftMargin: 3
-                    text: "linked_services"
-                }
-                StyledText {
-                    id: thinkBlockLanguage
-                    Layout.fillWidth: false
-                    Layout.alignment: Qt.AlignLeft
-                    text: root.completed ? qsTr("Thought") : (qsTr("Thinking") + ".".repeat(Math.random() * 4))
-                }
-                Item {
-                    Layout.fillWidth: true
-                }
-                RippleButton { 
-                    id: expandButton
-                    visible: root.completed
-                    implicitWidth: 22
-                    implicitHeight: 22
-                    colBackground: headerMouseArea.containsMouse ? Colors.colLayer2Hover : Colors.methods.transparentize(Colors.colLayer2, 1)
-                    colBackgroundHover: Colors.colLayer2Hover
-                    colRipple: Colors.colLayer2Active
-
-                    onClicked: {
-                        root.collapsed = !root.collapsed;
-                    }
-
-                    contentItem: Symbol {
-                        anchors.centerIn: parent
-                        text: "keyboard_arrow_down"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: Fonts.sizes.normal
-                        color: Colors.colOnLayer2
-                        rotation: root.collapsed ? 0 : 180
-                        Behavior on rotation {
-                            Anim {}
-                        }
-                    }
-                }
+            StyledText {
+                Layout.fillWidth: true
+                truncate: true
+                Layout.rightMargin: Padding.large
+                Layout.alignment: Qt.AlignLeft
+                text: root.completed ? qsTr("Thought") : (qsTr("Thinking") + ".".repeat(Math.random() * 4))
             }
         }
 
-        Item {
-            id: content
+        Revealer {
+            reveal: !root.collapsed
             Layout.fillWidth: true
-            implicitHeight: collapsed ? 0 : contentBackground.implicitHeight + thinkBlockComponentSpacing
-            clip: true
-
-            Behavior on implicitHeight {
-                enabled: root.completed ?? false
-                Anim {}
-            }
-
-            Rectangle {
-                id: contentBackground
+            vertical: true
+            revealChild: MessageTextBlock {
+                id: messageTextBlock
+                visible: parent?.reveal
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                implicitHeight: messageTextBlock.implicitHeight
-                color: Colors.colLayer2
-
-                MessageTextBlock {
-                    id: messageTextBlock
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    editing: root.editing
-                    renderMarkdown: root.renderMarkdown
-                    enableMouseSelection: root.enableMouseSelection
-                    segmentContent: root.segmentContent
-                    messageData: root.messageData
-                    done: root.done
-                }
+                anchors.top: parent.top
+                editing: root.editing
+                renderMarkdown: root.renderMarkdown
+                enableMouseSelection: root.enableMouseSelection
+                segmentContent: root.segmentContent
+                messageData: root.messageData
+                done: root.done
             }
         }
     }

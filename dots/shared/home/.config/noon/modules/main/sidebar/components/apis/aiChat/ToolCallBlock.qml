@@ -1,3 +1,4 @@
+import qs.services
 import qs.common
 import qs.common.widgets
 import QtQuick
@@ -12,8 +13,10 @@ StyledRect {
     property string output
     property string status
     property bool expanded: false
+    property var messageData
 
     readonly property bool completed: status === "completed"
+    readonly property bool pendingApproval: status === "pending" && (messageData?.functionPending ?? false) && callID === messageData?.permissionCallID
 
     readonly property var dict: ({
             "bash": {
@@ -100,6 +103,31 @@ StyledRect {
             }
         }
 
+        RowLayout {
+            visible: root.pendingApproval
+            Layout.leftMargin: Padding.normal
+            Layout.rightMargin: Padding.normal
+            spacing: Padding.small
+
+            StyledText {
+                text: "Pending approval"
+                font.pixelSize: Fonts.sizes.small
+                color: Colors.colSubtext
+                Layout.fillWidth: true
+            }
+
+            RippleButton {
+                buttonText: "Reject"
+                colBackground: Colors.colLayer3
+                onClicked: Ai.rejectCommand(root.messageData)
+            }
+            RippleButton {
+                buttonText: "Approve"
+                colBackground: Colors.colLayer3
+                onClicked: Ai.approveCommand(root.messageData)
+            }
+        }
+
         StyledLoader {
             shown: root.expanded
             animationDuration: Animations.durations.verysmall
@@ -112,17 +140,17 @@ StyledRect {
                 color: Colors.colLayer3
                 radius: Rounding.normal
                 implicitHeight: outputText.implicitHeight + Padding.normal * 2
-                    TextArea {
-                        id: outputText
-                        anchors.fill: parent
-                        anchors.margins: Padding.normal
-                        text: root.output?.length > 0 ? root.output : "No output"
-                        font: Fonts.request("mono", Fonts.sizes.small)
-                        color: Colors.colOnSurface
-                        wrapMode: Text.WrapAnywhere
-                        textFormat: TextEdit.MarkdownText
-                        background: null
-                    }
+                TextArea {
+                    id: outputText
+                    anchors.fill: parent
+                    anchors.margins: Padding.normal
+                    text: root.output?.length > 0 ? root.output : "No output"
+                    font: Fonts.request("mono", Fonts.sizes.small)
+                    color: Colors.colOnSurface
+                    wrapMode: Text.WrapAnywhere
+                    textFormat: TextEdit.MarkdownText
+                    background: null
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ Item {
     property alias text: tagDescriptionText.text
     property bool showArrows: true
     property bool showTab: true
+    property string pageText: ""
 
     visible: tagDescriptionText.text.length > 0
     Layout.fillWidth: true
@@ -21,7 +22,7 @@ Item {
         color: Colors.colLayer2
         anchors.fill: parent
         radius: Rounding.huge
-        implicitHeight: Math.max(40, Padding.large + descriptionRow.implicitHeight * 2)
+        implicitHeight: Math.max(40, Math.min(140, Padding.large + descriptionRow.implicitHeight * 2))
 
         RowLayout {
             id: descriptionRow
@@ -56,6 +57,13 @@ Item {
                 visible: root.showArrows && root.showTab
                 text: qsTr("or")
                 font: Fonts.request("main", "normal")
+            }
+
+            StyledText {
+                visible: root.pageText.length > 0
+                text: root.pageText
+                font: Fonts.request("mono", "small")
+                color: Colors.colSubtext
             }
 
             KeyboardKey {

@@ -67,6 +67,25 @@ Singleton {
         return v;
     }
 
+    function addToolPart(message, p) {
+        const st = p.state || {};
+        const entry = {
+            tool: p.tool,
+            callID: p.callID,
+            status: st.status || "pending",
+            input: root.trimBlob(st.input, 4000),
+            output: root.trimBlob(st.output, 4000) ?? ""
+        };
+        const tools = message.tools || [];
+        const idx = tools.findIndex(t => t.callID === p.callID);
+        if (idx >= 0)
+            tools[idx] = entry;
+        else
+            tools.push(entry);
+        message.tools = tools.slice();
+        root.messageIDs = [...root.messageIDs];
+    }
+
     function connectSSE() {
         if (root.sseXhr)
             return;
@@ -106,6 +125,30 @@ Singleton {
         }
         if (!requester.running)
             return;
+        if (event.type === "permission.asked") {
+            var p = event.properties;
+            if (p && p.tool) {
+                const msgID = p.tool.messageID;
+                let target = requester.message && requester.message.opencodeId === msgID ? requester.message : null;
+                if (!target) {
+                    for (const id of root.messageIDs) {
+                        const m = root.messageByID[id];
+                        if (m && m.opencodeId && m.opencodeId === msgID) {
+                            target = m;
+                            break;
+                        }
+                    }
+                }
+                if (target) {
+                    target.functionPending = true;
+                    target.permissionID = p.id;
+                    target.permissionCallID = p.tool.callID;
+                    target.permissionSessionID = p.sessionID;
+                    root.messageIDs = [...root.messageIDs];
+                }
+            }
+            return;
+        }
         if (event.type === "message.updated") {
             var info = event.properties && event.properties.info;
             if (info && info.role === "user")
@@ -200,6 +243,30 @@ Singleton {
             return;
         states.model = modelId;
         root.addMessage("Model set to " + modelId, root.interfaceRole);
+    }
+
+    function respondToPermission(messageData, response) {
+        if (!messageData || !messageData.permissionID)
+            return;
+        const sessionId = messageData.permissionSessionID || root.currentSessionId;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", `http://127.0.0.1:${port}/session/${sessionId}/permissions/${messageData.permissionID}`);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                messageData.functionPending = false;
+                delete messageData.permissionID;
+                delete messageData.permissionSessionID;
+                root.messageIDs = [...root.messageIDs];
+            }
+        };
+        xhr.send(JSON.stringify({ response }));
+    }
+    function approveCommand(messageData) {
+        root.respondToPermission(messageData, "once");
+    }
+    function rejectCommand(messageData) {
+        root.respondToPermission(messageData, "reject");
     }
 
     function createSessionAndSend(message) {
@@ -439,6 +506,8 @@ Singleton {
         }
 
         function processPart(p) {
+            if (!requester.message.opencodeId && p.messageID)
+                requester.message.opencodeId = p.messageID;
             if (p.type === "reasoning" && p.text) {
                 requester.message.thinking = false;
                 if (!requester.startedReasoning) {
@@ -454,6 +523,10 @@ Singleton {
                 }
                 requester.message.content += p.text;
                 requester.message.rawContent += p.text;
+            } else if (p.type === "tool") {
+                requester.message.thinking = false;
+                root.addToolPart(requester.message, p);
+                return;
             }
             requester.syncLive();
         }

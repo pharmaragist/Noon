@@ -116,6 +116,7 @@ Item {
                 input: modelData?.input ?? ""
                 output: modelData?.output ?? ""
                 status: modelData.status
+                messageData: root.messageData
             }
         }
 

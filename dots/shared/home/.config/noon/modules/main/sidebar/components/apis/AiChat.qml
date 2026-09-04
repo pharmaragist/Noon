@@ -146,7 +146,7 @@ SidebarItemContainer {
         root.suggestionList = results.map(r => ({
                     name: (isFirst ? root.commandPrefix + "sessions " : "") + r.target.id,
                     displayName: r.target.title,
-                    description: qsTr("Session from %1").arg(new Date(r.target.updated).toLocaleString())
+                    description: qsTr("Session from %1").arg(root.friendlySessionTime(r.target.updated))
                 }));
     }
 
@@ -156,8 +156,25 @@ SidebarItemContainer {
             "sessions": handleSessionsSuggestions
         })
 
+    function friendlySessionTime(ts) {
+        const secs = Math.max(0, Math.floor((new Date() - new Date(ts)) / 1000));
+        if (secs < 60)
+            return "just now";
+        const mins = Math.floor(secs / 60);
+        if (mins < 60)
+            return mins + " min ago";
+        const hours = Math.floor(mins / 60);
+        if (hours < 24)
+            return hours + " h ago";
+        const days = Math.floor(hours / 24);
+        if (days < 7)
+            return days + " d ago";
+        return Qt.formatDateTime(new Date(ts), "MMM d, yyyy");
+    }
+
     function updateSuggestions() {
         suggestions.selectedIndex = 0;
+        suggestions.pageOffset = 0;
         const trimmed = messageInputField.text.trim();
         const words = trimmed.split(" ");
         const commandWord = words[0].substring(1);
@@ -203,13 +220,13 @@ SidebarItemContainer {
             break;
         case Qt.Key_Up:
             if (suggestions.visible) {
-                suggestions.selectedIndex = Math.max(0, suggestions.selectedIndex - 1);
+                suggestions.move(-1);
                 event.accepted = true;
             }
             break;
         case Qt.Key_Down:
             if (suggestions.visible) {
-                suggestions.selectedIndex = Math.min(root.suggestionList.length - 1, suggestions.selectedIndex + 1);
+                suggestions.move(1);
                 event.accepted = true;
             }
             break;
@@ -260,6 +277,9 @@ SidebarItemContainer {
         DescriptionBox {
             text: root.suggestionList[suggestions.selectedIndex]?.description ?? ""
             showArrows: root.suggestionList.length > 1
+            pageText: root.suggestionList.length > suggestions.pageSize
+                ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, root.suggestionList.length)}/${root.suggestionList.length}`
+                : ""
         }
 
         LayerRect {
@@ -282,6 +302,8 @@ SidebarItemContainer {
                     id: suggestions
                     visible: root.suggestionList.length > 0 && messageInputField.text.length > 0
                     property int selectedIndex: 0
+                    property int pageSize: 10
+                    property int pageOffset: 0
                     Layout.fillWidth: true
 
                     spacing: Padding.normal
@@ -298,18 +320,31 @@ SidebarItemContainer {
                         return messageInputField.text;
                     }
 
+                    function move(delta) {
+                        const len = root.suggestionList.length;
+                        if (len === 0) {
+                            selectedIndex = 0;
+                            return;
+                        }
+                        const next = selectedIndex + delta;
+                        if (next < 0 || next >= len)
+                            return;
+                        selectedIndex = next;
+                        pageOffset = Math.max(0, Math.min(Math.floor(next / pageSize) * pageSize, len - pageSize));
+                    }
+
                     function acceptSelectedWord() {
-                        if (suggestions.selectedIndex >= 0 && suggestions.selectedIndex < suggestionRepeater.count)
-                            return suggestions.acceptSuggestion(root.suggestionList[suggestions.selectedIndex].name);
+                        if (selectedIndex >= 0 && selectedIndex < root.suggestionList.length)
+                            return suggestions.acceptSuggestion(root.suggestionList[selectedIndex].name);
                         return null;
                     }
 
                     Repeater {
                         id: suggestionRepeater
-                        model: root.suggestionList.slice(0, 10)
+                        model: root.suggestionList.slice(suggestions.pageOffset, suggestions.pageOffset + suggestions.pageSize)
                         delegate: ApiCommandButton {
                             id: commandButton
-                            readonly property bool isSelected: suggestions.selectedIndex === index
+                            readonly property bool isSelected: suggestions.selectedIndex === suggestions.pageOffset + index
                             colBackground: isSelected ? Colors.colSecondary : Colors.colSecondaryContainer
                             bounce: false
                             contentItem: StyledText {
@@ -319,7 +354,7 @@ SidebarItemContainer {
                                 text: modelData.displayName ?? modelData.name
                             }
                             onHoveredChanged: if (commandButton.hovered)
-                                suggestions.selectedIndex = index
+                                suggestions.selectedIndex = suggestions.pageOffset + index
                             onClicked: suggestions.acceptSuggestion(modelData.name)
                         }
                     }

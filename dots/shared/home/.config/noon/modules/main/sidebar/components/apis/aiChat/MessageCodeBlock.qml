@@ -20,7 +20,7 @@ StyledRect {
     property var displayLang: (isCommandRequest ? "bash" : segmentLang)
     property var messageData: parent?.messageData ?? {}
     property bool thinking: false
-    implicitHeight: contentCol.implicitHeight + Padding.huge
+    implicitHeight: Math.min(contentCol.implicitHeight + Padding.huge , 500)
 
     Layout.fillWidth: true
     color: Colors.colLayer1
@@ -117,27 +117,6 @@ StyledRect {
                 contentWidth: codeTextArea.contentWidth - 1
 
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-
-                ScrollBar.horizontal: ScrollBar {
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    padding: 5
-                    policy: ScrollBar.AsNeeded
-                    opacity: visualSize == 1 ? 0 : 1
-                    visible: opacity > 0
-
-                    Behavior on opacity {
-                        Anim {}
-                    }
-
-                    contentItem: Rectangle {
-                        implicitHeight: 6
-                        radius: Rounding.small
-                        color: Colors.colLayer2Active
-                    }
-                }
 
                 TextArea {
                     id: codeTextArea
