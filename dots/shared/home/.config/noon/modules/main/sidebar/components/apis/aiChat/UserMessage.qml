@@ -21,7 +21,7 @@ Item {
     anchors.left: parent?.left
     anchors.right: parent?.right
     clip: true
-    height: Math.max(contentCol.implicitHeight + Padding.massive, 50)
+    height: Math.max(contentCol.implicitHeight + Padding.silly, 55)
 
     HoverHandler {
         id: hovered
@@ -47,9 +47,12 @@ Item {
             Layout.maximumWidth: root.width - Padding.huge
             Layout.alignment: Qt.AlignRight
             Layout.rightMargin: Padding.huge
-            color: Colors.colLayer3
-            radius: Rounding.large
-            margin: Padding.small
+            color: Colors.colLayer2
+            radius: Rounding.huge
+            margin: Padding.large
+            leftMargin: Padding.huge
+            rightMargin: Padding.huge
+
             child: MessageTextBlock {
                 focus: root.editing
                 editing: root.editing

@@ -40,7 +40,6 @@ Item {
     property bool isResizing: false
     property int resizeDuration: Animations.durations.small
     readonly property int targetWidth: panelWindow?.sidebarWidth
-    readonly property var mainContentItem: mainContentLoader._item._item
 
     onWidthChanged: isResizing = true
     Timer {
@@ -70,6 +69,11 @@ Item {
 
     function incubateContent(cat) {
         panelWindow.incubate(cat);
+    }
+
+    function focusMainSearchInput() {
+        const child = mainContentLoader._item?.mainLoader?.item;
+        child?.focusItem?.forceActiveFocus();
     }
 
     function toggleAux(categoryKey) {

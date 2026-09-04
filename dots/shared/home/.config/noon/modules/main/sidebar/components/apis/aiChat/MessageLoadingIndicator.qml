@@ -3,6 +3,7 @@ import qs.common.widgets
 import QtQuick
 
 Item {
+    id: loadingIndicator
     property var messageData
     property int blockCount: 0
     property bool done: false
@@ -11,19 +12,11 @@ Item {
     anchors.left: parent.left
     implicitHeight: 40
     implicitWidth: 40
-    Rectangle {
-        Anim on width {
-            running: loading
-            duration: 1200
-            easing.type: Easing.InOutCirc
-            loops: Animation.Infinite
-            from: 10
-            to: 20
-        }
-        height: width
-        anchors.centerIn: parent
-        radius: Rounding.full
-        color: Colors.colOnSurface
+
+    MaterialLoadingIndicator {
         visible: loading
+        loading: loadingIndicator.loading
+        implicitSize: 35
+        anchors.centerIn: parent
     }
 }

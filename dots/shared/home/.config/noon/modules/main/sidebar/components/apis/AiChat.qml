@@ -16,7 +16,6 @@ SidebarItemContainer {
     property var inputField: messageInputField
     property string commandPrefix: "/"
     property bool isRecording: false
-    property var suggestionQuery: ""
     property var suggestionList: []
 
     readonly property var allCommands: [
@@ -101,7 +100,6 @@ SidebarItemContainer {
             key: "name"
         });
         const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionQuery = query;
         root.suggestionList = results.map(r => ({
                     name: (isFirst ? root.commandPrefix + "model " : "") + r.target,
                     displayName: r.target,
@@ -122,7 +120,6 @@ SidebarItemContainer {
             key: "name"
         });
         const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionQuery = query;
         root.suggestionList = results.map(r => ({
                     name: (isFirst ? root.commandPrefix + "skill " : "") + r.target,
                     displayName: r.target,
@@ -146,7 +143,6 @@ SidebarItemContainer {
                     target: r.obj
                 }));
         const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionQuery = query;
         root.suggestionList = results.map(r => ({
                     name: (isFirst ? root.commandPrefix + "sessions " : "") + r.target.id,
                     displayName: r.target.title,
@@ -161,6 +157,7 @@ SidebarItemContainer {
         })
 
     function updateSuggestions() {
+        suggestions.selectedIndex = 0;
         const trimmed = messageInputField.text.trim();
         const words = trimmed.split(" ");
         const commandWord = words[0].substring(1);
@@ -221,7 +218,9 @@ SidebarItemContainer {
             if (event.modifiers & Qt.ShiftModifier) {
                 messageInputField.insert(messageInputField.cursorPosition, "\n");
             } else {
-                const text = messageInputField.text;
+                let text = messageInputField.text;
+                if (suggestions.visible && suggestions.selectedIndex !== -1)
+                    text = suggestions.acceptSelectedWord();
                 messageInputField.clear();
                 root.sendText(text);
             }
@@ -249,7 +248,6 @@ SidebarItemContainer {
     }
 
     ColumnLayout {
-        id: columnLayout
         anchors.fill: parent
         spacing: root.padding
 
@@ -265,8 +263,6 @@ SidebarItemContainer {
         }
 
         LayerRect {
-            id: inputWrapper
-            property real spacing: 5
             colBackground: Colors.colLayer2
             Layout.fillWidth: true
             radius: Rounding.huge
@@ -299,27 +295,26 @@ SidebarItemContainer {
                         messageInputField.text = words.join(" ") + " ";
                         messageInputField.cursorPosition = messageInputField.text.length;
                         messageInputField.forceActiveFocus();
+                        return messageInputField.text;
                     }
 
                     function acceptSelectedWord() {
                         if (suggestions.selectedIndex >= 0 && suggestions.selectedIndex < suggestionRepeater.count)
-                            suggestions.acceptSuggestion(root.suggestionList[suggestions.selectedIndex].name);
+                            return suggestions.acceptSuggestion(root.suggestionList[suggestions.selectedIndex].name);
+                        return null;
                     }
 
                     Repeater {
                         id: suggestionRepeater
-                        model: {
-                            suggestions.selectedIndex = 0;
-                            return root.suggestionList.slice(0, 10);
-                        }
+                        model: root.suggestionList.slice(0, 10)
                         delegate: ApiCommandButton {
                             id: commandButton
                             readonly property bool isSelected: suggestions.selectedIndex === index
-                            colBackground: isSelected ? Colors.colSecondaryContainerHover : Colors.colSecondaryContainer
+                            colBackground: isSelected ? Colors.colSecondary : Colors.colSecondaryContainer
                             bounce: false
                             contentItem: StyledText {
                                 font: Fonts.request("mono", "normal")
-                                color: isSelected ? Colors.colOnSeconaryContainerHover : Colors.colOnSecondaryContainer
+                                color: isSelected ? Colors.colOnSecondary : Colors.colOnSecondaryContainer
                                 horizontalAlignment: Text.AlignHCenter
                                 text: modelData.displayName ?? modelData.name
                             }
@@ -346,7 +341,6 @@ SidebarItemContainer {
                         font: Fonts.request("main", "large")
                         onTextChanged: {
                             if (text.length === 0) {
-                                root.suggestionQuery = "";
                                 root.suggestionList = [];
                                 return;
                             }
@@ -362,7 +356,6 @@ SidebarItemContainer {
                         readonly property bool toggled: Ai.isResponding || messageInputField.text.length > 0
 
                         SequentialAnimation {
-                            id: loadingAnimation
                             loops: Animation.Infinite
                             running: SpeechService.isListening || Ai.isResponding || root.isRecording
                             PropertyAction {

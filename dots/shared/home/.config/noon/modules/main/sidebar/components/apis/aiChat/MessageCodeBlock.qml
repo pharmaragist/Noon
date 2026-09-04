@@ -1,4 +1,3 @@
-
 import qs.services
 import qs.common
 import qs.common.utils
@@ -8,12 +7,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import org.kde.syntaxhighlighting as KDE
 
-ColumnLayout {
+StyledRect {
     id: root
 
     property bool editing: parent?.editing ?? false
-    property bool renderMarkdown: parent?.renderMarkdown ?? true
     property bool enableMouseSelection: parent?.enableMouseSelection ?? false
     property var segmentContent: parent?.segmentContent ?? ({})
     property var segmentLang: parent?.segmentLang ?? "txt"
@@ -21,51 +20,40 @@ ColumnLayout {
     property var displayLang: (isCommandRequest ? "bash" : segmentLang)
     property var messageData: parent?.messageData ?? {}
     property bool thinking: false
+    implicitHeight: contentCol.implicitHeight + Padding.huge
 
-    property real codeBlockBackgroundRounding: Rounding.small
-    property real codeBlockHeaderPadding: 3
-    property real codeBlockComponentSpacing: 2
+    Layout.fillWidth: true
+    color: Colors.colLayer1
+    radius: Rounding.huge
+    enableBorders: true
 
-    spacing: codeBlockComponentSpacing
-
-
-
-    Rectangle {
-
-        Layout.fillWidth: true
-        topLeftRadius: codeBlockBackgroundRounding
-        topRightRadius: codeBlockBackgroundRounding
-        bottomLeftRadius: Rounding.tiny
-        bottomRightRadius: Rounding.tiny
-        color: Colors.colSurfaceContainerHighest
-        implicitHeight: codeBlockTitleBarRowLayout.implicitHeight + codeBlockHeaderPadding * 2
+    ColumnLayout {
+        id: contentCol
+        anchors.fill: parent
+        spacing: 0
 
         RowLayout {
-            id: codeBlockTitleBarRowLayout
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: codeBlockHeaderPadding
-            anchors.rightMargin: codeBlockHeaderPadding
-            spacing: 5
+            Layout.fillWidth: true
+            Layout.maximumHeight: 40
+            Layout.preferredHeight: 40
+
+            spacing: Padding.huge
+            Layout.topMargin: Padding.small
+            Layout.leftMargin: Padding.huge
+            Layout.rightMargin: Padding.huge
 
             StyledText {
-                id: codeBlockLanguage
-                Layout.alignment: Qt.AlignLeft
-                Layout.fillWidth: false
-                Layout.topMargin: 7
-                Layout.bottomMargin: 7
-                Layout.leftMargin: 10
-                font: Fonts.request("main", Fonts.sizes.small, { weight: Font.DemiBold })
-                color: Colors.colOnLayer2
-                text: root.displayLang ? Repository.definitionForName(root.displayLang).name : "plain"
-            }
-
-            Item {
+                leftPadding: Padding.large
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                 Layout.fillWidth: true
+                truncate: true
+                font: Fonts.request("title", "large")
+                color: Colors.colOnLayer2
+                text: root.displayLang ? KDE.Repository.definitionForName(root.displayLang).name : "plain"
             }
 
             ButtonGroup {
+                Layout.alignment: Qt.AlignVCenter
                 AiMessageControlButton {
                     id: copyCodeButton
                     buttonIcon: activated ? "inventory" : "content_copy"
@@ -90,7 +78,7 @@ ColumnLayout {
                 }
                 AiMessageControlButton {
                     id: saveCodeButton
-                    buttonIcon: activated ? "check" : "save"
+                    buttonIcon: activated ? "check" : "download"
 
                     onClicked: {
                         const downloadPath = Paths.methods.trim(Paths.standard.downloads);
@@ -114,175 +102,111 @@ ColumnLayout {
                 }
             }
         }
-    }
 
-    RowLayout {
-
-        spacing: codeBlockComponentSpacing
-
-        Rectangle {
-
-            implicitWidth: 40
-            implicitHeight: lineNumberColumnLayout.implicitHeight
+        ColumnLayout {
             Layout.fillHeight: true
-            Layout.fillWidth: false
-            topLeftRadius: Rounding.tiny
-            bottomLeftRadius: codeBlockBackgroundRounding
-            topRightRadius: Rounding.tiny
-            bottomRightRadius: Rounding.tiny
-            color: Colors.colLayer2
-
-            ColumnLayout {
-                id: lineNumberColumnLayout
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    rightMargin: 5
-                    top: parent.top
-                    topMargin: 6
-                }
-                spacing: 0
-
-                Repeater {
-                    model: codeTextArea.text.split("\n").length
-                    Text {
-                        required property int index
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignRight
-                        font: Fonts.request("mono", Fonts.sizes.small)
-                        color: Colors.colSubtext
-                        horizontalAlignment: Text.AlignRight
-                        text: index + 1
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-
             Layout.fillWidth: true
-            topLeftRadius: Rounding.tiny
-            bottomLeftRadius: Rounding.tiny
-            topRightRadius: Rounding.tiny
-            bottomRightRadius: codeBlockBackgroundRounding
-            color: Colors.colLayer2
-            implicitHeight: codeColumnLayout.implicitHeight
+            spacing: 0
 
-            ColumnLayout {
-                id: codeColumnLayout
-                anchors.fill: parent
-                spacing: 0
-                ScrollView {
-                    id: codeScrollView
-                    Layout.fillWidth: true
+            ScrollView {
+                Layout.margins: Padding.large
+                Layout.leftMargin: Padding.huge
+                Layout.rightMargin: Padding.huge
+                Layout.fillWidth: true
+                implicitHeight: codeTextArea.contentHeight + 1
+                contentWidth: codeTextArea.contentWidth - 1
 
-                    implicitWidth: parent.width
-                    implicitHeight: codeTextArea.implicitHeight + 1
-                    contentWidth: codeTextArea.width - 1
+                clip: true
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-                    clip: true
-                    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                ScrollBar.horizontal: ScrollBar {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    padding: 5
+                    policy: ScrollBar.AsNeeded
+                    opacity: visualSize == 1 ? 0 : 1
+                    visible: opacity > 0
 
-                    ScrollBar.horizontal: ScrollBar {
-                        anchors.bottom: parent.bottom
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        padding: 5
-                        policy: ScrollBar.AsNeeded
-                        opacity: visualSize == 1 ? 0 : 1
-                        visible: opacity > 0
-
-                        Behavior on opacity {
-                            Anim {}
-                        }
-
-                        contentItem: Rectangle {
-                            implicitHeight: 6
-                            radius: Rounding.small
-                            color: Colors.colLayer2Active
-                        }
+                    Behavior on opacity {
+                        Anim {}
                     }
 
-                    TextArea {
-                        id: codeTextArea
-                        Layout.fillWidth: true
-                        readOnly: !editing
-                        selectByMouse: enableMouseSelection || editing
-                        renderType: Text.NativeRendering
-                        font: Fonts.request("mono", Fonts.sizes.small, { "hintingPreference": Font.PreferNoHinting })
-                        selectedTextColor: Colors.m3.m3onSecondaryContainer
-                        selectionColor: Colors.colSecondaryContainer
-
-                        color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
-
-                        text: segmentContent
-                        onTextChanged: {
-                            segmentContent = text;
-                        }
-
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Tab) {
-
-                                const cursor = codeTextArea.cursorPosition;
-                                codeTextArea.insert(cursor, "    ");
-                                codeTextArea.cursorPosition = cursor + 4;
-                                event.accepted = true;
-                            } else if ((event.key === Qt.Key_C) && event.modifiers == Qt.ControlModifier) {
-                                codeTextArea.copy();
-                                event.accepted = true;
-                            }
-                        }
-
-                        SyntaxHighlighter {
-                            id: highlighter
-                            textEdit: codeTextArea
-                            _definition: root.displayLang || "plaintext"
-                        }
+                    contentItem: Rectangle {
+                        implicitHeight: 6
+                        radius: Rounding.small
+                        color: Colors.colLayer2Active
                     }
                 }
-                Loader {
-                    active: root.isCommandRequest && root.messageData.functionPending
-                    visible: active
+
+                TextArea {
+                    id: codeTextArea
                     Layout.fillWidth: true
-                    Layout.margins: 6
-                    Layout.topMargin: 0
-                    sourceComponent: RowLayout {
-                        Item {
-                            Layout.fillWidth: true
+                    readOnly: !editing
+                    selectByMouse: enableMouseSelection || editing
+                    renderType: Text.NativeRendering
+                    font: Fonts.request("mono", "large", {
+                        "hintingPreference": Font.PreferNoHinting
+                    })
+                    selectedTextColor: Colors.m3.m3onSecondaryContainer
+                    selectionColor: Colors.colSecondaryContainer
+
+                    color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
+
+                    text: segmentContent
+                    onTextChanged: segmentContent = text;
+
+
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Tab) {
+                            const cursor = codeTextArea.cursorPosition;
+                            codeTextArea.insert(cursor, "    ");
+                            codeTextArea.cursorPosition = cursor + 4;
+                            event.accepted = true;
+                        } else if ((event.key === Qt.Key_C) && event.modifiers == Qt.ControlModifier) {
+                            codeTextArea.copy();
+                            event.accepted = true;
                         }
-                        ButtonGroup {
-                            GroupButton {
-                                contentItem: StyledText {
-                                    text: qsTr("Reject")
-                                    font.pixelSize: Fonts.sizes.small
-                                    color: Colors.colOnLayer2
-                                }
-                                onClicked: Ai.rejectCommand(root.messageData)
-                            }
-                            GroupButton {
-                                toggled: true
-                                contentItem: StyledText {
-                                    text: qsTr("Approve")
-                                    font.pixelSize: Fonts.sizes.small
-                                    color: Colors.colOnPrimary
-                                }
-                                onClicked: Ai.approveCommand(root.messageData)
-                            }
-                        }
+                    }
+
+                    SyntaxHighlighter {
+                        textEdit: codeTextArea
+                        _definition: root.displayLang || "plaintext"
                     }
                 }
             }
 
-
-
-
-
-
-
-
-
-
-
+            Loader {
+                active: root.isCommandRequest && root.messageData.functionPending
+                visible: active
+                Layout.fillWidth: true
+                Layout.margins: 6
+                Layout.topMargin: 0
+                sourceComponent: RowLayout {
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                    ButtonGroup {
+                        GroupButton {
+                            contentItem: StyledText {
+                                text: qsTr("Reject")
+                                font.pixelSize: Fonts.sizes.small
+                                color: Colors.colOnLayer2
+                            }
+                            onClicked: Ai.rejectCommand(root.messageData)
+                        }
+                        GroupButton {
+                            toggled: true
+                            contentItem: StyledText {
+                                text: qsTr("Approve")
+                                font.pixelSize: Fonts.sizes.small
+                                color: Colors.colOnPrimary
+                            }
+                            onClicked: Ai.approveCommand(root.messageData)
+                        }
+                    }
+                }
+            }
         }
     }
 }

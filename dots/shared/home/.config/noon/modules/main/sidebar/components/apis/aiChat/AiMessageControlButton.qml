@@ -11,6 +11,7 @@ GroupButton {
 
     toggled: activated
     baseWidth: height
+    colBackground: "transparent"
 
     contentItem: Symbol {
         horizontalAlignment: Text.AlignHCenter

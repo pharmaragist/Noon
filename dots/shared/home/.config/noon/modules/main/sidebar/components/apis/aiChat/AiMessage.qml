@@ -83,7 +83,6 @@ Item {
                         roleValue: "code"
                         MessageCodeBlock {
                             editing: root.editing
-                            renderMarkdown: root.renderMarkdown
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             segmentLang: modelData.lang
