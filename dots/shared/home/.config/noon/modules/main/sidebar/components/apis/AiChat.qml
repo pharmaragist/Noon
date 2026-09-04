@@ -36,11 +36,6 @@ SidebarItemContainer {
             execute: args => Mem.states.sidebar.apis.fontScale = args.join(" ").trim()
         },
         {
-            name: "attach",
-            description: qsTr("Attach a file. Only works with Gemini."),
-            execute: args => Ai.attachFile(args.join(" ").trim())
-        },
-        {
             name: "model",
             description: qsTr("Choose model"),
             execute: args => Ai.setModel(args[0])
@@ -73,10 +68,6 @@ SidebarItemContainer {
         const cmd = root.allCommands.find(c => c.name === parts[0].substring(1));
         text.startsWith(root.commandPrefix) && cmd ? cmd.execute(parts.slice(1)) : Ai.sendUserMessage(text);
         chatView.listView.positionViewAtEnd();
-    }
-
-    function decodeImageAndAttach(entry) {
-        Ai.attachFile(ClipboardService.getImagePath(entry));
     }
 
     function handleCommandSuggestions(query) {
@@ -236,26 +227,12 @@ SidebarItemContainer {
             }
             event.accepted = true;
             break;
-        case Qt.Key_Escape:
-            if (Ai.pendingFilePath.length > 0) {
-                Ai.attachFile("");
-                event.accepted = true;
-            }
-            break;
         default:
             if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_V) {
                 if (event.modifiers & Qt.ShiftModifier) {
                     messageInputField.text += Quickshell.clipboardText;
                     event.accepted = true;
                     return;
-                }
-                const entry = ClipboardService.entries[0];
-                if (ClipboardService.isImage(0)) {
-                    decodeImageAndAttach(entry);
-                    event.accepted = true;
-                } else if (TextUtils.cleanCliphistEntry(entry).startsWith("file://")) {
-                    Ai.attachFile(decodeURIComponent(TextUtils.cleanCliphistEntry(entry)));
-                    event.accepted = true;
                 }
             }
         }
@@ -287,231 +264,170 @@ SidebarItemContainer {
             showArrows: root.suggestionList.length > 1
         }
 
-        FlowButtonGroup {
-            id: suggestions
-            visible: root.suggestionList.length > 0 && messageInputField.text.length > 0
-            property int selectedIndex: 0
-            Layout.fillWidth: true
-            spacing: 5
-
-            function acceptSuggestion(word) {
-                const words = messageInputField.text.trim().split(/\s+/);
-                words[words.length - 1] = word;
-                messageInputField.text = words.join(" ") + " ";
-                messageInputField.cursorPosition = messageInputField.text.length;
-                messageInputField.forceActiveFocus();
-            }
-
-            function acceptSelectedWord() {
-                if (suggestions.selectedIndex >= 0 && suggestions.selectedIndex < suggestionRepeater.count)
-                    suggestions.acceptSuggestion(root.suggestionList[suggestions.selectedIndex].name);
-            }
-
-            Repeater {
-                id: suggestionRepeater
-                model: {
-                    suggestions.selectedIndex = 0;
-                    return root.suggestionList.slice(0, 10);
-                }
-                delegate: ApiCommandButton {
-                    id: commandButton
-                    colBackground: suggestions.selectedIndex === index ? Colors.colSecondaryContainerHover : Colors.colSecondaryContainer
-                    bounce: false
-                    contentItem: StyledText {
-                        font.pixelSize: Fonts.sizes.small
-                        color: Colors.m3.m3onSurface
-                        horizontalAlignment: Text.AlignHCenter
-                        text: modelData.displayName ?? modelData.name
-                    }
-                    onHoveredChanged: if (commandButton.hovered)
-                        suggestions.selectedIndex = index
-                    onClicked: suggestions.acceptSuggestion(modelData.name)
-                }
-            }
-        }
-
         LayerRect {
             id: inputWrapper
             property real spacing: 5
+            colBackground: Colors.colLayer2
             Layout.fillWidth: true
-            radius: Rounding.verylarge
-            implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin + commandButtonsRow.implicitHeight + commandButtonsRow.anchors.bottomMargin + spacing, 45) + (attachedFileIndicator.implicitHeight + spacing + attachedFileIndicator.anchors.topMargin)
+            radius: Rounding.huge
+            implicitHeight: Math.max(inputAreaCol.implicitHeight + Padding.huge, 45)
             clip: true
 
-            AttachedFileIndicator {
-                id: attachedFileIndicator
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: visible ? 5 : 0
-                }
-                filePath: Ai.pendingFilePath
-                onRemove: Ai.attachFile("")
-            }
+            ColumnLayout {
+                id: inputAreaCol
+                spacing: Padding.huge
 
-            RowLayout {
-                id: inputFieldRowLayout
                 anchors {
-                    top: attachedFileIndicator.bottom
-                    left: parent.left
-                    right: parent.right
-                    topMargin: 5
+                    fill: parent
+                    margins: Padding.normal
                 }
-                spacing: 0
 
-                StyledTextArea {
-                    id: messageInputField
-                    wrapMode: TextArea.Wrap
+                FlowButtonGroup {
+                    id: suggestions
+                    visible: root.suggestionList.length > 0 && messageInputField.text.length > 0
+                    property int selectedIndex: 0
                     Layout.fillWidth: true
-                    padding: Padding.normal
-                    color: activeFocus ? Colors.m3.m3onSurface : Colors.m3.m3onSurfaceVariant
-                    placeholderText: qsTr('Message the model... "%1" for commands').arg(root.commandPrefix)
-                    background: null
-                    font: Fonts.request("reading", Fonts.sizes.normal)
-                    onTextChanged: {
-                        if (text.length === 0) {
-                            root.suggestionQuery = "";
-                            root.suggestionList = [];
-                            return;
-                        }
-                        root.updateSuggestions();
-                    }
-                    Keys.onPressed: event => root.handleInputKeyPress(event)
-                }
 
-                Item {
-                    id: sendButton
-                    implicitHeight: 50
-                    implicitWidth: 50
-                    readonly property bool toggled: Ai.isResponding || messageInputField.text.length > 0
+                    spacing: Padding.normal
+                    Layout.topMargin: Padding.normal
+                    Layout.leftMargin: Padding.small
+                    Layout.rightMargin: Padding.small
 
-                    SequentialAnimation {
-                        id: loadingAnimation
-                        loops: Animation.Infinite
-                        running: SpeechService.isListening || Ai.isResponding || root.isRecording
-                        PropertyAction {
-                            target: shape
-                            property: "rotation"
-                            value: 0
-                        }
-                        Anim {
-                            target: shape
-                            property: "rotation"
-                            from: 0
-                            to: 360
-                            duration: 4500
-                        }
-                        onStopped: shape.rotation = 0
+                    function acceptSuggestion(word) {
+                        const words = messageInputField.text.trim().split(/\s+/);
+                        words[words.length - 1] = word;
+                        messageInputField.text = words.join(" ") + " ";
+                        messageInputField.cursorPosition = messageInputField.text.length;
+                        messageInputField.forceActiveFocus();
                     }
 
-                    MaterialShape {
-                        id: shape
-                        implicitSize: 38
-                        anchors.centerIn: parent
-                        shape: {
-                            if (!Ai.isResponding && messageInputField.text.length === 0)
-                                return MaterialShape.Shape.Cookie6Sided;
-                            if (Ai.isResponding)
-                                return MaterialShape.Shape.Cookie12Sided;
-                            return MaterialShape.Shape.Clover8Leaf;
-                        }
-                        color: Colors.colPrimary
-                        Behavior on rotation {
-                            enabled: !Ai.isResponding
-                            Anim {}
-                        }
+                    function acceptSelectedWord() {
+                        if (suggestions.selectedIndex >= 0 && suggestions.selectedIndex < suggestionRepeater.count)
+                            suggestions.acceptSuggestion(root.suggestionList[suggestions.selectedIndex].name);
                     }
 
-                    Symbol {
-                        text: {
-                            if (!Ai.isResponding && messageInputField.text.length === 0)
-                                return "mic";
-                            if (Ai.isResponding)
-                                return "stop";
-                            return "arrow_upward";
-                        }
-                        fill: 1
-                        font.pixelSize: 18
-                        anchors.centerIn: parent
-                        color: Colors.colOnPrimary
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        enabled: sendButton.toggled
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-
-                        onClicked: {
-                            if (Ai.isResponding) {
-                                Ai.stop();
-                            } else if (messageInputField.text.length > 0) {
-                                const text = messageInputField.text;
-                                messageInputField.clear();
-                                root.sendText(text);
-                            } else {
-                                console.log("Listening...");
-                                SpeechService.listen();
-                            }
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                id: commandButtonsRow
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    bottom: parent.bottom
-                    bottomMargin: 5
-                    leftMargin: 10
-                    rightMargin: 5
-                }
-                spacing: 4
-
-                ApiInputBoxIndicator {
-                    icon: "api"
-                    text: Ai.getModel().name
-                    tooltipText: qsTr("Current model: %1\nSet it with %2model MODEL").arg(Ai.getModel().name).arg(root.commandPrefix)
-                }
-
-                ApiInputBoxIndicator {
-                    icon: "token"
-                    text: Ai.tokenCount.total
-                    tooltipText: qsTr("Total token count\nInput: %1\nOutput: %2").arg(Ai.tokenCount.input).arg(Ai.tokenCount.output)
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                ButtonGroup {
-                    padding: 0
                     Repeater {
-                        model: [
-                            {
-                                name: "",
-                                sendDirectly: false,
-                                dontAddSpace: true
-                            },
-                            {
-                                name: "clear",
-                                sendDirectly: true
-                            }
-                        ]
+                        id: suggestionRepeater
+                        model: {
+                            suggestions.selectedIndex = 0;
+                            return root.suggestionList.slice(0, 10);
+                        }
                         delegate: ApiCommandButton {
-                            property string cmd: root.commandPrefix + modelData.name
-                            buttonText: cmd
-                            downAction: () => {
-                                if (modelData.sendDirectly) {
-                                    root.sendText(cmd);
-                                    messageInputField.text = "";
+                            id: commandButton
+                            readonly property bool isSelected: suggestions.selectedIndex === index
+                            colBackground: isSelected ? Colors.colSecondaryContainerHover : Colors.colSecondaryContainer
+                            bounce: false
+                            contentItem: StyledText {
+                                font: Fonts.request("mono", "normal")
+                                color: isSelected ? Colors.colOnSeconaryContainerHover : Colors.colOnSecondaryContainer
+                                horizontalAlignment: Text.AlignHCenter
+                                text: modelData.displayName ?? modelData.name
+                            }
+                            onHoveredChanged: if (commandButton.hovered)
+                                suggestions.selectedIndex = index
+                            onClicked: suggestions.acceptSuggestion(modelData.name)
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    StyledTextArea {
+                        id: messageInputField
+                        wrapMode: TextArea.Wrap
+                        Layout.fillWidth: true
+                        padding: Padding.normal
+                        color: activeFocus ? Colors.m3.m3onSurface : Colors.m3.m3onSurfaceVariant
+                        placeholderText: qsTr('Ask %1 AnyThing ... "%2" for commands').arg(Ai.getModel().name.split('/')[1]).arg(root.commandPrefix)
+                        background: null
+                        font: Fonts.request("main", "large")
+                        onTextChanged: {
+                            if (text.length === 0) {
+                                root.suggestionQuery = "";
+                                root.suggestionList = [];
+                                return;
+                            }
+                            root.updateSuggestions();
+                        }
+                        Keys.onPressed: event => root.handleInputKeyPress(event)
+                    }
+
+                    Item {
+                        id: sendButton
+                        implicitHeight: 50
+                        implicitWidth: 50
+                        readonly property bool toggled: Ai.isResponding || messageInputField.text.length > 0
+
+                        SequentialAnimation {
+                            id: loadingAnimation
+                            loops: Animation.Infinite
+                            running: SpeechService.isListening || Ai.isResponding || root.isRecording
+                            PropertyAction {
+                                target: shape
+                                property: "rotation"
+                                value: 0
+                            }
+                            Anim {
+                                target: shape
+                                property: "rotation"
+                                from: 0
+                                to: 360
+                                duration: 4500
+                            }
+                            onStopped: shape.rotation = 0
+                        }
+
+                        MaterialShape {
+                            id: shape
+                            implicitSize: 38
+                            anchors.centerIn: parent
+                            shape: {
+                                if (!Ai.isResponding && messageInputField.text.length === 0)
+                                    return MaterialShape.Shape.Cookie6Sided;
+                                if (Ai.isResponding)
+                                    return MaterialShape.Shape.Cookie12Sided;
+                                return MaterialShape.Shape.Clover8Leaf;
+                            }
+                            color: Colors.colPrimary
+                            Behavior on rotation {
+                                enabled: !Ai.isResponding
+                                Anim {}
+                            }
+                        }
+
+                        Symbol {
+                            text: {
+                                if (!Ai.isResponding && messageInputField.text.length === 0)
+                                    return "mic";
+                                if (Ai.isResponding)
+                                    return "stop";
+                                return "arrow_upward";
+                            }
+                            fill: 1
+                            font.pixelSize: 18
+                            anchors.centerIn: parent
+                            color: Colors.colOnPrimary
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: sendButton.toggled
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                if (Ai.isResponding) {
+                                    Ai.stop();
+                                } else if (messageInputField.text.length > 0) {
+                                    const text = messageInputField.text;
+                                    messageInputField.clear();
+                                    root.sendText(text);
                                 } else {
-                                    messageInputField.text = cmd + (modelData.dontAddSpace ? "" : " ");
-                                    messageInputField.cursorPosition = messageInputField.text.length;
-                                    messageInputField.forceActiveFocus();
+                                    console.log("Listening...");
+                                    SpeechService.listen();
                                 }
                             }
                         }

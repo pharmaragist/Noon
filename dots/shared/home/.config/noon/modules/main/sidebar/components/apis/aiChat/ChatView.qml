@@ -13,7 +13,7 @@ StyledRect {
     radius: Rounding.small
 
     property alias listView: messageListView
-    
+
     ListView {
         id: messageListView
         z: 0
@@ -80,9 +80,8 @@ StyledRect {
     PagePlaceholder {
         z: 2
         shown: Ai.messageIDs.length === 0
-        icon: "neurology"
-        title: "AI"
-        description: "access various AI models\n press '/' for more options "
+        icon: "cognition"
         shape: MaterialShape.Shape.PixelCircle
+        iconSize: 120
     }
 }

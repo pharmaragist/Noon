@@ -34,15 +34,6 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Padding.normal
 
-        Loader {
-            Layout.fillWidth: true
-            active: root.messageData?.files?.length > 0
-            sourceComponent: AttachedFileIndicator {
-                filePath: root.messageData.files[0] ?? ""
-                canRemove: false
-            }
-        }
-
         StyledText {
             visible: root.messageData?.queued ?? false
             Layout.rightMargin: Padding.massive + 5

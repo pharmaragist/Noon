@@ -38,7 +38,6 @@ Singleton {
     property var messageQueue: []
     property var messageByID: ({})
     property string pendingSkillName: ""
-    property string pendingFilePath: ""
     property var postResponseHook
     property var sseXhr: null
     property string sseBuffer: ""
@@ -54,7 +53,6 @@ Singleton {
             "done": fields.done ?? true,
             "queued": fields.queued ?? false,
             "tools": fields.tools ?? [],
-            "files": fields.files ?? [],
             "annotationSources": fields.annotationSources ?? [],
             "visibleToUser": fields.visibleToUser ?? true,
             "functionPending": fields.functionPending ?? false
@@ -234,15 +232,13 @@ Singleton {
     }
 
     function finishSend(message) {
-        const filePath = root.pendingFilePath;
         const aiMessage = root.plainMessage({
             "role": "user",
             "content": message,
             "rawContent": message,
             "thinking": false,
             "done": true,
-            "queued": true,
-            "files": filePath.length > 0 ? [filePath] : []
+            "queued": true
         });
         const id = idForMessage(aiMessage);
         root.messageByID[id] = aiMessage;
@@ -405,7 +401,7 @@ Singleton {
 
     function shapeMessage(g) {
         let txt = "";
-        const tools = [], files = [];
+        const tools = [];
         for (let i = 0; i < g.p.length; ++i) {
             const p = g.p[i];
             if (p.type === "text")
@@ -414,16 +410,15 @@ Singleton {
                 const st = p.state || {};
                 tools.push({ tool: p.tool, callID: p.callID, status: st.status,
                     input: root.trimBlob(st.input, 4000), output: root.trimBlob(st.output, 4000) });
-            } else if (p.type === "file" && p.url)
-                files.push(p.url);
+            }
         }
         if (txt.length > 30000) txt = txt.slice(0, 30000) + "\n\n…(truncated)";
-        if (!txt && !tools.length && !files.length)
+        if (!txt && !tools.length)
             return null;
         return root.plainMessage({
             role: g.d.role, content: txt, rawContent: txt,
             model: (g.d.model || {}).modelID ?? "", thinking: false, done: true,
-            tools: tools, files: files
+            tools: tools
         });
     }
 
