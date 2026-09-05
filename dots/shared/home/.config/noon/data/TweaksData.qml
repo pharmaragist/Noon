@@ -633,8 +633,24 @@ Singleton {
                     "icon": "format_list_numbered",
                     "name": "Recall Limit",
                     "hint": "History messages per page (1-50)",
-                    "key": "apis.recallLimit",
+                    "store": "ai",
+                    "key": "recallLimit",
                     "type": "spin"
+                },
+                {
+                    "icon": "history",
+                    "name": "Preload Messages",
+                    "hint": "Recall the current session on shell start",
+                    "store": "ai",
+                    "key": "preloadMessages"
+                },
+                {
+                    "icon": "folder",
+                    "name": "Session Data Dir",
+                    "hint": "Isolate agent db/auth here. Empty = global opencode. Reload shell after set",
+                    "store": "ai",
+                    "key": "sessionDir",
+                    "type": "text"
                 },
                 {
                     "icon": "supervisor_account",

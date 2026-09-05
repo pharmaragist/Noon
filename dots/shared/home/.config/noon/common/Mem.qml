@@ -60,7 +60,7 @@ Singleton {
         state: false
         parentDir: "user/"
         fileName: "ai"
-        AiSchema {}
+        HarnessSchema {}
     }
 
     readonly property ConfigFileView todoView: ConfigFileView {

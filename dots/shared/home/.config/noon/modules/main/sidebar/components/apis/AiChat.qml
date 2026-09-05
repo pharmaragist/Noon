@@ -244,6 +244,25 @@ SidebarItemContainer {
         }
     }
 
+    // File managers copy files as a text/uri-list
+    // ("file:///a\nfile:///b"). Detect that shape so plain Ctrl+V drops
+    // local paths instead of raw URIs; otherwise returns [] and the field
+    // keeps its default paste behavior.
+    function clipboardFilePaths() {
+        const lines = (Quickshell.clipboardText || "").split("\n").map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0 || !lines.every(l => l.startsWith("file://")))
+            return [];
+        return lines.map(l => {
+            let p;
+            try {
+                p = decodeURIComponent(l.replace(/^file:\/\//, ""));
+            } catch (e) {
+                p = l.replace(/^file:\/\//, "");
+            }
+            return p.includes(" ") ? `"${p}"` : p;
+        });
+    }
+
     function handleInputKeyPress(event) {
         switch (event.key) {
         case Qt.Key_Tab:
@@ -281,6 +300,11 @@ SidebarItemContainer {
                     messageInputField.text += Quickshell.clipboardText;
                     event.accepted = true;
                     return;
+                }
+                const paths = root.clipboardFilePaths();
+                if (paths.length > 0) {
+                    messageInputField.insert(messageInputField.cursorPosition, paths.join(" "));
+                    event.accepted = true;
                 }
             }
         }

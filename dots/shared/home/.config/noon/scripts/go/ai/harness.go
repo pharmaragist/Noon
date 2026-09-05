@@ -31,7 +31,19 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dbPath = "$HOME/.local/share/opencode/opencode.db"
+func dataHome() string {
+	if d := os.Getenv("SESSION_DIR"); d != "" {
+		return d
+	}
+	if d := os.Getenv("XDG_DATA_HOME"); d != "" {
+		return d
+	}
+	return os.ExpandEnv("$HOME/.local/share")
+}
+
+func dbFile() string {
+	return dataHome() + "/opencode/opencode.db"
+}
 
 // Session matches the shape Harness.qml -> root.sessions consumes from refreshSessions.
 type Session struct {
@@ -69,8 +81,7 @@ type Message struct {
 }
 
 func open() (*sql.DB, error) {
-	path := os.ExpandEnv(dbPath)
-	return sql.Open("sqlite3", "file:"+path+"?mode=ro")
+	return sql.Open("sqlite3", "file:"+dbFile()+"?mode=ro")
 }
 
 // truncateBlob mirrors Harness.qml trimBlob(x, 4000): truncate a string, or the
@@ -957,6 +968,7 @@ func (b *bridge) handleLine(line string) {
 // cmdAcp runs the long-lived QML<->ACP bridge.
 func cmdAcp() error {
 	cmd := exec.Command("opencode", "acp")
+	cmd.Env = append(os.Environ(), "XDG_DATA_HOME="+dataHome())
 	acpIn, err := cmd.StdinPipe()
 	if err != nil {
 		return err

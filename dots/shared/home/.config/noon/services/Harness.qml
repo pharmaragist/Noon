@@ -23,7 +23,7 @@ Singleton {
     readonly property string baseCmd: Paths.scriptsDir + "/go/ai/harness"
     readonly property int maxLoadedMessages: 200
     readonly property string systemPrompt: states.systemPrompt
-
+    readonly property var bridgeEnv: ({ "SESSION_DIR": root.states.sessionDir })
     property string liveContent: ""
     property bool liveThinking: false
     property bool liveDone: false
@@ -40,7 +40,18 @@ Singleton {
         root.refreshSessions();
         skillsFetcher.refresh();
         modelsFetcher.refresh();
+        root.maybePreload();
     }
+
+    // Opt-in (ai.preloadMessages): recall the persisted session on shell
+    // start — one page honoring recallLimit. Runs on completion and again
+    // when state arrives, since Mem.ai may load after us.
+    function maybePreload() {
+        if ((root.states.preloadMessages ?? false) && root.currentSessionId && root.messageIDs.length === 0 && !root.loadingMessages)
+            root.loadChat(root.currentSessionId);
+    }
+
+    onStatesChanged: root.maybePreload()
 
     onSystemPromptChanged: if (systemPrompt) {
         setupPersonality();
@@ -317,9 +328,8 @@ Singleton {
         loadMessages(root.states.currentSessionId);
     }
 
-    // Recall page size, user-tunable via Mem.options.apis.recallLimit.
     // Harness clamps to 1..50 server-side, so clamp here too.
-    readonly property int chatBatch: Math.max(1, Math.min(50, Mem.options.apis?.recallLimit ?? 10))
+    readonly property int chatBatch: Math.max(1, Math.min(50, states?.recallLimit ?? 10))
     property bool hasMoreMessages: false
     property bool loadingMoreMessages: false
     property bool loadingMessages: false
@@ -583,6 +593,7 @@ Singleton {
         stdout: SplitParser {
             onRead: data => root.handleSSELine(data)
         }
+        environment: root.bridgeEnv
         onExited: {
             console.warn("acp bridge exited, restarting");
             NoonUtils.inlineTimer(() => {
@@ -594,6 +605,7 @@ Singleton {
     Fetcher {
         id: sessionsFetcher
         command: [baseCmd, "sessions"]
+        environment: root.bridgeEnv
         onStreamFinished: {
             if (Array.isArray(sessionsFetcher.data))
                 root.sessions = sessionsFetcher.data;
@@ -603,6 +615,7 @@ Singleton {
     Fetcher {
         id: skillsFetcher
         command: [baseCmd, "skills"]
+        environment: root.bridgeEnv
         onStreamFinished: {
             if (Array.isArray(skillsFetcher.data))
                 states.skills = skillsFetcher.data;
@@ -612,6 +625,7 @@ Singleton {
     Fetcher {
         id: modelsFetcher
         command: [baseCmd, "models"]
+        environment: root.bridgeEnv
         onStreamFinished: {
             if (!Array.isArray(modelsFetcher.data) || modelsFetcher.data.length === 0)
                 return;
@@ -625,6 +639,7 @@ Singleton {
         id: chatFetcher
         autoRun: false
         property var onDone: null
+        environment: root.bridgeEnv
         onStreamFinished: {
             const cb = chatFetcher.onDone;
             chatFetcher.onDone = null;
