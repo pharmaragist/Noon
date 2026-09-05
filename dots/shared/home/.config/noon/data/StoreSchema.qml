@@ -2,7 +2,6 @@ import qs.common.utils
 
 JsonAdapter {
     property JO misc: JO {
-        property list<string> ipcCommands: []
         property list<string> systemCommands: []
     }
 

@@ -8,7 +8,8 @@ import "./../hits"
 
 StyledRect {
     id: root
-    color: Colors.colLayer1
+    colors: MediaPlayerService?.colors
+    color: "transparent"// Colors.colLayer1
     radius: Rounding.verylarge
     property bool expanded
     property bool isSearching: BeatsService.hitsQuery.length > 0
@@ -120,7 +121,7 @@ StyledRect {
         z: controls.z - 1
         opacity: dismissArea.enabled ? 1 : 0
         anchors.fill: parent
-        color: Colors.colScrim
+        color: root.colors.colScrim
     }
     MouseArea {
         id: dismissArea

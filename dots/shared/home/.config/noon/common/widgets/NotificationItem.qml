@@ -11,7 +11,7 @@ import Quickshell.Widgets
 import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
-Item { 
+Item {
     id: root
     property var notificationObject
     property bool expanded: false
@@ -19,9 +19,9 @@ Item {
     property real fontSize: Fonts.sizes.small
     property real padding: onlyNotification ? 0 : 8
 
-    property real dragConfirmThreshold: 70 
-    property real dismissOvershoot: notificationIcon.implicitWidth + 20 
-    property var qmlParent: root?.parent?.parent 
+    property real dragConfirmThreshold: 70
+    property real dismissOvershoot: notificationIcon.implicitWidth + 20
+    property var qmlParent: root?.parent?.parent
     property var parentDragIndex: qmlParent?.dragIndex ?? -1
     property var parentDragDistance: qmlParent?.dragDistance ?? 0
     property var dragIndexDiff: Math.abs(parentDragIndex - index)
@@ -32,7 +32,7 @@ Item {
     function processNotificationBody(body, appName) {
         let processedBody = body;
 
-        
+
         if (appName) {
             const lowerApp = appName.toLowerCase();
             const chromiumBrowsers = ["brave", "chrome", "chromium", "vivaldi", "opera", "microsoft edge"];
@@ -51,11 +51,11 @@ Item {
 
     function destroyWithAnimation() {
         root.qmlParent.resetDrag();
-        background.anchors.leftMargin = background.anchors.leftMargin; 
+        background.anchors.leftMargin = background.anchors.leftMargin;
         destroyAnimation.running = true;
     }
 
-    SequentialAnimation { 
+    SequentialAnimation {
         id: destroyAnimation
         running: false
 
@@ -69,7 +69,7 @@ Item {
         }
     }
 
-    DragManager { 
+    DragManager {
         id: dragManager
         anchors.fill: root
         anchors.leftMargin: root.expanded ? -notificationIcon.implicitWidth : 0
@@ -101,7 +101,7 @@ Item {
         }
     }
 
-    NotificationAppIcon { 
+    NotificationAppIcon {
         id: notificationIcon
         opacity: (!onlyNotification && notificationObject.image != "" && expanded) ? 1 : 0
         visible: opacity > 0
@@ -116,7 +116,7 @@ Item {
         anchors.rightMargin: 10
     }
 
-    Rectangle { 
+    Rectangle {
         id: background
         width: parent.width
         anchors.left: parent.left
@@ -135,7 +135,7 @@ Item {
             Anim {}
         }
 
-        ColumnLayout { 
+        ColumnLayout {
             id: contentColumn
             anchors.fill: parent
             anchors.margins: expanded ? root.padding : 0
@@ -145,12 +145,12 @@ Item {
                 Anim {}
             }
 
-            RowLayout { 
+            RowLayout {
                 id: summaryRow
                 visible: !root.onlyNotification || !root.expanded
                 Layout.fillWidth: true
                 implicitHeight: summaryText.implicitHeight
-                
+
                 StyledText {
                     id: summaryText
                     visible: !root.onlyNotification
@@ -169,7 +169,7 @@ Item {
                     font.pixelSize: root.fontSize
                     color: Colors.colSubtext
                     elide: Text.ElideRight
-                    wrapMode: Text.Wrap 
+                    wrapMode: Text.Wrap
                     maximumLineCount: 1
                     textFormat: Text.StyledText
                     text: {
@@ -179,12 +179,12 @@ Item {
             }
 
             ColumnLayout {
-                
+
                 Layout.fillWidth: true
                 opacity: root.expanded ? 1 : 0
                 visible: opacity > 0
 
-                StyledText { 
+                StyledText {
                     id: notificationBodyText
                     Behavior on opacity {
                         Anim {}
@@ -201,13 +201,13 @@ Item {
 
                     onLinkActivated: link => {
                         Qt.openUrlExternally(link);
-                        NoonUtils.callIpc("sidebar hide");
+                        Ipc.call(["sidebar", "hide"]);
                     }
 
                     PointingHandLinkHover {}
                 }
 
-                StyledFlickable { 
+                StyledFlickable {
                     id: actionsFlickable
                     Layout.fillWidth: true
                     implicitHeight: actionRowLayout.implicitHeight

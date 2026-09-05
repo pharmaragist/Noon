@@ -16,7 +16,7 @@ SidebarItemContainer {
         scale: 0.5
     }
 
-    
+
     DropArea {
         id: dropArea
         anchors.fill: parent
@@ -32,7 +32,7 @@ SidebarItemContainer {
             const unique = drop.urls.map(url => url.toString()).filter(p => !existing.has(p));
             Mem.states.sidebar.shelf.filePaths = [...existing, ...unique];
             if (!Globals.main.sidebar.pinned) {
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
             NoonUtils.playSound("event_accepted");
         }

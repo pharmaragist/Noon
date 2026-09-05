@@ -145,7 +145,7 @@ StyledRect {
             colRipple: Colors.colLayer4Active
             onClicked: {
                 Qt.openUrlExternally("http://nmcheck.gnome.org/");
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
         }
     }

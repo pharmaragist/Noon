@@ -32,54 +32,59 @@ PanelRect {
         property: "query"
         value: inputField.text
     }
-
-    Symbol {
-        z: 999
-        font.pixelSize: 18
-        fill: 1
-        color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer3
-        anchors.centerIn: icon
-        text: BeamData.getIcon()
-    }
-
-    MaterialShape {
+    Item {
         id: icon
+        visible: Mem.options.beam.appearance?.enableEmblem ?? true
+        implicitWidth: visible ? 36 : 0
+
         anchors {
             left: parent.left
             verticalCenter: parent.verticalCenter
-            leftMargin: Padding.gigantic
+            leftMargin: visible ? Padding.gigantic : 0
         }
-        implicitSize: 36
-        color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
-        shape: BeamData.getShape()
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Globals.main.beam.reason = "hints"
+        Symbol {
+            z: 999
+            font.pixelSize: 18
+            fill: 1
+            color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer3
+            anchors.centerIn: parent
+            text: BeamData.getIcon()
+        }
+        MaterialShape {
+            anchors.centerIn: parent
+            implicitSize: 36
+            color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
+            shape: BeamData.getShape()
 
-            StyledToolTip {
-                content: "Need Help ? Click for cheats"
-                extraVisibleCondition: parent.containsMouse
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Globals.main.beam.reason = "hints"
+
+                StyledToolTip {
+                    content: "Need Help ? Click for cheats"
+                    extraVisibleCondition: parent.containsMouse
+                }
             }
-        }
 
-        readonly property alias inputText: inputField.text
-        onInputTextChanged: if (inputField.text.length === 0)
-            rotation = 0
+            readonly property alias inputText: inputField.text
+            onInputTextChanged: if (inputField.text.length === 0)
+                rotation = 0
 
-        Behavior on color {
-            CAnim {}
-        }
+            Behavior on color {
+                CAnim {}
+            }
 
-        RotationAnimation on rotation {
-            running: BeamData.activeState !== BeamData.defaultState && inputField.text.length > 0
-            loops: Animation.Infinite
-            from: 0
-            to: 360
-            duration: 9000
-            easing.type: Easing.Linear
+            RotationAnimation on rotation {
+                running: BeamData.activeState !== BeamData.defaultState && inputField.text.length > 0
+                loops: Animation.Infinite
+                from: 0
+                to: 360
+                duration: 9000
+                easing.type: Easing.Linear
+            }
         }
     }
 
@@ -169,7 +174,7 @@ PanelRect {
         id: sendButton
         releaseAction: () => {
             SpeechService.listen();
-            NoonUtils.callIpc("noon reveal_beam dictate");
+            Ipc.call(["noon", "reveal_beam", "dictate"]);
         }
         buttonRadius: width / 2
         colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : Colors.colLayer1

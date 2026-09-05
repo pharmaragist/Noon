@@ -85,7 +85,7 @@ Scope {
         }
     }
 
-    IpcHandler {
+    NpcHandler {
         target: "osdBrightness"
 
         function trigger() {

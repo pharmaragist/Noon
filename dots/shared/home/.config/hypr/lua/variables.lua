@@ -3,7 +3,7 @@ home = os.getenv("HOME")
 shell_path = home .. "/.config/noon"
 scriptsDir = shell_path .. "/scripts"
 shell_cmd = "qs -c " .. shell_path
-ipc = shell_cmd .. " ipc call "
+ipc = scriptsDir .. "/npc call "
 mainMod = "SUPER"
 
 -- Apps
@@ -30,10 +30,10 @@ shadows = true
 shadows_power = 4
 shadows_range = 30
 gaps_in = 5
-gaps_out = 5
+gaps_out = 25
 gaps_special = 40
 borders = 1
-rounding = 20
+rounding = 24
 rounding_power = 2
 layers_alpha = 0.4
 applications_opacity = 1
@@ -45,12 +45,12 @@ debug_overlay = false
 cursor_theme = "GoogleDot-White"
 cursor_size = 24
 animation_style = "springs"
-animation_scale = 0.5
+animation_scale = 1
 animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "right"
+bar_location = "left"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

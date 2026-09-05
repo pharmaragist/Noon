@@ -105,13 +105,24 @@ Singleton {
                         content: beforeThink
                     });
                 }
-                const thinkContent = text.slice(thinkStart + 7);
+                const rest = text.slice(thinkStart + 9);
+                const respStart = rest.indexOf(' response');
+                const thinkContent = respStart === -1 ? rest : rest.slice(0, respStart);
                 if (thinkContent.trim()) {
                     result.push({
                         type: "think",
                         content: thinkContent,
-                        completed: false
+                        completed: respStart !== -1
                     });
+                }
+                if (respStart !== -1) {
+                    const afterText = rest.slice(respStart + 9);
+                    if (afterText.trim()) {
+                        result.push({
+                            type: "text",
+                            content: afterText
+                        });
+                    }
                 }
             } else if (codeStart !== -1) {
                 const beforeCode = text.slice(0, codeStart);

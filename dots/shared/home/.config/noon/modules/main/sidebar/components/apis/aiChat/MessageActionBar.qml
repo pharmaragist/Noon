@@ -23,12 +23,12 @@ RowLayout {
                 }
             },
             {
-                visible: messageData.role === "user",
+                visible: messageData?.role === "user",
                 icon: "refresh",
-                action: () => Ai.regenerate(root.messageIndex)
+                action: () => Harness.regenerate(root.messageIndex)
             },
             {
-                visible: messageData.role === "user",
+                visible: messageData?.role === "user",
                 icon: root.editing ? "check" : "stylus",
                 action: () => {
                     root.editing = !root.editing;
@@ -36,7 +36,7 @@ RowLayout {
             },
             {
                 icon: "delete",
-                action: () => Ai.removeMessage(root.messageIndex)
+                action: () => Harness.removeMessage(root.messageIndex)
             }
         ]
         delegate: Symbol {

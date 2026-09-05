@@ -19,7 +19,7 @@ ColumnLayout {
     property bool done: true
     property bool thinking: false
     property bool forceDisableChunkSplitting: false
-
+    property font font: Fonts.request("reading", Fonts.sizes.verylarge * Mem.states.sidebar.apis.fontScale)
     property string shownText: ""
     property bool fadeChunkSplitting: !forceDisableChunkSplitting && !editing && !/\n\|/.test(shownText) && Mem.options.sidebar.behavior.aiTextFadeIn
 
@@ -133,7 +133,7 @@ ColumnLayout {
             readOnly: !editing
             selectByMouse: enableMouseSelection || editing
             renderType: Text.NativeRendering
-            font:Fonts.request("reading", Fonts.sizes.verylarge * Mem.states.sidebar.apis.fontScale)
+            font: root.font
             selectedTextColor: Colors.m3.m3onSecondaryContainer
             selectionColor: Colors.colSecondaryContainer
             wrapMode: TextEdit.Wrap
@@ -165,7 +165,7 @@ ColumnLayout {
 
             onLinkActivated: link => {
                 Qt.openUrlExternally(link);
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
 
             MouseArea {

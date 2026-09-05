@@ -87,7 +87,7 @@ SidebarItemContainer {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: modelData?.command === "" ? NoonUtils.callIpc("global lock") : NoonUtils.execDetached(modelData.command)
+                    onClicked: modelData?.command === "" ? Ipc.call(["global", "lock"]) : NoonUtils.execDetached(modelData.command)
                 }
             }
         }

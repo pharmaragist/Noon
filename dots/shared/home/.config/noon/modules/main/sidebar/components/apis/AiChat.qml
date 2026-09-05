@@ -22,12 +22,12 @@ SidebarItemContainer {
         {
             name: "new",
             description: qsTr("Start New Session"),
-            execute: args => Ai.newSession()
+            execute: args => Harness.newSession()
         },
         {
-            name: "sessions",
+            name: "session",
             description: qsTr("Select Session"),
-            execute: args => Ai.loadChat(args.join(" ").trim())
+            execute: args => Harness.loadChat(args.join(" ").trim())
         },
         {
             name: "scale",
@@ -37,25 +37,35 @@ SidebarItemContainer {
         {
             name: "model",
             description: qsTr("Choose model"),
-            execute: args => Ai.setModel(args[0])
+            execute: args => Harness.setModel(args[0])
+        },
+        {
+            name: "effort",
+            description: qsTr("Choose effort"),
+            execute: args => Harness.setEffort(args[0])
         },
         {
             name: "skill",
             description: qsTr("Choose Skill"),
-            execute: args => Ai.setSkill(args[0])
+            execute: args => Harness.setSkill(args[0])
         },
         {
             name: "clear",
             description: qsTr("Clear chat history"),
-            execute: () => Ai.clearMessages()
+            execute: () => Harness.clearMessages()
+        },
+        {
+            name: "more",
+            description: qsTr("Load older messages"),
+            execute: () => Harness.loadMoreMessages()
         },
         {
             name: "test",
             description: qsTr("Send LaTeX test messages"),
             execute: () => {
-                Ai.clearMessages();
+                Harness.clearMessages();
                 const tests = ["Inline: $$E = mc^2$$", "Quadratic: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "Integral: $$\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)$$", "Matrix: $$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$", "Summation: $$\\sum_{k=1}^{n} \\frac{1}{k} \\approx \\ln(n) + \\gamma$$", "Greek: $$\\alpha \\beta \\gamma \\delta \\epsilon \\theta \\pi \\sigma \\omega \\phi \\psi \\mu$$", "Limit: $$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$$", "Trig: $$\\sin^2 \\theta + \\cos^2 \\theta = 1$$", "Nested fraction: $$\\frac{1 + \\frac{1}{x}}{1 - \\frac{1}{x}}$$", "Piecewise: $$f(x) = \\begin{cases} x^2 & x \\ge 0 \\\\ -x & x < 0 \\end{cases}$$", "Decorations: $$\\hat{a} \\; \\bar{b} \\; \\vec{c} \\; \\dot{d} \\; \\ddot{e}$$", "Binomial: $$\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$$", "Text in math: $$\\text{area} = \\pi r^2 \\quad \\text{for } r \\ge 0$$", "Set builder: $$\\{ x \\in \\mathbb{R} \\mid |x| < 1 \\}$$",];
-                tests.forEach(t => Ai.addMessage(t, "ai"));
+                tests.forEach(t => Harness.addMessage(t, "ai"));
             }
         }
     ]
@@ -65,7 +75,7 @@ SidebarItemContainer {
             return;
         const parts = text.trim().split(" ");
         const cmd = root.allCommands.find(c => c.name === parts[0].substring(1));
-        text.startsWith(root.commandPrefix) && cmd ? cmd.execute(parts.slice(1)) : Ai.sendUserMessage(text);
+        text.startsWith(root.commandPrefix) && cmd ? cmd.execute(parts.slice(1)) : Harness.sendUserMessage(text);
         chatView.listView.positionViewAtEnd();
     }
 
@@ -89,11 +99,11 @@ SidebarItemContainer {
 
     function handleModelSuggestions() {
         const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Ai.modelList.map(m => ({
+        const source = Harness.modelList.map(m => ({
                     name: m,
                     prepared: Fuzzy.prepare(m)
                 }));
-        const results = query.length === 0 ? Ai.modelList.map(m => ({
+        const results = query.length === 0 ? Harness.modelList.map(m => ({
                     target: m
                 })) : Fuzzy.go(query, source, {
             all: true,
@@ -107,13 +117,34 @@ SidebarItemContainer {
                 }));
     }
 
+    function handleEffortSuggestions() {
+        const query = messageInputField.text.split(" ")[1] ?? "";
+        const list = Harness.effortOptions.length > 0 ? Harness.effortOptions : Harness.effortList;
+        const source = list.map(m => ({
+                    name: m,
+                    prepared: Fuzzy.prepare(m)
+                }));
+        const results = query.length === 0 ? list.map(m => ({
+                    target: m
+                })) : Fuzzy.go(query, source, {
+            all: true,
+            key: "name"
+        });
+        const isFirst = messageInputField.text.trim().split(" ").length === 1;
+        root.suggestionList = results.map(r => ({
+                    name: (isFirst ? root.commandPrefix + "effort " : "") + r.target,
+                    displayName: r.target,
+                    description: qsTr("Set effort to %1").arg(r.target)
+                }));
+    }
+
     function handleSkillsSuggestions() {
         const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Ai.skills.map(f => ({
+        const source = Harness.skills.map(f => ({
                     name: f,
                     prepared: Fuzzy.prepare(f)
                 }));
-        const results = query.length === 0 ? Ai.skills.map(f => ({
+        const results = query.length === 0 ? Harness.skills.map(f => ({
                     target: f
                 })) : Fuzzy.go(query, source, {
             all: true,
@@ -129,22 +160,22 @@ SidebarItemContainer {
 
     function handleSessionsSuggestions() {
         const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Ai.sessions.map(s => ({
+        const source = Harness.sessions.map(s => ({
                     name: s.title,
                     prepared: Fuzzy.prepare(s.title),
                     obj: s
                 }));
-        const results = query.length === 0 ? Ai.sessions.map(s => ({
+        const results = query.length === 0 ? Harness.sessions.map(s => ({
                     target: s
                 })) : Fuzzy.go(query, source, {
             all: true,
             key: "name"
         }).map(r => ({
-                    target: r.obj
+                    target: r.obj?.obj
                 }));
         const isFirst = messageInputField.text.trim().split(" ").length === 1;
         root.suggestionList = results.map(r => ({
-                    name: (isFirst ? root.commandPrefix + "sessions " : "") + r.target.id,
+                    name: (isFirst ? root.commandPrefix + "session " : "") + r.target.id,
                     displayName: r.target.title,
                     description: qsTr("Session from %1").arg(root.friendlySessionTime(r.target.updated))
                 }));
@@ -152,8 +183,9 @@ SidebarItemContainer {
 
     readonly property var argHandlers: ({
             "model": handleModelSuggestions,
+            "effort": handleEffortSuggestions,
             "skill": handleSkillsSuggestions,
-            "sessions": handleSessionsSuggestions
+            "session": handleSessionsSuggestions
         })
 
     function friendlySessionTime(ts) {
@@ -199,10 +231,10 @@ SidebarItemContainer {
         if (event.modifiers & Qt.ControlModifier) {
             switch (event.key) {
             case Qt.Key_L:
-                Ai.clearMessages();
+                Harness.clearMessages();
                 break;
             case Qt.Key_R:
-                Ai.regenerate(Ai.messageIDs.length - 1);
+                Harness.regenerate(Harness.messageIDs.length - 1);
                 break;
             case Qt.Key_O:
                 root.expandRequested();
@@ -277,9 +309,7 @@ SidebarItemContainer {
         DescriptionBox {
             text: root.suggestionList[suggestions.selectedIndex]?.description ?? ""
             showArrows: root.suggestionList.length > 1
-            pageText: root.suggestionList.length > suggestions.pageSize
-                ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, root.suggestionList.length)}/${root.suggestionList.length}`
-                : ""
+            pageText: root.suggestionList.length > suggestions.pageSize ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, root.suggestionList.length)}/${root.suggestionList.length}` : ""
         }
 
         LayerRect {
@@ -371,7 +401,7 @@ SidebarItemContainer {
                         Layout.fillWidth: true
                         padding: Padding.normal
                         color: activeFocus ? Colors.m3.m3onSurface : Colors.m3.m3onSurfaceVariant
-                        placeholderText: qsTr('Ask %1 AnyThing ... "%2" for commands').arg(Ai.getModel().name.split('/')[1]).arg(root.commandPrefix)
+                        placeholderText: qsTr('Ask %1 AnyThing ... "%2" for commands').arg(Harness.getModel().name.split('/')[1]).arg(root.commandPrefix)
                         background: null
                         font: Fonts.request("main", "large")
                         onTextChanged: {
@@ -388,11 +418,11 @@ SidebarItemContainer {
                         id: sendButton
                         implicitHeight: 50
                         implicitWidth: 50
-                        readonly property bool toggled: Ai.isResponding || messageInputField.text.length > 0
+                        readonly property bool toggled: Harness.isResponding || messageInputField.text.length > 0
 
                         SequentialAnimation {
                             loops: Animation.Infinite
-                            running: SpeechService.isListening || Ai.isResponding || root.isRecording
+                            running: SpeechService.isListening || Harness.isResponding || root.isRecording
                             PropertyAction {
                                 target: shape
                                 property: "rotation"
@@ -413,24 +443,24 @@ SidebarItemContainer {
                             implicitSize: 38
                             anchors.centerIn: parent
                             shape: {
-                                if (!Ai.isResponding && messageInputField.text.length === 0)
+                                if (!Harness.isResponding && messageInputField.text.length === 0)
                                     return MaterialShape.Shape.Cookie6Sided;
-                                if (Ai.isResponding)
+                                if (Harness.isResponding)
                                     return MaterialShape.Shape.Cookie12Sided;
                                 return MaterialShape.Shape.Clover8Leaf;
                             }
                             color: Colors.colPrimary
                             Behavior on rotation {
-                                enabled: !Ai.isResponding
+                                enabled: !Harness.isResponding
                                 Anim {}
                             }
                         }
 
                         Symbol {
                             text: {
-                                if (!Ai.isResponding && messageInputField.text.length === 0)
+                                if (!Harness.isResponding && messageInputField.text.length === 0)
                                     return "mic";
-                                if (Ai.isResponding)
+                                if (Harness.isResponding)
                                     return "stop";
                                 return "arrow_upward";
                             }
@@ -447,8 +477,8 @@ SidebarItemContainer {
                             cursorShape: Qt.PointingHandCursor
 
                             onClicked: {
-                                if (Ai.isResponding) {
-                                    Ai.stop();
+                                if (Harness.isResponding) {
+                                    Harness.stop();
                                 } else if (messageInputField.text.length > 0) {
                                     const text = messageInputField.text;
                                     messageInputField.clear();

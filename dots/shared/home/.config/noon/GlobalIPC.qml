@@ -9,7 +9,7 @@ import qs.services
 import qs.data
 
 Scope {
-    IpcHandler {
+    NpcHandler {
         target: "global"
 
         function dino(): void {
@@ -136,7 +136,7 @@ Scope {
 
             Globals.main.dmenu.items = preparedItems;
             Globals.main.dmenu.action = callback;
-            NoonUtils.callIpc("sidebar reveal DMenu");
+            Ipc.call(["sidebar", "reveal", "DMenu"]);
         }
 
         function toggle_playing(): void {
@@ -163,7 +163,7 @@ Scope {
         }
     }
 
-    IpcHandler {
+    NpcHandler {
         target: "mirsal"
 
         function feedBookmarks(content: string) {

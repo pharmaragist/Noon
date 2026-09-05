@@ -9,13 +9,12 @@ import qs.common.utils
 import qs.common.widgets
 import qs.services
 
-
-
 Singleton {
     id: root
 
-    property bool ipcReady: false
     property bool commandsReady: false
+    readonly property Component procRunnerComponent: PlainStdoutProc {}
+    readonly property Component timerComponent: Timer {}
 
     function requestDialog(dialog, data) {
         if (!dialog)
@@ -154,10 +153,6 @@ Singleton {
         KdeConnectService.pingSelectedDevice(content);
     }
 
-    function callIpc(request) {
-        NoonUtils.execDetached(["qs", "-c", Paths.shellDir, "ipc", "call", request]);
-    }
-
     function execDetached(cmd) {
         let command = cmd;
         if (typeof cmd !== "string")
@@ -175,21 +170,19 @@ Singleton {
         return avList.some(domain => url.toLowerCase().includes(domain));
     }
 
-    function inlineProc(opts, command) {
-        let proc = Qt.createQmlObject("import Quickshell.Io; Process {}", root);
-
-        for (const [property, value] of Object.entries(opts)) {
-            if (property in proc) {
-                proc[property] = value;
-            }
-        }
-        proc.onExited.connect(() => proc.distroy());
+    function inlineStdProc(command, callback) {
+        let proc = procRunnerComponent.createObject(root, {
+            command: Array.isArray(command) ? command : [command],
+            callback: callback
+        });
+        proc.running = true;
     }
 
     function inlineTimer(callback, delay = Mem.options.hacks.arbitraryRaceConditionDelay) {
-        let timer = Qt.createQmlObject("import QtQml; Timer {}", root);
-        timer.interval = delay;
-        timer.repeat = false;
+        let timer = timerComponent.createObject(root, {
+            interval: delay,
+            repeat: false
+        });
         timer.triggered.connect(() => {
             callback();
             timer.destroy();
@@ -213,36 +206,6 @@ Singleton {
     function fetchCommands() {
         if (!commandsReady)
             commandLoader.running = true;
-    }
-
-    Process {
-        id: ipcCommands
-        running: Mem.ready && Mem.store.misc.ipcCommands.length === 0
-        command: ["bash", "-c", `qs -c ${Paths.methods.trim(Paths.standard.config)}/noon  ipc  show`]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const out = text.trim();
-                const parsed = [];
-                const blocks = out.split("target ").map(b => b.trim()).filter(b => b.length > 0);
-                for (let i = 0; i < blocks.length; ++i) {
-                    const block = blocks[i];
-                    const targetMatch = block.match(/^([^\s,]+)/);
-                    if (!targetMatch)
-                        continue;
-                    const target = targetMatch[1];
-                    const funcRegex = /function\s+([^\(]+)\(/g;
-                    let m;
-                    while ((m = funcRegex.exec(block)) !== null) {
-                        const fn = m[1].trim();
-                        parsed.push(target + " " + fn);
-                    }
-                }
-
-                Mem.store.misc.ipcCommands = parsed;
-                root.commandsReady = true;
-                console.log("[Noon] fetched IPC commands");
-            }
-        }
     }
 
     Process {

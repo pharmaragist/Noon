@@ -55,7 +55,7 @@ WidgetContainer {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onEntered: bounce.restart()
-            onPressed: NoonUtils.callIpc("global dino")
+            onPressed: Ipc.call(["global", "dino"])
         }
 
         StyledToolTip {

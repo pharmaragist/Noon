@@ -65,6 +65,10 @@ JsonAdapter {
         property string networkEthernet: "kcmshell6 kcm_networkmanagement"
     }
 
+    property JO apis: JO {
+        property int recallLimit: 10
+    }
+
     property JO services: JO {
         property JO search: JO {
             property int nonAppResultDelay: 120
@@ -134,6 +138,7 @@ JsonAdapter {
         property JO appearance: JO {
             property real animationScale: 1.0
             property string animationStyle: "expo"
+            property bool enableEmblem: true
         }
         property JO behavior: JO {
             property bool enableOldContent: false

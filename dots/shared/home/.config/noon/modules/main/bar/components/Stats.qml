@@ -10,26 +10,26 @@ BarGroup {
     implicitHeight: columnLayout.implicitHeight + (active ? Padding.massive : Padding.small)
     readonly property var stats: [
         {
-            id: "tasks",
+            id: "task",
             icon: "task_alt",
             handler: () => {
-                NoonUtils.callIpc("sidebar reveal Tasks");
+                Ipc.call(["sidebar", "reveal", "Tasks"]);
             },
             value: TodoService.list.length
         },
         {
-            id: "notifs",
+            id: "notif",
             icon: "notifications_active",
             handler: () => {
-                NoonUtils.callIpc("sidebar reveal Notifs");
+                Ipc.call(["sidebar", "reveal", "Notifs"]);
             },
             value: Notifications.list.length
         },
         {
-            id: "timers",
+            id: "timer",
             icon: "timer",
             handler: () => {
-                NoonUtils.callIpc("sidebar reveal Timers");
+                Ipc.call(["sidebar", "reveal", "Timers"]);
             },
             value: TimerService.timers.length
         }
@@ -62,7 +62,7 @@ BarGroup {
                 iconSize: 18
                 StyledToolTip {
                     extraVisibleCondition: hvr.containsMouse
-                    content: "You have " + modelData?.value + " pending " + modelData?.id
+                    content: "You have " + modelData?.value + " pending " + modelData?.id + (modelData?.value > 1 ? "s" : "")
                 }
                 MouseArea {
                     id: hvr

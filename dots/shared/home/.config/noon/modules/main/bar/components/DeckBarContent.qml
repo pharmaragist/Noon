@@ -60,7 +60,7 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onPressed: NoonUtils.callIpc("sidebar reveal Notifs")
+            onPressed: Ipc.call(["sidebar", "reveal", "Notifs"])
         }
     }
 

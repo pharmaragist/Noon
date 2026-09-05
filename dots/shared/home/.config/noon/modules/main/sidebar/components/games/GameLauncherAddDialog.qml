@@ -57,7 +57,7 @@ BottomDialog {
             materialIcon: "folder"
             action: () => {
                 GameLauncherService.addDialog.open();
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
             name: "Path:"
             placeholder: "/path/to/game.exe or /path/to/game"
@@ -69,7 +69,7 @@ BottomDialog {
             text: GameLauncherService.pendingSelectedCover
             action: () => {
                 GameLauncherService.addCoverDialog.open();
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
             name: "Cover:"
             placeholder: "/path/to/cover.jpg"

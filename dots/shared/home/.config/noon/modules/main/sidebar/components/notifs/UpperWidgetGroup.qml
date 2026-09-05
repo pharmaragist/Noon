@@ -38,11 +38,11 @@ Item {
                     materialIconFill: 1
                     altAction: () => {
                         NoonUtils.execDetached([Mem.hypr.editor, Paths.shellConfigs + "/options.json"]);
-                        NoonUtils.callIpc("sidebar hide");
+                        Ipc.call(["sidebar", "hide"]);
                     }
                     releaseAction: () => {
-                        NoonUtils.callIpc("sidebar hide");
-                        Qt.callLater(() => NoonUtils.callIpc("apps settings"));
+                        Ipc.call(["sidebar", "hide"]);
+                        Qt.callLater(() => Ipc.call(["apps", "settings"]));
                     }
                 }
 
@@ -51,7 +51,7 @@ Item {
                     buttonRadius: 20
                     materialIcon: "power_settings_new"
                     materialIconFill: 1
-                    releaseAction: () => NoonUtils.callIpc("sidebar reveal Session")
+                    releaseAction: () => Ipc.call(["sidebar", "reveal", "Session"])
                 }
             }
         }

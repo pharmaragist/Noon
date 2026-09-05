@@ -39,7 +39,7 @@ Item {
             cursorShape: Qt.PointingHandCursor
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: NoonUtils.callIpc("nobuntu toggle_notifs")
+            onClicked: Ipc.call(["nobuntu", "toggle_notifs"])
         }
     }
 }

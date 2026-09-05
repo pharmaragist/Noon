@@ -21,7 +21,7 @@ Item {
     readonly property bool completed: status === "completed"
     readonly property bool pendingApproval: isPending && (messageData?.functionPending ?? false) && root.callID === messageData?.permissionCallID
 
-    readonly property string statusIcon: isPending ? "awaiting approval" : (completed ? "done" : status)
+    readonly property string statusIcon: isPending ? "hourglass_empty" : (completed ? "done" : "")
     readonly property string statusTint: isPending ? Colors.colTertiary : Colors.colSubtext
 
     readonly property var dict: ({
@@ -51,10 +51,11 @@ Item {
             }
         })
 
-    readonly property var currentTool: dict[tool] ?? ({
-            "icon": "build",
-            "summary": JSON.stringify(input ?? {})
-        })
+    readonly property var currentTool: dict[tool]
+    // ?? ({
+    //         "icon": "build",
+    //         "summary": JSON.stringify(input ?? {})
+    //     })
 
     Layout.fillWidth: true
     implicitHeight: columnLayout.implicitHeight
@@ -112,11 +113,11 @@ Item {
                     }
 
                     Symbol {
+                        visible: text.length > 0
                         text: root.statusIcon
                         iconSize: 20
                         color: root.statusTint
                     }
-
                 }
             }
             StyledText {
@@ -147,12 +148,12 @@ Item {
             RippleButton {
                 buttonText: qsTr("Reject")
                 colBackground: Colors.colLayer2
-                downAction: () => Ai.rejectCommand(root.messageData)
+                downAction: () => Harness.rejectCommand(root.messageData)
             }
             RippleButton {
                 buttonText: qsTr("Approve")
                 colBackground: Colors.colLayer2
-                downAction: () => Ai.approveCommand(root.messageData)
+                downAction: () => Harness.approveCommand(root.messageData)
             }
         }
 
@@ -162,7 +163,7 @@ Item {
             vertical: true
             revealChild: StyledRect {
                 color: Colors.colLayer1
-                radius: height / 5
+                radius: Rounding.normal
                 implicitHeight: metaText.implicitHeight + 2 * Padding.large
                 Layout.fillWidth: true
 

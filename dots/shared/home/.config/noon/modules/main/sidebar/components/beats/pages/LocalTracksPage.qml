@@ -72,7 +72,7 @@ StyledRect {
     }
 
     radius: Rounding.verylarge
-    color: colors.colLayer1
+    color:  "transparent" // colors.colLayer1
     colors: MediaPlayerService?.colors
 
     StyledGridView {
@@ -84,7 +84,7 @@ StyledRect {
         model: filteredModel
         readonly property int columns: controls.listMode ? 1 : root.expanded ? 4 : 2
         cellWidth: width / columns
-        cellHeight: controls.listMode ? 76 : cellWidth
+        cellHeight: controls.listMode ? 110 : cellWidth
         property string libPath: Mem.beats.directory + "/"
         delegate: TrackItem {
             listMode: controls?.listMode ?? false

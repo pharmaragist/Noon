@@ -55,7 +55,7 @@ Item {
         implicitSize: 45
         materialIcon: "close"
         opacity: this.hovered ? 1 : 0.45
-        onClicked: NoonUtils.callIpc("sidebar dismiss_aux")
+        onClicked: Ipc.call(["sidebar", "dismiss_aux"])
     }
 
     ColumnLayout {

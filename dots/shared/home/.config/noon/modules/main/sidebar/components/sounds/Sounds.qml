@@ -18,33 +18,35 @@ SidebarItemContainer {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: Padding.large
+        anchors.margins: Padding.small
         spacing: Padding.huge
 
-        PageHeader {
-            title: "Sounds"
-            subTitle: "Manage volume outputs."
-        }
-        StyledListView {
-            id: listView
+        StyledRect {
+            color: colors.colLayer1
+            radius: Rounding.verylarge
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
-            spacing: 3
+            StyledListView {
+                id: listView
+                clip: true
+                spacing: 3
+                anchors.fill: parent
+                anchors.margins: Padding.normal
 
-            model: root.appPwNodes
-            delegate: MixerItem {
-                list: listView
-                anchors.left: parent?.left
-                anchors.right: parent?.right
-                topRadius: index === 0 ? Rounding.verylarge : Rounding.tiny
-                bottomRadius: index === listView.count - 1 ? Rounding.huge : Rounding.tiny
-            }
-            PagePlaceholder {
-                visible: listView.count === 0
-                icon: "brand_awareness"
-                title: "Nothing Playing"
-                shape: MaterialShape.Shape.Bun
+                model: root.appPwNodes
+                delegate: MixerItem {
+                    list: listView
+                    anchors.left: parent?.left
+                    anchors.right: parent?.right
+                    topRadius: index === 0 ? Rounding.verylarge : Rounding.verytiny
+                    bottomRadius: index === listView.count - 1 ? Rounding.verylarge : Rounding.verytiny
+                }
+                PagePlaceholder {
+                    visible: listView.count === 0
+                    icon: "brand_awareness"
+                    title: "Nothing Playing"
+                    shape: MaterialShape.Shape.Bun
+                }
             }
         }
 

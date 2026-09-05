@@ -153,7 +153,7 @@ StyledRect {
                 "action": () => {
                     NoonUtils.open(path);
                     if (!Globals.main.sidebar.pinned) {
-                        NoonUtils.callIpc("sidebar hide");
+                        Ipc.call(["sidebar", "hide"]);
                     }
                 }
             },
@@ -163,7 +163,7 @@ StyledRect {
                 "materialIcon": "globe",
                 "action": () => {
                     NoonUtils.open(path);
-                    NoonUtils.callIpc("sidebar reveal Web");
+                    Ipc.call(["sidebar", "reveal", "Web"]);
                 }
             },
             {
@@ -172,7 +172,7 @@ StyledRect {
                 "materialIcon": "stylus",
                 "action": () => {
                     NotesService.note(path + " \n---");
-                    NoonUtils.callIpc("sidebar reveal Notes");
+                    Ipc.call(["sidebar", "reveal", "Notes"]);
                 }
             },
             {
@@ -191,7 +191,7 @@ StyledRect {
                 "action": () => {
                     NoonUtils.runDownloader(path);
                     if (!Globals.main.sidebar.pinned) {
-                        NoonUtils.callIpc("sidebar hide");
+                        Ipc.call(["sidebar", "hide"]);
                     }
                 }
             },

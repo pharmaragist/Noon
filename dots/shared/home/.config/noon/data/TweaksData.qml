@@ -630,6 +630,13 @@ Singleton {
                     "key": "sidebar.content.apis"
                 },
                 {
+                    "icon": "format_list_numbered",
+                    "name": "Recall Limit",
+                    "hint": "History messages per page (1-50)",
+                    "key": "apis.recallLimit",
+                    "type": "spin"
+                },
+                {
                     "icon": "supervisor_account",
                     "name": "Screen Time",
                     "key": "sidebar.content.screenTime"
@@ -796,7 +803,7 @@ Singleton {
                     "type": "action",
                     "actionIcon": "download",
                     "releaseAction": () => {
-                        NoonUtils.callIpc("sidebar reveal Packages");
+                        Ipc.call(["sidebar", "reveal", "Packages"]);
                     }
                 },
                 {

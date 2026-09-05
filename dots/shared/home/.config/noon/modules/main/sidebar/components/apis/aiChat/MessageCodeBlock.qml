@@ -20,8 +20,8 @@ StyledRect {
     property var displayLang: (isCommandRequest ? "bash" : segmentLang)
     property var messageData: parent?.messageData ?? {}
     property bool thinking: false
-    implicitHeight: Math.min(contentCol.implicitHeight + Padding.huge , 500)
 
+    implicitHeight: contentCol.implicitHeight + Padding.huge
     Layout.fillWidth: true
     color: Colors.colLayer1
     radius: Rounding.huge

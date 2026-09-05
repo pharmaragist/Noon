@@ -12,7 +12,7 @@ import qs.data
 
 
 
-IpcHandler {
+NpcHandler {
     target: "ai"
 
 

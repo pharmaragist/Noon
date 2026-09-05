@@ -5,7 +5,7 @@ import qs.common.utils
 import qs.services
 import qs.data
 
-IpcHandler {
+NpcHandler {
     target: "xp"
 
     function toggle_run() {

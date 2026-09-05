@@ -109,7 +109,7 @@ Singleton {
         nameFilters: ["*.zip *.tar.gz *.tar", "All files (*)"]
         onAccepted: {
             root.selectedLocation = Paths.methods.trim(currentFile);
-            NoonUtils.callIpc("sidebar reveal Plugins");
+            Ipc.call(["sidebar", "reveal", "Plugins"]);
         }
     }
 
@@ -125,7 +125,7 @@ Singleton {
         onExited: refreshAll()
     }
 
-    IpcHandler {
+    NpcHandler {
         target: "plugins"
         function reload(): void {
             root.refreshAll();

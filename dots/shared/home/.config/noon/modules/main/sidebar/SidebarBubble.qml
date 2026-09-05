@@ -36,13 +36,13 @@ Item {
                     {
                         "icon": "clear_all",
                         "action": () => {
-                            Ai.clearMessages();
+                            Harness.clearMessages();
                         }
                     },
                     {
                         "icon": "globe",
                         "action": () => {
-                            Ai.openInTerm();
+                            Harness.openInTerm();
                         }
                     }
                 ]

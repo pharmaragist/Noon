@@ -19,6 +19,6 @@ BarGroup {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: NoonUtils.callIpc("noon toggle_beam")
+        onClicked: Ipc.call(["noon", "toggle_beam"])
     }
 }

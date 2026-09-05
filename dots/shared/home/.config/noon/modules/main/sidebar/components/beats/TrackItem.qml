@@ -16,15 +16,16 @@ StyledRect {
     property bool isPlaylist
     property var action
     property bool listMode: false
-    property int margins: listMode ? Padding.tiny : Padding.large
+    property int margins: listMode ? Padding.small : Padding.large
     readonly property real fontScale: listMode ? 1 : 0.9
 
     clip: true
-    color: colors.colLayer2
+    color: "transparent"
     colors: MediaPlayerService?.colors
+    radius: listMode ? Rounding.large : Rounding.huge
 
-    topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.verytiny) : Rounding.huge
-    bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.verytiny) : Rounding.huge
+    // topRadius: listMode ? (index === 0 ? Rounding.large : Rounding.verytiny) : Rounding.huge
+    // bottomRadius: listMode ? (index === parent?.count - 1 ? Rounding.large : Rounding.verytiny) : Rounding.huge
 
     signal preview(url: string, x: int, y: int)
 
@@ -48,14 +49,15 @@ StyledRect {
         z: 999
         clip: true
 
-        anchors.top: !root.listMode ? undefined : parent.top
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.left: root.listMode ? coverArt.right : parent.left
+        anchors.leftMargin: root.listMode ? Padding.small : 0
+        leftRadius: root.listMode ? Rounding.verytiny : 0
 
-        color: root.colors.colLayer3
+        color: root.colors.colLayer2
         width: parent.width - 50
-        height: 45
+        height: !root.listMode ? 50 : parent.height
         RowLayout {
             anchors.left: parent.left
             anchors.right: parent.right
@@ -63,11 +65,12 @@ StyledRect {
             anchors.rightMargin: Padding.veryhuge
             anchors.leftMargin: Padding.veryhuge
             spacing: Padding.huge
-            implicitHeight: 45
+            implicitHeight: 50
+
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: -Padding.tiny
+                spacing: 0
 
                 StyledText {
                     font: Fonts.request("title", 18 * root.fontScale)
@@ -97,12 +100,17 @@ StyledRect {
         }
     }
 
-    Item {
+    StyledRect {
         id: coverArt
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         implicitWidth: height
+        leftRadius: listMode ? Rounding.large : 0
+        rightRadius: listMode ? Rounding.verytiny : 0
+        color: root.colors.colLayer2
+        clip: true
+
         Symbol {
             text: "music_note"
             visible: !modelData.thumbnail

@@ -25,7 +25,7 @@ Item {
 
     property real dragConfirmThreshold: 70
     property real dismissOvershoot: 20
-    property var qmlParent: root.parent.parent
+    property var qmlParent: root?.parent?.parent ?? null
     property var parentDragIndex: qmlParent.dragIndex
     property var parentDragDistance: qmlParent.dragDistance
     property var dragIndexDiff: Math.abs(parentDragIndex - index)

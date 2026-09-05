@@ -6,7 +6,7 @@ import qs.common.functions
 
 Scope {
     id: root
-    IpcHandler {
+    NpcHandler {
         id: ipc
         target: "nobuntu"
         function toggle_db() {

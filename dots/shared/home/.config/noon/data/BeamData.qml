@@ -49,7 +49,7 @@ Singleton {
             showHint: false,
             hinter: () => "",
             executor: () => {
-                Ai.sendUserMessage(query);
+                Harness.sendUserMessage(query);
                 revealSidebar("API");
             }
         },
@@ -337,16 +337,14 @@ Singleton {
             placeholder: "Just Order ..?",
             showHint: true,
             hinter: () => {
-                if (Mem.store.misc.ipcCommands.length < 1)
-                    NoonUtils.fetchIpcCommands();
                 const q = cleanQuery.toLowerCase();
-                for (let cmd of Mem.store.misc.ipcCommands) {
+                for (let cmd of Ipc.commands) {
                     if (cmd.toLowerCase().startsWith(q))
                         return cmd;
                 }
                 return "";
             },
-            executor: () => NoonUtils.callIpc(cleanQuery)
+            executor: () => Ipc.call(Ipc.split(cleanQuery))
         }
     }
 
@@ -507,7 +505,7 @@ Singleton {
     }
 
     function revealSidebar(cat) {
-        NoonUtils.callIpc(`sidebar reveal '${cat}'`);
+        Ipc.call(["sidebar", "reveal", cat]);
     }
 
     function autocomplete(hintText) {

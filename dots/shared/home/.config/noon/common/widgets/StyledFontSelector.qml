@@ -8,7 +8,7 @@ RippleButtonWithIcon {
     materialIcon: "match_case"
     materialIconFill: true
     releaseAction: () => {
-        NoonUtils.callIpc("sidebar hide");
+        Ipc.call(["sidebar", "hide"]);
         Fonts.pickGlobalFont();
     }
 }

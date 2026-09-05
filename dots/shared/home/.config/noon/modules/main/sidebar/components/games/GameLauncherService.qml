@@ -133,7 +133,7 @@ Singleton {
 
     function optimizeSystem() {
         NoonUtils.execDetached("hyprctl --batch keyword animations:enabled 0; keyword decoration:shadow:enabled 0; keyword decoration:blur:enabled 0; keyword general:gaps_in 0; keyword general:gaps_out 0; keyword general:border_size 1; keyword input:sensitivity 0; keyword decoration:rounding 0; keyword general:allow_tearing 1");
-        NoonUtils.callIpc("global deload");
+        Ipc.call(["global", "deload"]);
     }
 
     Process {
@@ -163,7 +163,7 @@ Singleton {
         })
         onExited: {
             root.currentGame.status = status_installed;
-            NoonUtils.callIpc("global load");
+            Ipc.call(["global", "load"]);
             NoonUtils.execDetached("hyprctl reload");
         }
     }
@@ -174,7 +174,7 @@ Singleton {
         nameFilters: ["Executable files (*.exe *.AppImage *.sh)", "All files (*)"]
         onAccepted: {
             root.pendingSelectedGame = Paths.methods.trim(currentFile);
-            NoonUtils.callIpc("sidebar reveal Games");
+            Ipc.call(["sidebar", "reveal", "Games"]);
         }
     }
 
@@ -184,7 +184,7 @@ Singleton {
         nameFilters: ["Image files (*.png *.jpg *.jpeg)", "All files (*)"]
         onAccepted: {
             root.pendingSelectedCover = Paths.methods.trim(currentFile);
-            NoonUtils.callIpc("sidebar reveal Games");
+            Ipc.call(["sidebar", "reveal", "Games"]);
         }
     }
 

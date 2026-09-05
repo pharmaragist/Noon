@@ -7,6 +7,6 @@ BarRevealerIndicator {
     expanded: true
     icon: weatherData?.material_icon ?? ""
     text: weatherData?.current_temp?.slice(0, -1)
-    releaseAction: () => NoonUtils.callIpc("noon reveal_beam weather")
+    releaseAction: () => Ipc.call(["noon", "reveal_beam", "weather"])
     Component.onCompleted: WeatherService.loadWeather()
 }

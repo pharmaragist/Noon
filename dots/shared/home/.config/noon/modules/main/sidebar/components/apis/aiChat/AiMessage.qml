@@ -20,7 +20,7 @@ Item {
 
     readonly property bool isLive: root.messageData ? !root.messageData.done : false
     readonly property list<var> messageBlocks: TextUtils.splitMarkdownBlocks(
-        root.isLive ? Ai.liveContent : (root.messageData?.content ?? ""))
+        root.isLive ? Harness.liveContent : (root.messageData?.content ?? ""))
 
     anchors.left: parent?.left
     anchors.right: parent?.right
@@ -35,7 +35,7 @@ Item {
         id: loading
         messageData: root.messageData
         blockCount: root.messageBlocks.length
-        done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? true)
+        done: root.isLive ? Harness.liveDone : (root.messageData?.done ?? true)
         queued: root.messageData?.queued ?? false
     }
 
@@ -73,8 +73,8 @@ Item {
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             messageData: root.messageData
-                            done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? false)
-                            thinking: root.isLive ? Ai.liveThinking : false
+                            done: root.isLive ? Harness.liveDone : (root.messageData?.done ?? false)
+                            thinking: root.isLive ? Harness.liveThinking : false
                             forceDisableChunkSplitting: root.messageData?.content?.includes("```") ?? true
                         }
                     }
@@ -87,7 +87,7 @@ Item {
                             segmentContent: modelData.content
                             segmentLang: modelData.lang
                             messageData: root.messageData
-                            thinking: root.isLive ? Ai.liveThinking : false
+                            thinking: root.isLive ? Harness.liveThinking : false
                         }
                     }
 
@@ -99,7 +99,7 @@ Item {
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             messageData: root.messageData
-                            done: root.isLive ? Ai.liveDone : (root.messageData?.done ?? false)
+                            done: root.isLive ? Harness.liveDone : (root.messageData?.done ?? false)
                             completed: modelData.completed ?? false
                         }
                     }
@@ -141,7 +141,11 @@ Item {
 
         MessageActionBar {
             id: actionBar
-            visible: root.isLive ? Ai.liveDone : (messageData?.done ?? true)
+            // Tool-only step bubbles (one db row per tool call, no text)
+            // get no bar: copy of "" is useless and N steps meant N bars.
+            // Delete/regenerate stay on the text bubbles.
+            readonly property bool hasText: ((root.isLive ? Harness.liveContent : (root.messageData?.content ?? "")).trim().length > 0)
+            visible: (root.isLive ? Harness.liveDone : (messageData?.done ?? true)) && hasText
             Layout.leftMargin: Padding.large
             Layout.alignment: Qt.AlignLeft
             messageIndex: root.messageIndex

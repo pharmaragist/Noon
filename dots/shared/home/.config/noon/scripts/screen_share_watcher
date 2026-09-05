@@ -5,7 +5,10 @@ WINDOW_DATA="/var/tmp/cast-window-data"
 >"$RESULT_FILE"
 echo "$XDPH_WINDOW_SHARING_LIST" >"$WINDOW_DATA"
 
-noon ipc call sidebar reveal Cast 2>/dev/null
+# ponytail: npc over its socket (~20ms) instead of noon/qs (~100ms+).
+# dirname-based (portal env has no PATH guarantees), noon as fallback.
+NPC=($(dirname "$0")/npc call); [[ -x "${NPC[0]}" ]] || NPC=(noon ipc call)
+"${NPC[@]}" sidebar reveal Cast 2>/dev/null
 
 for _ in $(seq 1 150); do
   [[ -s "$RESULT_FILE" ]] && break

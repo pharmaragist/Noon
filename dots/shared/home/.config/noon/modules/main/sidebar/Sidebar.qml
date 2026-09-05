@@ -141,7 +141,7 @@ Scope {
                 id: dropArea
                 anchors.fill: parent
                 keys: ["text/uri-list"]
-                onEntered: NoonUtils.callIpc("sidebar reveal Shelf")
+                onEntered: Ipc.call(["sidebar", "reveal", "Shelf"])
             }
 
             StyledRectangularShadow {
@@ -270,7 +270,7 @@ Scope {
                 }
             }
 
-            IpcHandler {
+            NpcHandler {
                 target: "sidebar"
 
                 function reveal_aux(cat: string) {

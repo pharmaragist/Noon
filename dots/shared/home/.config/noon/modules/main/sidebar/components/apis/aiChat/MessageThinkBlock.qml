@@ -2,6 +2,7 @@ import qs.services
 import qs.common
 import qs.common.widgets
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Item {
@@ -14,14 +15,21 @@ Item {
     property bool done: parent?.done ?? true
     property bool completed: parent?.completed ?? false
 
-    property bool collapsed: completed
+    property bool collapsed: true
+    property int _dots: 0
+
+    Timer {
+        running: !root.completed
+        interval: 400
+        repeat: true
+        onTriggered: root._dots = (root._dots + 1) % 4
+    }
 
     Layout.fillWidth: true
     implicitHeight: Math.max(40, columnLayout.implicitHeight)
 
     MouseArea {
         id: mouseArea
-        enabled: root.completed
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
@@ -67,7 +75,7 @@ Item {
                 truncate: true
                 Layout.rightMargin: Padding.large
                 Layout.alignment: Qt.AlignLeft
-                text: root.completed ? qsTr("Thought") : (qsTr("Thinking") + ".".repeat(Math.random() * 4))
+                text: root.completed ? qsTr("Thought") : (qsTr("Thinking") + ".".repeat(root._dots))
             }
         }
 
@@ -75,18 +83,22 @@ Item {
             reveal: !root.collapsed
             Layout.fillWidth: true
             vertical: true
-            revealChild: MessageTextBlock {
-                id: messageTextBlock
+            // Deliberately NOT MessageTextBlock: thinking is collapsed by
+            // default and rarely read, so plain text avoids the markdown /
+            // LaTeX / chunk-fade machinery per think block.
+            revealChild: TextArea {
                 visible: parent?.reveal
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                editing: root.editing
-                renderMarkdown: root.renderMarkdown
-                enableMouseSelection: root.enableMouseSelection
-                segmentContent: root.segmentContent
-                messageData: root.messageData
-                done: root.done
+                readOnly: true
+                selectByMouse: root.enableMouseSelection
+                renderType: Text.NativeRendering
+                wrapMode: TextEdit.Wrap
+                textFormat: TextEdit.PlainText
+                font: Fonts.request("main", "small")
+                color: Colors.colSubtext
+                text: root.segmentContent
             }
         }
     }

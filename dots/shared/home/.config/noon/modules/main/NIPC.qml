@@ -9,7 +9,7 @@ import qs.services
 import qs.data
 
 Scope {
-    IpcHandler {
+    NpcHandler {
         target: "noon"
 
         function toggle_expose() {

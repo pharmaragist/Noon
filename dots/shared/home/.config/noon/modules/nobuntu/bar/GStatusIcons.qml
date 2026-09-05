@@ -91,7 +91,7 @@ StyledRect {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: NoonUtils.callIpc("nobuntu toggle_db")
+        onClicked: Ipc.call(["nobuntu", "toggle_db"])
     }
 
     function getNetIcon() {
