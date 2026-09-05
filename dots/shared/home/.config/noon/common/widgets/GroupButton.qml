@@ -27,8 +27,8 @@ Button {
     property real baseHeight: baseSize
     property real baseSize: contentItem.implicitHeight + verticalPadding + horizontalPadding
 
-    property real clickedWidth: baseWidth + 20
-    property real clickedHeight: baseHeight
+    property real clickedWidth: (parentGroup?.vertical ?? false) ? baseWidth : baseWidth + 20
+    property real clickedHeight: (parentGroup?.vertical ?? false) ? baseHeight + 20 : baseHeight
     property var parentGroup: root.parent
     property int clickIndex: parentGroup?.clickIndex ?? -1
     Layout.fillWidth: (clickIndex - 1 <= parentGroup.children.indexOf(root) && parentGroup.children.indexOf(root) <= clickIndex + 1)

@@ -101,7 +101,6 @@ Variants {
             acceptedButtons: Qt.NoButton
             scrollGestureEnabled: true
 
-
             Timer {
                 id: idleTimer
                 repeat: true
@@ -163,6 +162,8 @@ Variants {
             id: popup
             target: bg
             reveal: root.reveal && root.revealReason === "default"
+            topRadius: root.currentModeData?.ignoreRadiusComplement ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.target.bottomRadius
+            bottomRadius: root.currentModeData?.ignoreRadiusComplement ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.shown ? Rounding.tiny : target.bottomRadius
         }
 
         StyledRectangularShadow {
@@ -184,9 +185,9 @@ Variants {
             topRadius: popup.shown ? Rounding.tiny : bottomRadius
             elevationValue: root.elevationValue
             animationDuration: 300
-            bottomRadius: root.currentModeData.radius ?? height / 2
             height: root.currentModeData.size?.height ?? 1000
             width: root.currentModeData.size?.width ?? 1000
+            bottomRadius: (root.contentModeData.ignoreRadiusComplement ?? false) ? (root.currentModeData.radius ?? height / 2) : 0
             color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
 
             contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")

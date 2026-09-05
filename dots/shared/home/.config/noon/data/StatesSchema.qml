@@ -118,6 +118,8 @@ JsonAdapter {
     }
     property JO sidebar: JO {
         property list<string> _expanded: []
+        property list<string> _pinned: []
+
         property var tabIndexCache: ({})
         property JO shelf: JO {
             property list<string> filePaths: []

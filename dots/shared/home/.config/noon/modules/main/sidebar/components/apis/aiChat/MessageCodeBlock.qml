@@ -21,7 +21,7 @@ StyledRect {
     property var messageData: parent?.messageData ?? {}
     property bool thinking: false
 
-    implicitHeight: contentCol.implicitHeight + Padding.huge
+    implicitHeight: Math.max(100, contentCol.implicitHeight + Padding.huge)
     Layout.fillWidth: true
     color: Colors.colLayer1
     radius: Rounding.huge
@@ -133,8 +133,7 @@ StyledRect {
                     color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
 
                     text: segmentContent
-                    onTextChanged: segmentContent = text;
-
+                    onTextChanged: segmentContent = text
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Tab) {

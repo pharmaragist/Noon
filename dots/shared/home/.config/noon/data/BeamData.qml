@@ -23,7 +23,7 @@ Singleton {
     readonly property var subConfig: config?.subStates ? config.subStates[activeSubState] : null
     readonly property var rawBeamPlugins: PluginsManager?.beamPlugins
     readonly property list<string> availableAnimationStyles: ["slidebottom", "expo", "springPop", "glide"]
-    readonly property int dynamicWidth: Math.max(getHint().length, query.length) > 25 ? Sizes.beam.expanded.width : Sizes.beam.normal.width
+    readonly property int dynamicWidth: getDynamicWidth()
 
     onQueryChanged: {
         if (query && query.length === 0) {
@@ -179,11 +179,12 @@ Singleton {
             placeholder: "Wanna Search Google ..?",
             showHint: true,
             hinter: () => {
-                if (!subConfig && BookmarksService.bookmarkTitles.length > 0) {
+                // TODO CATCH COMMANDS AND HINT THEM ALSO FUZZY SEARCH 'EM
+                if (!subConfig && Mem.store.search.data.length > 0) {
                     const q = cleanQuery.toLowerCase();
-                    for (let bookmark of BookmarksService.bookmarkTitles) {
-                        if (bookmark.toLowerCase().startsWith(q))
-                            return bookmark;
+                    for (let site of Mem.store.search.data) {
+                        if (site.toLowerCase().startsWith(q))
+                            return site;
                     }
                 }
                 return "";
@@ -362,10 +363,7 @@ Singleton {
     ]
     readonly property var sizes: Sizes.beam
     readonly property var contentMap: {
-        "default": {
-            size: Qt.size(root.dynamicWidth, Sizes.beam.normal.height),
-            component: "BeamContentView"
-        },
+        "default": getDefaultBeamOptions(),
         "dictate": {
             timeout: false,
             size: sizes.dictate,
@@ -422,6 +420,9 @@ Singleton {
         activeSubState = "";
         suggestedApp = null;
         activeState = defaultState;
+    }
+    function getDynamicWidth(size = [470, 100]) {
+        return Math.max(getHint().length, query.length) > 25 ? size?.[1] : size?.[0];
     }
 
     function getIcon() {
@@ -519,7 +520,23 @@ Singleton {
 
         return prefix + hintText;
     }
-
+    function getDefaultBeamOptions() {
+        const all = {
+            "default": {
+                "component": "BeamContentView",
+                "size": Qt.size(root.dynamicWidth, Sizes.beam.normal.height)
+            },
+            "alternate": {
+                "component": "BeamAlternateView",
+                "transparent": true,
+                "popupRadius": Rounding.huge,
+                "ignoreRadiusComplement": true,
+                "size": Qt.size(getDynamicWidth([450, 1100]), Sizes.beam.normal.height + Padding.huge)
+            }
+        };
+        const current = Mem.options.beam.appearance?.theme ?? "default";
+        return all[(current ?? "default")];
+    }
     Process {
         id: shellRunner
 

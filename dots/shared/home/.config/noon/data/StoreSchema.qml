@@ -6,6 +6,9 @@ JsonAdapter {
     }
 
     property JO services: JO {
+        property JO search: JO {
+            property var data: ({})
+        }
         property JO weather: JO {
             property var data: ({})
         }

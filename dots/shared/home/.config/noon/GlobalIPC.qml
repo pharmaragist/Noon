@@ -34,6 +34,15 @@ Scope {
             });
         }
 
+        function preview_file(t: string, p: string): void {
+            NoonUtils.spawnApp("Look", {
+                "content": {
+                    "type": t,
+                    "payload": p
+                }
+            });
+        }
+
         function preview_url(url: string): void {
             console.log(url);
             BeatsService.previewURL(url);
@@ -158,8 +167,8 @@ Scope {
         function volume_up(): void {
             AudioService.sink.audio.volume += 0.1;
         }
-        function install_pkg(name:string) {
-            PackagesService.install(name)
+        function install_pkg(name: string) {
+            PackagesService.install(name);
         }
     }
 

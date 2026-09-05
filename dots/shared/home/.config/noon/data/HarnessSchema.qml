@@ -6,11 +6,12 @@ JsonAdapter {
     property list<var> skills: []
     property list<var> models: []
     property string effort: ""
+    property string persona: "main.md"
     property string model: ""
     property string currentSessionId: ""
     property int recallLimit: 10
     property bool preloadMessages: false
-    property string sessionDir: Paths.services.harnessSessionDir
+    property string sessionDir: Paths.services.harnessDir
     property JO tokenCount: JO {
         property int input
         property int output

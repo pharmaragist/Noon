@@ -23,7 +23,9 @@ Singleton {
     readonly property string baseCmd: Paths.scriptsDir + "/go/ai/harness"
     readonly property int maxLoadedMessages: 200
     readonly property string systemPrompt: states.systemPrompt
-    readonly property var bridgeEnv: ({ "SESSION_DIR": root.states.sessionDir })
+    readonly property var bridgeEnv: ({
+            "SESSION_DIR": root.states.sessionDir
+        })
     property string liveContent: ""
     property bool liveThinking: false
     property bool liveDone: false
@@ -37,15 +39,13 @@ Singleton {
     property string _pendingSend: ""
 
     Component.onCompleted: {
+        root.setupPersonality();
         root.refreshSessions();
         skillsFetcher.refresh();
         modelsFetcher.refresh();
         root.maybePreload();
     }
 
-    // Opt-in (ai.preloadMessages): recall the persisted session on shell
-    // start — one page honoring recallLimit. Runs on completion and again
-    // when state arrives, since Mem.ai may load after us.
     function maybePreload() {
         if ((root.states.preloadMessages ?? false) && root.currentSessionId && root.messageIDs.length === 0 && !root.loadingMessages)
             root.loadChat(root.currentSessionId);
@@ -53,20 +53,21 @@ Singleton {
 
     onStatesChanged: root.maybePreload()
 
-    onSystemPromptChanged: if (systemPrompt) {
-        setupPersonality();
-    }
-
-    function setupPersonality() {
+    function setupPersonality(name = "main.md") {
         const m = Paths.methods;
-        const targetInstPath = Paths.services.harnessPersonality;
+        const targetInstPath = states.sessionDir + "/" + name;
         const targetInstPathClean = m.collapsePath(targetInstPath);
         const opencodeConfigPath = m.trim(Paths.standard.config) + "/opencode/opencode.jsonc";
 
-        // For opencode.jsonc
-        const cmd = `jq --arg p "${targetInstPathClean}" '.instructions = (if .instructions == null then [$p] elif (.instructions | index($p)) then .instructions else .instructions + [$p] end)' "${opencodeConfigPath}" > "${opencodeConfigPath}.tmp" && mv "${opencodeConfigPath}.tmp" "${opencodeConfigPath}"`;
-        NoonUtils.execDetached(cmd);
+        const cmd = `jq --arg p "${targetInstPathClean}" '
+            if . == null then
+                {instructions: [$p]}
+            else
+                .instructions = ((.instructions // []) + [$p] | unique)
+            end
+        ' "${opencodeConfigPath}" > "${opencodeConfigPath}.tmp" && mv "${opencodeConfigPath}.tmp" "${opencodeConfigPath}"`;
 
+        NoonUtils.execDetached(cmd);
         m.createFileWith(targetInstPath, systemPrompt);
     }
 
@@ -492,7 +493,8 @@ Singleton {
         root._pendingSend = message;
         root.acpWrite({
             cmd: "new",
-            cwd: root.sessionCwd(root.currentSessionId)
+            cwd: root.sessionCwd(root.currentSessionId),
+            shellRoot: Paths.shellDir
         });
     }
 

@@ -45,6 +45,27 @@ func dbFile() string {
 	return dataHome() + "/opencode/opencode.db"
 }
 
+// noonMCP attaches the noon MCP server (sibling binary) to sidebar
+// sessions only. Missing/unexecutable binary -> no servers, never an error.
+func noonMCP(shellRoot string) []interface{} {
+	exe, err := os.Executable()
+	if err != nil {
+		return []interface{}{}
+	}
+	bin := filepath.Dir(exe) + "/mcp"
+	if st, err := os.Stat(bin); err != nil || st.IsDir() || st.Mode()&0111 == 0 {
+		return []interface{}{}
+	}
+	env := []interface{}{}
+	if shellRoot != "" {
+		env = append(env, map[string]interface{}{"name": "NOON_SHELL_ROOT", "value": shellRoot})
+	}
+	return []interface{}{map[string]interface{}{
+		"type": "stdio", "name": "noon", "command": bin,
+		"args": []interface{}{}, "env": env,
+	}}
+}
+
 // Session matches the shape Harness.qml -> root.sessions consumes from refreshSessions.
 type Session struct {
 	ID        string `json:"id"`
@@ -567,7 +588,8 @@ func (b *bridge) doModel(cmd map[string]interface{}) {
 // doNew handles {"cmd":"new"} via session/new.
 func (b *bridge) doNew(cmd map[string]interface{}) {
 	cwd := cwdOf(cmd)
-	res, err := b.call("session/new", map[string]interface{}{"cwd": cwd, "mcpServers": []interface{}{}})
+	shellRoot, _ := cmd["shellRoot"].(string)
+	res, err := b.call("session/new", map[string]interface{}{"cwd": cwd, "mcpServers": noonMCP(shellRoot)})
 	if err != nil {
 		qemit(map[string]interface{}{"type": "error", "message": err.Error()})
 		return

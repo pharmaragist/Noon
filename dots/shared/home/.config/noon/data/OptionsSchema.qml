@@ -132,8 +132,9 @@ JsonAdapter {
 
     property JO beam: JO {
         property JO appearance: JO {
-            property real animationScale: 1.0
+            property string theme: "default"
             property string animationStyle: "expo"
+            property real animationScale: 1.0
             property bool enableEmblem: true
         }
         property JO behavior: JO {
@@ -182,6 +183,8 @@ JsonAdapter {
             property bool enableResizeOverlay: true
             property bool rememberTabIndex: true
             property bool rememberExpanded: true
+            property bool rememberPinned: true
+
         }
 
         property JO navRail: JO {

@@ -71,9 +71,9 @@ BarGroup {
                 Separator {
                     anchors {
                         margins: 8
-                        verticalCenter: parent.verticalCenter
-                        right: parent.right
-                        left: parent.left
+                        verticalCenter: parent?.verticalCenter
+                        right: parent?.right
+                        left: parent?.left
                     }
                 }
             }

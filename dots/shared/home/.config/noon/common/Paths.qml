@@ -42,8 +42,7 @@ Singleton {
         readonly property string clipboardCache: methods.trim(standard.cache + "/media/clipboard")
         readonly property string records: methods.trim(standard.videos + "/records")
         readonly property string favicons: methods.trim(standard.cache + "/media/favicons")
-        readonly property string harnessPersonality: methods.trim(standard.state + "/harness/personality.md")
-        readonly property string harnessSessionDir: methods.trim(standard.state + "/harness")
+        readonly property string harnessDir: methods.trim(standard.state + "/harness")
     }
 
 

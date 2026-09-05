@@ -1,189 +1,32 @@
+// Command npc is a fast Quickshell IPC client (stdlib only, nothing to install).
+//
+// Thin CLI over the qipc package (the wire protocol's single source of
+// truth); all socket logic lives there.
+//
+//	npc call <target> <function> [args...]
+//
+// The return value goes to stdout (like `qs ipc call`), errors to stderr.
+// Exit codes: 0 ok, 2 no target, 3 no function, 4 argument mismatch, 1 other.
+// Falls back to exec'ing `qs` when no live socket answers.
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/binary"
 	"flag"
 	"fmt"
-	"io"
-	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"sort"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
-	"unicode/utf16"
+
+	"weather_service/qipc"
 )
-
-const (
-	cmdCall         = 3
-	respNotReady    = 1
-	respNoTarget    = 2
-	respNoFunc      = 3
-	respArgMismatch = 4
-	respCompleted   = 5
-	maxStringLen    = 1 << 20
-	readBufSize     = 4096
-)
-
-func runtimeDir() string {
-	if d := os.Getenv("XDG_RUNTIME_DIR"); d != "" {
-		return d
-	}
-	return "/run/user/" + strconv.Itoa(os.Getuid())
-}
-
-func writeQString(buf *bytes.Buffer, s string) error {
-	units := utf16.Encode([]rune(s))
-	byteLen := len(units) * 2
-	if byteLen > maxStringLen {
-		return fmt.Errorf("string too large")
-	}
-	if err := binary.Write(buf, binary.BigEndian, uint32(byteLen)); err != nil {
-		return err
-	}
-	return binary.Write(buf, binary.BigEndian, units)
-}
-
-func readQString(r io.Reader) (string, error) {
-	var ln uint32
-	if err := binary.Read(r, binary.BigEndian, &ln); err != nil {
-		return "", err
-	}
-	if ln == ^uint32(0) {
-		return "", nil
-	}
-	if ln > maxStringLen || ln%2 != 0 {
-		return "", fmt.Errorf("bad QString length %d", ln)
-	}
-	units := make([]uint16, ln/2)
-	if err := binary.Read(r, binary.BigEndian, units); err != nil {
-		return "", err
-	}
-	return string(utf16.Decode(units)), nil
-}
-
-func buildRequest(target, fn string, args []string) ([]byte, error) {
-	size := 1 + 4 + len(target)*2 + 4 + len(fn)*2 + 4
-	for _, a := range args {
-		size += 4 + len(a)*2
-	}
-	buf := bytes.NewBuffer(make([]byte, 0, size))
-	buf.WriteByte(cmdCall)
-	if err := writeQString(buf, target); err != nil {
-		return nil, err
-	}
-	if err := writeQString(buf, fn); err != nil {
-		return nil, err
-	}
-	if err := binary.Write(buf, binary.BigEndian, uint32(len(args))); err != nil {
-		return nil, err
-	}
-	for _, a := range args {
-		if err := writeQString(buf, a); err != nil {
-			return nil, err
-		}
-	}
-	return buf.Bytes(), nil
-}
-
-func call(sock, target, fn string, req []byte, timeout time.Duration) (out string, code int, err error) {
-	conn, err := net.DialTimeout("unix", sock, timeout)
-	if err != nil {
-		return "", 0, err
-	}
-	defer conn.Close()
-	_ = conn.SetDeadline(time.Now().Add(timeout))
-
-	if _, err := conn.Write(req); err != nil {
-		return "", 0, err
-	}
-
-	r := bufio.NewReaderSize(conn, readBufSize)
-	var idx [1]byte
-	if _, err := io.ReadFull(r, idx[:]); err != nil {
-		return "", 0, err
-	}
-	switch idx[0] {
-	case respCompleted:
-		var voidFlag [1]byte
-		if _, err := io.ReadFull(r, voidFlag[:]); err != nil {
-			return "", 0, err
-		}
-		if voidFlag[0] != 0 {
-			return "", 0, nil
-		}
-		out, err := readQString(r)
-		return out, 0, err
-	case respNotReady:
-		return "IPC not ready", 1, nil
-	case respNoTarget:
-		return "Target not found: " + target, 2, nil
-	case respNoFunc:
-		return fmt.Sprintf("Function not found: %s %s", target, fn), 3, nil
-	case respArgMismatch:
-		return fmt.Sprintf("Argument mismatch calling %s %s", target, fn), 4, nil
-	default:
-		return fmt.Sprintf("unexpected response index %d", idx[0]), 1, nil
-	}
-}
-
-func candidates(sock, pid, instID string) []string {
-	byID := filepath.Join(runtimeDir(), "quickshell", "by-id")
-	if sock != "" {
-		return []string{sock}
-	}
-	if pid != "" {
-		return []string{filepath.Join(runtimeDir(), "quickshell", "by-pid", pid, "ipc.sock")}
-	}
-	entries, err := os.ReadDir(byID)
-	if err != nil {
-		return nil
-	}
-	if instID != "" {
-		var matched []string
-		for _, e := range entries {
-			if e.IsDir() && strings.Contains(e.Name(), instID) {
-				matched = append(matched, e.Name())
-			}
-		}
-		if len(matched) != 1 {
-			fmt.Fprintf(os.Stderr, "ipc: id %q matches %d instances\n", instID, len(matched))
-			os.Exit(1)
-		}
-		return []string{filepath.Join(byID, matched[0], "ipc.sock")}
-	}
-	type timed struct {
-		path string
-		mod  time.Time
-	}
-	socks := make([]timed, 0, len(entries))
-	for _, e := range entries {
-		p := filepath.Join(byID, e.Name(), "ipc.sock")
-		fi, err := os.Stat(p)
-		if err != nil {
-			continue
-		}
-		socks = append(socks, timed{p, fi.ModTime()})
-	}
-	sort.Slice(socks, func(i, j int) bool { return socks[i].mod.After(socks[j].mod) })
-	out := make([]string, len(socks))
-	for i := range socks {
-		out[i] = socks[i].path
-	}
-	return out
-}
 
 func main() {
 	sock := flag.String("socket", "", "exact ipc.sock path")
 	pid := flag.String("pid", "", "instance pid (qs --pid equivalent)")
 	instID := flag.String("id", "", "instance id substring (qs --id equivalent)")
 	conf := flag.String("config", "", "forwarded to qs on fallback")
-	confShort := flag.String("c", "", "shorthand for --config (forwarded to qs on fallback)")
+	_ = flag.String("c", "", "shorthand for --config (forwarded to qs on fallback)")
 	path := flag.String("path", "", "forwarded to qs on fallback")
 	timeout := flag.Duration("timeout", 2*time.Second, "socket timeout")
 	flag.Usage = func() {
@@ -203,37 +46,43 @@ func main() {
 		os.Exit(1)
 	}
 
-	req, err := buildRequest(target, fn, args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "ipc: "+err.Error())
-		os.Exit(1)
-	}
-
-	socks := candidates(*sock, *pid, *instID)
+	socks := qipc.Candidates(*sock, *pid, *instID)
 	answered := false
-	for _, s := range socks {
-		out, code, err := call(s, target, fn, req, *timeout)
-		if err != nil {
-			continue
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			// ponytail: every socket refused -- usually a shell reload
+			// swapping ipc.sock; rescan instead of failing the keybind.
+			time.Sleep(200 * time.Millisecond)
+			socks = qipc.Candidates(*sock, *pid, *instID)
 		}
-		answered = true
-		if code == respNoTarget && *sock == "" && *pid == "" && *instID == "" {
-			continue
-		}
-		if out != "" {
-			if code == 0 {
-				fmt.Println(out)
-			} else {
-				fmt.Fprintln(os.Stderr, "ipc: "+out)
+		for _, s := range socks {
+			out, code, err := qipc.Call(s, target, fn, args, *timeout)
+			if err != nil {
+				continue // stale socket, try next
 			}
+			answered = true
+			if code == qipc.RespNoTarget && *sock == "" && *pid == "" && *instID == "" {
+				continue // another live instance may own this target
+			}
+			if out != "" {
+				if code == 0 {
+					fmt.Println(out)
+				} else {
+					fmt.Fprintln(os.Stderr, "ipc: "+out)
+				}
+			}
+			os.Exit(code)
 		}
-		os.Exit(code)
+		if answered || len(socks) == 0 {
+			break
+		}
 	}
 	if answered {
 		fmt.Fprintf(os.Stderr, "ipc: target not found: %s\n", target)
 		os.Exit(2)
 	}
 
+	// No live socket: hand off to qs, preserving instance selection.
 	qs, err := exec.LookPath("qs")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "ipc: no running instance and qs not found")
@@ -242,8 +91,8 @@ func main() {
 	qsArgs := []string{"qs"}
 	if *conf != "" {
 		qsArgs = append(qsArgs, "-c", *conf)
-	} else if *confShort != "" {
-		qsArgs = append(qsArgs, "-c", *confShort)
+	} else if flag.Lookup("c").Value.String() != "" {
+		qsArgs = append(qsArgs, "-c", flag.Lookup("c").Value.String())
 	}
 	if *path != "" {
 		qsArgs = append(qsArgs, "-p", *path)

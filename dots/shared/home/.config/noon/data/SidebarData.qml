@@ -123,14 +123,6 @@ Singleton {
             shape: "Ghostish",
             enabled: contentOptions.emojies
         },
-        "Bookmarks": {
-            icon: "bookmark",
-            activeIcon: "bookmark_heart",
-            componentPath: "etc/Bookmarks",
-            searchable: true,
-            shape: "Ghostish",
-            enabled: contentOptions.bookmarks
-        },
         "Shelf": {
             icon: "shelves",
             activeIcon: "book_ribbon",

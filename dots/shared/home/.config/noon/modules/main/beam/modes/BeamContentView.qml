@@ -145,6 +145,13 @@ PanelRect {
         }
         AppletsFactory {
             id: appletsArea
+
+            anchors {
+                top: parent.top
+                bottom: parent.bottom
+                right: parent.right
+                rightMargin: Padding.large
+            }
         }
 
         GroupButtonWithIcon {

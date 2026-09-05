@@ -51,11 +51,10 @@ Item {
             }
         })
 
-    readonly property var currentTool: dict[tool]
-    // ?? ({
-    //         "icon": "build",
-    //         "summary": JSON.stringify(input ?? {})
-    //     })
+    readonly property var currentTool: dict[tool] ?? ({
+            "icon": "build",
+            "summary": JSON.stringify(input ?? {})
+        })
 
     Layout.fillWidth: true
     implicitHeight: columnLayout.implicitHeight
@@ -107,7 +106,7 @@ Item {
                     }
 
                     Symbol {
-                        text: root.currentTool.icon
+                        text: root.currentTool?.icon
                         iconSize: 20
                         color: Colors.colOnLayer1
                     }
@@ -138,7 +137,7 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: root.currentTool.summary
+                text: root.currentTool?.summary
                 font: Fonts.request("mono", "large")
                 color: Colors.colOnLayer2
                 elide: Text.ElideRight
@@ -171,7 +170,7 @@ Item {
                     id: metaText
                     anchors.fill: parent
                     anchors.margins: Padding.large
-                    text: root.currentTool.summary.length > 0 ? root.currentTool.summary + (root.output?.length > 0 ? "\n" + root.output : "") : root.output
+                    text: root.currentTool?.summary.length > 0 ? root.currentTool?.summary + (root.output?.length > 0 ? "\n" + root.output : "") : root.output
                     font: Fonts.request("mono", "normal")
                     color: Colors.colOnLayer1
                     wrapMode: Text.WrapAnywhere

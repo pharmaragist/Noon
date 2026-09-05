@@ -7,12 +7,6 @@ RLayout {
     id: appletsArea
     z: 999
 
-    anchors {
-        top: parent.top
-        bottom: parent.bottom
-        right: parent.right
-        rightMargin: Padding.large
-    }
     spacing: Padding.normal
 
     Repeater {

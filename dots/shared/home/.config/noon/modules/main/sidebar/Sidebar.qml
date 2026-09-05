@@ -24,12 +24,12 @@ Scope {
             shell: "noon"
             name: "blurred_layer"
             _layer: Mem.options.sidebar.behavior.overlay ? "Overlay" : "Top"
-            implicitWidth: !pinned ? Screen.width : effectiveLayerWidth
+            implicitWidth: !pinned ? Screen.width : this.exclusiveZone
             aboveWindows: true
             keyboardFocus: true
             anchors.left: !root.rightMode || !pinned
             anchors.right: root.rightMode || !pinned
-            exclusiveZone: pinned ? effectiveLayerWidth : 0
+            exclusiveZone: pinned ? bg.width + Sizes.hyprland.gapsOut : 0
             focusHandler.active: root.pinned || root.show
             focusHandler.onCleared: !root.pinned ? root.hide() : null
 
@@ -39,9 +39,6 @@ Scope {
                 }
                 Region {
                     item: bg
-                }
-                Region {
-                    item: bubble
                 }
             }
 
@@ -63,7 +60,6 @@ Scope {
             readonly property int sidebarWidth: Math.min(Screen.width - 120, SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverArea: 2
-            readonly property int effectiveLayerWidth: bg.width + bubble.width + Sizes.hyprland.gapsOut
             readonly property Component detachedWindow: DetachedSidebarWindow {}
 
             function hide() {
@@ -71,7 +67,6 @@ Scope {
                     return;
                 reveal = false;
                 hoverMode = true;
-                selectedTabIndex = 0;
                 content.selectedCategory = "";
                 if (!pinned)
                     reset_reveal_conditions();
@@ -214,16 +209,6 @@ Scope {
                 }
             }
 
-            SidebarBubble {
-                id: bubble
-
-                show: !hoverMode
-                rightMode: root.rightMode
-                selectedCategory: content.selectedCategory
-                colors: content.colors
-                sidebarBg: bg
-            }
-
             RoundCorner {
                 id: c1
 
@@ -250,6 +235,32 @@ Scope {
                 anchors.top: bg.top
                 anchors.topMargin: root.barPosition === "top" ? 0 : Sizes.frameThickness
             }
+
+            Connections {
+                target: root
+                enabled: Mem.options.sidebar.behavior.rememberPinned
+
+                function onSelectedCategoryChanged() {
+                    /*
+                        Delay Pinning to bypass compositor stutters
+                    */
+                    NoonUtils.inlineTimer(() => {
+                        root.pinned = Mem.states.sidebar._pinned.indexOf(selectedCategory) !== -1;
+                    }, bg.animationDuration + 100);
+                }
+
+                function onPinnedChanged() {
+                    const stt = Mem.states.sidebar;
+                    if (pinned) {
+                        if (stt._pinned.indexOf(selectedCategory) === -1)
+                            stt._pinned.push(selectedCategory);
+                    } else {
+                        const filtered = stt._pinned.filter(i => i !== selectedCategory);
+                        stt._pinned = filtered;
+                    }
+                }
+            }
+
             Connections {
                 target: root
                 enabled: Mem.options.sidebar.behavior.rememberExpanded
