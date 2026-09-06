@@ -13,13 +13,17 @@ StyledRect {
     radius: Rounding.small
 
     property alias listView: messageListView
-
+    ScrollEdgeFade {
+        target: messageListView
+        color: Colors.colLayer0
+        fadeSize: 60
+    }
     ListView {
         id: messageListView
         z: 0
         anchors.fill: parent
         spacing: Padding.veryhuge
-        reuseItems: true
+        // reuseItems: true
         cacheBuffer: height * 2
         ScrollBar.vertical: StyledScrollBar {}
         property bool userScrolledUp: false
@@ -101,8 +105,9 @@ StyledRect {
         z: 2
         shown: Harness.messageIDs.length === 0
         icon: "cognition"
+        title: "Harness"
+        description: "Press '/' for Command Palette."
         shape: MaterialShape.Shape.PixelCircle
         iconSize: 120
     }
-
 }

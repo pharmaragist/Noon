@@ -135,11 +135,6 @@ PanelRect {
                         event.accepted = true;
                     }
                     break;
-                default:
-                    if (event.modifiers === Qt.ControlModifier && event.key === Qt.Key_S) {
-                        root.takeScreenshot();
-                        event.accepted = true;
-                    }
                 }
             }
         }
@@ -154,27 +149,6 @@ PanelRect {
             }
         }
 
-        GroupButtonWithIcon {
-            id: osrButton
-            z: 999
-            visible: false
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                right: parent.right
-                rightMargin: Padding.large
-            }
-            buttonRadius: Rounding.silly
-            releaseAction: () => root.takeScreenshot()
-            colBackground: "transparent"
-            materialIcon: "screenshot_region"
-            baseSize: 40
-            enabled: !ScreenShotService.isBusy
-
-            Behavior on opacity {
-                Anim {}
-            }
-        }
     }
 
     GroupButtonWithIcon {

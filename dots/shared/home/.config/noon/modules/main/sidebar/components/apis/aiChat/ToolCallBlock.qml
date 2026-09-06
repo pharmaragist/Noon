@@ -19,7 +19,11 @@ Item {
 
     readonly property bool isPending: status === "pending"
     readonly property bool completed: status === "completed"
-    readonly property bool pendingApproval: isPending && (messageData?.functionPending ?? false) && root.callID === messageData?.permissionCallID
+    // NOTE: no isPending gate — the agent always emits tool_call_update
+    // (in_progress) before asking permission, so gating on "pending" hid
+    // the buttons exactly when they were needed. The permissionCallID
+    // match alone identifies the awaiting call.
+    readonly property bool pendingApproval: (messageData?.functionPending ?? false) && root.callID !== "" && root.callID === messageData?.permissionCallID
 
     readonly property string statusIcon: isPending ? "hourglass_empty" : (completed ? "done" : "")
     readonly property string statusTint: isPending ? Colors.colTertiary : Colors.colSubtext
@@ -126,33 +130,6 @@ Item {
                 Layout.alignment: Qt.AlignLeft
                 text: this.methods.capitalizeFirstLetter(root.tool)
                 font: Fonts.request("mono", "normal")
-            }
-        }
-
-        RowLayout {
-            visible: root.pendingApproval
-            Layout.fillWidth: true
-            Layout.topMargin: Padding.small
-            spacing: Padding.small
-
-            StyledText {
-                Layout.fillWidth: true
-                text: root.currentTool?.summary
-                font: Fonts.request("mono", "large")
-                color: Colors.colOnLayer2
-                elide: Text.ElideRight
-                maximumLineCount: 1
-            }
-
-            RippleButton {
-                buttonText: qsTr("Reject")
-                colBackground: Colors.colLayer2
-                downAction: () => Harness.rejectCommand(root.messageData)
-            }
-            RippleButton {
-                buttonText: qsTr("Approve")
-                colBackground: Colors.colLayer2
-                downAction: () => Harness.approveCommand(root.messageData)
             }
         }
 

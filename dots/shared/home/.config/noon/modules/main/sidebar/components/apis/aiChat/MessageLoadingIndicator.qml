@@ -10,9 +10,7 @@ Item {
     property bool done: false
     property bool queued: false
     property bool loading: blockCount === 0 && !done && !queued
-    anchors.left: parent.left
     implicitHeight: 40
-    implicitWidth: row?.implicitWidth + Padding.huge
 
     RowLayout {
         id: row

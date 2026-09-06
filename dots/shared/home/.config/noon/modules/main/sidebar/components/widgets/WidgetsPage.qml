@@ -12,7 +12,8 @@ SidebarItemContainer {
     readonly property int cellSize: 190
     readonly property int gridSpacing: Padding.huge
     readonly property int halfUnit: (cellSize + gridSpacing) / 2
-    readonly property var db: WidgetsData.db
+    readonly property QtObject wData: WidgetsData {}
+    readonly property var db: wData?.db
     color: Colors.colLayer1
 
     function sizeSpan(size) {

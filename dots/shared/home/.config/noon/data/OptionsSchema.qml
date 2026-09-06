@@ -178,13 +178,10 @@ JsonAdapter {
 
         property JO behavior: JO {
             property bool overlay: false
-            property bool preExpand: false
-            property bool aiTextFadeIn: false
             property bool enableResizeOverlay: true
             property bool rememberTabIndex: true
             property bool rememberExpanded: true
             property bool rememberPinned: true
-
         }
 
         property JO navRail: JO {

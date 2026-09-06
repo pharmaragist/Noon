@@ -35,6 +35,7 @@ Variants {
         focusHandler.active: root.reveal
         focusHandler.onCleared: root.hide()
         screen: modelData
+        _layer: "Overlay"
 
         mask: Region {
             Region {
@@ -162,8 +163,8 @@ Variants {
             id: popup
             target: bg
             reveal: root.reveal && root.revealReason === "default"
-            topRadius: root.currentModeData?.ignoreRadiusComplement ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.target.bottomRadius
-            bottomRadius: root.currentModeData?.ignoreRadiusComplement ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.shown ? Rounding.tiny : target.bottomRadius
+            topRadius: (root.currentModeData?.ignoreRadiusComplement ?? false) ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.target.bottomRadius
+            bottomRadius: (root.currentModeData?.ignoreRadiusComplement ?? false) ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.shown ? Rounding.tiny : target.bottomRadius
         }
 
         StyledRectangularShadow {
@@ -182,15 +183,16 @@ Variants {
             id: bg
             z: 999
             reveal: root.reveal
-            topRadius: popup.shown ? Rounding.tiny : bottomRadius
             elevationValue: root.elevationValue
             animationDuration: 300
             height: root.currentModeData.size?.height ?? 1000
             width: root.currentModeData.size?.width ?? 1000
-            bottomRadius: (root.contentModeData.ignoreRadiusComplement ?? false) ? (root.currentModeData.radius ?? height / 2) : 0
             color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
 
             contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
+
+            topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
+            bottomRadius: root?.currentModeData?.radius ?? Rounding.silly;
 
             onContentLoaded: item => {
                 if (root.reveal && "focusItem" in item)

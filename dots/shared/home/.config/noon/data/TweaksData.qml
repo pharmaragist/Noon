@@ -1,12 +1,10 @@
-pragma Singleton
-pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.common
 import qs.common.widgets
 import qs.services
 
-Singleton {
+QtObject {
     id: root
 
     readonly property var tweaks: [
@@ -131,6 +129,14 @@ Singleton {
                     "values": BeamData.availableAnimationStyles,
                     "hint": "Transition style for beam animations",
                     "key": "beam.appearance.animationStyle"
+                },
+                {
+                    "icon": "palette",
+                    "name": "Beam Default Theme",
+                    "type": "combobox",
+                    "values": Object.keys(BeamData?.availableDefaultThemes ?? {}),
+                    "hint": "Change Theme/Layout for beam main content",
+                    "key": "beam.appearance.theme"
                 },
                 {
                     "icon": "masked_transitions",
@@ -588,9 +594,21 @@ Singleton {
                 },
                 {
                     "icon": "width",
-                    "name": "Pre-Expand",
-                    "hint": "Expand sidebar content on hover",
-                    "key": "sidebar.behavior.preExpand"
+                    "name": "Remember Expand State",
+                    "hint": "Remember Expand State for each category",
+                    "key": "sidebar.behavior.rememberExpanded"
+                },
+                {
+                    "icon": "push_pin",
+                    "name": "Remember Pinned State",
+                    "hint": "Remember Pinned State for each category",
+                    "key": "sidebar.behavior.rememberPinned"
+                },
+                {
+                    "icon": "123",
+                    "name": "Remember SelectedTab State",
+                    "hint": "Remember SelectedTab State for each category",
+                    "key": "sidebar.behavior.rememberTabIndex"
                 },
                 {
                     "icon": "tune",

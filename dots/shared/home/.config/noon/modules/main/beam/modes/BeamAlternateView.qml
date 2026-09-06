@@ -38,7 +38,24 @@ StyledRect {
         anchors.topMargin: Padding.large
         anchors.bottomMargin: Padding.large
 
-        spacing: Padding.huge
+        spacing: Padding.normal
+
+        PanelRect {
+            Layout.fillHeight: true
+            implicitSize: height
+            radius: height / 2
+            enableBorders: true
+
+            Symbol {
+                z: 999
+                font.pixelSize: 24
+                fill: 1
+                animateChange: true
+                color: inputField.focus ? Colors.colPrimary : Colors.colOnLayer3
+                anchors.centerIn: parent
+                text: BeamData.getIcon()
+            }
+        }
 
         PanelRect {
             Layout.fillWidth: true
@@ -63,8 +80,8 @@ StyledRect {
                 color: Colors.colOnLayer0
                 placeholderTextColor: Colors.colSubtext
                 selectByMouse: true
-                leftPadding: Padding.massive
-                rightPadding: Padding.massive + (appletsArea?.implicitWidth ?? 100)
+                leftPadding: Padding.large
+                rightPadding: Padding.large
                 font: Fonts.request("main", Fonts.sizes.large)
 
                 Keys.onPressed: event => {

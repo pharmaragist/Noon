@@ -1,11 +1,10 @@
-pragma Singleton
 import QtQuick
 import Quickshell
 
 import qs.common
 import qs.common.functions
 
-Singleton {
+QtObject {
     id: root
     readonly property var mediaMap: ({
             "beats": "music_cast",

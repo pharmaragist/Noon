@@ -520,22 +520,25 @@ Singleton {
 
         return prefix + hintText;
     }
+    readonly property var availableDefaultThemes: {
+        "default": {
+            "component": "BeamContentView",
+            "ignoreRadiusComplement": false,
+            "size": Qt.size(root.dynamicWidth, Sizes.beam.normal.height),
+            "radius": Rounding.silly
+        },
+        "alternate": {
+            "component": "BeamAlternateView",
+            "transparent": true,
+            "popupRadius": Rounding.huge,
+            "ignoreRadiusComplement": true,
+            "size": Qt.size(getDynamicWidth([450, 1100]), Sizes.beam.normal.height + Padding.huge)
+        }
+    }
+
     function getDefaultBeamOptions() {
-        const all = {
-            "default": {
-                "component": "BeamContentView",
-                "size": Qt.size(root.dynamicWidth, Sizes.beam.normal.height)
-            },
-            "alternate": {
-                "component": "BeamAlternateView",
-                "transparent": true,
-                "popupRadius": Rounding.huge,
-                "ignoreRadiusComplement": true,
-                "size": Qt.size(getDynamicWidth([450, 1100]), Sizes.beam.normal.height + Padding.huge)
-            }
-        };
         const current = Mem.options.beam.appearance?.theme ?? "default";
-        return all[(current ?? "default")];
+        return availableDefaultThemes[(current ?? "default")];
     }
     Process {
         id: shellRunner

@@ -8,14 +8,17 @@ import qs.common.widgets
 SidebarItemContainer {
     id: root
 
+    readonly property TweaksData tweaksData: TweaksData {}
+
     ScriptModel {
         id: itemsModel
         values: {
-            var data = TweaksData.tweaks;
+            var data = tweaksData?.tweaks;
 
             if (root.currentCategory.length > 0) {
                 data = data.filter(cat => cat.section === root.currentCategory);
-                if (data.length === 0) return data;
+                if (data.length === 0)
+                    return data;
             }
 
             if (searchQuery) {
@@ -30,7 +33,9 @@ SidebarItemContainer {
                     if (filter(entry.section)) {
                         acc.push(entry);
                     } else if (matchingItems.length > 0) {
-                        acc.push(Object.assign({}, entry, { items: matchingItems }));
+                        acc.push(Object.assign({}, entry, {
+                            items: matchingItems
+                        }));
                     }
                     return acc;
                 }, []);
@@ -121,7 +126,7 @@ SidebarItemContainer {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: (mouse) => {
+                            onClicked: mouse => {
                                 if (root.currentCategory.length > 0) {
                                     var pos = mapToItem(backArrow, mouse.x, mouse.y);
                                     if (pos.x >= -4 && pos.x < backArrow.width + 4 && pos.y >= -4 && pos.y < backArrow.height + 4) {

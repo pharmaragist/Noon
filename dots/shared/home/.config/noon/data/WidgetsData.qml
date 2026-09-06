@@ -1,12 +1,10 @@
-pragma Singleton
-pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 
 import qs.common
 import qs.services
 
-Singleton {
+QtObject {
     id: root
     readonly property var stock: [
         {

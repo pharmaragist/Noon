@@ -25,6 +25,7 @@ Singleton {
     readonly property var players: Mpris?.players?.values.filter(p => {
         return !!p.dbusName && !Mem.beats.options.excludedPlayers.includes(p);
     })
+    readonly property QtObject symbolData: SymbolData {}
 
     onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
 
@@ -67,7 +68,7 @@ Singleton {
     function getIconForPlayer(p, fallback = "music_note") {
         if (!p) return fallback;
 
-        const dic = SymbolData?.mediaMap ?? ({});
+        const dic = symbolData?.mediaMap ?? ({});
         const criteria = ["identity", "desktopEntry", "dbusName"];
         const matches = (str, target) => {
             return str.toLowerCase().includes(target);

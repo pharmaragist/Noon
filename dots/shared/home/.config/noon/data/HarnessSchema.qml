@@ -5,6 +5,7 @@ JsonAdapter {
     id: root
     property list<var> skills: []
     property list<var> models: []
+    property string agent: "plan"
     property string effort: ""
     property string persona: "main.md"
     property string model: ""

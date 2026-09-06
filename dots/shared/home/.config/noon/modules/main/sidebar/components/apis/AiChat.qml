@@ -16,7 +16,6 @@ SidebarItemContainer {
     property var inputField: messageInputField
     property string commandPrefix: "/"
     property bool isRecording: false
-    property var suggestionList: []
 
     readonly property var allCommands: [
         {
@@ -45,13 +44,23 @@ SidebarItemContainer {
             execute: args => Harness.setEffort(args[0])
         },
         {
+            name: "agent",
+            description: qsTr("Choose agent mode (plan/build)"),
+            execute: args => Harness.setAgent(args[0])
+        },
+        {
             name: "skill",
-            description: qsTr("Choose Skill"),
+            description: qsTr("Arm Skill (agent loads it via skill tool)"),
             execute: args => Harness.setSkill(args[0])
         },
         {
+            name: "status",
+            description: qsTr("Show effective model/effort/agent/skill/session"),
+            execute: () => Harness.showStatus()
+        },
+        {
             name: "clear",
-            description: qsTr("Clear chat history"),
+            description: qsTr("Clear visible messages (agent memory kept, use /new for fresh)"),
             execute: () => Harness.clearMessages()
         },
         {
@@ -70,243 +79,35 @@ SidebarItemContainer {
         }
     ]
 
+    ChatUtils {
+        id: utils
+        inputField: messageInputField
+        suggestionsView: suggestions
+        scrollView: chatView.listView
+        commands: root.allCommands
+        commandPrefix: root.commandPrefix
+        onExpandRequested: root.expandRequested()
+    }
+
+    // Ready surface: thin delegations only, logic lives in utils.
     function sendText(text) {
-        if (text.trim().length === 0)
-            return;
-        const parts = text.trim().split(" ");
-        const cmd = root.allCommands.find(c => c.name === parts[0].substring(1));
-        text.startsWith(root.commandPrefix) && cmd ? cmd.execute(parts.slice(1)) : Harness.sendUserMessage(text);
-        chatView.listView.positionViewAtEnd();
-    }
-
-    function handleCommandSuggestions(query) {
-        const source = root.allCommands.map(cmd => ({
-                    name: cmd.name,
-                    prepared: Fuzzy.prepare(cmd.name)
-                }));
-        const results = query.length === 0 ? root.allCommands.map(cmd => ({
-                    target: cmd.name
-                })) : Fuzzy.go(query, source, {
-            all: true,
-            key: "name"
-        });
-        root.suggestionList = results.map(r => ({
-                    name: root.commandPrefix + r.target,
-                    displayName: root.commandPrefix + r.target,
-                    description: root.allCommands.find(c => c.name === r.target)?.description ?? ""
-                }));
-    }
-
-    function handleModelSuggestions() {
-        const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Harness.modelList.map(m => ({
-                    name: m,
-                    prepared: Fuzzy.prepare(m)
-                }));
-        const results = query.length === 0 ? Harness.modelList.map(m => ({
-                    target: m
-                })) : Fuzzy.go(query, source, {
-            all: true,
-            key: "name"
-        });
-        const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionList = results.map(r => ({
-                    name: (isFirst ? root.commandPrefix + "model " : "") + r.target,
-                    displayName: r.target,
-                    description: qsTr("Set model to %1").arg(r.target)
-                }));
-    }
-
-    function handleEffortSuggestions() {
-        const query = messageInputField.text.split(" ")[1] ?? "";
-        const list = Harness.effortOptions.length > 0 ? Harness.effortOptions : Harness.effortList;
-        const source = list.map(m => ({
-                    name: m,
-                    prepared: Fuzzy.prepare(m)
-                }));
-        const results = query.length === 0 ? list.map(m => ({
-                    target: m
-                })) : Fuzzy.go(query, source, {
-            all: true,
-            key: "name"
-        });
-        const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionList = results.map(r => ({
-                    name: (isFirst ? root.commandPrefix + "effort " : "") + r.target,
-                    displayName: r.target,
-                    description: qsTr("Set effort to %1").arg(r.target)
-                }));
-    }
-
-    function handleSkillsSuggestions() {
-        const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Harness.skills.map(f => ({
-                    name: f,
-                    prepared: Fuzzy.prepare(f)
-                }));
-        const results = query.length === 0 ? Harness.skills.map(f => ({
-                    target: f
-                })) : Fuzzy.go(query, source, {
-            all: true,
-            key: "name"
-        });
-        const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionList = results.map(r => ({
-                    name: (isFirst ? root.commandPrefix + "skill " : "") + r.target,
-                    displayName: r.target,
-                    description: qsTr("Load %1 skill").arg(r.target)
-                }));
-    }
-
-    function handleSessionsSuggestions() {
-        const query = messageInputField.text.split(" ")[1] ?? "";
-        const source = Harness.sessions.map(s => ({
-                    name: s.title,
-                    prepared: Fuzzy.prepare(s.title),
-                    obj: s
-                }));
-        const results = query.length === 0 ? Harness.sessions.map(s => ({
-                    target: s
-                })) : Fuzzy.go(query, source, {
-            all: true,
-            key: "name"
-        }).map(r => ({
-                    target: r.obj?.obj
-                }));
-        const isFirst = messageInputField.text.trim().split(" ").length === 1;
-        root.suggestionList = results.map(r => ({
-                    name: (isFirst ? root.commandPrefix + "session " : "") + r.target.id,
-                    displayName: r.target.title,
-                    description: qsTr("Session from %1").arg(root.friendlySessionTime(r.target.updated))
-                }));
-    }
-
-    readonly property var argHandlers: ({
-            "model": handleModelSuggestions,
-            "effort": handleEffortSuggestions,
-            "skill": handleSkillsSuggestions,
-            "session": handleSessionsSuggestions
-        })
-
-    function friendlySessionTime(ts) {
-        const secs = Math.max(0, Math.floor((new Date() - new Date(ts)) / 1000));
-        if (secs < 60)
-            return "just now";
-        const mins = Math.floor(secs / 60);
-        if (mins < 60)
-            return mins + " min ago";
-        const hours = Math.floor(mins / 60);
-        if (hours < 24)
-            return hours + " h ago";
-        const days = Math.floor(hours / 24);
-        if (days < 7)
-            return days + " d ago";
-        return Qt.formatDateTime(new Date(ts), "MMM d, yyyy");
+        utils.sendText(text);
     }
 
     function updateSuggestions() {
-        suggestions.selectedIndex = 0;
-        suggestions.pageOffset = 0;
-        const trimmed = messageInputField.text.trim();
-        const words = trimmed.split(" ");
-        const commandWord = words[0].substring(1);
-        const hasArg = words.length > 1;
-
-        if (!trimmed.startsWith(root.commandPrefix)) {
-            root.suggestionList = [];
-            return;
-        }
-
-        if (hasArg) {
-            const handler = root.argHandlers[commandWord];
-            handler ? handler() : (root.suggestionList = []);
-        } else {
-            const isExact = root.allCommands.some(c => c.name === commandWord);
-            isExact && root.argHandlers[commandWord] ? root.argHandlers[commandWord]() : handleCommandSuggestions(commandWord);
-        }
-    }
-
-    Keys.onPressed: event => {
-        messageInputField.forceActiveFocus();
-        if (event.modifiers & Qt.ControlModifier) {
-            switch (event.key) {
-            case Qt.Key_L:
-                Harness.clearMessages();
-                break;
-            case Qt.Key_R:
-                Harness.regenerate(Harness.messageIDs.length - 1);
-                break;
-            case Qt.Key_O:
-                root.expandRequested();
-                break;
-            }
-            event.accepted = true;
-        }
-    }
-
-    // File managers copy files as a text/uri-list
-    // ("file:///a\nfile:///b"). Detect that shape so plain Ctrl+V drops
-    // local paths instead of raw URIs; otherwise returns [] and the field
-    // keeps its default paste behavior.
-    function clipboardFilePaths() {
-        const lines = (Quickshell.clipboardText || "").split("\n").map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0 || !lines.every(l => l.startsWith("file://")))
-            return [];
-        return lines.map(l => {
-            let p;
-            try {
-                p = decodeURIComponent(l.replace(/^file:\/\//, ""));
-            } catch (e) {
-                p = l.replace(/^file:\/\//, "");
-            }
-            return p.includes(" ") ? `"${p}"` : p;
-        });
+        utils.updateSuggestions();
     }
 
     function handleInputKeyPress(event) {
-        switch (event.key) {
-        case Qt.Key_Tab:
-            suggestions.acceptSelectedWord();
-            event.accepted = true;
-            break;
-        case Qt.Key_Up:
-            if (suggestions.visible) {
-                suggestions.move(-1);
-                event.accepted = true;
-            }
-            break;
-        case Qt.Key_Down:
-            if (suggestions.visible) {
-                suggestions.move(1);
-                event.accepted = true;
-            }
-            break;
-        case Qt.Key_Return:
-        case Qt.Key_Enter:
-            if (event.modifiers & Qt.ShiftModifier) {
-                messageInputField.insert(messageInputField.cursorPosition, "\n");
-            } else {
-                let text = messageInputField.text;
-                if (suggestions.visible && suggestions.selectedIndex !== -1)
-                    text = suggestions.acceptSelectedWord();
-                messageInputField.clear();
-                root.sendText(text);
-            }
-            event.accepted = true;
-            break;
-        default:
-            if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_V) {
-                if (event.modifiers & Qt.ShiftModifier) {
-                    messageInputField.text += Quickshell.clipboardText;
-                    event.accepted = true;
-                    return;
-                }
-                const paths = root.clipboardFilePaths();
-                if (paths.length > 0) {
-                    messageInputField.insert(messageInputField.cursorPosition, paths.join(" "));
-                    event.accepted = true;
-                }
-            }
+        utils.handleInputKeyPress(event);
+    }
+
+    Keys.onPressed: event => utils.handleGlobalKey(event)
+
+    Connections {
+        target: Harness
+        function onPermissionAsked(title) {
+            utils.notifyPermissionAsked(title);
         }
     }
 
@@ -331,13 +132,13 @@ SidebarItemContainer {
         }
 
         DescriptionBox {
-            text: root.suggestionList[suggestions.selectedIndex]?.description ?? ""
-            showArrows: root.suggestionList.length > 1
-            pageText: root.suggestionList.length > suggestions.pageSize ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, root.suggestionList.length)}/${root.suggestionList.length}` : ""
+            text: utils.suggestionList[suggestions.selectedIndex]?.description ?? ""
+            showArrows: utils.suggestionList.length > 1
+            pageText: utils.suggestionList.length > suggestions.pageSize ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, utils.suggestionList.length)}/${utils.suggestionList.length}` : ""
         }
 
         LayerRect {
-            colBackground: Colors.colLayer2
+            colBackground: messageInputField.focus ? Colors.colLayer3 : Colors.colLayer2
             Layout.fillWidth: true
             radius: Rounding.huge
             implicitHeight: Math.max(inputAreaCol.implicitHeight + Padding.huge, 45)
@@ -352,9 +153,63 @@ SidebarItemContainer {
                     margins: Padding.normal
                 }
 
+                StyledRect {
+                    implicitHeight: 50
+                    Layout.fillWidth: true
+                    radius: Rounding.large
+                    color: Colors.colSecondaryContainer
+                    visible: Harness.pendingPermission !== null
+
+                    RowLayout {
+                        anchors.fill: parent
+
+                        anchors.leftMargin: Padding.huge
+                        anchors.rightMargin: Padding.large
+
+                        anchors.margins: Padding.normal
+                        spacing: Padding.small
+
+                        Symbol {
+                            icon: "key"
+                            iconSize: 20
+                            fill: 1
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            Layout.rightMargin: Padding.small
+                            truncate: true
+                            text: (Harness.pendingPermission?.title ?? "") + " needs approval"
+                            font: Fonts.request("main", "normal")
+                            color: Colors.colOnSecondaryContainer
+                        }
+                        RippleButtonWithIcon {
+                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                            implicitSize: 34
+                            materialIcon: "close"
+                            downAction: () => Harness.answerPending(false)
+                        }
+                        RippleButtonWithIcon {
+                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                            toggled: true
+                            implicitSize: 34
+                            materialIcon: "check"
+                            downAction: () => Harness.answerPending(true)
+                        }
+                        RippleButtonWithIcon {
+                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                            implicitSize: 34
+                            materialIcon: "done_all"
+                            colBackground: Colors.colSuccess
+                            iconColor: Colors.colOnSuccess
+                            downAction: () => Harness.answerAll()
+                        }
+                    }
+                }
+
                 FlowButtonGroup {
                     id: suggestions
-                    visible: root.suggestionList.length > 0 && messageInputField.text.length > 0
+                    visible: utils.suggestionList.length > 0 && messageInputField.text.length > 0
                     property int selectedIndex: 0
                     property int pageSize: 10
                     property int pageOffset: 0
@@ -366,36 +221,20 @@ SidebarItemContainer {
                     Layout.rightMargin: Padding.small
 
                     function acceptSuggestion(word) {
-                        const words = messageInputField.text.trim().split(/\s+/);
-                        words[words.length - 1] = word;
-                        messageInputField.text = words.join(" ") + " ";
-                        messageInputField.cursorPosition = messageInputField.text.length;
-                        messageInputField.forceActiveFocus();
-                        return messageInputField.text;
+                        return utils.acceptSuggestion(word);
                     }
 
                     function move(delta) {
-                        const len = root.suggestionList.length;
-                        if (len === 0) {
-                            selectedIndex = 0;
-                            return;
-                        }
-                        const next = selectedIndex + delta;
-                        if (next < 0 || next >= len)
-                            return;
-                        selectedIndex = next;
-                        pageOffset = Math.max(0, Math.min(Math.floor(next / pageSize) * pageSize, len - pageSize));
+                        utils.moveSelection(delta);
                     }
 
                     function acceptSelectedWord() {
-                        if (selectedIndex >= 0 && selectedIndex < root.suggestionList.length)
-                            return suggestions.acceptSuggestion(root.suggestionList[selectedIndex].name);
-                        return null;
+                        return utils.acceptSelectedWord();
                     }
 
                     Repeater {
                         id: suggestionRepeater
-                        model: root.suggestionList.slice(suggestions.pageOffset, suggestions.pageOffset + suggestions.pageSize)
+                        model: utils.suggestionList.slice(suggestions.pageOffset, suggestions.pageOffset + suggestions.pageSize)
                         delegate: ApiCommandButton {
                             id: commandButton
                             readonly property bool isSelected: suggestions.selectedIndex === suggestions.pageOffset + index
@@ -424,13 +263,13 @@ SidebarItemContainer {
                         wrapMode: TextArea.Wrap
                         Layout.fillWidth: true
                         padding: Padding.normal
-                        color: activeFocus ? Colors.m3.m3onSurface : Colors.m3.m3onSurfaceVariant
-                        placeholderText: qsTr('Ask %1 AnyThing ... "%2" for commands').arg(Harness.getModel().name.split('/')[1]).arg(root.commandPrefix)
+                        color: Colors.m3.m3onSurfaceVariant
+                        placeholderText: "Its " + Harness.getModel().name.split('/')[1]
                         background: null
                         font: Fonts.request("main", "large")
                         onTextChanged: {
                             if (text.length === 0) {
-                                root.suggestionList = [];
+                                utils.suggestionList = [];
                                 return;
                             }
                             root.updateSuggestions();

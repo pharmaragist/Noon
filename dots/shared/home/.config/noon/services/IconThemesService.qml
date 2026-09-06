@@ -5,9 +5,6 @@ import Quickshell
 import qs.common
 import qs.common.utils
 
-
-
-
 Singleton {
     id: root
 

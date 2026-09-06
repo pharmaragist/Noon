@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "right"
+bar_location = "left"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

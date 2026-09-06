@@ -31,14 +31,6 @@ Item {
         id: hovered
     }
 
-    MessageLoadingIndicator {
-        id: loading
-        messageData: root.messageData
-        blockCount: root.messageBlocks.length
-        done: root.isLive ? Harness.liveDone : (root.messageData?.done ?? true)
-        queued: root.messageData?.queued ?? false
-    }
-
     ColumnLayout {
         id: columnLayout
         anchors.right: parent.right
@@ -46,12 +38,38 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: Padding.normal
 
+        MessageLoadingIndicator {
+            id: loading
+            visible: loading.loading
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+            messageData: root.messageData
+            blockCount: root.messageBlocks.length
+            done: root.isLive ? Harness.liveDone : (root.messageData?.done ?? true)
+            queued: root.messageData?.queued ?? false
+        }
+
         StyledText {
             visible: root.messageData?.queued ?? false
             Layout.alignment: Qt.AlignLeft
             text: "Queued"
             font.pixelSize: Fonts.sizes.small
             color: Colors.colSubtext
+        }
+
+        Repeater {
+            model: root.messageData?.tools ?? []
+            delegate: ToolCallBlock {
+                required property var modelData
+                Layout.fillWidth: true
+                tool: modelData?.tool ?? ""
+                callID: modelData?.callID ?? ""
+                input: modelData?.input ?? ""
+                output: modelData?.output ?? ""
+                status: modelData.status
+                raw: modelData
+                messageData: root.messageData
+            }
         }
 
         ColumnLayout {
@@ -104,21 +122,6 @@ Item {
                         }
                     }
                 }
-            }
-        }
-
-        Repeater {
-            model: root.messageData?.tools ?? []
-            delegate: ToolCallBlock {
-                required property var modelData
-                Layout.fillWidth: true
-                tool: modelData?.tool ?? ""
-                callID: modelData?.callID ?? ""
-                input: modelData?.input ?? ""
-                output: modelData?.output ?? ""
-                status: modelData.status
-                raw: modelData
-                messageData: root.messageData
             }
         }
 

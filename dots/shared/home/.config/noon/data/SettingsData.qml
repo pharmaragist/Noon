@@ -419,11 +419,6 @@ Singleton {
                             "key": "sidebar.behavior.overlay"
                         },
                         {
-                            "icon": "expand",
-                            "name": "Pre-Expand",
-                            "key": "sidebar.behavior.preExpand"
-                        },
-                        {
                             "icon": "text_fields",
                             "name": "Nav Titles",
                             "key": "sidebar.appearance.showNavTitles"

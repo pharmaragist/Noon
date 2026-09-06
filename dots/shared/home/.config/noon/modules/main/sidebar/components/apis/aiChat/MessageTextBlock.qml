@@ -21,9 +21,8 @@ ColumnLayout {
     property bool forceDisableChunkSplitting: false
     property font font: Fonts.request("reading", Fonts.sizes.verylarge * Mem.states.sidebar.apis.fontScale)
     property string shownText: ""
-    property bool fadeChunkSplitting: !forceDisableChunkSplitting && !editing && !/\n\|/.test(shownText) && Mem.options.sidebar.behavior.aiTextFadeIn
+    property bool fadeChunkSplitting: !forceDisableChunkSplitting && !editing && !/\n\|/.test(shownText)
 
-    property var textLineOpacities: []
     property var _formulaMap: ({})
 
     Layout.fillWidth: true
@@ -63,19 +62,6 @@ ColumnLayout {
         return root.fadeChunkSplitting ? root.shownText.split(/\n\n(?= {0,2})|\n(?= {0,2}[-\*])/g).filter(line => line.trim() !== "") : [root.shownText];
     }
 
-    function syncOpacities(chunks) {
-        const prev = root.textLineOpacities;
-        const next = [];
-        for (let i = 0; i < chunks.length; i++) {
-            if (i < prev.length) {
-                next.push(prev[i]);
-            } else {
-                next.push(root.messageData?.done ? 1 : 0);
-            }
-        }
-        root.textLineOpacities = next;
-    }
-
     onEditingChanged: {
         shownText = processText(segmentContent);
     }
@@ -88,15 +74,11 @@ ColumnLayout {
     }
 
     onShownTextChanged: {
-        const chunks = computeChunks();
-        syncOpacities(chunks);
-        chunksModel.values = chunks;
+        chunksModel.values = computeChunks();
     }
 
     onFadeChunkSplittingChanged: {
-        const chunks = computeChunks();
-        syncOpacities(chunks);
-        chunksModel.values = chunks;
+        chunksModel.values = computeChunks();
     }
 
     Timer {
@@ -128,8 +110,6 @@ ColumnLayout {
             required property string modelData
 
             Layout.fillWidth: true
-            visible: opacity > 0
-            opacity: root.fadeChunkSplitting ? (root.textLineOpacities[index] ?? (root.messageData?.done ? 1 : 0)) : 1
             readOnly: !editing
             selectByMouse: enableMouseSelection || editing
             renderType: Text.NativeRendering
@@ -140,23 +120,6 @@ ColumnLayout {
             color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
             textFormat: renderMarkdown ? TextEdit.MarkdownText : TextEdit.PlainText
             text: modelData
-
-            Behavior on opacity {
-                Anim {}
-            }
-
-            Connections {
-                target: root
-                function onTextLineOpacitiesChanged() {
-                    if (index > 0 && index < root.textLineOpacities.length) {
-                        if (root.textLineOpacities[index - 1] >= 1) {
-                            const next = [...root.textLineOpacities];
-                            next[index] = 1;
-                            root.textLineOpacities = next;
-                        }
-                    }
-                }
-            }
 
             onTextChanged: {
                 if (root.editing)
