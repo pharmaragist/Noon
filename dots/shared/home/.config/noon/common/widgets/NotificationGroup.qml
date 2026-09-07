@@ -36,7 +36,9 @@ Item {
         background.anchors.leftMargin = background.anchors.leftMargin;
         destroyAnimation.running = true;
     }
-
+    Component.onCompleted: NoonUtils.inlineTimer(() => {
+        destroyWithAnimation();
+    }, Mem.options.osd.timeout ?? 3000)
     SequentialAnimation {
         id: destroyAnimation
         running: false

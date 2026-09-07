@@ -8,10 +8,37 @@ import qs.common
 Singleton {
     id: root
     readonly property string deviceName: Mem.options.services.backlightDevice
-    property int currentLevel: -1
-    property int maxLevel: -1
+    readonly property string sysfsDir: "/sys/class/backlight/" + root.deviceName
 
-    Component.onCompleted: getProc.running = true
+    property var stats: ({
+            id: root.deviceName,
+            type: (typeFile.text() || "").trim(),
+            current: parseInt(currentFile.text()) || 0,
+            max: parseInt(maxFile.text()) || 2,
+            percentage: (parseInt(maxFile.text()) || 2) > 0 ? (parseInt(currentFile.text()) || 0) / (parseInt(maxFile.text()) || 2) : 0,
+            icon: root.getIcon(parseInt(currentFile.text()) || 0)
+        })
+
+    onStatsChanged: NoonUtils.toast({
+        content: "Changed"
+    })
+
+    FileView {
+        id: currentFile
+        path: root.sysfsDir + "/brightness"
+        watchChanges: true
+        onFileChanged: reload()
+    }
+
+    FileView {
+        id: maxFile
+        path: root.sysfsDir + "/max_brightness"
+    }
+
+    FileView {
+        id: typeFile
+        path: root.sysfsDir + "/type"
+    }
 
     Process {
         id: getAllProc
@@ -40,33 +67,13 @@ Singleton {
     }
 
     Process {
-        id: getProc
-        command: ["brightnessctl", "-d", deviceName, "-m"]
-        stdout: SplitParser {
-            onRead: data => {
-                maxLevel = parseInt(data.trim().split(',')[4]);
-                currentLevel = parseInt(data.trim().split(',')[2]);
-            }
-        }
-    }
-
-    Process {
         id: setProc
-        property int level: -1
-        command: ["brightnessctl", "-m", "-d", deviceName, "set", level.toString()]
-        stdout: SplitParser {
-            onRead: data => {
-                currentLevel = data.trim().split(',')[2];
-            }
-        }
+        property int level: 0
+        command: ["brightnessctl", "-q", "-d", root.deviceName, "set", level.toString()]
     }
 
     function refreshDevices() {
         getAllProc.running = true;
-    }
-
-    function get() {
-        getProc.running = true;
     }
 
     function set(level) {
@@ -75,12 +82,12 @@ Singleton {
     }
 
     function cycle() {
-        let nextLevel = (currentLevel + 1) % (maxLevel + 1);
+        const nextLevel = (root.stats.current + 1) % (root.stats.max + 1);
         set(nextLevel);
     }
 
-    function getMaterialIcon() {
+    function getIcon(level) {
         const icons = ["backlight_high_off", "backlight_low", "backlight_high"];
-        return icons[currentLevel ?? 2] ?? "backlight_high";
+        return icons[level] ?? "backlight_high";
     }
 }

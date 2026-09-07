@@ -10,7 +10,7 @@ import qs.services
 QuickToggleButton {
     id: root
     dialogName: "Backlight"
-    buttonIcon: BacklightService.getMaterialIcon()
-    toggled: BacklightService.currentLevel > 0
+    buttonIcon: BacklightService?.stats?.icon
+    toggled: BacklightService.stats.current > 0
     onClicked: BacklightService.cycle()
 }

@@ -27,7 +27,12 @@ Singleton {
         const groups = {};
         for (const n of items) {
             if (!groups[n.appName])
-                groups[n.appName] = { appName: n.appName, appIcon: n.appIcon, notifications: [], time: 0 };
+                groups[n.appName] = {
+                    appName: n.appName,
+                    appIcon: n.appIcon,
+                    notifications: [],
+                    time: 0
+                };
             groups[n.appName].notifications.push(n);
             groups[n.appName].time = Math.max(groups[n.appName].time, n.time);
         }
@@ -37,7 +42,10 @@ Singleton {
     function plainNotif(notification, id) {
         return {
             notificationId: id,
-            actions: Array.from(notification.actions ?? [], a => ({ identifier: a.identifier, text: a.text })),
+            actions: Array.from(notification.actions ?? [], a => ({
+                        identifier: a.identifier,
+                        text: a.text
+                    })),
             appIcon: notification.appIcon ?? "",
             appName: notification.appName ?? "",
             body: notification.body ?? "",
@@ -100,8 +108,7 @@ Singleton {
                 newNotif.popup = true;
                 NoonUtils.inlineTimer(() => {
                     newNotif.popup = false;
-                    discardNotification(newNotif.notificationId);
-                }, Math.max(5000, Math.min(10000, notification.expireTimeout)));
+                }, Math.max(Mem.options.osd.timeout ?? 3000, notification.expireTimeout));
             }
 
             states.list = [...root.list, newNotif];

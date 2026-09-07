@@ -57,7 +57,7 @@ Item {
         implicitWidth: contentItem.children[root.currentIndex]?.implicitWidth ?? 0
         implicitHeight: contentItem.children[root.currentIndex]?.implicitHeight ?? 0
         radius: height / 2
-        
+
         property Item targetItem: contentItem.children[root.currentIndex]
         AnimatedTabIndexPair {
             id: leftBound
@@ -89,14 +89,12 @@ Item {
         }
     }
 
-    
-    
     TabBar {
         id: tabBar
         z: -1
         background: null
         Repeater {
-            
+
             model: root.tabButtonList.length
             delegate: TabButton {
                 background: null

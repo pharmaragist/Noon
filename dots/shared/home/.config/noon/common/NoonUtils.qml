@@ -240,7 +240,7 @@ Singleton {
     MediaPlayer {
         id: player
         audioOutput: AudioOutput {
-            volume: 0.15
+            volume: 0.1
         }
 
         property int remainingRepeats: 0

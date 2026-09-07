@@ -24,7 +24,7 @@ Scope {
             shell: "noon"
             name: "blurred_layer"
             _layer: Mem.options.sidebar.behavior.overlay ? "Overlay" : "Top"
-            implicitWidth: !pinned ? Screen.width : this.exclusiveZone
+            implicitWidth: !pinned ? Screen.width : this.exclusiveZone + rounding
             aboveWindows: true
             keyboardFocus: true
             anchors.left: !root.rightMode || !pinned
@@ -58,7 +58,7 @@ Scope {
             readonly property int rounding: Rounding.verylarge
             readonly property string barPosition: BarData.position
             readonly property int baseWidth: SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth
-            readonly property int layerWidth: baseWidth + Sizes.hyprland.gapsOut
+            readonly property int layerWidth: baseWidth + bg.hideMargin
             readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverArea: 2

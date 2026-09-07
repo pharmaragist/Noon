@@ -11,7 +11,7 @@ Singleton {
     id: root
 
     readonly property QtObject methods: TextUtils
-    readonly property bool ignoreVariableSpecs: true
+    readonly property bool ignoreVariableSpecs: Mem.options.appearance.font.ignoreSpecs
 
     readonly property JO family: JO {
         property string main: "Google Sans Flex"
@@ -117,7 +117,8 @@ Singleton {
         if (!name || !size)
             return;
         const _size = typeof size === "string" ? sizes[size] : size;
-        const final = Object.assign({}, presets[name], {
+        const spec = ignoreVariableSpecs ? ({}) : presets[name];
+        const final = Object.assign({}, spec, {
             "pixelSize": parseInt(_size)
         }, props);
         return Qt.font(final);

@@ -93,7 +93,10 @@ FloatingWindow {
                     color: Colors.m3.m3onSurface
                     background: null
                     focus: true
-
+                    property string _query: ""
+                    onTextChanged: NoonUtils.inlineTimer(() => {
+                        _query = searchField.text;
+                    }, 200)
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Down) {
                             list.forceActiveFocus();
@@ -178,7 +181,7 @@ FloatingWindow {
 
                     model: ScriptModel {
                         values: {
-                            const query = searchField.text;
+                            const query = searchField._query;
                             if (!fetcher.data)
                                 return [];
 

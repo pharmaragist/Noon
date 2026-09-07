@@ -1,7 +1,5 @@
 import QtQuick
 
-
-
 QtObject {
     id: root
     required property int index
@@ -12,15 +10,13 @@ QtObject {
     property int idx2Duration: Animations.duration.large
 
     Behavior on idx1 {
-        NumberAnimation {
+        SAnim {
             duration: root.idx1Duration
-            easing.type: Easing.OutSine
         }
     }
     Behavior on idx2 {
-        NumberAnimation {
+        SAnim {
             duration: root.idx2Duration
-            easing.type: Easing.OutSine
         }
     }
 }

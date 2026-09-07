@@ -24,6 +24,11 @@ JsonAdapter {
             property real scale: 0.3
         }
 
+        property JO font: JO {
+            property real scale: 1
+            property bool ignoreSpecs: false
+        }
+
         property JO rounding: JO {
             property bool syncCompositor: false
             property real scale: 1
@@ -210,7 +215,7 @@ JsonAdapter {
         property bool enableFrame: false
 
         property JO branding: JO {
-            property string logo: "distro"
+            property string logo: "symbol"
             property string materialSymbol: "auto_awesome"
 
             property JO distroInfo: JO {

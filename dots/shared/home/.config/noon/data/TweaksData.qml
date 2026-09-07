@@ -64,7 +64,6 @@ QtObject {
                     "icon": "font_download",
                     "name": "UI Font",
                     "hint": "QT/GTK Global Font Used",
-                    "key": "appearance.fonts.main",
                     "type": "action",
                     "actionIcon": "font_download",
                     "releaseAction": () => {

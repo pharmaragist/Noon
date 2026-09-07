@@ -5,82 +5,23 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-StyledRect {
+BottomDialog {
     id: popup
-    property bool active: false
     property var appsData: []
     property string categoryTitle: ""
-    property int startX: 0
-    property int startY: 0
-    property int startW: 0
-    property int startH: 0
-    z: 100
+    z: 9999
     color: Colors.colLayer2
-    radius: active ? Rounding.verylarge : Rounding.large
-    visible: opacity > 0
     clip: true
-    
-    x: startX
-    y: startY
-    width: startW
-    height: startH
-    opacity: 0
+    baseHeight: parent?.height / 2.25
     onFocusChanged: focus ? appsList.forceActiveFocus() : null
-    onActiveChanged: !active ? parent?.gridView?.forceActiveFocus() : null
+    onShowChanged: !active ? parent?.gridView?.forceActiveFocus() : null
 
-    states: [
-        State {
-            name: "open"
-            when: popup.active
-            PropertyChanges {
-                target: popup
-                x: 0
-                y: 0
-                width: root.width
-                height: root.height
-                opacity: 1
-            }
-        },
-        State {
-            name: "close"
-            when: !popup.active
-            PropertyChanges {
-                target: popup
-                x: startX
-                y: startY
-                width: 0
-                height: 0
-                opacity: 0
-            }
-        }
-    ]
-    transitions: Transition {
-        Anim {
-            properties: "x,y,width,height,opacity"
-            duration: 400
-        }
-    }
-
-    ColumnLayout {
+    contentItem: ColumnLayout {
         anchors.fill: parent
         anchors.margins: Padding.huge
-        spacing: Padding.massive
-        visible: popup.active
 
-        RowLayout {
-            Layout.preferredHeight: 50
-            StyledText {
-                text: popup.categoryTitle
-                font: Fonts.request("main", Fonts.sizes.huge)
-                color: Colors.colOnLayer2
-                Layout.fillWidth: true
-                Layout.leftMargin: Padding.large
-            }
-            GroupButtonWithIcon {
-                baseSize: 36
-                materialIcon: "close"
-                releaseAction: () => popup.active = false
-            }
+        PageHeader {
+            title: popup.categoryTitle
         }
 
         StyledListView {
@@ -91,17 +32,34 @@ StyledRect {
             model: popup.appsData
             spacing: Padding.small
             hint: true
+            hinter.color: Colors.colLayer2
+
             clip: true
-            radius: Rounding.huge
+            radius: Rounding.large
             highlightFollowsCurrentItem: true
             highlightMoveDuration: 300
             animateAppearance: true
             animateMovement: true
+            highlight: Item {
+                z: 2
+                width: appsList.width
+                height: 60
+
+                StyledRect {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 4
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: 40
+                    radius: 6
+                    width: 6
+                    color: Colors.colSecondaryContainer
+                }
+            }
+
             delegate: StyledDelegateItem {
                 id: delegateListItem
                 required property var modelData
                 required property int index
-                toggled: index === appsList.currentIndex
                 iconSource: NoonUtils.iconPath(modelData?.icon) ?? ""
                 title: modelData?.name ?? ""
                 subtext: modelData?.description ?? ""
@@ -109,7 +67,7 @@ StyledRect {
                 mainScale: 1.15
                 colBackground: index % 2 !== 0 ? "transparent" : Colors.colLayer3
                 releaseAction: () => {
-                    popup.active = false;
+                    popup.show = false;
                     root.dismiss();
                     modelData.execute();
                 }
@@ -129,7 +87,7 @@ StyledRect {
                     if (currentItem)
                         currentItem.releaseAction();
                 } else if (event.key === Qt.Key_Escape) {
-                    popup.active = false;
+                    popup.show = false;
                 } else {
                     return;
                 }
