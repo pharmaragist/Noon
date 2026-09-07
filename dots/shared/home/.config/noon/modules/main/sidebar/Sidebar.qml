@@ -29,7 +29,7 @@ Scope {
             keyboardFocus: true
             anchors.left: !root.rightMode || !pinned
             anchors.right: root.rightMode || !pinned
-            exclusiveZone: pinned ? bg.width + Sizes.hyprland.gapsOut : 0
+            exclusiveZone: pinned ? layerWidth : 0
             focusHandler.active: root.pinned || root.show
             focusHandler.onCleared: !root.pinned ? root.hide() : null
 
@@ -57,10 +57,11 @@ Scope {
             readonly property bool revealCondition: (!hoverMode || hoverArea.containsMouse || content.hovered) || PolkitService.flow !== null
             readonly property int rounding: Rounding.verylarge
             readonly property string barPosition: BarData.position
-            readonly property int sidebarWidth: Math.min(Screen.width - 120, SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth)
+            readonly property int baseWidth: SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth
+            readonly property int layerWidth: baseWidth + Sizes.hyprland.gapsOut
+            readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverArea: 2
-            readonly property Component detachedWindow: DetachedSidebarWindow {}
 
             function hide() {
                 if (pinned)
@@ -72,16 +73,9 @@ Scope {
                     reset_reveal_conditions();
             }
 
-            function incubate(cat = selectedCategory) {
-                if (SidebarData.isIncubatable(cat)) {
-                    Globals.main.sysDialogs.mode = "incubate";
-                    Globals.main.sysDialogs.pendingData = cat;
-                    Mem.states.desktop.dialogs.lastIncubatedCategory = cat;
-                }
-            }
             function detach(cat = selectedCategory) {
-                if (SidebarData.isDetachable(cat) || !isDetached()) {
-                    detachedWindow.createObject(root, {
+                if (SidebarData.isDetachable(cat) && !isDetached()) {
+                    NoonUtils.spawnApp("Detached", {
                         category: cat
                     });
                 }
@@ -197,15 +191,11 @@ Scope {
                 ]
 
                 Behavior on anchors.leftMargin {
-                    Anim {
-                        easing.bezierCurve: Animations.curves.emphasized
-                    }
+                    Anim {}
                 }
 
                 Behavior on anchors.rightMargin {
-                    Anim {
-                        easing.bezierCurve: Animations.curves.emphasized
-                    }
+                    Anim {}
                 }
             }
 
@@ -312,6 +302,10 @@ Scope {
 
                 function toggle_pin() {
                     root.pinned = !root.pinned;
+                }
+
+                function toggle_expand() {
+                    root.expanded = !root.expanded;
                 }
 
                 function hide() {

@@ -42,7 +42,7 @@ Singleton {
     property bool _idsDirty: false
     property var messageQueue: []
     property var messageByID: ({})
-    property string _pendingSend: ""
+    property var _pendingSend: []
 
     Component.onCompleted: {
         root.setupPersonality();
@@ -76,11 +76,21 @@ Singleton {
 
         NoonUtils.execDetached(cmd);
         m.createFileWith(agentPath, body);
-        // Refresh native shell tools in the background; opencode picks the
-        // file up on its next start.
-        root.runHelper("gen-tools", [Paths.shellDir], text => {
-            if (typeof text === "string" && text.length > 0)
-                m.createFileWith(m.trim(Paths.standard.config) + "/opencode/tools/noon_shell.ts", text);
+        // Refresh native shell tools; the write is content-compared so this
+        // is effectively once-per-change. opencode picks the file up on
+        // its next start.
+        root.runToolsHelper([Paths.shellDir], text => {
+            if (typeof text !== "string" || text.length === 0)
+                return;
+            const toolsPath = m.trim(Paths.standard.config) + "/opencode/tools/noon_shell.ts";
+            let cur = "";
+            try {
+                cur = m.readFile(toolsPath);
+            } catch (e) {
+                cur = "";
+            }
+            if (cur !== text)
+                m.createFileWith(toolsPath, text);
         });
     }
 
@@ -147,7 +157,7 @@ Singleton {
     // Settle a dead turn: bridge error, agent exit, or lost idle event.
     function settleTurn() {
         requester._sessionBusy = false;
-        root._pendingSend = "";
+        root._pendingSend = [];
         if (requester.running)
             requester.markDone();
     }
@@ -199,10 +209,12 @@ Singleton {
                 adoptStr(states, "model", event.model);
                 adoptStr(states, "agent", event.mode);
                 adoptStr(states, "effort", event.effort);
-                const text = root._pendingSend;
-                root._pendingSend = "";
-                if (text.length > 0)
-                    finishSend(text);
+                const pending = root._pendingSend;
+                root._pendingSend = [];
+                for (const text of pending) {
+                    if (text.length > 0)
+                        finishSend(text);
+                }
             }
             return;
         }
@@ -522,16 +534,7 @@ Singleton {
     function showStatus() {
         const tc = root.tokenCount;
         const cu = root.contextUsage;
-        const lines = [
-            "Session: " + (root.currentSessionId || "(none)"),
-            "Model: " + (root.currentModelId || "(none)") + (root.modelList.length > 0 ? "" : "  [server list not loaded yet]"),
-            "Effort: " + (root.currentEffortId || "(none)") + (root.effortOptions.length > 0 ? "  (server offers: " + root.effortOptions.join(", ") + ")" : "  [server offers none for this model]"),
-            "Agent mode: " + root.currentAgentId + (root.modeOptions.length > 0 ? "  (server offers: " + root.modeOptions.join(", ") + ")" : "  [server modes not loaded yet]"),
-            "Skill: " + (root.pendingSkill || "(none armed)"),
-            "Auto-approve: " + (root.autoApproveSession ? "on (this session)" : "off"),
-            "Last turn tokens: " + ((tc && tc.total >= 0) ? ("in " + tc.input + " / out " + tc.output + " / total " + tc.total) : "(none yet)"),
-            "Context window: " + (cu && cu.size > 0 ? (cu.used + " / " + cu.size + " (" + Math.round(100 * cu.used / cu.size) + "%)") : "(unknown)")
-        ];
+        const lines = ["Session: " + (root.currentSessionId || "(none)"), "Model: " + (root.currentModelId || "(none)") + (root.modelList.length > 0 ? "" : "  [server list not loaded yet]"), "Effort: " + (root.currentEffortId || "(none)") + (root.effortOptions.length > 0 ? "  (server offers: " + root.effortOptions.join(", ") + ")" : "  [server offers none for this model]"), "Agent mode: " + root.currentAgentId + (root.modeOptions.length > 0 ? "  (server offers: " + root.modeOptions.join(", ") + ")" : "  [server modes not loaded yet]"), "Skill: " + (root.pendingSkill || "(none armed)"), "Auto-approve: " + (root.autoApproveSession ? "on (this session)" : "off"), "Last turn tokens: " + ((tc && tc.total >= 0) ? ("in " + tc.input + " / out " + tc.output + " / total " + tc.total) : "(none yet)"), "Context window: " + (cu && cu.size > 0 ? (cu.used + " / " + cu.size + " (" + Math.round(100 * cu.used / cu.size) + "%)") : "(unknown)")];
         root.addMessage(lines.join("\n"), "interface");
     }
 
@@ -695,7 +698,7 @@ Singleton {
 
     function createSessionAndSend(message) {
         requester._sessionBusy = true;
-        root._pendingSend = message;
+        root._pendingSend = [...root._pendingSend, message];
         root.acpWrite(root.sessionCmd("new", {
             model: root.currentModelId,
             effort: root.effortOptions.includes(root.currentEffortId) ? root.currentEffortId : "",
@@ -731,10 +734,13 @@ Singleton {
         const next = root.messageQueue[0];
         root.messageQueue = root.messageQueue.slice(1);
         const msg = root.messageByID[next.id];
-        if (msg) {
-            msg.queued = false;
-            root.touchMessage(msg);
+        if (!msg) {
+            // Message was cleared mid-queue; drop it, don't send orphan text.
+            processQueue();
+            return;
         }
+        msg.queued = false;
+        root.touchMessage(msg);
         requester.makeRequest(next.text);
     }
 
@@ -842,10 +848,40 @@ Singleton {
         }
     }
 
+    Fetcher {
+        id: toolsFetcher
+        autoRun: false
+        property var onDone: null
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            const cb = toolsFetcher.onDone;
+            toolsFetcher.onDone = null;
+            if (cb)
+                cb(toolsFetcher.data);
+        }
+    }
+
+    property int _helperToken: 0
+
     function runHelper(cmd, args, onDone) {
+        // chatFetcher is shared: kill any in-flight stale fetch and only
+        // honor the latest callback, otherwise a fast session switch (or a
+        // slow gen-tools run at startup) eats the history load silently.
+        chatFetcher.running = false;
+        const t = ++root._helperToken;
         chatFetcher.command = [baseCmd, cmd].concat(args);
-        chatFetcher.onDone = onDone;
+        chatFetcher.onDone = data => {
+            if (t === root._helperToken && onDone)
+                onDone(data);
+        };
         chatFetcher.refresh();
+    }
+
+    function runToolsHelper(args, onDone) {
+        toolsFetcher.running = false;
+        toolsFetcher.command = [baseCmd, "gen-tools"].concat(args);
+        toolsFetcher.onDone = onDone;
+        toolsFetcher.refresh();
     }
 
     QtObject {

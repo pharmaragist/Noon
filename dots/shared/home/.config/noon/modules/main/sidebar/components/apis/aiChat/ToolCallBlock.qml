@@ -86,7 +86,7 @@ Item {
             StyledRect {
                 implicitHeight: 35
                 radius: height / 2
-                implicitWidth: children[1].implicitWidth + Padding.massive
+                implicitWidth: children[0].implicitWidth + Padding.massive
                 color: Colors.colLayer1
                 RowLayout {
                     anchors.centerIn: parent

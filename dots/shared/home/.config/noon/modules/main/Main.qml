@@ -20,8 +20,8 @@ Scope {
     // Beats {}
 
     WidgetLoader {
-        enabled: !(Globals?.topLevel?.fullscreen ?? false) && Notifications.popupAppNameList.length > 0 && Globals.main.canNotify
-        NotificationPopup {}
+        reloadOn: BarData.position
+        Bar {}
     }
 
     WidgetLoader {
@@ -30,23 +30,8 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: Mem.options.dock.enabled
-        Dock {}
-    }
-
-    WidgetLoader {
-        enabled: Globals.main.locked
-        Lock {}
-    }
-
-    WidgetLoader {
-        reloadOn: BarData.position
-        Bar {}
-    }
-
-    WidgetLoader {
-        enabled: Mem.options.osd.enabled
-        OSDs {}
+        enabled: Globals.main.clipboard.mode.length > 0
+        ClipboardPanel {}
     }
 
     WidgetLoader {
@@ -55,7 +40,23 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: Globals.main.clipboard.mode.length > 0
-        ClipboardPanel {}
+        enabled: Mem.options.dock.enabled
+        Dock {}
+    }
+
+    WidgetLoader {
+        enabled: !(Globals?.topLevel?.fullscreen ?? false) && Notifications.popupAppNameList.length > 0 && Globals.main.canNotify
+        NotificationPopup {}
+    }
+
+
+    WidgetLoader {
+        enabled: Globals.main.locked
+        Lock {}
+    }
+
+    WidgetLoader {
+        enabled: Mem.options.osd.enabled
+        OSDs {}
     }
 }

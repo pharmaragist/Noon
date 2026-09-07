@@ -115,7 +115,7 @@ StyledRect {
             Layout.fillHeight: true
             radius: height / 2
             enableBorders: true
-            implicitWidth: children[1]?.implicitWidth + Padding.silly
+            implicitWidth: children[0]?.implicitWidth + Padding.silly
             AppletsFactory {
                 id: appletsArea
                 anchors.centerIn: parent

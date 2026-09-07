@@ -138,28 +138,30 @@ Item {
                 }
 
                 Repeater {
-                    model: [
-                        {
-                            key: "pin",
-                            icon: "push_pin",
-                            action: () => {
-                                panel.pinned = !panel.pinned;
+                    model: ScriptModel {
+                        values: [
+                            {
+                                key: "pin",
+                                icon: "push_pin",
+                                action: () => {
+                                    panel.pinned = !panel.pinned;
+                                }
+                            },
+                            {
+                                visible: (SidebarData.isExpandable(root.selectedCategory) ?? true),
+                                key: "expand",
+                                action: () => {
+                                    panel.expanded = !panel.expanded;
+                                }
                             }
-                        },
-                        {
-                            key: "expand",
-                            action: () => {
-                                panel.expanded = !panel.expanded;
-                            }
-                        }
-                    ]
+                        ].filter(i => (i.visible ?? true))
+                    }
                     GroupButtonWithIcon {
                         required property var modelData
                         colors: root.colors
                         baseSize: 40
                         buttonRadius: Rounding.normal
                         toggled: modelData?.key === "pin" ? panel.pinned : panel.expanded
-                        visible: modelData?.visible ?? true
                         materialIcon: modelData?.key === "pin" ? "push_pin" : (panel.expanded ? "collapse_content" : "expand_content")
                         downAction: () => modelData?.action() ?? null
                     }

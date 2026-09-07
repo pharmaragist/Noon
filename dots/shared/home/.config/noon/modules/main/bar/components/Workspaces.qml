@@ -109,13 +109,11 @@ BarGroup {
         color: Colors.colPrimary
 
         Behavior on idx1 {
-            Anim {
-                duration: Animations.durations.small
+            SAnim {
             }
         }
         Behavior on idx2 {
-            Anim {
-                duration: Animations.durations.large
+            SAnim {
             }
         }
     }

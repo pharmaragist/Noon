@@ -10,12 +10,12 @@ PanelRect {
     readonly property real animationScale: conf.animationScale ?? 1
     readonly property int animationStyle: {
         const dict = {
-            "expo": Content.Style.Expo,
-            "slidebottom": Content.Style.SlideBottom,
-            "springpop": Content.Style.SpringPop,
-            "glide": Content.Style.Glide
+            "expo": BeamBg.Style.Expo,
+            "slidebottom": BeamBg.Style.SlideBottom,
+            "springpop": BeamBg.Style.SpringPop,
+            "glide": BeamBg.Style.Glide
         };
-        return dict[(conf.animationStyle ?? "expo").toLowerCase()] ?? Content.Style.Expo;
+        return dict[(conf.animationStyle ?? "expo").toLowerCase()] ?? BeamBg.Style.Expo;
     }
 
     property url contentSource: ""
@@ -24,9 +24,9 @@ PanelRect {
     property bool _sizeMorphArmed: false
     property url _lastContent: ""
 
-    readonly property bool _spring: animationStyle === Content.Style.SpringPop
-    readonly property bool _glide: animationStyle === Content.Style.Glide
-    readonly property bool _slide: animationStyle === Content.Style.SlideBottom
+    readonly property bool _spring: animationStyle === BeamBg.Style.SpringPop
+    readonly property bool _glide: animationStyle === BeamBg.Style.Glide
+    readonly property bool _slide: animationStyle === BeamBg.Style.SlideBottom
     readonly property bool _noScale: _slide || _glide
 
     readonly property int _morphDuration: (_spring ? 380 : _glide ? 280 : _noScale ? 260 : 300) * root.animationScale
@@ -265,9 +265,22 @@ PanelRect {
 
     Connections {
         target: stack
+
         function onCurrentItemChanged() {
-            if (stack.currentItem)
-                root.contentLoaded(stack.currentItem);
+            const _item = stack.currentItem;
+            if (!_item)
+                return;
+            root.contentLoaded(stack.currentItem);
+
+            // const binds = {
+            //     "payload": () => Globals.main.beam?.pendingData
+            // };
+
+            // for (const [property, value] of Object.entries(binds)) {
+            //     if (property in _item) {
+            //         _item[property] = Qt.binding(value);
+            //     }
+            // }
         }
     }
 }

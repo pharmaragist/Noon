@@ -90,7 +90,7 @@ SidebarItemContainer {
 
                     StyledRect {
                         id: sectionHeaderBackground
-                        implicitWidth: children[1]?.implicitWidth + (Padding.huge * 2)
+                        implicitWidth: children[0]?.implicitWidth + (Padding.huge * 2)
                         implicitHeight: 40
                         radius: Rounding.huge
                         color: Colors.colPrimaryContainer
@@ -155,21 +155,21 @@ SidebarItemContainer {
                     Repeater {
                         id: itemsRepeater
                         model: ScriptModel {
-                            values: !root.showCategories ? modelData.items : []
+                            values: !root.showCategories ? modelData.items.filter(i => (i.visible ?? true)) : []
                         }
                         delegate: SettingsItem {
                             required property var modelData
                             required property int index
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            topRadius: index === 0 ? Rounding.verylarge : Rounding.verytiny + 1
-                            bottomRadius: index === itemsRepeater.count - 1 ? Rounding.verylarge : Rounding.verytiny + 1
+                            count: itemsRepeater.count
                             color: Colors.colSurfaceContainerHigh
 
                             icon: modelData?.icon ?? "settings"
                             name: modelData?.name ?? ""
                             description: modelData?.hint ?? ""
-
+                            widget: modelData?.widget
+                            widgetProps: modelData?.widgetProps
                             key: modelData?.key ?? ""
                             type: modelData?.type ?? "switch"
                             store: modelData?.store ?? false
@@ -187,7 +187,6 @@ SidebarItemContainer {
 
                             values: modelData?.values ?? []
                             fillHeight: modelData?.fillHeight ?? false
-                            visible: modelData?.visible ?? true
                             colors: root.colors
                         }
                     }

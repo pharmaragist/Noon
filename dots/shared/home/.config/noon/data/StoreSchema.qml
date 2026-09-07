@@ -7,7 +7,7 @@ JsonAdapter {
 
     property JO services: JO {
         property JO search: JO {
-            property var data: ({})
+            property list<string> history: []
         }
         property JO weather: JO {
             property var data: ({})
@@ -16,7 +16,7 @@ JsonAdapter {
             property list<var> palettes: []
         }
         property JO cursors: JO {
-            property list<string> availableCursors: []
+            property list<var> availableCursors: []
         }
         property JO icons: JO {
             property list<var> availableIconThemes: []

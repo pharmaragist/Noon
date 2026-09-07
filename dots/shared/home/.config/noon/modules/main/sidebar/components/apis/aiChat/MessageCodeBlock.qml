@@ -21,7 +21,7 @@ StyledRect {
     property var messageData: parent?.messageData ?? {}
     property bool thinking: false
 
-    implicitHeight: Math.max(100, contentCol.implicitHeight + Padding.huge)
+    implicitHeight: Math.max(140, contentCol.implicitHeight + Padding.huge)
     Layout.fillWidth: true
     color: Colors.colLayer1
     radius: Rounding.huge

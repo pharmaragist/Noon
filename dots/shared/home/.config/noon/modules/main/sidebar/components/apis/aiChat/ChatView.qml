@@ -23,8 +23,8 @@ StyledRect {
         z: 0
         anchors.fill: parent
         spacing: Padding.veryhuge
-        // reuseItems: true
-        cacheBuffer: height * 2
+        reuseItems: true
+        cacheBuffer: height * 3
         ScrollBar.vertical: StyledScrollBar {}
         property bool userScrolledUp: false
         onMovementStarted: userScrolledUp = !atYEnd
@@ -41,7 +41,7 @@ StyledRect {
         onContentHeightChanged: if (!userScrolledUp)
             positionViewAtEnd()
 
-        // ScriptModel diffs values into incremental insert/remove/move ops —
+// ScriptModel diffs values into incremental insert/remove/move ops —
         // a raw JS array as model would tear down every delegate on each new
         // array identity. (values must stay unique: ids are always fresh.)
         // Per-message content updates still flow through touchMessage()
@@ -90,6 +90,7 @@ StyledRect {
 
             anchors.left: parent?.left
             anchors.right: parent?.right
+            anchors.margins: Padding.normal
             implicitHeight: loader?.implicitHeight
 
             Loader {

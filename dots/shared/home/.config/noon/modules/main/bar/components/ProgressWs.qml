@@ -37,8 +37,8 @@ BarGroup {
         trackColor: Colors.colLayer3
         showEndPoint: root.vertical
         Behavior on value {
-            Anim {
-                duration: Animations.durations.large
+            SAnim {
+                spring: 5
             }
         }
         StyledText {
@@ -47,7 +47,9 @@ BarGroup {
             property string value: WsData.getDisplayTextForMode(root.workspaceIndexInGroup + 1, "words").trim()
             text: TextUtils.capitalizeFirstLetter(value)
             color: Colors.colLayer3
-            font: Fonts.request("mono", "small", { weight: 900 })
+            font: Fonts.request("mono", "small", {
+                weight: 900
+            })
             rotation: parent.vertical ? 270 : 0
             animateChange: true
         }

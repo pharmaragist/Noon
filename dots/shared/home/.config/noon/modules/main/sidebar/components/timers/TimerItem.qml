@@ -8,101 +8,145 @@ import qs.services
 
 StyledRect {
     id: root
-    property var timer
-    implicitHeight: 120
-    anchors.right: parent?.right
-    anchors.left: parent?.left
-    color: Colors.colLayer2
 
-    RowLayout {
-        id: contentLayout
+    implicitHeight: 114
+
+    anchors {
+        right: parent?.right
+        left: parent?.left
+    }
+
+    color: Colors.colLayer1
+    clip: true
+
+    // Local clock used only to refresh the UI.
+    property int tick: 0
+
+    readonly property bool isRunning: modelData?.startedIn > 0
+
+    readonly property int remainingTime: {
+        tick;
+
+        return TimerService.remainingTime(modelData);
+    }
+
+    ColumnLayout {
         anchors {
+            margins: Padding.large
             fill: parent
-            rightMargin: Padding.verylarge
-            leftMargin: Padding.verylarge
         }
-        spacing: Padding.normal
-        CircularProgress {
-            Layout.alignment: Qt.AlignVCenter
-            lineWidth: 10
-            value: root.timer.remainingTime / root.timer.originalDuration
-            implicitSize: 85
-            colSecondary: Colors.m3.m3secondaryContainer
-            colPrimary: timer?.color || Colors.m3.m3primary
-            Symbol {
-                icon: timer?.icon ?? "timer"
-                anchors.centerIn: parent
-                font.pixelSize: 30
-                fill: 1
-                color: Colors.colOnLayer0
-            }
-        }
-        ColumnLayout {
-            id: info
+
+        spacing: 0
+
+        RowLayout {
+            Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignLeft
-            Layout.preferredHeight: 40
-            spacing: 0
-            StyledText {
-                id: duration
-                font: Fonts.request("main", Fonts.sizes.huge)
-                text: TimerService.formatTime(timer.remainingTime)
-                color: Colors.colOnLayer1
-            }
-            StyledText {
-                id: name
-                truncate: true
+
+            Layout.leftMargin: Padding.huge
+            Layout.rightMargin: Padding.huge
+
+            ColumnLayout {
                 Layout.fillWidth: true
-                text: timer.name
-                font.pixelSize: Fonts.sizes.normal
-                color: Colors.colOnLayer1
-            }
-            StyledText {
-                id: wakeLabel
-                visible: timer?.wakeTime
-                text: timer?.wakeTime ? TimerService.formatWakeTime(timer.wakeTime) : ""
-                font.pixelSize: Fonts.sizes.small
-                color: Colors.colSubtext
-                truncate: true
-                Layout.fillWidth: true
-            }
-        }
-        ButtonGroup {
-            id: controls
-            Repeater {
-                model: [
-                    {
-                        materialIcon: timer?.isRunning ? "pause" : "play_arrow",
-                        enabled: timer && timer.remainingTime > 0,
-                        action: () => {
-                            if (timer.isRunning) {
-                                TimerService.pauseTimer(timer.id);
-                            } else {
-                                TimerService.startTimer(timer.id);
-                            }
-                        }
-                    },
-                    {
-                        materialIcon: "restart_alt",
-                        enabled: timer !== null,
-                        action: () => TimerService.resetTimer(timer.id)
-                    },
-                    {
-                        materialIcon: "delete",
-                        enabled: timer !== null,
-                        action: () => TimerService.removeTimer(timer.id)
-                    }
-                ]
-                delegate: GroupButtonWithIcon {
-                    required property var modelData
-                    enabled: modelData.enabled ?? true
-                    materialIcon: modelData.materialIcon ?? ""
-                    releaseAction: () => modelData.action()
-                    colBackground: Colors.colLayer3
-                    Layout.fillHeight: true
+                Layout.alignment: Qt.AlignLeft
+                Layout.preferredHeight: 40
+
+                spacing: 0
+
+                StyledText {
+                    id: duration
+
+                    font: Fonts.request("main", Fonts.sizes.huge)
+
+                    text: TimerService.formatTime(root.remainingTime)
+
+                    color: Colors.colOnLayer1
+                }
+
+                StyledText {
+                    id: name
+
                     Layout.fillWidth: true
+
+                    text: modelData?.name ?? ""
+                    font.pixelSize: Fonts.sizes.normal
+                    color: Colors.colOnLayer1
+
+                    truncate: true
+                }
+            }
+
+            ButtonGroup {
+                id: controls
+
+                Repeater {
+                    model: [
+                        {
+                            materialIcon: root.isRunning ? "pause" : "play_arrow",
+                            enabled: !!modelData && root.remainingTime > 0,
+                            action: () => {
+                                if (root.isRunning)
+                                    TimerService.pauseTimer(modelData.id);
+                                else
+                                    TimerService.startTimer(modelData.id);
+                            }
+                        },
+                        {
+                            materialIcon: "restart_alt",
+                            enabled: !!modelData,
+                            action: () => TimerService.resetTimer(modelData.id)
+                        },
+                        {
+                            materialIcon: "delete",
+                            enabled: !!modelData,
+                            action: () => TimerService.removeTimer(modelData.id)
+                        }
+                    ]
+
+                    delegate: GroupButtonWithIcon {
+                        required property var modelData
+
+                        baseSize: 40
+                        buttonRadius: Rounding.large
+
+                        enabled: modelData.enabled ?? true
+                        materialIcon: modelData.materialIcon ?? ""
+
+                        downAction: () => modelData.action()
+
+                        colBackground: Colors.colLayer3
+
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                    }
                 }
             }
         }
+
+        StyledProgressBar {
+            Layout.fillWidth: true
+
+            Layout.rightMargin: Padding.large
+            Layout.leftMargin: Padding.large
+
+            valueBarHeight: 3
+            valueBarGap: 3
+
+            value: {
+                if (!root.modelData || root.modelData.duration <= 0)
+                    return 0;
+
+                return 1 - (root.remainingTime / root.modelData.duration);
+            }
+
+            sperm: true
+        }
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.isRunning
+
+        onTriggered: root.tick++
     }
 }

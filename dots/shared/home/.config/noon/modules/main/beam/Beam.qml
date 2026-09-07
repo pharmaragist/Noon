@@ -116,15 +116,20 @@ Variants {
 
             onWheel: wheel => {
                 if (wheel.modifiers === Qt.ControlModifier) {
-                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "incubate" : "";
+                    Globals.main.beam.show = true;
+                    if (wheel.angleDelta.y < 0)
+                        Globals.main.beam.reason = "appearance";
+                    if (wheel.angleDelta.y > 0)
+                        Globals.main.beam.reason = "default";
+
                     wheel.accepted = true;
                     return;
                 }
-                if (wheel.modifiers === Qt.ShiftModifier) {
-                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dino" : "";
-                    wheel.accepted = true;
-                    return;
-                }
+                // if (wheel.modifiers === Qt.ShiftModifier) {
+                //     Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dlp" : "";
+                //     wheel.accepted = true;
+                //     return;
+                // }
 
                 root.scrollSum += wheel.angleDelta.y;
 
@@ -149,11 +154,10 @@ Variants {
 
                     let urlStrings = drop.urls.map(url => url.toString());
                     let firstUrl = urlStrings[0];
-
-                    if (NoonUtils.isOnlineUrl(firstUrl)) {
-                        NoonUtils.runDownloader(firstUrl);
-                    } else if (firstUrl.startsWith("file://")) {
+                    if (firstUrl.startsWith("file://")) {
                         Mem.states.sidebar.shelf.filePaths = [...Mem.states.sidebar.shelf.filePaths, ...urlStrings];
+                    } else {
+                        NoonUtils.runDownloader(firstUrl);
                     }
                 }
             }
@@ -179,7 +183,7 @@ Variants {
             transparency: 0.8
         }
 
-        Content {
+        BeamBg {
             id: bg
             z: 999
             reveal: root.reveal
@@ -192,7 +196,7 @@ Variants {
             contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
 
             topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
-            bottomRadius: root?.currentModeData?.radius ?? Rounding.silly;
+            bottomRadius: root?.currentModeData?.radius ?? Rounding.silly
 
             onContentLoaded: item => {
                 if (root.reveal && "focusItem" in item)

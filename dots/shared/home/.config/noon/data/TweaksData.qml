@@ -21,6 +21,12 @@ QtObject {
                     "key": "appearance.animations.curve"
                 },
                 {
+                    "visible": Mem.options.appearance.animations.curve === "user",
+                    "icon": "animation",
+                    "type": "widget",
+                    "widget": "UserAnimationCurveEditor"
+                },
+                {
                     "icon": "rounded_corner",
                     "name": "Radius",
                     "hint": "Global rounding scale for all shell widgets",
@@ -53,23 +59,6 @@ QtObject {
                     "canRefresh": true,
                     "refreshAction": () => IconThemesService.reload(),
                     "values": IconThemesService.availableIconThemeIds
-                },
-                {
-                    "icon": "arrow_selector_tool",
-                    "name": "Cursor Theme",
-                    "store": "hypr",
-                    "key": "cursor_theme",
-                    "type": "combobox",
-                    "canRefresh": true,
-                    "refreshAction": () => CursorsService.reload(),
-                    "values": CursorsService.cursors
-                },
-                {
-                    "icon": "ads_click",
-                    "name": "Cursor Size",
-                    "store": "hypr",
-                    "key": "cursor_size",
-                    "type": "spin"
                 },
                 {
                     "icon": "font_download",
@@ -123,27 +112,10 @@ QtObject {
             "shell": "Global",
             "items": [
                 {
-                    "icon": "animation",
-                    "name": "Beam Animation Style",
-                    "type": "combobox",
-                    "values": BeamData.availableAnimationStyles,
-                    "hint": "Transition style for beam animations",
-                    "key": "beam.appearance.animationStyle"
-                },
-                {
-                    "icon": "palette",
-                    "name": "Beam Default Theme",
-                    "type": "combobox",
-                    "values": Object.keys(BeamData?.availableDefaultThemes ?? {}),
-                    "hint": "Change Theme/Layout for beam main content",
-                    "key": "beam.appearance.theme"
-                },
-                {
-                    "icon": "masked_transitions",
-                    "name": "Beam Animation Scale",
-                    "type": "text",
-                    "hint": "Scale multiplier for beam animations",
-                    "key": "beam.appearance.animationScale"
+                    "icon": "arrow_selector_tool",
+                    "name": "Cursor Theme",
+                    "type": "widget",
+                    "widget": "CursorSelector"
                 },
                 {
                     "icon": "notifications",
@@ -243,22 +215,16 @@ QtObject {
                     "key": "desktop.bg.parallax.enabled"
                 },
                 {
-                    "icon": "height",
-                    "name": "Vertical Parallax",
-                    "hint": "Parallax on Y axis instead of X",
-                    "key": "desktop.bg.parallax.verticalParallax"
+                    "icon": "refresh",
+                    "name": "Hot reload ",
+                    "hint": "Enable hot reload on change of shell's qml files",
+                    "key": "desktop.shell.hotReload"
                 },
                 {
                     "icon": "image",
                     "name": "Deload On Fullscreen",
                     "hint": "Hide shell elements when app is fullscreen",
                     "key": "desktop.shell.deloadOnFullscreen"
-                },
-                {
-                    "icon": "width",
-                    "name": "Sidebar Parallax",
-                    "hint": "Wallpaper shifts with sidebar open",
-                    "key": "desktop.bg.parallax.widgetParallax"
                 },
                 {
                     "icon": "zoom_in_map",
@@ -517,6 +483,36 @@ QtObject {
                     "values": WsData.availableModes,
                     "key": "bar.workspaces.displayMode"
                 }
+            ]
+        },
+        {
+            "section": "Beam",
+            "icon": "space_bar",
+            "shell": "Main",
+            "items": [
+                {
+                    "icon": "animation",
+                    "name": "Beam Animation Style",
+                    "type": "combobox",
+                    "values": BeamData.availableAnimationStyles,
+                    "hint": "Transition style for beam animations",
+                    "key": "beam.appearance.animationStyle"
+                },
+                {
+                    "icon": "palette",
+                    "name": "Beam Default Theme",
+                    "type": "combobox",
+                    "values": Object.keys(BeamData?.availableDefaultThemes ?? {}),
+                    "hint": "Change Theme/Layout for beam main content",
+                    "key": "beam.appearance.theme"
+                },
+                {
+                    "icon": "masked_transitions",
+                    "name": "Beam Animation Scale",
+                    "type": "text",
+                    "hint": "Scale multiplier for beam animations",
+                    "key": "beam.appearance.animationScale"
+                },
             ]
         },
         {
@@ -799,6 +795,12 @@ QtObject {
             "shell": "Global",
             "items": [
                 {
+                    "visible": Mem.options.sidebar.content.apis,
+                    "type": "field",
+                    "store": "ai",
+                    "key": "systemPrompt"
+                },
+                {
                     "icon": "hearing",
                     "name": "System Sounds",
                     "hint": "Play audio feedback on actions",
@@ -847,9 +849,9 @@ QtObject {
                     "type": "action",
                     "actionIcon": "restart_alt",
                     "releaseAction": () => {
-                        NoonUtils.trash(Mem.optionsView.path)
+                        NoonUtils.trash(Mem.optionsView.path);
                         NoonUtils.inlineTimer(() => {
-                            NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh")
+                            NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh");
                         }, 500);
                     }
                 }

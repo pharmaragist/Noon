@@ -9,29 +9,6 @@ import "controlPanel"
 import "bar"
 import "run"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Scope {
     WidgetLoader {
         Bar {}

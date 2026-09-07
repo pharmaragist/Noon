@@ -32,13 +32,13 @@ Singleton {
         property bool locked: false
         property bool exposeView: false
         property bool showOsdValues: false
-        property bool showBgOverview: false
         property bool showScreenshot: false
         property bool canNotify: sidebar?.hoverMode ?? true
 
         property QtObject beam: QtObject {
             property bool show: false
             property string reason: "default"
+            property var payload
         }
 
         property QtObject clipboard: QtObject {
@@ -96,6 +96,7 @@ Singleton {
         Component.onCompleted: {
             if (!Mem.ready)
                 return;
+            Quickshell.watchFiles = Mem.options.desktop.shell.hotReload
             FirstRunService.init();
             TimerService.reload();
             ClipboardService.refresh();

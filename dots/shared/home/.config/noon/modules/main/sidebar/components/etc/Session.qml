@@ -29,7 +29,7 @@ SidebarItemContainer {
             "icon": "logout",
             "tooltip": qsTr("Logout"),
             "command": "loginctl terminate-user ''",
-            "c": Colors.colPrimaryContainerActive,
+            "c": Colors.colPrimaryContainer,
             "hc": Colors.colPrimaryContainerHover,
             "i": Colors.colOnPrimaryContainer,
             "shape": "PixelCircle"

@@ -4,10 +4,6 @@ JsonAdapter {
     property JO desktop: JO {
         property bool firstRun: true
 
-        property JO dialogs: JO {
-            property string lastIncubatedCategory: ""
-        }
-
         property JO shell: JO {
             property bool deload: false
         }
@@ -68,11 +64,6 @@ JsonAdapter {
             property string controller: ""
             property string mode: ""
             property list<var> modes: []
-        }
-
-        property JO timers: JO {
-            property list<var> timers: []
-            property int nextTimerId: 1
         }
 
         property JO beam: JO {

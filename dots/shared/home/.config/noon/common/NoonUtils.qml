@@ -7,6 +7,8 @@ import Quickshell.Io
 import qs.common
 import qs.common.utils
 import qs.common.widgets
+import qs.common.functions
+import qs.modules.apps
 import qs.services
 
 Singleton {
@@ -16,7 +18,7 @@ Singleton {
     readonly property Component procRunnerComponent: PlainStdoutProc {}
     readonly property Component timerComponent: Timer {}
 
-    function spawnApp(name, propTable) {
+    function spawnApp(name, propTable = {}) {
         const component = Qt.createComponent(Qt.resolvedUrl("../modules/apps/" + name + ".qml"));
         if (component.status !== Component.Ready) {
             console.error("spawnApp: cannot load " + name + ": " + component.errorString());
@@ -37,8 +39,17 @@ Singleton {
         Globals.main.sysDialogs.pendingData = null;
         Globals.main.sysDialogs.mode = "";
     }
-
+    function noteSite(s) {
+        const all = Mem.store.services.search.history;
+        if (all.indexOf(s) === -1)
+            Mem.store.services.search.history = [...all, TextUtils.getBaseUrl(s)];
+    }
     function searchOnline(query) {
+        if (/www|http|https/.test(query)) {
+            noteSite(query);
+            open(query);
+            return;
+        }
         const dict = {
             "google": "https://www.google.com/search?q=",
             "duckduckgo": "https://duckduckgo.com/?q=",
@@ -174,11 +185,6 @@ Singleton {
         execDetached(["kitty", "-e", "fish", "-c", command]);
     }
 
-    function checkIfDlp(url) {
-        const avList = ["youtube.com", "youtu.be", "facebook.com", "twitter.com", "x.com", "instagram.com", "tiktok.com", "twitch.tv", "reddit.com", "soundcloud.com", "spotify.com", "archive.org", "pornhub.com", "crunchyroll.com", "plex.tv", "imgur.com", "streamable.com", "udemy.com", "coursera.org", "khan academy.org"];
-        return avList.some(domain => url.toLowerCase().includes(domain));
-    }
-
     function inlineStdProc(command, callback) {
         let proc = procRunnerComponent.createObject(root, {
             command: Array.isArray(command) ? command : [command],
@@ -205,10 +211,9 @@ Singleton {
 
     function runDownloader(url) {
         if (isOnlineUrl(url)) {
-            if (checkIfDlp(url)) {
-                Globals.main.sysDialogs.pendingData = url;
-                Globals.main.sysDialogs.mode = "dlp";
-            }
+            Globals.main.beam.payload = url;
+            Globals.main.beam.show = true;
+            Globals.main.beam.reason = "dlp";
         }
     }
 

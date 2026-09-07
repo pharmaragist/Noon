@@ -184,17 +184,6 @@ StyledRect {
                     }
                 }
             },
-            {
-                "text": "Download With Dlp",
-                "materialIcon": "download",
-                "visible": NoonUtils.checkIfDlp(root.path),
-                "action": () => {
-                    NoonUtils.runDownloader(path);
-                    if (!Globals.main.sidebar.pinned) {
-                        Ipc.call(["sidebar", "hide"]);
-                    }
-                }
-            },
         ]
     }
 }

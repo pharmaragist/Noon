@@ -13,10 +13,9 @@ Item {
     height: navRailList.currentItem ? navRailList.currentItem.height : 0
     y: navRailList.currentItem ? navRailList.currentItem.y : 0
     z: -2
+    
     Behavior on y {
-        Anim {
-            duration: Animations.durations.large
-        }
+        SAnim {}
     }
 
     Anim on opacity {

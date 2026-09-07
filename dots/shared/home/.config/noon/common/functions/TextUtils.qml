@@ -5,58 +5,28 @@ import Quickshell
 Singleton {
     id: root
 
-
-
-
-
-
-
     function format(str, ...args) {
         return str.replace(/{(\d+)}/g, (match, index) => typeof args[index] !== 'undefined' ? args[index] : match);
     }
-
-
-
-
-
 
     function getDomain(url) {
         const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/);
         return match ? match[1] : null;
     }
 
-
-
-
-
-
     function getBaseUrl(url) {
         const match = url.match(/^(https?:\/\/[^\/]+)(\/.*)?$/);
         return match ? match[1] : null;
     }
 
-
-
-
-
-
     function shellSingleQuoteEscape(str) {
-        return String(str)
-
-        .replace(/'/g, "'\\''");
+        return String(str).replace(/'/g, "'\\''");
     }
-
-
-
-
-
 
     function splitMarkdownBlocks(markdown) {
         if (typeof markdown !== 'string')
             return [];
         const regex = /```(\w+)?\n([\s\S]*?)```|<think>([\s\S]*?)<\/think>/g;
-
-
 
         let result = [];
         let lastIndex = 0;
@@ -162,20 +132,9 @@ Singleton {
         return result;
     }
 
-
-
-
-
-
     function escapeBackslashes(str) {
         return str.replace(/\\/g, '\\\\');
     }
-
-
-
-
-
-
 
     function wordWrap(str, maxLen) {
         if (!str)
@@ -197,11 +156,6 @@ Singleton {
         return lines.join("\n");
     }
 
-
-
-
-
-
     function cleanMusicTitle(title) {
         if (!title)
             return "";
@@ -218,11 +172,6 @@ Singleton {
         return title.trim();
     }
 
-
-
-
-
-
     function friendlyTimeForSeconds(seconds) {
         if (isNaN(seconds) || seconds < 0)
             return "0:00";
@@ -237,31 +186,15 @@ Singleton {
         }
     }
 
-
-
-
-
-
     function escapeHtml(str) {
         if (typeof str !== 'string')
             return str;
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-
-
-
-
-
     function cleanCliphistEntry(str: string): string {
         return str.replace(/^\d+\t/, "");
     }
-
-
-
-
-
-
 
     function stringListContainsSubstring(str, substrings) {
         for (let i = 0; i < substrings.length; ++i) {
@@ -272,24 +205,12 @@ Singleton {
         return false;
     }
 
-
-
-
-
-
-
     function cleanPrefix(str, prefix) {
         if (str.startsWith(prefix)) {
             return str.slice(prefix.length);
         }
         return str;
     }
-
-
-
-
-
-
 
     function cleanOnePrefix(str, prefixes) {
         for (let i = 0; i < prefixes.length; ++i) {
@@ -300,13 +221,7 @@ Singleton {
         return str;
     }
 
-
-
-
-
-
     function toTitleCase(str) {
-
         return str.replace(/[-_]/g, " ").replace(/\w\S*/g, function (txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
@@ -324,29 +239,15 @@ Singleton {
         return `${unitIndex === 0 ? bytes : bytes.toFixed(2)} ${units[unitIndex]}`;
     }
 
-
-
-
-
     function separateCamelCase(str) {
         return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').replace(/\b./g, s => s.toUpperCase());
     }
-
-
-
-
-
-
 
     function capitalizeFirstLetter(string) {
         if (!string)
             return "";
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
-
-
-
-
 
     function getStretch(horizontal = 0.6, vertical = 1) {
         return [

@@ -10,8 +10,10 @@ JsonAdapter {
 
         property JO animations: JO {
             property real scale: 1
-            property string curve: "standard"
+            property string curve: "emphasized"
+            property list<real> userCurve: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
         }
+
         property JO colors: JO {
             property string palettePath: "auto"
         }
@@ -81,16 +83,6 @@ JsonAdapter {
 
         property JO time: JO {
             property bool use12HourFormat: true
-        }
-
-        property JO timers: JO {
-            property list<var> customPresets: [
-                {
-                    "duration": 1500,
-                    "icon": "timer",
-                    "name": "Example Timer"
-                },
-            ]
         }
 
         property JO weather: JO {
@@ -172,7 +164,6 @@ JsonAdapter {
             property bool timers: true
 
             property bool history: false
-            property bool bookmarks: false
             property bool emojies: false
         }
 
@@ -181,7 +172,7 @@ JsonAdapter {
             property bool enableResizeOverlay: true
             property bool rememberTabIndex: true
             property bool rememberExpanded: true
-            property bool rememberPinned: true
+            property bool rememberPinned: false
         }
 
         property JO navRail: JO {
@@ -234,6 +225,7 @@ JsonAdapter {
         }
 
         property JO shell: JO {
+            property bool hotReload: false
             property bool deloadOnFullscreen: false
             property string mode: "main"
         }
@@ -255,10 +247,8 @@ JsonAdapter {
             property bool depthMode: false
 
             property JO parallax: JO {
-                property bool enabled: false
-                property bool widgetParallax: false
-                property bool verticalParallax: false
-                property real parallaxStrength: 0.0
+                property bool enabled: true
+                property real parallaxStrength: 0.025
             }
 
             property JO live: JO {

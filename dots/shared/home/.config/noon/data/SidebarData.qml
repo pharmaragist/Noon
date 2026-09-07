@@ -112,6 +112,7 @@ Singleton {
             shell: "main",
             componentPath: "etc/History",
             searchable: true,
+            lazy: false,
             shape: "Ghostish",
             enabled: contentOptions.history
         },

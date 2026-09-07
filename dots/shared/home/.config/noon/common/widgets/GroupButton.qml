@@ -52,18 +52,18 @@ Button {
     }
 
     Behavior on implicitWidth {
-        Anim {}
+        SAnim {}
     }
 
     Behavior on implicitHeight {
-        Anim {}
+        SAnim {}
     }
 
     Behavior on leftRadius {
-        Anim {}
+        SAnim {}
     }
     Behavior on rightRadius {
-        Anim {}
+        SAnim {}
     }
 
     MouseArea {

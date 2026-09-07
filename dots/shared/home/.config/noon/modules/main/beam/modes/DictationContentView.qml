@@ -11,10 +11,6 @@ PanelRect {
     anchors.fill: parent
     readonly property bool toggled: SpeechService.listening ?? false
 
-    
-    
-    
-
     RowLayout {
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
@@ -43,7 +39,7 @@ PanelRect {
             radius: width / 2
             clip: true
             toggled: root.toggled
-            
+
             Visualizer {
                 active: true
                 _mode: "Bars"

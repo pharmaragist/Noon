@@ -2,6 +2,7 @@ import QtQuick
 import qs.data
 import qs.common
 import qs.common.widgets
+import qs.modules.main.sidebar
 
 AppWindow {
     id: root

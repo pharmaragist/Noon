@@ -87,7 +87,10 @@ Item {
                         roleValue: "text"
                         MessageTextBlock {
                             editing: root.editing
-                            renderMarkdown: root.renderMarkdown
+                            // Qt's markdown parser melts down on huge/degenerate
+                            // input and takes the whole shell with it: long
+                            // blocks render plain.
+                            renderMarkdown: root.renderMarkdown && (modelData.content ?? "").length < 8000
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
                             messageData: root.messageData

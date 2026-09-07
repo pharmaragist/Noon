@@ -5,6 +5,7 @@ import Quickshell
 import qs.common
 import qs.common.widgets
 import qs.common.utils
+import qs.common.functions
 import qs.services
 
 Singleton {
@@ -178,16 +179,22 @@ Singleton {
             shape: "PixelCircle",
             placeholder: "Wanna Search Google ..?",
             showHint: true,
-            hinter: () => {
-                // TODO CATCH COMMANDS AND HINT THEM ALSO FUZZY SEARCH 'EM
-                if (!subConfig && Mem.store.search.data.length > 0) {
-                    const q = cleanQuery.toLowerCase();
-                    for (let site of Mem.store.search.data) {
-                        if (site.toLowerCase().startsWith(q))
-                            return site;
-                    }
-                }
-                return "";
+            hinter: query => {
+                const q = cleanQuery.toLowerCase();
+                const all = Mem.store.services.search?.history ?? []
+                const processed = all.map(s => ({
+                    name: TextUtils.getDomain(s),
+                    url: s,
+                    domain: Fuzzy.prepare(s)
+                }));
+
+                const results = Fuzzy.go(q, processed, {
+                    all: true,
+                    key: "domain",
+                    limit: 1
+                });
+
+                return results[0]?.obj.url ?? "";
             },
             executor: () => {
                 const searchUrl = subConfig?.searchQuery || Mem.options.networking.searchEngine;
@@ -243,36 +250,21 @@ Singleton {
             showHint: false,
             hinter: () => "",
             executor: () => {
-                const raw = cleanQuery.trim();
                 const prefix = subConfig?.prefix ?? "";
-                const query = prefix && raw.startsWith(prefix + " ") ? raw.substring(prefix.length).trim() : raw;
-                if (subConfig?.exec)
-                    subConfig.exec(query);
+                const link = cleanQuery.substring(prefix.length);
+                subConfig.exec(link);
             },
             subStates: {
-                "video": {
-                    prefix: "v",
-                    description: "handle video links",
-                    icon: "play_arrow",
-                    shape: "PixelCircle",
-                    exec: query => DlpService.request({
-                            url: query,
-                            video: true,
-                            directory: Paths.standard.downloads,
-                            toast: true
-                        })
-                },
-                "audio": {
-                    prefix: "m",
-                    description: "handle music links",
-                    icon: "music_note",
-                    shape: "PixelCircle",
-                    exec: query => DlpService.request({
-                            url: query,
-                            audio: true,
-                            directory: BeatsService.tracksDir,
-                            toast: true
-                        })
+                "download": {
+                    prefix: "",
+                    exec: query => {
+                        NoonUtils.inlineTimer(() => {
+                            Globals.main.beam.payload = query;
+                            Globals.main.beam.reason = "dlp";
+                            Globals.main.beam.show = true;
+                            console.error(query);
+                        }, 500);
+                    }
                 },
                 "audio_search": {
                     prefix: "?m",
@@ -404,13 +396,18 @@ Singleton {
             size: sizes.weather,
             component: "WeatherContentView"
         },
+        "dlp": {
+            dim: true,
+            radius: 40,
+            timeout: false,
+            component: "DlpContentView",
+            size: sizes.dlp
+        },
         "appearance": {
             dim: false,
             radius: Rounding.full,
             timeout: false,
             size: sizes.appearance,
-            target: "Globals.main.showBgOverview",
-            when: !Globals.topLevel?.activated && Globals.main.beam.show && Globals.main.beam.reason === "appearance",
             component: "AppearanceContentView"
         }
     }
@@ -421,8 +418,9 @@ Singleton {
         suggestedApp = null;
         activeState = defaultState;
     }
-    function getDynamicWidth(size = [470, 100]) {
-        return Math.max(getHint().length, query.length) > 25 ? size?.[1] : size?.[0];
+    function getDynamicWidth(size = [470, 1000]) {
+        const hint = root?.getHint();
+        return Math.max(hint.length, query.length) > 25 ? size?.[1] : size?.[0];
     }
 
     function getIcon() {

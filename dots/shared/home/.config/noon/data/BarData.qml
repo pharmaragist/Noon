@@ -39,7 +39,6 @@ Singleton {
         "utilButtons": "UtilButtons",
         "taskbar": "TaskBar",
         "title": "VTitle",
-        "timers": "Timers",
         "resources": "Resources",
         "circBattery": "MinimalBattery",
         "weather": "WeatherIndicator",

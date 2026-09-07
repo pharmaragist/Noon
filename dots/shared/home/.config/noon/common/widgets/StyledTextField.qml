@@ -14,7 +14,6 @@ TextField {
     placeholderTextColor: colors.colOnLayer1
     color: colors.colOnLayer1
     Keys.onEscapePressed: focus = false
-    objectName: "searchInput"
     placeholderText: "Search..."
     selectionColor: colors.colSecondaryContainer
     selectedTextColor: colors.colOnSecondaryContainer

@@ -28,6 +28,10 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 0
 
+    function linkMediaPaths(text) {
+        return text.replace(/(^|\s)(\/[^\s:*?"'<>|()\[\]]+\.(png|jpe?g|gif|webp|bmp|svg))/g, (m, pre, p) => `${pre}![](${p})`);
+    }
+
     function processText(input) {
         if (!input)
             return "";
@@ -50,7 +54,11 @@ ColumnLayout {
                     }
                 }
             } else {
-                result += p;
+                try {
+                    result += linkMediaPaths(p);
+                } catch (e) {
+                    result += p;
+                }
             }
         }
         return result;

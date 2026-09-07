@@ -37,6 +37,7 @@ Singleton {
         readonly property size dictate: Qt.size(200, 55)
         readonly property size appearance: Qt.size(800, 70)
         readonly property size dictateWindow: Qt.size(640, 480)
+        readonly property size dlp: Qt.size(340, 160)
     }
 
     readonly property QtObject osd: QtObject {

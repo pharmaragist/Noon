@@ -149,6 +149,17 @@ QtObject {
             event.accepted = true;
             break;
         default:
+            if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_O) {
+                Ipc.call(["sidebar", "toggle_expand"]);
+                event.accepted = true;
+                return;
+            }
+
+            if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_P) {
+                Ipc.call(["sidebar", "toggle_pin"]);
+                event.accepted = true;
+                return;
+            }
             if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_V) {
                 if (event.modifiers & Qt.ShiftModifier) {
                     if (inputField)

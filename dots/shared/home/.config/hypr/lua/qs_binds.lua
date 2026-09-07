@@ -33,7 +33,7 @@ local beam_actions = {
     music = "ALT+M",
     weather = "ALT+W",
     hints = "ALT+Slash",
-    appearance = "S",
+    appearance = "CTRL+S",
 }
 
 local sidebar_actions = {

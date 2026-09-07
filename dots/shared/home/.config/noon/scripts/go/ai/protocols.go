@@ -108,6 +108,8 @@ var injectedTags = []string{"skill"}
 
 var skillHeaderRe = regexp.MustCompile(`(?s)Follow the skill named "([^"]*)".*?<skill>.*?</skill>\s*Task:\s*`)
 
+var thinkBlockRe = regexp.MustCompile(`(?s)<think>.*?</think>\s*`)
+
 var injectedTagRes = map[string]*regexp.Regexp{}
 
 func init() {
@@ -188,7 +190,9 @@ func cmdChat(sessionID string, limit, offset int) error {
 	}
 	defer db.Close()
 
-	query := `SELECT m.id, m.data, p.data
+	query := `SELECT m.id,
+		  json_extract(m.data, '$.role'), json_extract(m.data, '$.agent'),
+		  json_extract(m.data, '$.model.modelID'), p.data
 		FROM message m LEFT JOIN part p ON p.message_id = m.id
 		WHERE m.session_id = ?
 		  AND m.id IN (SELECT id FROM message WHERE session_id = ? ORDER BY rowid DESC LIMIT ? OFFSET ?)
@@ -200,20 +204,22 @@ func cmdChat(sessionID string, limit, offset int) error {
 	defer rows.Close()
 
 	type msg struct {
-		data json.RawMessage
-		part []json.RawMessage
+		role  sql.NullString
+		agent sql.NullString
+		model sql.NullString
+		part  []json.RawMessage
 	}
 	order := []string{}
 	byID := map[string]*msg{}
 	for rows.Next() {
 		var mid string
-		var mdata string
+		var m msg
 		var pdata sql.NullString
-		if err := rows.Scan(&mid, &mdata, &pdata); err != nil {
+		if err := rows.Scan(&mid, &m.role, &m.agent, &m.model, &pdata); err != nil {
 			return err
 		}
 		if _, ok := byID[mid]; !ok {
-			byID[mid] = &msg{data: json.RawMessage(mdata)}
+			byID[mid] = &msg{role: m.role, agent: m.agent, model: m.model}
 			order = append(order, mid)
 		}
 		if pdata.Valid && len(pdata.String) > 0 {
@@ -227,14 +233,6 @@ func cmdChat(sessionID string, limit, offset int) error {
 	out := []Message{}
 	for _, mid := range order {
 		m := byID[mid]
-		var meta struct {
-			Role  string `json:"role"`
-			Agent string `json:"agent"`
-			Model *struct {
-				ModelID string `json:"modelID"`
-			} `json:"model"`
-		}
-		json.Unmarshal(m.data, &meta)
 
 		var txt strings.Builder
 		tools := []ToolCall{}
@@ -273,28 +271,25 @@ func cmdChat(sessionID string, limit, offset int) error {
 			}
 		}
 
-		content := txt.String()
-		if content == "" && len(tools) == 0 {
+		content := thinkBlockRe.ReplaceAllString(txt.String(), "")
+		if strings.TrimSpace(content) == "" && len(tools) == 0 {
 			continue
 		}
-		// View shows collapsed context; RawContent keeps the full text.
-		raw := content
+		// View shows collapsed context; RawContent keeps fuller text for
+		// resend, capped so monster rows can't balloon the view's memory.
+		raw := truncateString(content, 100000)
 		content = truncateString(collapseInjectedBlocks(content), 30000)
-		var model string
-		if meta.Model != nil {
-			model = meta.Model.ModelID
-		}
 		out = append(out, Message{
-			Role:              meta.Role,
+			Role:              m.role.String,
 			Content:           content,
 			RawContent:        raw,
-			Model:             model,
+			Model:             m.model.String,
 			Thinking:          false,
 			Done:              true,
 			Tools:             tools,
 			AnnotationSources: []interface{}{},
 			VisibleToUser:     true,
-			Agent:             meta.Agent,
+			Agent:             m.agent.String,
 		})
 	}
 	return emit(out)

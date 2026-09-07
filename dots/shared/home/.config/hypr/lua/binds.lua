@@ -1,7 +1,7 @@
 -- No USE
 -- Special workspace
--- m_bind("S", hl.dsp.workspace.toggle_special())
--- m_bind("ALT+S", hl.dsp.window.move({ workspace = "special" }))
+m_bind("S", hl.dsp.workspace.toggle_special())
+m_bind("ALT+S", hl.dsp.window.move({ workspace = "special" }))
 -- m_bind("mouse:275", hl.dsp.workspace.toggle_special(), { mouse = true })
 
 hl.bind("CTRL+" .. mainMod .. "+bracketleft", hl.dsp.focus({ workspace = "e-1" }))

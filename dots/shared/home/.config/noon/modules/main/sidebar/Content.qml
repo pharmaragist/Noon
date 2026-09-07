@@ -53,6 +53,7 @@ Item {
     function dismiss() {
         panelWindow.hide();
     }
+
     function changeContent(newCategoryKey) {
         if (!newCategoryKey || !SidebarData.enabledCategories.includes(newCategoryKey) && !SidebarData.isStealth(newCategoryKey))
             return;
@@ -65,10 +66,6 @@ Item {
             panelWindow.hoverMode = false;
 
         selectedCategory = newCategoryKey;
-    }
-
-    function incubateContent(cat) {
-        panelWindow.incubate(cat);
     }
 
     function focusMainSearchInput() {
