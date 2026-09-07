@@ -22,7 +22,7 @@ Singleton {
     readonly property string lyricText: getData(lyricsFile)?.text ?? ""
     readonly property var library: getData(libraryFile)
     readonly property var queue: getData(queueFile)?.queue ?? []
-    readonly property var baseCmd: [Paths.scriptsDir + "/beats-go"]
+    readonly property var baseCmd: [Paths.scriptsDir + "/beats"]
     readonly property bool isLoading: hitsProc.running
 
     property string hitsQuery: ""

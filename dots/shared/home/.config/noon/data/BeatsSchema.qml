@@ -12,7 +12,6 @@ JsonAdapter {
         property list<string> excludedPlayers: ["playerctld", "kdeconnectd"]
         property bool showLyrics: true
         property string homePageStyle: "PixelPlayer"
-        property int webPort: 8090
     }
 
     property JO hits: JO {

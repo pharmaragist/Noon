@@ -18,6 +18,7 @@ StyledRect {
     property bool listMode: false
     property int margins: listMode ? Padding.small : Padding.large
     readonly property real fontScale: listMode ? 1 : 0.9
+    bouncy: false
 
     clip: true
     color: "transparent"
@@ -54,6 +55,7 @@ StyledRect {
         anchors.left: root.listMode ? coverArt.right : parent.left
         anchors.leftMargin: root.listMode ? Padding.small : 0
         leftRadius: root.listMode ? Rounding.verytiny : 0
+        enableAnimations: false
 
         color: root.colors.colLayer2
         width: parent.width - 50
@@ -110,6 +112,7 @@ StyledRect {
         rightRadius: listMode ? Rounding.verytiny : 0
         color: root.colors.colLayer2
         clip: true
+        enableAnimations: false
 
         Symbol {
             text: "music_note"
@@ -120,9 +123,9 @@ StyledRect {
         }
 
         StyledImage {
+            z: 9999
             anchors.fill: parent
             source: Qt.resolvedUrl(root?.coverArt) || ""
-            cache: true
         }
     }
     function animate() {

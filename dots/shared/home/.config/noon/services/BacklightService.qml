@@ -8,36 +8,30 @@ import qs.common
 Singleton {
     id: root
     readonly property string deviceName: Mem.options.services.backlightDevice
-    readonly property string sysfsDir: "/sys/class/backlight/" + root.deviceName
 
     property var stats: ({
-            id: root.deviceName,
-            type: (typeFile.text() || "").trim(),
-            current: parseInt(currentFile.text()) || 0,
-            max: parseInt(maxFile.text()) || 2,
-            percentage: (parseInt(maxFile.text()) || 2) > 0 ? (parseInt(currentFile.text()) || 0) / (parseInt(maxFile.text()) || 2) : 0,
-            icon: root.getIcon(parseInt(currentFile.text()) || 0)
+            id: "",
+            type: "",
+            current: 0,
+            max: 2,
+            percentage: 1.0,
+            icon: "backlight_high"
         })
 
-    onStatsChanged: NoonUtils.toast({
-        content: "Changed"
-    })
+    Component.onCompleted: pollProc.running = true
 
-    FileView {
-        id: currentFile
-        path: root.sysfsDir + "/brightness"
-        watchChanges: true
-        onFileChanged: reload()
-    }
+    Process {
+        id: pollProc
+        command: ["brightnessctl", "-d", root.deviceName, "-m", "g"]
 
-    FileView {
-        id: maxFile
-        path: root.sysfsDir + "/max_brightness"
-    }
-
-    FileView {
-        id: typeFile
-        path: root.sysfsDir + "/type"
+        stdout: SplitParser {
+            onRead: data => {
+                let parsed = root.parseLine(data);
+                if (parsed) {
+                    root.stats = parsed;
+                }
+            }
+        }
     }
 
     Process {
@@ -69,7 +63,16 @@ Singleton {
     Process {
         id: setProc
         property int level: 0
-        command: ["brightnessctl", "-q", "-d", root.deviceName, "set", level.toString()]
+        command: ["brightnessctl", "-m", "-d", root.deviceName, "set", level.toString()]
+
+        stdout: SplitParser {
+            onRead: data => {
+                let parsed = root.parseLine(data);
+                if (parsed) {
+                    root.stats = parsed;
+                }
+            }
+        }
     }
 
     function refreshDevices() {
@@ -82,12 +85,40 @@ Singleton {
     }
 
     function cycle() {
-        const nextLevel = (root.stats.current + 1) % (root.stats.max + 1);
+        let current = parseInt(root.stats.current);
+        let max = parseInt(root.stats.max);
+
+        if (isNaN(current) || current < 0)
+            current = 0;
+        if (isNaN(max) || max <= 0)
+            max = 2;
+
+        let nextLevel = (current + 1) % (max + 1);
         set(nextLevel);
     }
 
     function getIcon(level) {
+        const lvl = parseInt(level);
         const icons = ["backlight_high_off", "backlight_low", "backlight_high"];
-        return icons[level] ?? "backlight_high";
+        return icons[lvl] ?? "backlight_high";
+    }
+
+    function parseLine(line) {
+        const i = line.trim().split(',');
+        if (i.length < 5)
+            return null;
+
+        const currentVal = parseInt(i[2]);
+        const pctStr = i[3].replace('%', '');
+        const pctVal = parseFloat(pctStr) / 100;
+
+        return {
+            id: i[0],
+            type: i[1],
+            current: currentVal,
+            percentage: isNaN(pctVal) ? 0 : pctVal,
+            max: parseInt(i[4]),
+            icon: root.getIcon(currentVal)
+        };
     }
 }

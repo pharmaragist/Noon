@@ -49,8 +49,7 @@ StyledRect {
             // Fuzzy search across both title and artist keys
             const results = Fuzzy.go(query, processed, {
                 all: true,
-                keys: ["title", "artist"],
-                limit: 100
+                keys: ["title", "artist"]
             });
 
             const matched = [];
