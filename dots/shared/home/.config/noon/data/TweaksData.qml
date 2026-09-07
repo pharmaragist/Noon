@@ -65,7 +65,11 @@ QtObject {
                     "name": "UI Font",
                     "hint": "QT/GTK Global Font Used",
                     "key": "appearance.fonts.main",
-                    "type": "font"
+                    "type": "action",
+                    "actionIcon": "font_download",
+                    "releaseAction": () => {
+                        NoonUtils.spawnApp("Fonts");
+                    }
                 },
                 {
                     "icon": "palette",
@@ -143,14 +147,6 @@ QtObject {
                     "store": "states",
                     "enableTooltip": false,
                     "key": "desktop.clock.center"
-                },
-                {
-                    "icon": "schedule",
-                    "name": "Layer Clock Font",
-                    "hint": "Font family for the layer clock",
-                    "key": "desktop.clock.font",
-                    "type": "combobox",
-                    "values": Fonts.family.preferredLayerClockFonts
                 },
                 {
                     "icon": "notifications_active",

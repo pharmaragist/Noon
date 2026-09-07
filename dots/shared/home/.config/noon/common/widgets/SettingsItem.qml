@@ -101,9 +101,6 @@ StyledRect {
                     checked: !!root.configValue
                 }
             },
-            "font": {
-                source: "StyledFontSelector"
-            },
             "action": {
                 source: "RippleButtonWithIcon",
                 props: {
