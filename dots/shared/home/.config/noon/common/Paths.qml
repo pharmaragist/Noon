@@ -48,6 +48,7 @@ Singleton {
 
     readonly property QtObject wallpapers: QtObject {
         readonly property string defaultBg: methods.trim(root.assets + "/images/default_wallpaper.png")
+        readonly property string matugenConfig: methods.trim(root.standard.config) + "/matugen/config.toml"
         readonly property string colGenScript: methods.trim(root.scriptsDir + "/colgen_service.py")
         readonly property string thumbScript: methods.trim(root.scriptsDir + "/thumbnails_service.py")
         readonly property string main: methods.trim(standard.pictures + "/Wallpapers/")

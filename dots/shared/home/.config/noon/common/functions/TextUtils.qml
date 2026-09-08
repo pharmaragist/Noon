@@ -243,6 +243,18 @@ Singleton {
         return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').replace(/\b./g, s => s.toUpperCase());
     }
 
+    function camelCaseFromSnakeCase(str, capitalizeFirst = false) {
+        if (!str)
+            return "";
+        let result = str.toLowerCase().replace(/_+(.)/g, (_, c) => c.toUpperCase());
+        if (capitalizeFirst) {
+            result = result.charAt(0).toUpperCase() + result.slice(1);
+        } else {
+            result = result.charAt(0).toLowerCase() + result.slice(1);
+        }
+        return result;
+    }
+
     function capitalizeFirstLetter(string) {
         if (!string)
             return "";

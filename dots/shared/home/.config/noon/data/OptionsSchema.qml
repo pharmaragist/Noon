@@ -111,6 +111,10 @@ JsonAdapter {
             property string sourceLanguage: "auto"
         }
 
+        property JO matugen: JO {
+            property bool cherryPick: false
+        }
+
         property JO wallpapers: JO {
             property string method: "wallhaven"
         }

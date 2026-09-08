@@ -567,7 +567,7 @@ QtObject {
                 {
                     "icon": "edgesensor_high",
                     "name": "Bouncy",
-                    "key": "sidebar.appearance.bouncy",
+                    "key": "sidebar.appearance.bouncy"
                 },
                 {
                     "icon": "tune",
@@ -897,6 +897,23 @@ QtObject {
                     "name": "Editor",
                     "key": "editor",
                     "type": "text"
+                }
+            ]
+        },
+        {
+            "section": "Matugen",
+            "icon": "palette",
+            "items": [
+                {
+                    "icon": "colorize",
+                    "name": "Cherry Pick",
+                    "hint": "Take Control Of Per App Palette",
+                    "key": "services.matugen.cherryPick"
+                },
+                {
+                    "visible": Mem.options.services.matugen.cherryPick,
+                    "type": "widget",
+                    "widget": "MatugenControls"
                 }
             ]
         }

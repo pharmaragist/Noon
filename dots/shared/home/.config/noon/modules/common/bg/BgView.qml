@@ -57,9 +57,10 @@ Item {
         const range = lastId - firstId;
         return range > 0 ? Math.max(0, Math.min(1, (focusedWorkspaceId - firstId) / range)) : 0.5;
     }
+
     function calculateWidgetMargin() {
         const sidebar = Globals.main?.sidebar;
-        const hovered = !sidebar?.isHovered && !sidebar.reveal;
+        const hovered = !sidebar?.isHovered && !sidebar?.reveal;
         if (!enableParallax || hovered) return 0;
         const directionOffset = BarData.position === "left" ? -1 : 1;
         return directionOffset * root.effectiveParallaxLevel * (sidebar.sidebarWidth ?? 0);
