@@ -106,8 +106,8 @@ Singleton {
         _daemonCmd(["preview", "--url", url]);
     }
 
-    function moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx) {
-        _daemonCmd(["queue-move", "--index", fromMpdIdx, "--new-index", toMpdIdx]);
+    function moveQueueItemByIdx(from, to) {
+        _daemonCmd(["queue-move", "--index", from, "--new-index", to]);
     }
 
     function addNewFolder() {
@@ -144,13 +144,15 @@ Singleton {
         }
     }
 
+    /* MAYBE USE SOCKETS */
+    /* TODO: UPDATE WHEN NEEDED */
     FileView {
         id: queueFile
         path: Qt.resolvedUrl(root.tracksDir) + "/.beats/queue.json"
         watchChanges: true
         preload: true
         blockWrites: true
-        onFileChanged: queueFile.reload()
+        // onFileChanged: queueFile.reload()
     }
 
     FileView {

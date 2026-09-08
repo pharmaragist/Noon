@@ -133,17 +133,9 @@ QtObject {
                     "key": "desktop.clock.enabled"
                 },
                 {
-                    "icon": "brand_family",
-                    "name": "Arabic Mode",
-                    "hint": "Arabic numerals on layer clock",
-                    "store": "states",
-                    "key": "desktop.clock.arabicMode"
-                },
-                {
                     "icon": "timer",
                     "name": "Center Clock",
                     "hint": "Center clock in bar area",
-                    "store": "states",
                     "enableTooltip": false,
                     "key": "desktop.clock.center"
                 },
@@ -224,10 +216,12 @@ QtObject {
                 {
                     "icon": "zoom_in_map",
                     "name": "Parallax Strength",
-                    "type": "slider",
-                    "maxValue": 1,
+                    "type": "sliderStops",
+                    "stepValue": 1,
+                    "minValue": 0,
+                    "maxValue": 5,
                     "hint": "Intensity of wallpaper parallax shift",
-                    "key": "desktop.bg.parallax.parallaxStrength"
+                    "key": "desktop.bg.parallax.parallaxLevel"
                 }
             ]
         },
@@ -569,6 +563,11 @@ QtObject {
                     "key": "sidebar.appearance.style",
                     "values": SidebarData.appearanceModes,
                     "type": "combobox"
+                },
+                {
+                    "icon": "edgesensor_high",
+                    "name": "Bouncy",
+                    "key": "sidebar.appearance.bouncy",
                 },
                 {
                     "icon": "tune",

@@ -12,6 +12,7 @@ JsonAdapter {
             property real scale: 1
             property string curve: "emphasized"
             property list<real> userCurve: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
+            property bool bouncyPanels: false
         }
 
         property JO colors: JO {
@@ -194,6 +195,7 @@ JsonAdapter {
             property bool showSliders: true
             property bool showVolumeInputSlider: false
             property bool alternateListStripes: true
+            property bool bouncy: false
         }
     }
 
@@ -204,7 +206,6 @@ JsonAdapter {
 
     property JO networking: JO {
         property string userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
-        property string sidebarAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6312.86 Mobile Safari/537.36"
         property string searchEngine: "google"
     }
 
@@ -253,7 +254,9 @@ JsonAdapter {
 
             property JO parallax: JO {
                 property bool enabled: true
-                property real parallaxStrength: 0.025
+                property int parallaxLevel: 1
+                property bool allWorkspaces: true
+                property bool mouseEnabled: true
             }
 
             property JO live: JO {
@@ -264,8 +267,6 @@ JsonAdapter {
         property JO clock: JO {
             property bool enabled: false
             property real scale: 1
-            property real spacingMultiplier: 0.3
-            property bool verticalMode: true
             property string font: "Badeen Display"
         }
 

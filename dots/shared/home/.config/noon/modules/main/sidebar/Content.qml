@@ -38,16 +38,17 @@ Item {
     property string auxSearchText: ""
     property int selectedTabIndex: 0
     property bool isResizing: false
-    property int resizeDuration: Animations.durations.small
-    readonly property int targetWidth: panelWindow?.sidebarWidth
+    property int resizeDuration: parent?.animationDuration
+    readonly property int targetWidth: panelWindow?.baseWidth
 
-    onWidthChanged: isResizing = true
-    Timer {
-        running: root.isResizing
-        repeat: true
-        interval: resizeDuration + 50
-        onTriggered: if (root.targetWidth === root.width)
-            root.isResizing = false
+    onWidthChanged: {
+        if (!(Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory)))
+            return;
+        root.isResizing = true;
+        NoonUtils.inlineTimer(() => {
+            if (root.width === root.targetWidth)
+                root.isResizing = false;
+        }, root.resizeDuration);
     }
 
     function dismiss() {
@@ -168,7 +169,7 @@ Item {
                 id: mainContentLoader
                 active: true
                 fade: true
-                sourceComponent: Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory) && root.isResizing ? overlay : contentRow
+                sourceComponent: root.isResizing ? overlay : contentRow
                 anchors.fill: parent
 
                 readonly property Component overlay: ResizeOverlay {

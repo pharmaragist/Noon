@@ -7,7 +7,11 @@ import QtQuick.Effects
 
 Rectangle {
     id: root
+
+    readonly property Component animComp: Anim {}
+    readonly property Component sAnimComp: SAnim {}
     readonly property int diagonal: Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+
     property bool enableAnimations: true
     property bool enableBorders: false
     property bool bouncy: true
@@ -43,14 +47,11 @@ Rectangle {
         }
     }
 
-    readonly property Component animComp: Anim {}
-    readonly property Component sAnimComp: SAnim {}
-
-    function getAnimation(parent) {
+    function getAnimation(parent, bouncy = root.bouncy, props = root.animProps) {
         let comp = bouncy ? sAnimComp : animComp;
         return comp.createObject(parent, Object.assign({}, {
             duration: root.animationDuration
-        }, root.animProps));
+        }, props));
     }
 
     Behavior on color {

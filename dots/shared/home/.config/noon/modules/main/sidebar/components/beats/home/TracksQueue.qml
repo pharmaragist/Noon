@@ -36,7 +36,9 @@ StyledRect {
             z: 2
             width: list.width
             height: 60
+
             StyledRect {
+                id: hR
                 anchors.left: parent.left
                 anchors.leftMargin: Padding.huge
                 anchors.verticalCenter: parent.verticalCenter
@@ -44,6 +46,19 @@ StyledRect {
                 radius: 6
                 width: 6
                 color: root.colors.colPrimary
+            }
+            onYChanged: {
+                hR.height = 36;
+                NoonUtils.inlineTimer(() => {
+                    hR.height = 24;
+                }, hR.animationDuration - 50);
+            }
+            Behavior on y {
+                SpringAnimation {
+                    spring: 3
+                    damping: 0.2
+                    epsilon: 0.25
+                }
             }
         }
 
@@ -120,7 +135,7 @@ StyledRect {
                         root.moveSrcItem = modelData;
                     } else if (root.moveSrc >= 0) {
                         if (root.moveSrc !== index && root.moveSrcItem)
-                            BeatsService.moveQueueItemByMpdIdx(root.moveSrcItem.index, modelData.index);
+                            BeatsService.moveQueueItemByIdx(root.moveSrcItem.index, modelData.index);
                         root.moveSrc = -1;
                         root.moveSrcItem = null;
                     } else {

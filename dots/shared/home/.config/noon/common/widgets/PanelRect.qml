@@ -5,5 +5,5 @@ StyledRect {
     id: root
     clip: true
     color: Colors.colBackground
-    bouncy: false
+    bouncy: Mem.options.appearance.animations.bouncyPanels
 }

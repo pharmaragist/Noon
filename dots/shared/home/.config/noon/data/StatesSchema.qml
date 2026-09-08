@@ -18,9 +18,7 @@ JsonAdapter {
         property JO clock: JO {
             property real x: 0
             property real y: 0
-            property bool arabicMode: false
             property bool editMode: false
-            property bool center: false
             property real scale: 1
         }
     }

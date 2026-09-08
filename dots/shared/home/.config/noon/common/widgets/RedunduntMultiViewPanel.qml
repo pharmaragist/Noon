@@ -155,13 +155,13 @@ SidebarItemContainer {
         if (root.selectedTabIndex < 0)
             return;
         root._currentChild = null;
-        if (root.item)
+        if (root.item && "contentFocusRequested" in root.item)
             root.item.contentFocusRequested();
         else
             root._pendingFocus = true;
     }
     onContentFocusRequested: {
-        if (root.item)
+        if (root.item && "contentFocusRequested" in root.item)
             root.item.contentFocusRequested();
         else
             root._pendingFocus = true;

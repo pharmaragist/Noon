@@ -141,17 +141,25 @@ Item {
                     model: ScriptModel {
                         values: [
                             {
-                                key: "pin",
+                                toggled: panel.pinned,
                                 icon: "push_pin",
                                 action: () => {
                                     panel.pinned = !panel.pinned;
                                 }
                             },
                             {
+                                toggled: panel.expanded,
                                 visible: (SidebarData.isExpandable(root.selectedCategory) ?? true),
-                                key: "expand",
+                                icon: panel.expanded ? "collapse_content" : "expand_content",
                                 action: () => {
                                     panel.expanded = !panel.expanded;
+                                }
+                            },
+                            {
+                                visible: root.selectedCategory === "Beats",
+                                icon: "close",
+                                action: () => {
+                                    BeatsService.player?.stop();
                                 }
                             }
                         ].filter(i => (i.visible ?? true))
@@ -161,8 +169,8 @@ Item {
                         colors: root.colors
                         baseSize: 40
                         buttonRadius: Rounding.normal
-                        toggled: modelData?.key === "pin" ? panel.pinned : panel.expanded
-                        materialIcon: modelData?.key === "pin" ? "push_pin" : (panel.expanded ? "collapse_content" : "expand_content")
+                        toggled: modelData?.toggled ?? false
+                        materialIcon: modelData?.icon ?? ""
                         downAction: () => modelData?.action() ?? null
                     }
                 }
@@ -255,6 +263,6 @@ Item {
 
         color: root.colors.colLayer3
         implicitWidth: 1
-        opacity: (!panel.show || bg.state === "clear") ? 0 : 1
+        opacity: (!panel.show || bg.state !== "sharp") ? 0 : 1
     }
 }

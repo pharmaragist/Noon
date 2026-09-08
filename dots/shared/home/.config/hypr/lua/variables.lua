@@ -42,7 +42,7 @@ font_main = "Open Sans"
 layout = "master"
 vertical = true
 debug_overlay = false
-cursor_theme = "GoogleDot-Black"
+cursor_theme = "Breeze_Light"
 cursor_size = 25
 animation_style = "springs"
 animation_scale = 1
@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "right"
+bar_location = "left"
 bar_width = 55
 -- Monitors
 active_monitor = hl.get_active_monitor()

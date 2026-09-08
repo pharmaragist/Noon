@@ -1,47 +1,43 @@
 import QtQuick
 import QtQuick.Controls
-import qs.common
 
 StackView {
-    id: root
+    pushEnter: replaceEnter
+    pushExit: replaceExit
 
-    replaceEnter: Transition {
+    popEnter: replaceEnter
+    popExit: replaceExit
+
+    replaceEnter: enter
+    replaceExit: exit
+
+    Transition {
+        id: enter
         ParallelAnimation {
-            PropertyAnimation {
+            Anim {
                 property: "scale"
-                from: 0.65
+                from: 0.9
                 to: 1
-                duration: Animations.durations.large
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
             }
-            PropertyAnimation {
+            Anim {
                 property: "opacity"
                 from: 0
                 to: 1
-                duration: Animations.durations.small
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }
-    replaceExit: Transition {
+    Transition {
+        id: exit
         ParallelAnimation {
-            PropertyAnimation {
+            Anim {
                 property: "scale"
                 from: 1
-                to: 0.65
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
-                duration: Animations.durations.large
+                to: 0.9
             }
-            PropertyAnimation {
+            Anim {
                 property: "opacity"
                 from: 1
                 to: 0
-                duration: Animations.durations.small
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }

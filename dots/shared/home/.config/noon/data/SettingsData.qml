@@ -169,7 +169,7 @@ Singleton {
                         {
                             "icon": "vibration",
                             "name": "Motion Strength",
-                            "key": "desktop.bg.parallax.parallaxStrength",
+                            "key": "desktop.bg.parallax.parallaxLevel",
                             "type": "slider",
                             "sliderMinValue": 0,
                             "sliderMaxValue": 0.1

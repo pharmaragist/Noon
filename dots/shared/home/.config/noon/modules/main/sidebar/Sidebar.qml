@@ -49,6 +49,7 @@ Scope {
             property int selectedTabIndex: 0
             property alias selectedCategory: content.selectedCategory
 
+            readonly property bool isHovered: hoverArea.containsMouse
             readonly property alias content: content
             required property var modelData
             readonly property bool opposeBar: true
@@ -61,7 +62,7 @@ Scope {
             readonly property int layerWidth: baseWidth + bg.hideMargin
             readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
-            readonly property int hoverArea: 2
+            readonly property int hoverDetectArea: 2
 
             function hide() {
                 if (pinned)
@@ -111,7 +112,7 @@ Scope {
 
             HoverHandler {
                 id: hoverArea
-                implicitWidth: root.hoverArea
+                implicitWidth: root.hoverDetectArea
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: !root.rightMode ? parent.left : undefined
@@ -135,16 +136,15 @@ Scope {
 
             StyledRectangularShadow {
                 target: bg
-                show: root.reveal
+                show: Math.max(bg.anchors.leftMargin, bg.anchors.leftMargin) > -root.sidebarWidth
             }
 
             PanelRect {
                 id: bg
                 readonly property int hideMargin: state === "float" ? Sizes.elevationMargin : 0
-
+                bouncy: Mem.options.sidebar.appearance?.bouncy ?? false
                 width: root.sidebarWidth
-                animationDuration: Animations.durations.large
-
+                animationDuration: Animations.durations.normal
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
@@ -191,11 +191,17 @@ Scope {
                 ]
 
                 Behavior on anchors.leftMargin {
-                    Anim {}
+                    enabled: !root.rightMode
+                    animation: bg.getAnimation(this, bg.bouncy, {
+                        duration: Animations.durations.verysmall
+                    })
                 }
 
                 Behavior on anchors.rightMargin {
-                    Anim {}
+                    enabled: root.rightMode
+                    animation: bg.getAnimation(this, bg.bouncy, {
+                        duration: Animations.durations.verysmall
+                    })
                 }
             }
 
