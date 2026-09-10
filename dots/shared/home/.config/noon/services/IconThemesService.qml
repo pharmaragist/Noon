@@ -13,7 +13,7 @@ Singleton {
     readonly property list<string> baseCmd: ["uv", "run", Paths.scriptsDir + "/icons_service.py"]
     readonly property string currentIconTheme: Mem.options.desktop.icons.currentIconTheme
     onCurrentIconThemeChanged: setIconTheme(currentIconTheme)
-
+    Component.onCompleted:reload()
     function setIconTheme(id) {
         if (id)
             NoonUtils.execDetached([...baseCmd, "set", id]);

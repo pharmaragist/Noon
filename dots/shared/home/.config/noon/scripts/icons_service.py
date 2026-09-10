@@ -8,6 +8,13 @@ from configparser import ConfigParser
 from pathlib import Path
 
 
+ICON_BASE_DIRS = [
+    Path("/usr/share/icons"),
+    Path.home() / ".local/share/icons",
+    Path.home() / ".icons",
+]
+
+
 def run_cmd(args):
     try:
         res = subprocess.run(args, capture_output=True, text=True, timeout=2)
@@ -38,17 +45,69 @@ def get_current_themes():
     return qt, gtk
 
 
+def find_theme_dir(theme_id):
+    for base in ICON_BASE_DIRS:
+        candidate = base / theme_id
+        if (candidate / "index.theme").exists():
+            return candidate
+    return None
+
+
+def find_icon_in_theme(theme_id, icon_name, visited=None):
+    if visited is None:
+        visited = set()
+    if theme_id in visited:
+        return None
+    visited.add(theme_id)
+
+    theme_dir = find_theme_dir(theme_id)
+    if theme_dir is None:
+        return None
+
+    cfg = ConfigParser()
+    try:
+        cfg.read(theme_dir / "index.theme")
+    except Exception:
+        return None
+    if "Icon Theme" not in cfg:
+        return None
+
+    directories = [
+        d.strip() for d in cfg["Icon Theme"].get("Directories", "").split(",") if d.strip()
+    ]
+
+    scalable = []
+    other = []
+    for d in directories:
+        section = cfg[d] if d in cfg else {}
+        entry_type = section.get("Type", "Threshold")
+        (scalable if entry_type == "Scalable" else other).append(d)
+
+    for d in scalable + other:
+        for ext in ("svg", "png", "xpm"):
+            candidate = theme_dir / d / f"{icon_name}.{ext}"
+            if candidate.exists():
+                return str(candidate)
+
+    inherits = [
+        t.strip() for t in cfg["Icon Theme"].get("Inherits", "").split(",") if t.strip()
+    ]
+    for parent in inherits:
+        found = find_icon_in_theme(parent, icon_name, visited)
+        if found:
+            return found
+
+    if theme_id != "hicolor":
+        return find_icon_in_theme("hicolor", icon_name, visited)
+
+    return None
+
+
 def get_icon_themes():
     qt_curr, gtk_curr = get_current_themes()
     unique_themes = {}
 
-    dirs = [
-        Path("/usr/share/icons"),
-        Path.home() / ".local/share/icons",
-        Path.home() / ".icons",
-    ]
-
-    for d in dirs:
+    for d in ICON_BASE_DIRS:
         if not d.is_dir():
             continue
         for t_dir in d.iterdir():
@@ -74,6 +133,7 @@ def get_icon_themes():
                         "id": t_id,
                         "name": sect.get("Name", t_id),
                         "current": t_id in (qt_curr, gtk_curr),
+                        "preview": find_icon_in_theme(t_id, "folder"),
                     }
             except Exception:
                 continue

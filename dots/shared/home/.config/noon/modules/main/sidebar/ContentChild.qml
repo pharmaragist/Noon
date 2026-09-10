@@ -128,7 +128,8 @@ Item {
             property string debouncedQuery: ""
 
             onSearchTextChanged: debounceTimer.restart()
-
+            onAccepted: if (root.contentItem && ("accepted" in root.contentItem))
+                root.contentItem.accepted()
             Timer {
                 id: debounceTimer
                 interval: 180

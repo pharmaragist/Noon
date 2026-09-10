@@ -76,7 +76,8 @@ Scope {
 
             function detach(cat = selectedCategory) {
                 if (SidebarData.isDetachable(cat) && !isDetached()) {
-                    NoonUtils.spawnApp("Detached", {
+                    const app = SidebarData._get(cat)?.app ?? "Detached"
+                    NoonUtils.spawnApp(app, {
                         category: cat
                     });
                 }

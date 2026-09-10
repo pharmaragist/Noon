@@ -15,6 +15,7 @@ BottomDialog {
     baseHeight: parent?.height / 2.25
     onFocusChanged: focus ? appsList.forceActiveFocus() : null
     onShowChanged: !active ? parent?.gridView?.forceActiveFocus() : null
+    revealOnWheel: false
 
     contentItem: ColumnLayout {
         anchors.fill: parent

@@ -196,7 +196,6 @@ Item {
                     model: SidebarData.enabledCategories
                     currentIndex: SidebarData.enabledCategories.indexOf(root.selectedCategory)
                     interactive: height === parent.height
-
                     displayMarginBeginning: topMargin
                     displayMarginEnd: bottomMargin
 
@@ -204,11 +203,17 @@ Item {
                     bottomMargin: panelOptions.implicitHeight + Padding.normal
 
                     highlightFollowsCurrentItem: false
-                    highlight: SidebarNavigationRailHighlight {}
+                    highlight: NavigationRailHighlight {
+                        rightMode: Globals.main.sidebar.rightMode
+                        target: navRailList
+                        style: Mem.options.sidebar.navRail.indicatorStyle
+                        colors: root.colors
+                    }
                     delegate: NavigationRailButton {
                         required property int index
                         required property string modelData
 
+                        expanded: true
                         fontSize: 9
                         showText: !root.sleek
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -246,9 +251,7 @@ Item {
                             acceptedButtons: Qt.LeftButton
                             xAxis.enabled: true
                             yAxis.enabled: false
-                            onActiveChanged: if (SidebarData.isDetachable(modelData) && !SidebarData.isDetached(modelData)) {
-                                Globals.main.sidebar.detach(modelData);
-                            }
+                            onActiveChanged: Globals.main.sidebar.detach(modelData)
                         }
                     }
                 }

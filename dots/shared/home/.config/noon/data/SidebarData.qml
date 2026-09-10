@@ -178,6 +178,7 @@ Singleton {
             enabled: contentOptions.session
         },
         "Plugins": {
+            app: "Store",
             icon: "extension",
             componentPath: "plugins/Plugins",
             shape: "PixelTriangle"
@@ -283,7 +284,7 @@ Singleton {
         return !!_get(id)?.incubatable;
     }
     function isDetachable(id) {
-        return !!_get(id)?.detachable;
+        return (!!_get(id)?.detachable || !!_get(id)?.app) ?? false;
     }
     function isAsync(id) {
         return !!_get(id)?.async;
@@ -314,7 +315,6 @@ Singleton {
         const i = v.indexOf(id);
         return i > 0 ? v[(i + step + v.length) % v.length] : v[0];
     }
-
     function getNextEnabledCategory(id) {
         return _navigate(id, 1);
     }

@@ -17,3 +17,9 @@ dots/.config/hypr/hyprtoolkit.conf
 
 # autogen
 *colors.lua
+
+# built Go binaries (rebuilt via: go build ./... under each scripts/go/*)
+dots/shared/home/.config/noon/scripts/store_service
+dots/shared/home/.config/noon/scripts/ocs_service
+dots/shared/home/.config/noon/scripts/go/store/store-service
+dots/shared/home/.config/noon/scripts/go/store_service

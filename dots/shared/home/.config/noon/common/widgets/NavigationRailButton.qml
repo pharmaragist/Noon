@@ -32,7 +32,6 @@ TabButton {
 
     PointingHandInteraction {}
 
-    
     contentItem: Item {
         id: buttonContent
 
@@ -76,24 +75,17 @@ TabButton {
             }
 
             transitions: Transition {
-                AnchorAnimation {
-                    duration: Animations.durations.standard
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Animations.curves.expressiveEffects
+                SAnim {
                 }
 
                 PropertyAnimation {
                     target: itemBackground
                     property: "implicitWidth"
-                    duration: Appearance.animation.elementMove.duration
-                    easing.type: Appearance.animation.elementMove.type
-                    easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                    duration: Animations.durations.large
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Animations.curves.emphasized
                 }
             }
-
-            
-            
-            
         }
 
         Item {
@@ -156,11 +148,7 @@ TabButton {
             }
 
             transitions: Transition {
-                AnchorAnimation {
-                    duration: Animations.durations.standard
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Animations.curves.expressiveEffects
-                }
+                SAnim {}
             }
         }
     }

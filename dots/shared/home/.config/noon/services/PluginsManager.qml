@@ -7,6 +7,7 @@ import Qt.labs.platform
 import qs.common
 import qs.common.utils
 import qs.common.functions
+import qs.services
 import qs.data
 
 Singleton {
@@ -16,6 +17,35 @@ Singleton {
     readonly property bool developmentMode: true
     readonly property bool enablePlugins: true
     readonly property list<string> plugins: allPlugins.map(plugin => plugin.group)
+
+    // available from the static hub index (see store-providers.json)
+    property var hubPlugins: []
+    property string hubProvider: ""
+
+
+    function refreshHub() {
+        StoreService.ensureProviders(list => {
+            const hubs = (list || []).filter(p => p && p.static);
+            if (!hubs.length) {
+                root.hubPlugins = [];
+                return;
+            }
+            root.hubProvider = hubs[0].id;
+            StoreService.contentSearch(root.hubProvider, "", "", [], "", 0, 100, (res, err) => {
+                root.hubPlugins = !err && res && Array.isArray(res.items) ? res.items : [];
+            });
+        });
+    }
+
+    function installFromHub(id) {
+        const hit = hubPlugins.find(p => p && (p.id === id || p.name === id));
+        if (!hit || !hubProvider)
+            return;
+        StoreService.contentInstall(hubProvider, hit.id, "noon-plugin", hit.typeId + "/" + hit.id, (res, err) => {
+            if (!err)
+                refreshAll();
+        });
+    }
 
     readonly property alias sidebarPlugins: sidebar?.plugins
     readonly property alias dockPlugins: dock?.plugins
@@ -118,6 +148,8 @@ Singleton {
         sidebar.refresh();
         beam.refresh();
     }
+
+    Component.onCompleted: refreshHub()
 
     Process {
         id: actionProc

@@ -50,17 +50,6 @@ QtObject {
                     "values": ["Disabled", "Top", "Overlay"]
                 },
                 {
-                    "icon": "stars_2",
-                    "name": "Icon Theme",
-                    "hint": "Qt/GTK Icons to use.",
-                    "key": "desktop.icons.currentIconTheme",
-                    "type": "combobox",
-                    "reloadOnChange": true,
-                    "canRefresh": true,
-                    "refreshAction": () => IconThemesService.reload(),
-                    "values": IconThemesService.availableIconThemeIds
-                },
-                {
                     "icon": "font_download",
                     "name": "UI Font",
                     "hint": "QT/GTK Global Font Used",
@@ -114,6 +103,12 @@ QtObject {
             "icon": "wallpaper",
             "shell": "Global",
             "items": [
+                {
+                    "icon": "apps",
+                    "name": "Icon Theme",
+                    "type": "widget",
+                    "widget": "SystemIconSelector"
+                },
                 {
                     "icon": "arrow_selector_tool",
                     "name": "Cursor Theme",

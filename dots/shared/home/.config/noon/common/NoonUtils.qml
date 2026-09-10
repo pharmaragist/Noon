@@ -19,7 +19,7 @@ Singleton {
     readonly property Component timerComponent: Timer {}
 
     function spawnApp(name, propTable = {}) {
-        const component = Qt.createComponent(Qt.resolvedUrl("../modules/apps/" + name + ".qml"));
+        const component = Qt.createComponent(Qt.resolvedUrl("../modules/apps/" + TextUtils.capitalizeFirstLetter(name) + ".qml"));
         if (component.status !== Component.Ready) {
             console.error("spawnApp: cannot load " + name + ": " + component.errorString());
             return null;

@@ -1,11 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import qs.common
-
-
-
+import qs.common.functions
 
 TextArea {
+    readonly property var methods: TextUtils
     renderType: Text.NativeRendering
     selectedTextColor: Colors.m3.m3onSecondaryContainer
     selectionColor: Colors.colSecondaryContainer

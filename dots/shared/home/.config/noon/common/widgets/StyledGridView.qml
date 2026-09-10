@@ -10,7 +10,7 @@ GridView {
     property bool hint: false
     property int radius: Rounding.large
     property color colBackground: "transparent"
-
+    property alias hinter: hinter
     property real touchpadScrollFactor: Mem.options.interactions.scrolling.touchpadScrollFactor ?? 100
     property real mouseScrollFactor: Mem.options.interactions.scrolling.mouseScrollFactor ?? 50
     property real mouseScrollDeltaThreshold: Mem.options.interactions.scrolling.mouseScrollDeltaThreshold ?? 120
@@ -26,14 +26,12 @@ GridView {
         values: _model ?? []
     }
 
-    StyledLoader {
-        z: 999
-        active: root.hint
-        anchors.fill: parent
+    ScrollEdgeFade {
+        id: hinter
         anchors.margins: -parent?.anchors.margins
-        sourceComponent: ScrollEdgeFade {
-            target: root
-        }
+        visible: root.hint
+        target: root
+        vertical: true
     }
 
     maximumFlickVelocity: 3500

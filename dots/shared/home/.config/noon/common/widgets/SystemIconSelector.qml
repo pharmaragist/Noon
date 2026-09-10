@@ -12,6 +12,8 @@ Item {
     anchors.fill: parent
     implicitHeight: 115
 
+    property int iconSize: 38
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -32,14 +34,14 @@ Item {
                 preferredHighlightBegin: 0.5
                 preferredHighlightEnd: 0.5
                 highlightRangeMode: PathView.StrictlyEnforceRange
-                model: CursorsService?.cursors
+                model: IconThemesService.availableIconThemes
 
                 Component.onCompleted: syncIndex()
                 onModelChanged: carousel.syncIndex()
 
                 function syncIndex() {
                     if (carousel.model)
-                        carousel.currentIndex = carousel.model.findIndex(i => i === Mem.hypr.cursor_theme);
+                        carousel.currentIndex = carousel.model.findIndex(i => i.current);
                 }
 
                 path: Path {
@@ -56,7 +58,7 @@ Item {
                     required property var modelData
                     required property int index
 
-                    readonly property bool isCurrent: modelData === Mem.hypr.cursor_theme
+                    readonly property bool isCurrent: modelData.current
 
                     width: carousel.width / 3
                     height: carousel?.height
@@ -66,17 +68,14 @@ Item {
                         spacing: 4
 
                         Item {
-                            width: Math.max(50, Mem.hypr.cursor_size * 1.5)
-                            height: Math.max(50, Mem.hypr.cursor_size * 1.5)
+                            width: Math.max(50, root.iconSize * 1.5)
+                            height: Math.max(50, root.iconSize * 1.5)
                             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
-                            CursorImage {
+                            StyledIconImage {
                                 anchors.centerIn: parent
-                                implicitWidth: Mem.hypr.cursor_size
-                                implicitHeight: Mem.hypr.cursor_size
-                                theme: modelData
-                                cursor: "left_ptr"
-                                size: Mem.hypr.cursor_size
+                                implicitSize: root.iconSize
+                                source: modelData?.preview
                                 scale: mouseArea.containsPress ? 0.85 : (mouseArea.containsMouse || delegateItem.isCurrent ? 1.2 : 1.0)
                                 transformOrigin: Item.Bottom
 
@@ -100,9 +99,13 @@ Item {
                         id: mouseArea
                         anchors.fill: parent
                         hoverEnabled: true
+                        StyledToolTip {
+                            content: modelData.name
+                            extraVisibleCondition:mouseArea.containsMouse
+                        }
                         onClicked: {
                             carousel.currentIndex = delegateItem.index;
-                            Mem.hypr.cursor_theme = modelData.trim();
+                            IconThemesService.setIconTheme(modelData.id);
                         }
                     }
                 }
@@ -166,7 +169,7 @@ Item {
                     onClicked: {
                         carousel.decrementCurrentIndex();
                         if (carousel.currentItem?.modelData) {
-                            Mem.hypr.cursor_theme = carousel.currentItem.modelData.trim();
+                            IconThemesService.setIconTheme(carousel.currentItem.modelData.id);
                         }
                     }
                 }
@@ -188,7 +191,7 @@ Item {
                     onClicked: {
                         carousel.incrementCurrentIndex();
                         if (carousel.currentItem?.modelData) {
-                            Mem.hypr.cursor_theme = carousel.currentItem.modelData.trim();
+                            IconThemesService.setIconTheme(carousel.currentItem.modelData.id);
                         }
                     }
                 }
@@ -202,23 +205,23 @@ Item {
             Layout.rightMargin: Padding.massive
 
             StyledText {
-                text: "Size "
+                text: "Preview size "
                 Layout.fillWidth: true
                 color: Colors.colOnSurfaceVariant
                 font: Fonts.request("normal", "normal")
             }
             StyledSpinBox {
-                from: 15
-                to: 50
-                value: Mem.hypr.cursor_size
-                onValueChanged: Mem.hypr.cursor_size = value
+                from: 16
+                to: 64
+                value: root.iconSize
+                onValueChanged: root.iconSize = value
             }
             GroupButtonWithIcon {
                 materialIcon: "local_mall"
                 implicitSize: 32
                 releaseAction: () => {
                     NoonUtils.spawnApp("Store", {
-                        selectedCategory: "cursors"
+                        selectedCategory: "icons"
                     });
                 }
             }

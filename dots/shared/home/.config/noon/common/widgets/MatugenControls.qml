@@ -8,9 +8,8 @@ Item {
     z: 99999
     anchors.fill: parent
     implicitHeight: list.contentHeight + Padding.large
-
-    TomlParser {
-        id: parser
+    readonly property var pData: parser.data
+    readonly property TomlParser parser: TomlParser {
         path: Paths.wallpapers.matugenConfig
     }
 
@@ -57,8 +56,8 @@ Item {
                 StyledSwitch {
                     checked: delegateRoot.isEnabled
                     onToggled: {
-                        delegateRoot.modelData.enabled = checked;
-                        Mem.matugen?.saveTemplates();
+                        parser.setTemplateEnabled(delegateRoot.index, checked);
+                        parser.saveTemplates();
                     }
                 }
             }

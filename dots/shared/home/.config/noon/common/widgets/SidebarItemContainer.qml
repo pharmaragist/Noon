@@ -16,4 +16,5 @@ StyledRect {
     signal searchFocusRequested
     signal contentFocusRequested
     signal expandRequested
+    signal accepted(string text)
 }
