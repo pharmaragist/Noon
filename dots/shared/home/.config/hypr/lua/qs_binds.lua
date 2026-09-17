@@ -34,6 +34,7 @@ local beam_actions = {
     weather = "ALT+W",
     hints = "ALT+Slash",
     appearance = "CTRL+S",
+    tools = "CTRL+G",
 }
 
 local sidebar_actions = {

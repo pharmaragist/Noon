@@ -26,7 +26,9 @@ Singleton {
         }
         return component.createObject(root, propTable ?? {});
     }
-
+    function runSystemUpdate() {
+        runInTerminal("pkexec dnf update")
+    }
     function requestDialog(dialog, data) {
         if (!dialog)
             return;
@@ -34,7 +36,6 @@ Singleton {
             Globals.main.sysDialogs.pendingData = data;
         Globals.main.sysDialogs.mode = dialog;
     }
-
     function clearDialogs() {
         Globals.main.sysDialogs.pendingData = null;
         Globals.main.sysDialogs.mode = "";

@@ -9,162 +9,167 @@ import qs.services
 import qs.data
 import "../applets"
 
-PanelRect {
+ContentViewItem {
     id: view
     readonly property alias focusItem: inputField
 
-    function sendMessage() {
-        BeamData.executeCommand();
-        BeamData.reset();
-        hide();
-        inputField.text = "";
-    }
-
-
-    Binding {
-        target: BeamData
-        property: "query"
-        value: inputField.text
-    }
     Item {
-        id: icon
-        visible: Mem.options.beam.appearance?.enableEmblem ?? true
-        implicitWidth: visible ? 36 : 0
-
-        anchors {
-            left: parent.left
-            verticalCenter: parent.verticalCenter
-            leftMargin: visible ? Padding.gigantic : 0
+        id: content
+        width: Math.max(BeamData.activeHint?.length, inputField.text.length) > 25 ? 1000 : 470
+        height: 70
+        anchors.centerIn: parent
+        function sendMessage() {
+            BeamData.executeCommand();
+            BeamData.reset();
+            view.dismiss();
+            inputField.text = "";
         }
 
-        Symbol {
-            z: 999
-            font.pixelSize: 18
-            fill: 1
-            color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer3
-            anchors.centerIn: parent
-            text: BeamData.getIcon()
+        Binding {
+            target: BeamData
+            property: "query"
+            value: inputField.text
         }
-        MaterialShape {
-            anchors.centerIn: parent
-            implicitSize: 36
-            color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
-            shape: BeamData.getShape()
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: Globals.main.beam.reason = "hints"
+        Item {
+            id: icon
+            visible: Mem.options.beam.appearance?.enableEmblem ?? true
+            implicitWidth: visible ? 36 : 0
 
-                StyledToolTip {
-                    content: "Need Help ? Click for cheats"
-                    extraVisibleCondition: parent.containsMouse
-                }
+            anchors {
+                left: parent.left
+                verticalCenter: parent.verticalCenter
+                leftMargin: visible ? Padding.gigantic : 0
             }
 
-            readonly property alias inputText: inputField.text
-            onInputTextChanged: if (inputField.text.length === 0)
-                rotation = 0
-
-            Behavior on color {
-                CAnim {}
+            Symbol {
+                z: 999
+                font.pixelSize: 18
+                fill: 1
+                color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer3
+                anchors.centerIn: parent
+                text: BeamData.getIcon()
             }
+            MaterialShape {
+                anchors.centerIn: parent
+                implicitSize: 36
+                color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
+                shape: BeamData.getShape()
 
-            RotationAnimation on rotation {
-                running: inputField.text.length > 0
-                loops: Animation.Infinite
-                from: 0
-                to: 360
-                duration: 9000
-                easing.type: Easing.Linear
-            }
-        }
-    }
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Globals.main.beam.reason = "hints"
 
-    LayerRect {
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            left: icon.right
-            right: sendButton.left
-            leftMargin: Padding.huge
-            rightMargin: Padding.small
-            margins: Padding.normal
-        }
-        colBackground: Colors.colLayer1
-        radius: Rounding.full
-
-        StyledTextField {
-            id: inputField
-            anchors.fill: parent
-            z: 10
-            focus: root.reveal
-            placeholderText: BeamData.config?.placeholder ?? "Ask any thing ..."
-            text: BeamData.query
-            background: null
-            selectionColor: Colors.colPrimaryContainer
-            selectedTextColor: Colors.m3.m3onPrimaryContainer
-            color: Colors.colOnLayer0
-            placeholderTextColor: Colors.colSubtext
-            selectByMouse: true
-            leftPadding: Padding.massive
-            rightPadding: Padding.massive + (appletsArea?.implicitWidth ?? 100)
-            font: Fonts.request("main", "large")
-
-            Keys.onPressed: event => {
-                switch (event.key) {
-                case Qt.Key_Escape:
-                    root.hide();
-                    event.accepted = true;
-                    break;
-                case Qt.Key_Return:
-                    view.sendMessage();
-                    event.accepted = true;
-                    break;
-                case Qt.Key_Tab:
-                    const hint = BeamData.activeHint;
-                    if (hint) {
-                        BeamData.query = BeamData.autocomplete(hint);
-                        event.accepted = true;
+                    StyledToolTip {
+                        content: "Need Help ? Click for cheats"
+                        extraVisibleCondition: parent.containsMouse
                     }
-                    break;
+                }
+
+                readonly property alias inputText: inputField.text
+                onInputTextChanged: if (inputField.text.length === 0)
+                    rotation = 0
+
+                Behavior on color {
+                    CAnim {}
+                }
+
+                RotationAnimation on rotation {
+                    running: inputField.text.length > 0
+                    loops: Animation.Infinite
+                    from: 0
+                    to: 360
+                    duration: 9000
+                    easing.type: Easing.Linear
                 }
             }
         }
-        AppletsFactory {
-            id: appletsArea
 
+        LayerRect {
             anchors {
                 top: parent.top
                 bottom: parent.bottom
-                right: parent.right
-                rightMargin: Padding.large
+                left: icon.right
+                right: sendButton.left
+                leftMargin: Padding.huge
+                rightMargin: Padding.small
+                margins: Padding.normal
+            }
+            colBackground: Colors.colLayer1
+            radius: Rounding.full
+
+            StyledTextField {
+                id: inputField
+                anchors.fill: parent
+                z: 10
+                focus: root.reveal
+                placeholderText: BeamData.config?.placeholder ?? "Ask any thing ..."
+                text: BeamData.query
+                background: null
+                selectionColor: Colors.colPrimaryContainer
+                selectedTextColor: Colors.m3.m3onPrimaryContainer
+                color: Colors.colOnLayer0
+                placeholderTextColor: Colors.colSubtext
+                selectByMouse: true
+                leftPadding: Padding.massive
+                rightPadding: Padding.massive + (appletsArea?.implicitWidth ?? 100)
+                font: Fonts.request("main", "large")
+
+                Keys.onPressed: event => {
+                    switch (event.key) {
+                    case Qt.Key_Escape:
+                        view.dismiss();
+                        event.accepted = true;
+                        break;
+                    case Qt.Key_Return:
+                        content.sendMessage();
+                        event.accepted = true;
+                        break;
+                    case Qt.Key_Tab:
+                        const hint = BeamData.activeHint;
+                        if (hint) {
+                            BeamData.query = BeamData.autocomplete(hint);
+                            event.accepted = true;
+                        }
+                        break;
+                    }
+                }
+            }
+            AppletsFactory {
+                id: appletsArea
+
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    right: parent.right
+                    rightMargin: Padding.large
+                }
             }
         }
 
-    }
+        GroupButtonWithIcon {
+            id: sendButton
+            releaseAction: () => {
+                content.sendMessage();
+            }
+            buttonRadius: width / 2
+            colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : Colors.colLayer1
+            iconSize: 22
+            baseSize: 45
+            animateIcon: true
+            materialIcon: "arrow_upward"
 
-    GroupButtonWithIcon {
-        id: sendButton
-        releaseAction: () => {
-            view.sendMessage()
-        }
-        buttonRadius: width / 2
-        colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : Colors.colLayer1
-        iconSize: 22
-        baseSize: 45
-        animateIcon: true
-        materialIcon: "arrow_upward"
+            anchors {
+                right: parent.right
+                rightMargin: Padding.large
+                verticalCenter: parent.verticalCenter
+            }
 
-        anchors {
-            right: parent.right
-            rightMargin: Padding.large
-            verticalCenter: parent.verticalCenter
-        }
-
-        Behavior on opacity {
-            Anim {}
+            Behavior on opacity {
+                Anim {}
+            }
         }
     }
 }

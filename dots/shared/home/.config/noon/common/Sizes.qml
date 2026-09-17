@@ -27,17 +27,7 @@ Singleton {
     }
 
     readonly property QtObject beam: QtObject {
-        readonly property size normal: Qt.size(470, 70)
         readonly property size popupMaxSize: Qt.size(1200, 600)
-        readonly property size screenshot: Qt.size(340, 60)
-        readonly property size weather: Qt.size(450, 300)
-        readonly property size hints: Qt.size(1200, 600)
-        readonly property size music: Qt.size(400, 160)
-        readonly property size drop: Qt.size(600, 280)
-        readonly property size dictate: Qt.size(200, 55)
-        readonly property size appearance: Qt.size(800, 70)
-        readonly property size dictateWindow: Qt.size(640, 480)
-        readonly property size dlp: Qt.size(340, 160)
     }
 
     readonly property QtObject osd: QtObject {

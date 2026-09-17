@@ -8,10 +8,9 @@ import qs.common.widgets
 import qs.services
 import qs.data
 
-Item {
+ContentViewItem {
     id: root
     focus: true
-    signal hide
 
     readonly property alias focusItem: tabBar
     readonly property bool isPendingArea: currentMode?.region === ScreenShotService.Regions.Part && !ScreenShotService.hasRegion
@@ -49,7 +48,7 @@ Item {
             });
         }
         NoonUtils.inlineTimer(() => {
-            root.hide();
+            root.dismiss();
         });
     }
     Keys.onReturnPressed: execute()
@@ -57,15 +56,15 @@ Item {
     StyledRect {
         id: bg
         anchors.centerIn: parent
-        implicitHeight: contentRow?.implicitHeight + Padding.huge
-        implicitWidth: contentRow?.implicitWidth + Padding.large * 2
+        implicitHeight: 60
+        implicitWidth: contentRow?.implicitWidth + Padding.massive + 5
         color: Colors.colLayer0
         radius: Rounding.full
 
         RowLayout {
             id: contentRow
             anchors.centerIn: parent
-            spacing: Padding.normal
+            spacing: Padding.small
 
             ToolbarTabBar {
                 id: tabBar
@@ -85,6 +84,8 @@ Item {
             }
 
             GroupButtonWithIcon {
+                implicitSize: 40
+                buttonRadius: height / 2
                 materialIcon: "photo_camera"
                 releaseAction: () => execute()
             }

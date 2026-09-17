@@ -1,10 +1,12 @@
 import QtQuick
+import QtQuick.Controls
+
 import qs.common
 import qs.common.widgets
 
 PanelRect {
     id: root
-
+    readonly property alias currentItem: stack.currentItem
     property bool reveal: false
     readonly property var conf: Mem.options.beam.appearance
     readonly property real animationScale: conf.animationScale ?? 1
@@ -103,10 +105,11 @@ PanelRect {
         if (contentSource.toString() === "" || contentSource.toString() === root._lastContent.toString())
             return;
         root._lastContent = contentSource;
+
         if (stack.currentItem)
-            stack.replace(contentSource);
+            stack.replace(contentSource, StackView.Immediate)
         else
-            stack.push(contentSource);
+            stack.push(contentSource)
     }
 
     states: [

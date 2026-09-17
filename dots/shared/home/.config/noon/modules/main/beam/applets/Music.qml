@@ -12,12 +12,6 @@ BeamApplet {
     colors: MediaPlayerService?.colors
     color: colors.colPrimaryContainer
 
-
-
-
-
-
-
     Symbol {
         z: 2
         anchors.centerIn: parent

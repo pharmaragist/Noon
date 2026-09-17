@@ -178,7 +178,7 @@ Variants {
         }
 
         StyledRectangularShadow {
-            target: bg
+            target: bg.currentItem.contentItem ?? bg
             show: root.reveal && (root.currentModeData?.shadow ?? true)
             transparency: 0.8
         }
@@ -189,15 +189,14 @@ Variants {
             reveal: root.reveal
             elevationValue: root.elevationValue
             animationDuration: 300
-            height: root.currentModeData.size?.height ?? 1000
-            width: root.currentModeData.size?.width ?? 1000
+            height: this.currentItem?.contentItem?.height ?? root.currentModeData.size?.height ?? -1 // getDimension("height")
+            width: this.currentItem?.contentItem?.width ?? root.currentModeData.size?.width ?? -1
             color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
 
             contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
 
             topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
             bottomRadius: root?.currentModeData?.radius ?? Rounding.silly
-
             onContentLoaded: item => {
                 if (root.reveal && "focusItem" in item)
                     item.focusItem.forceActiveFocus();

@@ -24,7 +24,6 @@ Singleton {
     readonly property var subConfig: config?.subStates ? config.subStates[activeSubState] : null
     readonly property var rawBeamPlugins: PluginsManager?.beamPlugins
     readonly property list<string> availableAnimationStyles: ["slidebottom", "expo", "springPop", "glide"]
-    readonly property int dynamicWidth: getDynamicWidth()
 
     onQueryChanged: {
         if (query && query.length === 0) {
@@ -181,12 +180,12 @@ Singleton {
             showHint: true,
             hinter: query => {
                 const q = cleanQuery.toLowerCase();
-                const all = Mem.store.services.search?.history ?? []
+                const all = Mem.store.services.search?.history ?? [];
                 const processed = all.map(s => ({
-                    name: TextUtils.getDomain(s),
-                    url: s,
-                    domain: Fuzzy.prepare(s)
-                }));
+                            name: TextUtils.getDomain(s),
+                            url: s,
+                            domain: Fuzzy.prepare(s)
+                        }));
 
                 const results = Fuzzy.go(q, processed, {
                     all: true,
@@ -353,25 +352,16 @@ Singleton {
             path: "applets/Weather"
         }
     ]
-    readonly property var sizes: Sizes.beam
     readonly property var contentMap: {
         "default": getDefaultBeamOptions(),
-        "dictate": {
-            timeout: false,
-            size: sizes.dictate,
-            overlay: "DictationOverlay",
-            component: "DictationContentView"
-        },
         "shot": {
             timeout: false,
-            size: sizes.screenshot,
             overlay: "ScreenShotOverlay",
             component: "ScreenShotContentView"
         },
         "drop": {
             dim: true,
             radius: 64,
-            size: sizes.drop,
             component: "DropContentView"
         },
         "music": {
@@ -379,36 +369,36 @@ Singleton {
             transparent: true,
             radius: 0,
             timeout: false,
-            size: sizes.music,
             component: "MusicContentView"
         },
         "hints": {
             dim: true,
             radius: 48,
             timeout: false,
-            size: sizes.hints,
             component: "HintsContentView"
         },
         "weather": {
             dim: true,
             radius: 48,
             timeout: false,
-            size: sizes.weather,
             component: "WeatherContentView"
         },
         "dlp": {
             dim: true,
             radius: 40,
             timeout: false,
-            component: "DlpContentView",
-            size: sizes.dlp
+            component: "DlpContentView"
         },
         "appearance": {
             dim: false,
             radius: Rounding.full,
             timeout: false,
-            size: sizes.appearance,
             component: "AppearanceContentView"
+        },
+        "tools": {
+            dim: true,
+            timeout: false,
+            component: "QuickToolsContentView"
         }
     }
 
@@ -417,10 +407,6 @@ Singleton {
         activeSubState = "";
         suggestedApp = null;
         activeState = defaultState;
-    }
-    function getDynamicWidth(size = [470, 1000]) {
-        const hint = root?.getHint();
-        return Math.max(hint.length, query.length) > 25 ? size?.[1] : size?.[0];
     }
 
     function getIcon() {
@@ -522,7 +508,6 @@ Singleton {
         "default": {
             "component": "BeamContentView",
             "ignoreRadiusComplement": false,
-            "size": Qt.size(root.dynamicWidth, Sizes.beam.normal.height),
             "radius": Rounding.silly
         },
         "alternate": {
@@ -530,7 +515,6 @@ Singleton {
             "transparent": true,
             "popupRadius": Rounding.huge,
             "ignoreRadiusComplement": true,
-            "size": Qt.size(getDynamicWidth([450, 1100]), Sizes.beam.normal.height + Padding.huge)
         }
     }
 

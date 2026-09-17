@@ -1,4 +1,5 @@
 import QtQuick
+import qs.common
 
 QtObject {
     id: root
@@ -6,8 +7,8 @@ QtObject {
 
     property real idx1: index
     property real idx2: index
-    property int idx1Duration: Animations.duration.small
-    property int idx2Duration: Animations.duration.large
+    property int idx1Duration: Animations.durations.small
+    property int idx2Duration: Animations.durations.large
 
     Behavior on idx1 {
         SAnim {
