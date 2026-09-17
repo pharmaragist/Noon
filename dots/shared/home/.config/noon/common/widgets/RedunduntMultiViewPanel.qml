@@ -9,6 +9,7 @@ import qs.services
 
 SidebarItemContainer {
     id: root
+    objectName: "RedunduntMultiViewPanel"
     property bool lazy: true
     property bool _pendingFocus: false
     readonly property int totalTabs: tabButtonList.length

@@ -10,7 +10,7 @@ import qs.common.utils
 import qs.services
 import qs.data
 
-BeamContentView {
+ContentViewItem {
     contentItem:RowLayout {
         width: 400
         height: 160

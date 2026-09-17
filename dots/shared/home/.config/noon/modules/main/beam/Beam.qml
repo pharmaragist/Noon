@@ -19,8 +19,6 @@ Variants {
         id: root
         name: "noanim_blurred_layer"
         required property var modelData
-        property real scrollSum: 0
-        property bool hasAttachedFile: false
         readonly property string revealReason: Globals.main.beam.reason
         readonly property bool reveal: Globals.main.beam.show
         readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
@@ -56,15 +54,15 @@ Variants {
         }
 
         function hide() {
-            const opts = Globals.main.beam;
-            if (opts.reason !== "default")
-                opts.reason = "default";
-            else
-                opts.show = false;
+            // close only; reason resets later below-screen (clearDelay),
+            // so no content switch ever plays visibly during the rewind.
+            Globals.main.beam.show = false;
         }
 
         ScrimOverlay {
-            shown: !!root?.currentModeData?.dim
+            // tied to reveal, not just mode: dim fades with the rewind
+            // instead of lingering until the below-screen janitor runs
+            shown: !!root?.currentModeData?.dim && root.reveal
             onHide: root.hide()
         }
 
@@ -131,15 +129,11 @@ Variants {
                 //     return;
                 // }
 
-                root.scrollSum += wheel.angleDelta.y;
-
-                if (!root.reveal && root.scrollSum <= -20) {
-                    Globals.main.beam.show = true;
-                    root.scrollSum = 0;
-                } else if (root.reveal && root.scrollSum >= 20) {
-                    Globals.main.beam.show = false;
-                    root.scrollSum = 0;
-                }
+                // drag-to-reveal: wheel travel owns the water (puddle->ball->
+                // panel across 0..1); full travel or past-halfway on release
+                // commits, otherwise it pours back. Same gesture reversed
+                // while open pours it away.
+                bg.dragBy(-wheel.angleDelta.y / 400);
 
                 wheel.accepted = true;
             }
@@ -178,9 +172,14 @@ Variants {
         }
 
         StyledRectangularShadow {
-            target: bg.currentItem.contentItem ?? bg
-            show: root.reveal && (root.currentModeData?.shadow ?? true)
-            transparency: 0.8
+            target: bg
+            // hidden during morph: re-blurring a resizing target every frame
+            // is the stutter source; fades in once the shape has landed
+            show: root.reveal && (root.currentModeData?.shadow ?? true) && !(root.currentModeData?.transparent ?? true) && bg.grow > 0.9
+            transparency: 0.85
+            Behavior on opacity {
+                Anim {}
+            }
         }
 
         BeamBg {
@@ -191,9 +190,9 @@ Variants {
             animationDuration: 300
             height: this.currentItem?.contentItem?.height ?? root.currentModeData.size?.height ?? -1 // getDimension("height")
             width: this.currentItem?.contentItem?.width ?? root.currentModeData.size?.width ?? -1
-            color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
+            bodyColor: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
 
-            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
+            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "ContentItemView") + ".qml")
 
             topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
             bottomRadius: root?.currentModeData?.radius ?? Rounding.silly

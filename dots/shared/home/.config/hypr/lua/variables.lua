@@ -13,7 +13,7 @@ terminal_opacity = 1
 browser = "firefox"
 browser_alt = "firefox"
 editor = "zed"
-file_manager = "dolphin"
+file_manager = "nautilus  --new-window"  --new-window"
 task_manager = ipc .. "sidebar reveal TaskManager"
 task_manager_alt = terminal .. ' fish -c "nvtop"'
 
@@ -30,7 +30,7 @@ shadows = true
 shadows_power = 4
 shadows_range = 30
 gaps_in = 5
-gaps_out = 25
+gaps_out = 50
 gaps_special = 40
 borders = 1
 rounding = 24

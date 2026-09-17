@@ -15,7 +15,7 @@ Item {
     }
 
     function dismiss() {
+        // close only; reason resets below-screen, never a visible switch
         Globals.main.beam.show = false;
-        Globals.main.beam.reason = "default";
     }
 }

@@ -12,7 +12,8 @@ PanelRect {
     property bool reveal
     required property var target
     readonly property bool isPlugin: BeamData?.config?.isPlugin ?? false
-    readonly property bool shown: reveal && (hintText.length > 0)
+    readonly property bool morphed: (target?.grow ?? 1) > 0.85
+    readonly property bool shown: reveal && morphed && (hintText.length > 0)
     readonly property string hintText: BeamData.activeHint ?? ""
     readonly property var appEntry: BeamData.suggestedApp
     z: target.z - 1
@@ -25,7 +26,7 @@ PanelRect {
     visible: height > bottomRadius
     topRadius: target.bottomRadius
     bottomRadius: shown ? Rounding.tiny : target.bottomRadius
-    height: !shown ? 0 : Math.max(100, Math.min(Sizes.beam.popupMaxSize.height, popupText.contentHeight))
+    height: !shown ? 0 : Math.max(100, Math.min(600, popupText.contentHeight))
     animationDuration: target?.animationDuration
 
     RowLayout {
@@ -50,7 +51,7 @@ PanelRect {
 
             StyledTextArea {
                 id: popupText
-                wrapMode: root.width === Sizes.beam.popupMaxSize.width ? Text.Wrap : Text.NoWrap
+                wrapMode: root.width === 1200 ? Text.Wrap : Text.NoWrap
                 color: Colors.colOnLayer0
                 textFormat: Text.PlainText
                 text: root.hintText

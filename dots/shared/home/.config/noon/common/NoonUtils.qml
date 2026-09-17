@@ -27,7 +27,7 @@ Singleton {
         return component.createObject(root, propTable ?? {});
     }
     function runSystemUpdate() {
-        runInTerminal("pkexec dnf update")
+        execDetached([Paths.scriptsDir + "/distro_update.sh"]);
     }
     function requestDialog(dialog, data) {
         if (!dialog)

@@ -48,7 +48,7 @@ ContentViewItem {
                                 GowallService.removeBackground(WallpaperService.currentWallpaper);
                             }
                         },
-                        {d
+                        {
                             "icon": "colorize",
                             "action": () => {
                                 WallpaperService.pickAccentColor();

@@ -468,28 +468,13 @@ QtObject {
             "shell": "Main",
             "items": [
                 {
-                    "icon": "animation",
-                    "name": "Beam Animation Style",
-                    "type": "combobox",
-                    "values": BeamData.availableAnimationStyles,
-                    "hint": "Transition style for beam animations",
-                    "key": "beam.appearance.animationStyle"
-                },
-                {
                     "icon": "palette",
                     "name": "Beam Default Theme",
                     "type": "combobox",
                     "values": Object.keys(BeamData?.availableDefaultThemes ?? {}),
                     "hint": "Change Theme/Layout for beam main content",
                     "key": "beam.appearance.theme"
-                },
-                {
-                    "icon": "masked_transitions",
-                    "name": "Beam Animation Scale",
-                    "type": "text",
-                    "hint": "Scale multiplier for beam animations",
-                    "key": "beam.appearance.animationScale"
-                },
+                }
             ]
         },
         {

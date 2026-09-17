@@ -18,11 +18,11 @@ Scope {
         }
 
         //* reveal_beam <mode> — open beam in mode, or dismiss if same.
+        // dismiss closes only; reason resets below-screen, never visibly.
         function reveal_beam(mode: string) {
             const opts = Globals.main.beam;
             if (opts.reason === mode) {
                 opts.show = false;
-                opts.reason = "default";
                 return;
             }
             opts.show = true;

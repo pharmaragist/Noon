@@ -12,30 +12,11 @@ ContentViewItem {
     PanelRect {
         id: bg
         color: Colors.colLayer0
-        width: row.implicitWidth + Padding.massive
-        height: row.implicitHeight + Padding.huge
+        // explicit cell math instead of layout implicits: each ToolItem is
+        // exactly 75x75, so size stays rock-solid while squeezed/async loading
+        width: rep.count * 75 + Math.max(0, rep.count - 1) * row.spacing + Padding.massive
+        height: 75 + Padding.huge
         radius: Rounding.normal
-        readonly property var tools: [
-            {
-                name: "update",
-                icon: "refresh",
-                action: () => {
-                    NoonUtils.runSystemUpdate();
-                }
-            },
-            {
-                url: "https://www.google.com"
-            },
-            {
-                url: "https://www.youtube.com"
-            },
-            {
-                url: "https://www.reddit.com"
-            },
-            {
-                url: "https://ww25.soap2day.day"
-            }
-        ]
 
         RowLayout {
             id: row
@@ -43,7 +24,8 @@ ContentViewItem {
             spacing: Padding.large
 
             Repeater {
-                model: bg.tools
+                id: rep
+                model: [...Mem.options.beam.content.quickActionsOptions]
                 ToolItem {
                     required property var modelData
                     implicitSize: 75
@@ -52,7 +34,7 @@ ContentViewItem {
                     name: modelData?.name ?? TextUtils.getDomain(this.url)
                     mIcon: modelData?.icon ?? ""
                     downAction: () => {
-                        const _action = modelData?.action ?? NoonUtils.open(modelData.url);
+                        const _action = modelData?.url ? NoonUtils.open(modelData.url) : modelData.action();
                         if (!!_action)
                             _action();
                         view.dismiss();

@@ -3,8 +3,10 @@ import Quickshell
 import qs.common
 
 LazyLoader {
+    id: root
     property bool enabled: true
     property var reloadOn
+
     onReloadOnChanged: if (enabled)
         reload()
 
@@ -24,5 +26,5 @@ LazyLoader {
     }
 
     active: enabled && Mem.ready
-    component: children[0]
+    component: this.data
 }

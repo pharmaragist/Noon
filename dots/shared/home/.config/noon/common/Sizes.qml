@@ -11,7 +11,7 @@ Singleton {
     readonly property real notificationPopupWidth: 420
     readonly property real toastWidth: 385
     readonly property real frameThickness: !Mem.options.desktop.enableFrame ? 0 : hyprland.gapsOut / 4
-    readonly property real elevationMargin: frameThickness + Padding.verylarge
+    readonly property real elevationMargin: frameThickness + Padding.huge
     readonly property size clipboardSize: Qt.size(320, 490)
     readonly property size gameLauncherItemSize: Qt.size(225, 360)
 
@@ -24,10 +24,6 @@ Singleton {
         property real sidebarWidthCollapsed: 82
         property real overlaySize: 145
         property size controlsSize: Qt.size(600, 80)
-    }
-
-    readonly property QtObject beam: QtObject {
-        readonly property size popupMaxSize: Qt.size(1200, 600)
     }
 
     readonly property QtObject osd: QtObject {

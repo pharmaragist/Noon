@@ -135,8 +135,6 @@ JsonAdapter {
     property JO beam: JO {
         property JO appearance: JO {
             property string theme: "default"
-            property string animationStyle: "expo"
-            property real animationScale: 1.0
             property bool enableEmblem: true
         }
         property JO behavior: JO {
@@ -145,6 +143,33 @@ JsonAdapter {
             property bool enableApplets: true
             property string defaultState: "launch"
             property list<string> enabledApplets: ["music", "weather"]
+        }
+        property JO content: JO {
+            property list<var> quickActionsOptions: [
+                {
+                    name: "update",
+                    icon: "refresh",
+                    action: () => {
+                        NoonUtils.runSystemUpdate();
+                    }
+                },
+                {
+                    url: "https://www.google.com"
+                },
+                {
+                    url: "https://www.youtube.com"
+                },
+                {
+                    url: "https://www.reddit.com"
+                },
+                {
+                    url: "https://ww25.soap2day.day"
+                },
+                {
+                    url: "https://ww25.soap2day.day"
+                }
+            ]
+
         }
     }
 
@@ -209,7 +234,7 @@ JsonAdapter {
     }
 
     property JO networking: JO {
-        property string userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+        property string userAgent: "hyprnoon/3.0 (contact: github.com/pharmaracist"
         property string searchEngine: "google"
     }
 

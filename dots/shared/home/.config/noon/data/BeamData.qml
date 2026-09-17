@@ -35,6 +35,7 @@ Singleton {
         const remainder = query.substring(1);
         activeState = key || defaultState;
         activeSubState = !cfg?.subStates || !remainder ? "" : Object.keys(cfg.subStates).find(k => cfg.subStates[k].prefix && remainder.startsWith(cfg.subStates[k].prefix)) ?? Object.keys(cfg.subStates)[0] ?? "";
+        getHint();
     }
 
     onRawBeamPluginsChanged: rebuildRegistry()
