@@ -3,11 +3,13 @@ package install
 import (
 	"archive/tar"
 	"archive/zip"
+	"compress/bzip2"
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -164,7 +166,13 @@ func extract(archive, dest string) error {
 		}
 		f.Seek(0, 0)
 		return extractTar(f, dest)
-	case strings.HasSuffix(l, ".tar.xz"), strings.HasSuffix(l, ".tar.bz2"), strings.HasSuffix(l, ".tar"):
+	case strings.HasSuffix(l, ".tar.bz2"), strings.HasSuffix(l, ".tbz2"), strings.HasSuffix(l, ".bz2"):
+		return extractTarBz2(archive, dest)
+	case strings.HasSuffix(l, ".tar.xz"), strings.HasSuffix(l, ".txz"), strings.HasSuffix(l, ".xz"):
+		return extractTarXz(archive, dest)
+	case strings.HasSuffix(l, ".7z"):
+		return extract7z(archive, dest)
+	case strings.HasSuffix(l, ".tar"):
 		f, err := os.Open(archive)
 		if err != nil {
 			return err
@@ -173,14 +181,23 @@ func extract(archive, dest string) error {
 		return extractTar(f, dest)
 	}
 	if f, err := os.Open(archive); err == nil {
-		hdr := make([]byte, 4)
+		hdr := make([]byte, 6)
 		n, _ := f.Read(hdr)
 		f.Close()
-		if n >= 2 && ((hdr[0] == 0x50 && hdr[1] == 0x4B) || (hdr[0] == 0x1F && hdr[1] == 0x8B)) {
+		if n >= 2 && hdr[0] == 0x50 && hdr[1] == 0x4B {
 			if extractZip(archive, dest) == nil {
 				return nil
 			}
 			return extractTarGzFallback(archive, dest)
+		}
+		if n >= 2 && hdr[0] == 0x1F && hdr[1] == 0x8B {
+			return extractTarGzFallback(archive, dest)
+		}
+		if n >= 6 && hdr[0] == 0xFD && hdr[1] == 0x37 && hdr[2] == 0x7A && hdr[3] == 0x58 && hdr[4] == 0x5A && hdr[5] == 0x00 {
+			return extractTarXz(archive, dest)
+		}
+		if n >= 3 && hdr[0] == 0x42 && hdr[1] == 0x5A && hdr[2] == 0x68 {
+			return extractTarBz2(archive, dest)
 		}
 	}
 	in, err := os.Open(archive)
@@ -197,6 +214,82 @@ func extract(archive, dest string) error {
 	_, err = io.Copy(out, io.LimitReader(in, MaxBytes))
 	return err
 }
+
+// ponytail: stdlib reads bzip2; stream into the guarded tar reader so the
+// zip-slip/symlink/cap protections in extractTar still apply.
+func extractTarBz2(archive, dest string) error {
+	f, err := os.Open(archive)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return extractTar(bzip2.NewReader(f), dest)
+}
+
+// ponytail: no stdlib xz; stream `xz -dc` into the guarded tar reader.
+// Upgrade path: vendor an xz reader and drop the exec dependency.
+func extractTarXz(archive, dest string) error {
+	if _, err := exec.LookPath("xz"); err != nil {
+		return fmt.Errorf("cannot unpack .tar.xz: xz not installed")
+	}
+	cmd := exec.Command("xz", "-dc", "--", archive)
+	out, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	terr := extractTar(out, dest)
+	if werr := cmd.Wait(); terr == nil {
+		return werr
+	}
+	return terr
+}
+
+// ponytail: no stdlib 7z; list first so every member passes the same within()
+// guard the pure-Go readers enforce, then extract and sweep symlinks.
+func extract7z(archive, dest string) error {
+	if _, err := exec.LookPath("7z"); err != nil {
+		return fmt.Errorf("archive is 7z: install 7z or pick the zip/tar.gz download")
+	}
+	list := exec.Command("7z", "l", "-ba", "-slt", "--", archive)
+	lb, err := list.Output()
+	if err != nil {
+		return fmt.Errorf("7z list: %w", err)
+	}
+	first := true
+	for _, line := range strings.Split(string(lb), "\n") {
+		if !strings.HasPrefix(line, "Path = ") {
+			continue
+		}
+		if first { // the archive itself
+			first = false
+			continue
+		}
+		name := strings.TrimPrefix(line, "Path = ")
+		if name == "" {
+			continue
+		}
+		if !within(dest, filepath.Join(dest, name)) {
+			return fmt.Errorf("zip-slip %s", name)
+		}
+	}
+	os.MkdirAll(dest, 0755)
+	if out, err := exec.Command("7z", "x", "-y", "-bd", "-o"+dest, "--", archive).CombinedOutput(); err != nil {
+		return fmt.Errorf("7z: %v: %s", err, strings.TrimSpace(string(out)))
+	}
+	return filepath.Walk(dest, func(p string, info os.FileInfo, e error) error {
+		if e != nil {
+			return e
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			return os.Remove(p)
+		}
+		return nil
+	})
+}
+
 func skipDir(name string) bool {
 	return strings.HasPrefix(name, ".") || name == "__MACOSX"
 }
@@ -283,6 +376,17 @@ func PluginsDir() string {
 
 var pluginGroups = map[string]bool{
 	"sidebar": true, "dock": true, "beam": true, "palettes": true, "widgets": true,
+}
+
+// PluginGroups is the Kind truth for noon-plugin destinations (sorted).
+// ponytail: single source; QML renders from providers.list instead of mirroring.
+func PluginGroups() []string {
+	out := make([]string, 0, len(pluginGroups))
+	for g := range pluginGroups {
+		out = append(out, g)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // ponytail: matches manifest name or dir name, case-insensitive (stopwatch vs Stopwatch)

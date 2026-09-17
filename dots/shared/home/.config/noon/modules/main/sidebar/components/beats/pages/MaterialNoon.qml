@@ -113,23 +113,5 @@ SidebarItemContainer {
                 }
             }
         }
-
-        Item {
-            visible: root.expanded
-            Layout.maximumWidth: 340
-            Layout.rightMargin: root.detached ? Padding.massive : 0
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-
-            TracksQueue {
-                id: queue
-                anchors.fill: parent
-                colors: root.colors
-            }
-
-            StyledRectangularShadow {
-                target: queue
-            }
-        }
     }
 }

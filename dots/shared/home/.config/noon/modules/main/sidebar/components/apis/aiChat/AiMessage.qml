@@ -19,8 +19,13 @@ Item {
     property bool editing: false
 
     readonly property bool isLive: root.messageData ? !root.messageData.done : false
-    readonly property list<var> messageBlocks: TextUtils.splitMarkdownBlocks(
-        root.isLive ? Harness.liveContent : (root.messageData?.content ?? ""))
+    readonly property string thinkSource: root.isLive ? Harness.liveThinkText : (root.messageData?.thinkText ?? "")
+    readonly property bool thinkDone: root.isLive ? ((Harness.liveContent ?? "").length > 0) : true
+    readonly property list<var> messageBlocks: ((root.thinkSource.trim().length > 0) ? [{
+                type: "think",
+                content: root.thinkSource,
+                completed: root.thinkDone
+            }] : []).concat(TextUtils.splitMarkdownBlocks(root.isLive ? Harness.liveContent : (root.messageData?.content ?? "")))
 
     anchors.left: parent?.left
     anchors.right: parent?.right
@@ -87,9 +92,6 @@ Item {
                         roleValue: "text"
                         MessageTextBlock {
                             editing: root.editing
-                            // Qt's markdown parser melts down on huge/degenerate
-                            // input and takes the whole shell with it: long
-                            // blocks render plain.
                             renderMarkdown: root.renderMarkdown && (modelData.content ?? "").length < 8000
                             enableMouseSelection: root.enableMouseSelection
                             segmentContent: modelData.content
@@ -147,9 +149,6 @@ Item {
 
         MessageActionBar {
             id: actionBar
-            // Tool-only step bubbles (one db row per tool call, no text)
-            // get no bar: copy of "" is useless and N steps meant N bars.
-            // Delete/regenerate stay on the text bubbles.
             readonly property bool hasText: ((root.isLive ? Harness.liveContent : (root.messageData?.content ?? "")).trim().length > 0)
             visible: (root.isLive ? Harness.liveDone : (messageData?.done ?? true)) && hasText
             Layout.leftMargin: Padding.large

@@ -97,29 +97,20 @@ BarGroup {
         }
     }
 
+    AnimatedTabIndexPair {
+        id: wsAnim
+        index: root.workspaceIndexInGroup
+    }
+
     Rectangle {
         z: 2
         width: root.workspaceButtonHeight - root.buttonMargin * 2
         anchors.horizontalCenter: parent.horizontalCenter
 
-        property real idx1: root.workspaceIndexInGroup
-        property real idx2: root.workspaceIndexInGroup
-
-        y: root.yAt(Math.min(idx1, idx2)) + root.buttonMargin
-        height: Math.max(0, root.yAt(Math.max(idx1, idx2) + 1) - root.yAt(Math.min(idx1, idx2)) - root.buttonMargin * 2)
+        y: root.yAt(Math.min(wsAnim.idx1, wsAnim.idx2)) + root.buttonMargin
+        height: Math.max(0, root.yAt(Math.max(wsAnim.idx1, wsAnim.idx2) + 1) - root.yAt(Math.min(wsAnim.idx1, wsAnim.idx2)) - root.buttonMargin * 2)
         radius: Rounding.full
         color: Colors.colPrimary
-
-        Behavior on idx1 {
-            SAnim {
-                // duration: Animations.durations.small
-            }
-        }
-        Behavior on idx2 {
-            SAnim {
-                // duration: Animations.durations.large
-            }
-        }
     }
 
     ColumnLayout {

@@ -202,7 +202,7 @@ Item {
             Layout.rightMargin: Padding.massive
 
             StyledText {
-                text: "Size "
+                text: carousel.currentItem.modelData
                 Layout.fillWidth: true
                 color: Colors.colOnSurfaceVariant
                 font: Fonts.request("normal", "normal")

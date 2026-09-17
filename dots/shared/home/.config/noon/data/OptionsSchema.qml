@@ -143,7 +143,7 @@ JsonAdapter {
             property bool enableOldContent: false
             property bool scrollToReveal: true
             property bool enableApplets: true
-            property string defaultState: "ai"
+            property string defaultState: "launch"
             property list<string> enabledApplets: ["music", "weather"]
         }
     }

@@ -12,7 +12,6 @@ import "../applets"
 StyledRect {
     id: view
     readonly property alias focusItem: inputField
-    readonly property string transcribedText: SpeechService?.speech
     color: "transparent"
 
     function sendMessage() {
@@ -23,16 +22,11 @@ StyledRect {
     }
 
     Binding {
-        target: inputField
-        property: "text"
-        value: transcribedText
-    }
-
-    Binding {
         target: BeamData
         property: "query"
         value: inputField.text
     }
+
     RowLayout {
         anchors.fill: parent
         anchors.topMargin: Padding.large

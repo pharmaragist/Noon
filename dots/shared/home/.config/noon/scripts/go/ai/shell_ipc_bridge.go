@@ -1,13 +1,8 @@
-// Native opencode custom-tools generator for the Noon shell's IPC surface.
-//
-// Tools are discovered, not hardcoded: `qs -p <root> ipc show` (targets +
-// `function name(p: type, ...)` lines) yields one named tool export per NPC
-// function. `harness gen-tools` prints the file for ~/.config/opencode/tools/.
-// A small curated fallback covers the case where discovery fails.
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -73,10 +68,6 @@ func parseTools(out string) []tool {
 	return tools
 }
 
-// enrichDescriptions scans GlobalIPC.qml and modules/main/NIPC.qml under
-// shellRoot for `//* <text>` lines directly above `function name(...)`;
-// matching tools adopt the text as their description. No match falls back
-// to "Noon shell: <target> <fn>".
 func enrichDescriptions(shellRoot string, tools []tool) {
 	descs := map[string]string{}
 	files := []string{
@@ -117,9 +108,6 @@ func enrichDescriptions(shellRoot string, tools []tool) {
 	}
 }
 
-// cmdGenTools prints a native opencode custom-tools file (one named export
-// per shell IPC function) for ~/.config/opencode/tools/. Native tools ride
-// the normal tool pipeline (permissions, approvals) with no MCP round trip.
 func cmdGenTools(shellRoot string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -174,5 +162,154 @@ func cmdGenTools(shellRoot string) error {
 		sb.WriteString("], args);\n  },\n});\n\n")
 	}
 	fmt.Print(sb.String())
+	return nil
+}
+
+func cleanJSONC(src string) string {
+	var sb strings.Builder
+	inStr, esc := false, false
+	i, n := 0, len(src)
+	isWS := func(c byte) bool { return c == ' ' || c == '\t' || c == '\n' || c == '\r' }
+	for i < n {
+		c := src[i]
+		if inStr {
+			sb.WriteByte(c)
+			if esc {
+				esc = false
+			} else if c == '\\' {
+				esc = true
+			} else if c == '"' {
+				inStr = false
+			}
+			i++
+			continue
+		}
+		switch {
+		case c == '"':
+			inStr = true
+			sb.WriteByte(c)
+			i++
+		case c == '/' && i+1 < n && src[i+1] == '/':
+			for i < n && src[i] != '\n' {
+				i++
+			}
+		case c == '/' && i+1 < n && src[i+1] == '*':
+			i += 2
+			for i+1 < n && !(src[i] == '*' && src[i+1] == '/') {
+				i++
+			}
+			i += 2
+			if i > n {
+				i = n
+			}
+		case c == ',':
+			j := i + 1
+			for j < n && isWS(src[j]) {
+				j++
+			}
+			if j < n && (src[j] == '}' || src[j] == ']') {
+				i++
+				continue
+			}
+			sb.WriteByte(c)
+			i++
+		default:
+			sb.WriteByte(c)
+			i++
+		}
+	}
+	return sb.String()
+}
+
+func permFill(m map[string]interface{}) {
+	p, _ := m["permission"].(map[string]interface{})
+	if p == nil {
+		p = map[string]interface{}{}
+		m["permission"] = p
+	}
+	if _, ok := p["*"]; !ok {
+		p["*"] = "ask"
+	}
+	if _, ok := p["read"]; !ok {
+		p["read"] = "allow"
+	}
+}
+
+func writeJSON(path string, v interface{}) error {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, append(b, '\n'), 0644)
+}
+
+func cmdSyncConfig(globalCfg, sideDir string) error {
+	if globalCfg == "" || sideDir == "" {
+		return fmt.Errorf("sync-config needs <globalCfg> <sideDir>")
+	}
+	raw, err := os.ReadFile(globalCfg)
+	if err != nil {
+		raw = []byte("{}")
+	}
+	var global map[string]interface{}
+	if err := json.Unmarshal([]byte(cleanJSONC(string(raw))), &global); err != nil {
+		return fmt.Errorf("parse %s: %w", globalCfg, err)
+	}
+	if global == nil {
+		global = map[string]interface{}{}
+	}
+	if ins, ok := global["instructions"].([]interface{}); ok {
+		kept := []interface{}{}
+		for _, e := range ins {
+			if s, ok := e.(string); ok && strings.Contains(s, "harness/main.md") {
+				continue
+			}
+			kept = append(kept, e)
+		}
+		global["instructions"] = kept
+	}
+	if d, ok := global["default_agent"].(string); ok && d == "noon" {
+		delete(global, "default_agent")
+	}
+	permFill(global)
+	if err := writeJSON(globalCfg, global); err != nil {
+		return err
+	}
+	scopedJSON, err := json.Marshal(global)
+	if err != nil {
+		return err
+	}
+	var scoped map[string]interface{}
+	if err := json.Unmarshal(scopedJSON, &scoped); err != nil {
+		return err
+	}
+	scoped["default_agent"] = "noon"
+	permFill(scoped)
+	if err := os.MkdirAll(filepath.Join(sideDir, "agents"), 0755); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Join(sideDir, "tools"), 0755); err != nil {
+		return err
+	}
+	ents, err := os.ReadDir(filepath.Dir(globalCfg))
+	if err != nil {
+		return err
+	}
+	skip := map[string]bool{"opencode.jsonc": true, "opencode.jsonc.tmp": true, "agents": true, "tools": true, "system.md": true}
+	for _, e := range ents {
+		if skip[e.Name()] {
+			continue
+		}
+		dst := filepath.Join(sideDir, e.Name())
+		if _, err := os.Lstat(dst); err == nil {
+			continue
+		}
+		os.Symlink(filepath.Join(filepath.Dir(globalCfg), e.Name()), dst)
+	}
+	os.Remove(filepath.Join(sideDir, "opencode.jsonc.tmp"))
+	if err := writeJSON(filepath.Join(sideDir, "opencode.jsonc"), scoped); err != nil {
+		return err
+	}
+	fmt.Print("ok")
 	return nil
 }

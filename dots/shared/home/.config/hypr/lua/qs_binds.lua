@@ -54,7 +54,6 @@ local sidebar_actions = {
     Plugins = "P",
     Tasks = "CTRL+T",
     Notes = "CTRL+N",
-    Games = "CTRL+G",
     Session = "Escape"
 }
 

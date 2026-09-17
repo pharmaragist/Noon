@@ -36,7 +36,6 @@ Singleton {
         readonly property string opencodeDb: methods.trim(standard.share + "/opencode/opencode.db")
         readonly property string skills: methods.trim(standard.config + "/opencode/skills")
         readonly property string m3path: methods.trim(standard.state + "/user/generated/colors.json")
-        readonly property string gamesCoverArts: methods.trim(standard.state + "/user/generated/gamesCoverArts")
         readonly property string screenshots: methods.trim(standard.pictures + "/Screenshots")
         readonly property string screenTimeDB: methods.trim(standard.state + "/screenTime")
         readonly property string clipboardCache: methods.trim(standard.cache + "/media/clipboard")

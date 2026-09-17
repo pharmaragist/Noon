@@ -95,46 +95,6 @@ WidgetContainer {
                     }
                 }
             }
-
-            StyledRect {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: Rounding.verylarge
-                color: root.colors.colLayer3
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: Padding.normal
-                    spacing: 2
-                    Repeater {
-                        model: BeatsService.queue.slice(1, 5)
-                        delegate: StyledRect {
-                            required property var modelData
-                            required property int index
-
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            topRadius: index === 0 ? Rounding.large : 2
-                            bottomRadius: index === 3 ? Rounding.large : 2
-                            color: root.colors.colLayer4
-
-                            StyledText {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.margins: Padding.large
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData?.title ?? ""
-                                font: Fonts.request("main", "normal")
-                                color: root.colors.colOnLayer4
-                                truncate: true
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: BeatsService.playTrackByFile(modelData?.file)
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 

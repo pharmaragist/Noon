@@ -1,17 +1,5 @@
 package main
 
-// harness bridges the Noon shell (QML) and opencode.
-//
-// One-shot commands (stdout = single JSON document, for Fetcher):
-//   sessions            list sessions from the opencode sqlite db
-//   chat <sessionId>    session messages from the sqlite db
-//   skills              skill names from SKILL.md files on disk
-//   gen-tools <root>    print native opencode tools file for shell IPC
-//
-// Long-running bridge (stdin/stdout = newline-delimited JSON):
-//   acp                 spawn `opencode acp`, translate between the shell's
-//                       SSE-style event dialect and ACP JSON-RPC. QML writes
-//                       {"cmd":...} lines, Go emits {"type":...} lines.
 
 import (
 	"fmt"
@@ -19,7 +7,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: harness <sessions|chat <sessionId>|skills|gen-tools <shellRoot>|acp>")
+	fmt.Fprintln(os.Stderr, "usage: harness <sessions|chat <sessionId>|skills|gen-tools <shellRoot>|sync-config <globalCfg> <sideDir>|acp>")
 	os.Exit(2)
 }
 
@@ -50,6 +38,11 @@ func main() {
 			usage()
 		}
 		err = cmdGenTools(os.Args[2])
+	case "sync-config":
+		if len(os.Args) < 4 {
+			usage()
+		}
+		err = cmdSyncConfig(os.Args[2], os.Args[3])
 	case "acp":
 		err = cmdAcp()
 	default:

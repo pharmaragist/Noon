@@ -35,10 +35,10 @@ type acpError struct {
 
 type bridge struct {
 	stdin   io.WriteCloser
-	mu      sync.Mutex // guards stdin writes + pending map
+	mu      sync.Mutex
 	pending map[int64]chan *acpResponse
-	nextID  int64 // via atomic
-	outMu   sync.Mutex // guards stdout writes
+	nextID  int64
+	outMu   sync.Mutex
 	known   map[string]string
 	lastMsg map[string]string
 	permOpt map[int64][]permOption
@@ -155,7 +155,6 @@ func (b *bridge) replyError(id int64, code int, message string) error {
 
 func cwdOf(cmd map[string]interface{}) string {
 	if c, ok := cmd["cwd"].(string); ok && c != "" {
-		// Never let QML url strings ("file:///...") reach the server.
 		return strings.TrimPrefix(c, "file://")
 	}
 	if wd, err := os.Getwd(); err == nil {
@@ -200,7 +199,6 @@ func (b *bridge) doList(cmd map[string]interface{}) {
 	qemit(map[string]interface{}{"type": "sessions", "sessions": all})
 }
 
-// Tolerates opencode's {currentValue,options[]} and spec's {currentValueId,values[]}.
 type configOption struct {
 	ID             string `json:"id"`
 	CurrentValue   string `json:"currentValue"`
@@ -296,8 +294,6 @@ func modeIDs(m *sessionModes) []string {
 	return out
 }
 
-// emitSessionState reports one session's full config surface. Shared by
-// resume/sync so every path tells QML the same truth in the same shape.
 func (b *bridge) emitSessionState(sessionID string, opts []configOption, fallback *sessionModes) {
 	if models, _ := configValues(opts, "model"); len(models) > 0 {
 		qemit(map[string]interface{}{"type": "models", "sessionId": sessionID, "models": models})
@@ -315,14 +311,11 @@ func (b *bridge) emitSessionState(sessionID string, opts []configOption, fallbac
 	}
 }
 
-// cmdStr reads an optional string field from a QML command object.
 func cmdStr(cmd map[string]interface{}, key string) string {
 	s, _ := cmd[key].(string)
 	return s
 }
 
-// applyConfig sets one session config option, surfaces failures, and
-// returns the raw response plus the server-confirmed value.
 func (b *bridge) applyConfig(sessionID, id, value string) (json.RawMessage, string) {
 	res, err := b.call("session/set_config_option", map[string]interface{}{
 		"sessionId": sessionID, "configId": id, "value": value,
@@ -335,14 +328,11 @@ func (b *bridge) applyConfig(sessionID, id, value string) (json.RawMessage, stri
 	return res, confirmed
 }
 
-// setConfigQuiet is applyConfig without state events (doNew folds the
-// confirmed values into its session event instead).
 func (b *bridge) setConfigQuiet(sessionID, id, value string) string {
 	_, confirmed := b.applyConfig(sessionID, id, value)
 	return confirmed
 }
 
-// setConfig applies one option and emits the server-confirmed state.
 func (b *bridge) setConfig(sessionID, id, value string) string {
 	res, confirmed := b.applyConfig(sessionID, id, value)
 	if res == nil {
@@ -370,7 +360,6 @@ func (b *bridge) setConfig(sessionID, id, value string) string {
 	return confirmed
 }
 
-// "mode" is a config option in opencode's ACP, not an ACP mode object.
 func (b *bridge) doMode(cmd map[string]interface{}) {
 	sessionID, mode := cmdStr(cmd, "sessionId"), cmdStr(cmd, "mode")
 	if sessionID == "" || mode == "" {
@@ -446,7 +435,6 @@ func (b *bridge) doNew(cmd map[string]interface{}) {
 	})
 }
 
-// Resumes sessions this bridge hasn't seen (older shell run).
 func (b *bridge) ensureKnown(sessionID, cwd string) error {
 	b.mu.Lock()
 	_, ok := b.known[sessionID]
@@ -590,7 +578,6 @@ func pickAllowOption(opts []permOption) string {
 	return ""
 }
 
-// Cancelling must answer pending permission requests, or the agent waits forever.
 func (b *bridge) doCancel(cmd map[string]interface{}) {
 	sessionID := cmdStr(cmd, "sessionId")
 	if sessionID == "" {
@@ -652,7 +639,6 @@ func toolText(content json.RawMessage) string {
 	return truncateString(sb.String(), 4000)
 }
 
-// Tool updates are flat per spec; message chunks carry messageId + content.
 type sessionUpdate struct {
 	SessionUpdate     string          `json:"sessionUpdate"`
 	MessageID         string          `json:"messageId"`
@@ -669,7 +655,6 @@ type sessionUpdate struct {
 	} `json:"availableCommands"`
 }
 
-// raw carries the full update for kinds with their own shapes.
 func (b *bridge) onUpdate(sessionID string, u sessionUpdate, raw json.RawMessage) {
 	b.mu.Lock()
 	if u.MessageID != "" {
@@ -842,7 +827,6 @@ func (b *bridge) handleLine(line string) {
 	if line == "" {
 		return
 	}
-	// Response (id, no method) vs agent request (id + method) vs notification.
 	var probe map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(line), &probe); err != nil {
 		return
@@ -865,7 +849,6 @@ func (b *bridge) handleLine(line string) {
 		}
 		return
 	}
-	// Agent->client request?
 	if hasID && hasMethod {
 		var req acpRequest
 		if err := json.Unmarshal([]byte(line), &req); err == nil {

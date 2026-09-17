@@ -31,11 +31,11 @@ StyledRect {
     }
     MaterialLoadingIndicator {
         anchors.top: parent.top
-        anchors.topMargin: BeatsService.isLoading ? Padding.massive: - Padding.massive * 5
+        anchors.topMargin: BeatsService.isLoading ? Padding.massive : -Padding.massive * 5
         anchors.horizontalCenter: parent.horizontalCenter
         loading: BeatsService.isLoading
         z: 999
-
+        colors: MediaPlayerService?.colors
         Behavior on anchors.topMargin {
             Anim {}
         }

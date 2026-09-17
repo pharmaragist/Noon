@@ -111,24 +111,5 @@ SidebarItemContainer {
                 }
             }
         }
-
-        StyledLoader {
-            shown: root.expanded
-            fade: true
-            Layout.maximumWidth: 340
-            Layout.minimumWidth: 340
-            Layout.rightMargin: root.detached ? Padding.massive : 0
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            binds: ({
-                    "colors": () => root.colors
-                })
-
-            sourceComponent: TracksQueue {
-                id: queue
-                anchors.fill: parent
-                colors: root.colors
-            }
-        }
     }
 }

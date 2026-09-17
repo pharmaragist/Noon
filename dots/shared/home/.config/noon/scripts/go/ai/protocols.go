@@ -26,11 +26,6 @@ func dbFile() string {
 	return dataHome() + "/opencode/opencode.db"
 }
 
-// opencodeDataDir points at the standard data dir that holds auth.json.
-// The vision plugin/script resolves its auth source from OPENCODE_DATA_DIR
-// (falling back to XDG_DATA_HOME); the harness redirects XDG_DATA_HOME to the
-// session dir, so without this the plugin can never find the saved provider
-// credentials. opencode itself ignores this variable.
 func opencodeDataDir() string {
 	home := os.ExpandEnv("$HOME")
 	if h, err := os.UserHomeDir(); err == nil && h != "" {
@@ -59,6 +54,7 @@ type ToolCall struct {
 type Message struct {
 	Role              string        `json:"role"`
 	Content           string        `json:"content"`
+	ThinkText         string        `json:"thinkText,omitempty"`
 	RawContent        string        `json:"rawContent"`
 	Model             string        `json:"model"`
 	Thinking          bool          `json:"thinking"`
@@ -103,12 +99,9 @@ func truncateString(s string, max int) string {
 	return s
 }
 
-// Wrapper tags treated as machine context; extend as more appear.
 var injectedTags = []string{"skill"}
 
 var skillHeaderRe = regexp.MustCompile(`(?s)Follow the skill named "([^"]*)".*?<skill>.*?</skill>\s*Task:\s*`)
-
-var thinkBlockRe = regexp.MustCompile(`(?s)<think>.*?</think>\s*`)
 
 var injectedTagRes = map[string]*regexp.Regexp{}
 
@@ -118,7 +111,6 @@ func init() {
 	}
 }
 
-// Long <tag>...</tag> blocks collapse to a marker; short ones are kept.
 func collapseInjectedBlocks(s string) string {
 	s = skillHeaderRe.ReplaceAllStringFunc(s, func(m string) string {
 		if len(m) < 200 {
@@ -173,8 +165,6 @@ func cmdSessions() error {
 
 
 func cmdChat(sessionID string, limit, offset int) error {
-	// Clamp, don't reset: QML compares out.length against the requested
-	// size — a silent reset would end paging early.
 	if limit < 1 {
 		limit = 1
 	}
@@ -235,6 +225,7 @@ func cmdChat(sessionID string, limit, offset int) error {
 		m := byID[mid]
 
 		var txt strings.Builder
+		var think strings.Builder
 		tools := []ToolCall{}
 		for _, pd := range m.part {
 			var p struct {
@@ -251,9 +242,7 @@ func cmdChat(sessionID string, limit, offset int) error {
 			case "text":
 				txt.WriteString(p.Text)
 			case "reasoning":
-				if strings.TrimSpace(p.Text) != "" {
-					txt.WriteString("<think>" + p.Text + "</think>")
-				}
+				think.WriteString(p.Text)
 			case "tool":
 				var st struct {
 					Status string          `json:"status"`
@@ -271,17 +260,17 @@ func cmdChat(sessionID string, limit, offset int) error {
 			}
 		}
 
-		content := thinkBlockRe.ReplaceAllString(txt.String(), "")
-		if strings.TrimSpace(content) == "" && len(tools) == 0 {
+		content := txt.String()
+		thinkText := think.String()
+		if strings.TrimSpace(content) == "" && strings.TrimSpace(thinkText) == "" && len(tools) == 0 {
 			continue
 		}
-		// View shows collapsed context; RawContent keeps fuller text for
-		// resend, capped so monster rows can't balloon the view's memory.
 		raw := truncateString(content, 100000)
 		content = truncateString(collapseInjectedBlocks(content), 30000)
 		out = append(out, Message{
 			Role:              m.role.String,
 			Content:           content,
+			ThinkText:         truncateString(thinkText, 30000),
 			RawContent:        raw,
 			Model:             m.model.String,
 			Thinking:          false,
@@ -302,13 +291,13 @@ func emit(v interface{}) error {
 }
 
 func cmdSkills() error {
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		return err
+	home := os.ExpandEnv("$HOME")
+	if h, err := os.UserHomeDir(); err == nil && h != "" {
+		home = h
 	}
-	root := dir + "/opencode/skills"
+	root := filepath.Join(home, ".config", "opencode", "skills")
 	set := map[string]bool{}
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || info.Name() != "SKILL.md" {
 			return nil
 		}

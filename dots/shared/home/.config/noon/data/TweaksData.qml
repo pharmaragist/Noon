@@ -128,13 +128,6 @@ QtObject {
                     "key": "desktop.clock.enabled"
                 },
                 {
-                    "icon": "timer",
-                    "name": "Center Clock",
-                    "hint": "Center clock in bar area",
-                    "enableTooltip": false,
-                    "key": "desktop.clock.center"
-                },
-                {
                     "icon": "notifications_active",
                     "name": "Notifications Position",
                     "hint": "Where popup notifications appear",
@@ -711,11 +704,6 @@ QtObject {
                     "key": "sidebar.content.notes"
                 },
                 {
-                    "icon": "joystick",
-                    "name": "Games",
-                    "key": "sidebar.content.games"
-                },
-                {
                     "icon": "extension",
                     "name": "Widgets",
                     "key": "sidebar.content.widgets"
@@ -723,7 +711,7 @@ QtObject {
             ]
         },
         {
-            "section": "Media & Gaming",
+            "section": "Media",
             "icon": "music_note",
             "shell": "Main",
             "items": [
@@ -748,12 +736,6 @@ QtObject {
                     "store": "beats",
                     "values": ["Filled", "Bars", "Waveform", "CapsuleWaves", "LineGlow"],
                     "key": "options.visualizerMode"
-                },
-                {
-                    "icon": "palette",
-                    "store": "games",
-                    "name": "Games Adaptive Theme",
-                    "key": "options.adaptiveTheme"
                 }
             ]
         },

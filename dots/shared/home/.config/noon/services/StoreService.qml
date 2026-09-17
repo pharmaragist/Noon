@@ -21,8 +21,26 @@ Singleton {
             installed: !!(it && it.installed),
             previews: it ? it.previews || [] : [],
             downloadsCount: it ? it.downloadsCount || 0 : 0,
-            typeId: it ? it.typeId || "" : ""
+            typeId: it ? it.typeId || "" : "",
+            typeName: it ? it.typeName || "" : ""
         };
+    }
+
+    function typeIcon(t) {
+        if (!t)
+            return "";
+        const l = String(t).toLowerCase();
+        if (l.indexOf("icon") !== -1)
+            return "emoji_symbols";
+        if (l.indexOf("cursor") !== -1)
+            return "arrow_selector_tool";
+        if (l.indexOf("wallpaper") !== -1 || l.indexOf("nature") !== -1 || l.indexOf("abstract") !== -1)
+            return "photo";
+        if (l.indexOf("plasma") !== -1 || l.indexOf("kwin") !== -1 || l.indexOf("splash") !== -1)
+            return "dashboard";
+        if (l.indexOf("grub") !== -1 || l.indexOf("script") !== -1)
+            return "terminal";
+        return "category";
     }
 
     function send(m, p, cb) {
@@ -55,7 +73,7 @@ Singleton {
             categoryIds: cats || [],
             sort: sort || "",
             page: page || 0,
-            pageSize: pageSize || 30
+            pageSize: pageSize || 15
         }, cb);
     }
 
@@ -171,7 +189,8 @@ Singleton {
             phase: "starting",
             received: 0,
             total: 0,
-            progress: 0
+            progress: 0,
+            queuePos: 1
         };
     }
 
@@ -297,7 +316,7 @@ Singleton {
                 }, null);
             return;
         }
-        contentSearch(o.provider, o.query, o.xdgType, o.categoryIds, o.sort, pg, o.pageSize || 30, (res, err) => {
+        contentSearch(o.provider, o.query, o.xdgType, o.categoryIds, o.sort, pg, o.pageSize || 15, (res, err) => {
             if (!err && res) {
                 const raw = Array.isArray(res.items) ? res.items : [];
                 const fresh = raw.map(stripItem);
@@ -346,6 +365,19 @@ Singleton {
             }
             return;
         }
+        // ponytail: queued/active/done lifecycle events share the job id but
+        // must not resolve the pending call; only result/error settle it.
+        if (m.event === "queued") {
+            if (dlActive && String(m.id) === String(dlActive.rpcId)) {
+                const d = m.data || {};
+                dlActive = Object.assign({}, dlActive, {
+                    queuePos: d.position || dlActive.queuePos || 1
+                });
+            }
+            return;
+        }
+        if (m.event)
+            return;
         const cb = pending[m.id];
         if (!cb)
             return;

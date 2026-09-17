@@ -33,7 +33,7 @@ FloatingWindow {
         },
         {
             id: "icons",
-            icon: "apps"
+            icon: "folder"
         },
         {
             id: "cursors",
@@ -82,7 +82,22 @@ FloatingWindow {
         return r === "icons" ? "icons" : r === "cursors" ? "cursors" : "";
     }
 
+    function providerById(id) {
+        return svc.cache.providers.find(p => p && p.id === id);
+    }
+
+    function providerKinds(id) {
+        const p = providerById(id || selectedProvider);
+        if (p && Array.isArray(p.kinds) && p.kinds.length)
+            return p.kinds;
+        return null;
+    }
+
     function hubId() {
+        // ponytail: Kind truth lives in Go (providers.list kinds); static flag is fallback for old backends.
+        const byKind = svc.cache.providers.filter(p => p && Array.isArray(p.kinds) && p.kinds.indexOf("noon-plugin") !== -1);
+        if (byKind.length)
+            return byKind[0].id;
         const hubs = svc.cache.providers.filter(p => p && p.static);
         return hubs.length ? hubs[0].id : "";
     }
@@ -124,7 +139,9 @@ FloatingWindow {
             xdgType: selectedXdg || "",
             categoryIds: activeCats,
             sort: "",
-            pageSize: 30
+            // ponytail: OCS latency scales with page size (30 items ~8s warm,
+            // 10 items ~1.6s); grid shows ~12, Load more appends the rest.
+            pageSize: 15
         };
     }
 
@@ -166,12 +183,21 @@ FloatingWindow {
     }
 
     function isStatic() {
-        const p = svc.cache.providers.find(p => p && p.id === selectedProvider);
+        const kinds = providerKinds(selectedProvider);
+        if (kinds)
+            return kinds.indexOf("noon-plugin") !== -1;
+        const p = providerById(selectedProvider);
         return !!(p && p.static);
     }
 
     function kindFor() {
-        return selectedXdg === "cursors" ? "cursor-theme" : "icon-theme";
+        if (isStatic())
+            return "noon-plugin";
+        const k = selectedXdg === "cursors" ? "cursor-theme" : "icon-theme";
+        const kinds = providerKinds(selectedProvider);
+        if (kinds && kinds.indexOf(k) === -1)
+            return kinds[0];
+        return k;
     }
 
     function installItem(item) {
@@ -183,6 +209,11 @@ FloatingWindow {
         if (isStatic()) {
             const g = item.typeId || activeCats[0] || "";
             if (!g) {
+                root.notify("unknown plugin group", "error");
+                return;
+            }
+            const prov = providerById(root.selectedProvider);
+            if (prov && Array.isArray(prov.groups) && prov.groups.length && prov.groups.indexOf(g) === -1) {
                 root.notify("unknown plugin group", "error");
                 return;
             }
@@ -384,13 +415,43 @@ FloatingWindow {
                             delegate: StoreItem {
                                 grid: gridView
                             }
-                            onContentYChanged: maybeLoadMore()
-                            onContentHeightChanged: maybeLoadMore()
+                            onContentYChanged: {
+                                maybeLoadMore();
+                                paintVisible();
+                            }
+                            onContentHeightChanged: {
+                                maybeLoadMore();
+                                paintVisible();
+                            }
+                            onCountChanged: paintVisible()
 
                             function maybeLoadMore() {
                                 if (contentHeight > 0 && contentY + height >= contentHeight - height * 0.25)
                                     root.loadMore();
                             }
+
+                            function paintVisible() {
+                                if (!count || cellHeight <= 0)
+                                    return;
+                                const cols = Math.max(1, Math.round(width / cellWidth));
+                                const rows = Math.ceil(height / cellHeight) + 1;
+                                const first = Math.max(0, Math.floor(contentY / cellHeight)) * cols;
+                                const last = Math.min(count, first + rows * cols);
+                                for (let i = first; i < last; i++) {
+                                    const it = itemAtIndex(i);
+                                    if (it)
+                                        it.loadThumb();
+                                }
+                            }
+                        }
+
+                        GroupButton {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: Padding.small
+                            visible: svc.cache.hasMore && !root.loading
+                            buttonText: "Load more"
+                            toggled: true
+                            downAction: () => root.loadMore()
                         }
                     }
                 }
@@ -541,19 +602,26 @@ FloatingWindow {
         required property var modelData
         required property int index
         property string thumb: ""
+        property bool thumbAsked: false
 
-        function reqThumb() {
+        function loadThumb() {
+            if (thumbAsked)
+                return;
+            thumbAsked = true;
             const item = modelData;
             const id = item ? item.id : null;
-            thumb = "";
             if (id)
                 svc.contentPreview(root.selectedProvider, id, item.previews || [], "small", (res, err) => {
                     if (!err && res && res.path && modelData && modelData.id === id)
                         thumb = res.path;
                 });
         }
-        Component.onCompleted: reqThumb()
-        onModelDataChanged: reqThumb()
+        onModelDataChanged: {
+            thumb = "";
+            thumbAsked = false;
+            if (grid)
+                grid.paintVisible();
+        }
 
         width: grid?.cellWidth - Padding.normal
         height: grid?.cellHeight - Padding.normal
@@ -586,8 +654,9 @@ FloatingWindow {
                 Symbol {
                     anchors.centerIn: parent
                     z: 0
-                    icon: (modelData && modelData.icon) || "image"
-                    iconSize: 28
+                    visible: thumb === ""
+                    icon: modelData?.icon || svc.typeIcon(modelData?.typeName) || "image"
+                    iconSize: 32
                     fill: 1
                     color: Colors.colOnLayer1
                 }

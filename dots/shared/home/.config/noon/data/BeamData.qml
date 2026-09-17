@@ -14,7 +14,7 @@ Singleton {
     property string query: ""
     property string activeHint: ""
     property var suggestedApp: null
-    property string activeState: defaultState
+    property string activeState: defaultState ?? "launch"
     property string activeSubState: ""
     property var registry: rebuildRegistry()
 
@@ -95,7 +95,7 @@ Singleton {
             icon: "rocket_launch",
             shape: "Pentagon",
             description: "Launch An Application",
-            placeholder: "Launch App ..",
+            placeholder: "Launch An Application ..",
             showHint: true,
             hinter: () => {
                 if (cleanQuery === "") {

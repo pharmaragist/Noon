@@ -88,15 +88,10 @@ Singleton {
         onTriggered: root.player.positionChanged()
     }
 
-    SourceDownloader {
-        id: coverFetch
-        active: root.artUrl.startsWith("http") || root.artUrl.startsWith("https")
-        input: root.artUrl
-    }
-
     MaterialColorsGenerator {
         id: palette
         active: root.artUrl.length > 0 && Mem.beats.options.adaptiveTheme
-        source: coverFetch.output || root.artUrl
+        source: root.artUrl
+        scheme: "scheme-fidelity"
     }
 }

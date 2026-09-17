@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"store-service/internal/download"
 	"store-service/internal/install"
@@ -16,18 +17,67 @@ import (
 	"store-service/internal/rpc"
 )
 
+// installQueue serializes content.install jobs in Go so the Install Queue
+// from CONTEXT.md has one owner. Previews/downloads outside install stay
+// concurrent (download.lanes). Position is 1-based including the active job:
+// 1 means running now, N>1 means N-1 ahead.
+// ponytail: token channel + counter, not a channel rig with job structs;
+// upgrade to cancellable jobs if the UI ever needs cancel/reorder.
+type installQueue struct {
+	ch      chan struct{}
+	waiting int64
+}
+
+func newInstallQueue() installQueue {
+	q := installQueue{ch: make(chan struct{}, 1)}
+	q.ch <- struct{}{}
+	return q
+}
+
+func (q *installQueue) acquire() int64 {
+	select {
+	case <-q.ch:
+		return 1
+	default:
+		n := atomic.AddInt64(&q.waiting, 1)
+		<-q.ch
+		atomic.AddInt64(&q.waiting, -1)
+		return n + 1 // waiters-including-self plus the active job
+	}
+}
+
+func (q *installQueue) release() { q.ch <- struct{}{} }
+
+var installs = newInstallQueue()
+
+// ponytail: Contents often list checksums/readmes first (SHA256SUMS.txt);
+// prefer a real archive so install doesn't unpack the wrong file.
+// An explicit downloadItemId is always honored exactly.
+var archiveSuffixes = []string{".zip", ".tar.gz", ".tgz", ".tar.xz", ".txz", ".tar.bz2", ".tbz2", ".tar", ".7z"}
+
 func pickFile(c ocs.Content, item *int) (ocs.Download, string) {
 	if len(c.Files) == 0 {
 		return ocs.Download{}, "no downloads"
 	}
-	idx := 0
 	if item != nil {
-		idx = *item
+		idx := *item
+		if idx < 0 || idx >= len(c.Files) {
+			return ocs.Download{}, "downloadItemId out of range"
+		}
+		return c.Files[idx], ""
 	}
-	if idx < 0 || idx >= len(c.Files) {
-		return ocs.Download{}, "downloadItemId out of range"
+	for _, f := range c.Files {
+		n := strings.ToLower(f.Name)
+		if n == "" {
+			n = strings.ToLower(ocs.BaseName(f.Link))
+		}
+		for _, s := range archiveSuffixes {
+			if strings.HasSuffix(n, s) {
+				return f, ""
+			}
+		}
 	}
-	return c.Files[idx], ""
+	return c.Files[0], ""
 }
 
 func destName(archive, fallback string) string {
@@ -53,7 +103,10 @@ func ensureArchive(ctx context.Context, provider, contentId string, c ocs.Conten
 	if len(c.Files) == 0 {
 		return "", fmt.Errorf("no downloads")
 	}
-	dl := c.Files[0]
+	dl, msg := pickFile(c, nil)
+	if msg != "" {
+		return "", fmt.Errorf("%s", msg)
+	}
 	os.MkdirAll(dir, 0755)
 	name := dl.Name
 	if name == "" {
@@ -76,7 +129,14 @@ func handleRequest(rawId json.RawMessage, method string, params json.RawMessage)
 			if cats, ok := ocs.CategoriesCached(p.Id); ok && len(cats) > 0 {
 				has = true
 			}
-			out = append(out, map[string]interface{}{"id": p.Id, "name": p.Name, "baseUrl": p.BaseURL, "hasCategories": has, "static": p.Static})
+			kinds, groups, _ := ocs.ProviderKinds(p.Id)
+			if kinds == nil {
+				kinds = []string{}
+			}
+			if groups == nil {
+				groups = []string{}
+			}
+			out = append(out, map[string]interface{}{"id": p.Id, "name": p.Name, "baseUrl": p.BaseURL, "hasCategories": has, "static": p.Static, "kinds": kinds, "groups": groups})
 		}
 		rpc.WriteResult(rawId, map[string]interface{}{"providers": out})
 	case "categories.list":
@@ -234,6 +294,11 @@ func handleRequest(rawId json.RawMessage, method string, params json.RawMessage)
 			rpc.WriteError(rawId, "invalid_params", "invalid kind")
 			return
 		}
+		pos := installs.acquire()
+		defer installs.release()
+		if pos > 1 {
+			rpc.WriteEvent(rawId, "queued", map[string]interface{}{"position": pos})
+		}
 		c, err := ocs.GetContent(p.Provider, p.ContentId)
 		if err != nil {
 			rpc.WriteError(rawId, "ocs_unreachable", err.Error())
@@ -254,7 +319,7 @@ func handleRequest(rawId json.RawMessage, method string, params json.RawMessage)
 			rpc.WriteError(rawId, "install_failed", err.Error())
 			return
 		}
-		rpc.WriteResult(rawId, map[string]interface{}{"path": target, "kind": p.Kind})
+		rpc.WriteResult(rawId, map[string]interface{}{"path": target, "kind": p.Kind, "installed": true})
 	default:
 		rpc.WriteError(rawId, "method_not_found", "unknown method "+method)
 	}

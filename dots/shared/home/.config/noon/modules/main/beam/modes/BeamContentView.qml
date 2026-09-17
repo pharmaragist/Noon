@@ -12,7 +12,6 @@ import "../applets"
 PanelRect {
     id: view
     readonly property alias focusItem: inputField
-    readonly property string transcribedText: SpeechService?.speech
 
     function sendMessage() {
         BeamData.executeCommand();
@@ -21,11 +20,6 @@ PanelRect {
         inputField.text = "";
     }
 
-    Binding {
-        target: inputField
-        property: "text"
-        value: transcribedText
-    }
 
     Binding {
         target: BeamData
@@ -78,7 +72,7 @@ PanelRect {
             }
 
             RotationAnimation on rotation {
-                running: BeamData.activeState !== BeamData.defaultState && inputField.text.length > 0
+                running: inputField.text.length > 0
                 loops: Animation.Infinite
                 from: 0
                 to: 360
@@ -116,7 +110,7 @@ PanelRect {
             selectByMouse: true
             leftPadding: Padding.massive
             rightPadding: Padding.massive + (appletsArea?.implicitWidth ?? 100)
-            font: Fonts.request("main", Fonts.sizes.large)
+            font: Fonts.request("main", "large")
 
             Keys.onPressed: event => {
                 switch (event.key) {
@@ -154,15 +148,14 @@ PanelRect {
     GroupButtonWithIcon {
         id: sendButton
         releaseAction: () => {
-            SpeechService.listen();
-            Ipc.call(["noon", "reveal_beam", "dictate"]);
+            view.sendMessage()
         }
         buttonRadius: width / 2
         colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : Colors.colLayer1
         iconSize: 22
         baseSize: 45
         animateIcon: true
-        materialIcon: BeamData.query.length === 0 && BeamData.activeState === "ai" ? "mic" : root.isResponding ? "stop" : "arrow_upward"
+        materialIcon: "arrow_upward"
 
         anchors {
             right: parent.right

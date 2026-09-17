@@ -95,27 +95,20 @@ BarGroup {
         }
     }
 
+    AnimatedTabIndexPair {
+        id: wsAnim
+        index: root.workspaceIndexInGroup
+    }
+
     Rectangle {
         z: 2
         height: root.workspaceButtonWidth - root.buttonMargin * 2
         anchors.verticalCenter: parent.verticalCenter
 
-        property real idx1: root.workspaceIndexInGroup
-        property real idx2: root.workspaceIndexInGroup
-
-        x: root.xAt(Math.min(idx1, idx2)) + root.buttonMargin
-        width: Math.max(0, root.xAt(Math.max(idx1, idx2) + 1) - root.xAt(Math.min(idx1, idx2)) - root.buttonMargin * 2)
+        x: root.xAt(Math.min(wsAnim.idx1, wsAnim.idx2)) + root.buttonMargin
+        width: Math.max(0, root.xAt(Math.max(wsAnim.idx1, wsAnim.idx2) + 1) - root.xAt(Math.min(wsAnim.idx1, wsAnim.idx2)) - root.buttonMargin * 2)
         radius: Rounding.full
         color: Colors.colPrimary
-
-        Behavior on idx1 {
-            SAnim {
-            }
-        }
-        Behavior on idx2 {
-            SAnim {
-            }
-        }
     }
 
     RowLayout {

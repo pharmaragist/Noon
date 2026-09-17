@@ -121,6 +121,42 @@ func FindProvider(id string) (Provider, bool) {
 	return Provider{}, false
 }
 
+// ProviderKinds is the Kind truth behind the seam: OCS providers install
+// themes, Static Hubs install noon-plugins. Groups for a hub come from its
+// cached categories, falling back to the install module's group list.
+// ponytail: QML deletes its hardcoded kind/xdg maps and renders from this.
+func ProviderKinds(id string) (kinds, groups []string, ok bool) {
+	prov, found := FindProvider(id)
+	if !found {
+		return nil, nil, false
+	}
+	if !prov.Static {
+		return []string{"icon-theme", "cursor-theme"}, []string{}, true
+	}
+	if cats, hit := CategoriesCached(prov.Id); hit && len(cats) > 0 {
+		seen := map[string]bool{}
+		for _, c := range cats {
+			if c.Id != "" && !seen[c.Id] {
+				seen[c.Id] = true
+				groups = append(groups, c.Id)
+			}
+		}
+		sort.Strings(groups)
+	} else {
+		groups = install.PluginGroups()
+	}
+	return []string{"noon-plugin"}, groups, true
+}
+
+// ponytail: stable opendesktop taxonomy; verified live, fallback fetches on miss
+var xdgCats = map[string][]string{
+	"icons":                 {"132"},
+	"cursors":               {"107"},
+	"wallpapers":            {"616", "296", "297", "307", "298", "299", "360"},
+	"plasma_look_and_feel":  {"121"},
+	"plasma5_desktopthemes": {"104"},
+}
+
 func CategoriesCached(providerID string) ([]Category, bool) {
 	if v, ok := catCache.Load(providerID); ok {
 		return v.([]Category), true
@@ -517,14 +553,19 @@ func Search(providerID string, cats []string, xdg, q, sortMode string, page, pag
 		return staticSearch(prov, cats, q, page, pageSize)
 	}
 	if xdg != "" && len(cats) == 0 {
-		// ponytail: server ignores xdg_types; resolve to category ids instead
-		all, err := Categories(providerID)
-		if err != nil {
-			return nil, false, err
-		}
-		for _, c := range all {
-			if c.XdgType == xdg {
-				cats = append(cats, c.Id)
+		// ponytail: server ignores xdg_types; resolve to category ids instead.
+		// Well-known taxonomy skips the extra categories roundtrip on cold start.
+		if ids, ok := xdgCats[xdg]; ok {
+			cats = append(cats, ids...)
+		} else {
+			all, err := Categories(providerID)
+			if err != nil {
+				return nil, false, err
+			}
+			for _, c := range all {
+				if c.XdgType == xdg {
+					cats = append(cats, c.Id)
+				}
 			}
 		}
 	}

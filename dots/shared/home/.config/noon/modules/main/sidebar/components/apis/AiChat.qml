@@ -89,7 +89,6 @@ SidebarItemContainer {
         onExpandRequested: root.expandRequested()
     }
 
-    // Ready surface: thin delegations only, logic lives in utils.
     function sendText(text) {
         utils.sendText(text);
     }
@@ -108,16 +107,6 @@ SidebarItemContainer {
         target: Harness
         function onPermissionAsked(title) {
             utils.notifyPermissionAsked(title);
-        }
-    }
-
-    Connections {
-        target: SpeechService
-        enabled: SpeechService.isListening
-        function onSpeechChanged() {
-            if (SpeechService.speech.length > 0) {
-                messageInputField.text = SpeechService.speech;
-            }
         }
     }
 
@@ -285,7 +274,7 @@ SidebarItemContainer {
 
                         SequentialAnimation {
                             loops: Animation.Infinite
-                            running: SpeechService.isListening || Harness.isResponding || root.isRecording
+                            running: Harness.isResponding || root.isRecording
                             PropertyAction {
                                 target: shape
                                 property: "rotation"
@@ -346,9 +335,6 @@ SidebarItemContainer {
                                     const text = messageInputField.text;
                                     messageInputField.clear();
                                     root.sendText(text);
-                                } else {
-                                    console.log("Listening...");
-                                    SpeechService.listen();
                                 }
                             }
                         }

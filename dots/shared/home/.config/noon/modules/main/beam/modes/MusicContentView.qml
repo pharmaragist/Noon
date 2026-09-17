@@ -199,8 +199,12 @@ RowLayout {
         property var colors: MediaPlayerService?.colors
         readonly property int iconSize: 24
 
+        AnimatedTabIndexPair {
+            id: playerAnim
+            index: MediaPlayerService?.selectedPlayerIndex ?? 0
+        }
+
         Rectangle {
-            id: activeIndicator
             z: 1
             implicitHeight: iconSize
             implicitWidth: iconSize
@@ -208,39 +212,9 @@ RowLayout {
             radius: Rounding.full
             color: colors.colPrimary
 
-            readonly property int selectedIndex: MediaPlayerService?.selectedPlayerIndex ?? 0
+            readonly property real itemHeight: iconSize + Padding.verysmall
 
-            y: {
-                repeater.count;
-                const item = repeater.itemAt(selectedIndex);
-                return playerSelector.y + (item ? item.y : 0);
-            }
-
-            Behavior on y {
-                enabled: repeater.count > 1
-                Anim {}
-            }
-
-            SequentialAnimation {
-                id: stretchAnim
-                Anim {
-                    target: activeIndicator
-                    property: "height"
-                    to: iconSize * 1.5
-                    duration: Animations.durations.verysmall
-                }
-                Anim {
-                    target: activeIndicator
-                    property: "height"
-                    to: iconSize
-                    duration: Animations.durations.large
-                }
-            }
-
-            onSelectedIndexChanged: {
-                if (repeater.count > 1)
-                    stretchAnim.restart();
-            }
+            y: playerSelector.y + playerAnim.idx1 * itemHeight
         }
 
         CLayout {
@@ -257,7 +231,7 @@ RowLayout {
                     id: symbolItem
                     required property var modelData
                     required property int index
-                    readonly property bool isSelected: index === activeIndicator.selectedIndex
+                    readonly property bool isSelected: index === (MediaPlayerService?.selectedPlayerIndex ?? 0)
                     height: iconSize
                     width: iconSize
 

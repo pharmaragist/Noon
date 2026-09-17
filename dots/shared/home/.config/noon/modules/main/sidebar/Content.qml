@@ -8,7 +8,6 @@ import qs.services
 import qs.data
 
 import "components/plugins"
-import "components/games"
 import "components/cast"
 import "components/apps"
 import "components/notes"

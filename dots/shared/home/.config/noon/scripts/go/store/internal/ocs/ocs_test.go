@@ -88,3 +88,14 @@ func TestStaticHub(t *testing.T) {
 		t.Fatalf("kind validation broken")
 	}
 }
+
+// ponytail: pins the Kind truth behind the seam; QML trusts this contract.
+func TestProviderKindsContract(t *testing.T) {
+	kinds, _, ok := ProviderKinds("kde-store")
+	if !ok || len(kinds) != 2 || kinds[0] != "icon-theme" || kinds[1] != "cursor-theme" {
+		t.Fatalf("kde-store kinds = %v %v", kinds, ok)
+	}
+	if _, _, ok := ProviderKinds("no-such-provider"); ok {
+		t.Fatalf("unknown provider accepted")
+	}
+}

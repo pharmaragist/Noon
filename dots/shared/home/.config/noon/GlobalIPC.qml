@@ -69,13 +69,6 @@ NpcHandler {
         BeatsService.previewURL(url);
     }
 
-    //* say <text> — speak text aloud via TTS.
-    function say(text: string): void {
-        if (!text)
-            return;
-        SpeechService.say(text);
-    }
-
     //* thawb <link> — open thawb dialog for the given link.
     function thawb(link: string) {
         if (link)

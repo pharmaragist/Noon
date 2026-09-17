@@ -3,6 +3,7 @@ package install
 import (
 	"archive/zip"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -98,4 +99,69 @@ func TestInstallPlugin(t *testing.T) {
 		t.Fatalf("bad group accepted")
 	}
 	os.RemoveAll(target)
+}
+
+// ponytail: the checks that fail if compressed-tar support regresses.
+// Fixtures are crafted with system tar (skipped when absent) so the test
+// exercises the real unpack path, not a hand-built byte stream.
+func TestInstallTarXz(t *testing.T) {
+	if _, err := exec.LookPath("tar"); err != nil {
+		t.Skip("tar missing")
+	}
+	if _, err := exec.LookPath("xz"); err != nil {
+		t.Skip("xz missing")
+	}
+	tmp := isolateHome(t)
+	root := filepath.Join(tmp, "src", "CoolXz")
+	os.MkdirAll(root, 0755)
+	os.WriteFile(filepath.Join(root, "index.theme"), []byte("[Icon Theme]\nName=CoolXz\n"), 0644)
+	zp := filepath.Join(tmp, "theme.tar.xz")
+	if out, err := exec.Command("tar", "-cJf", zp, "-C", filepath.Join(tmp, "src"), "CoolXz").CombinedOutput(); err != nil {
+		t.Fatalf("tar: %v %s", err, out)
+	}
+	target, err := Install("icon-theme", zp, "CoolXz-store-test")
+	if err != nil {
+		t.Fatalf("install tar.xz: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(target, "index.theme")); err != nil {
+		t.Fatalf("missing index.theme in %s", target)
+	}
+	os.RemoveAll(target)
+}
+
+func TestInstallTarBz2(t *testing.T) {
+	if _, err := exec.LookPath("tar"); err != nil {
+		t.Skip("tar missing")
+	}
+	tmp := isolateHome(t)
+	root := filepath.Join(tmp, "src", "CoolBz")
+	os.MkdirAll(root, 0755)
+	os.WriteFile(filepath.Join(root, "index.theme"), []byte("[Icon Theme]\nName=CoolBz\n"), 0644)
+	zp := filepath.Join(tmp, "theme.tar.bz2")
+	if out, err := exec.Command("tar", "-cjf", zp, "-C", filepath.Join(tmp, "src"), "CoolBz").CombinedOutput(); err != nil {
+		t.Fatalf("tar: %v %s", err, out)
+	}
+	target, err := Install("icon-theme", zp, "CoolBz-store-test")
+	if err != nil {
+		t.Fatalf("install tar.bz2: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(target, "index.theme")); err != nil {
+		t.Fatalf("missing index.theme in %s", target)
+	}
+	os.RemoveAll(target)
+}
+
+// ponytail: pins the Kind truth QML renders from; fails if a group is
+// added in one place but not the other.
+func TestPluginGroupsContract(t *testing.T) {
+	groups := PluginGroups()
+	want := map[string]bool{"sidebar": true, "dock": true, "beam": true, "palettes": true, "widgets": true}
+	if len(groups) != len(want) {
+		t.Fatalf("groups = %v", groups)
+	}
+	for _, g := range groups {
+		if !want[g] {
+			t.Fatalf("unexpected group %q", g)
+		}
+	}
 }

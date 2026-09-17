@@ -23,6 +23,10 @@ var client = &http.Client{CheckRedirect: func(req *http.Request, via []*http.Req
 	return nil
 }}
 
+// ponytail: image CDN throttles per-IP concurrency (16 lanes measured slower
+// than 6); zips already serialize through the UI queue
+var lanes = make(chan struct{}, 6)
+
 type ProgressFunc func(received, total int64, phase string)
 
 func CacheDir() string {
@@ -62,6 +66,8 @@ func Download(ctx context.Context, srcURL, destPath string, progress ProgressFun
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 		return "", "", err
 	}
+	lanes <- struct{}{}
+	defer func() { <-lanes }()
 	var resp *http.Response
 	var err error
 	for attempt := 0; attempt < 4; attempt++ {

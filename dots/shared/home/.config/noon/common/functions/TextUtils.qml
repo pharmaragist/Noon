@@ -26,7 +26,7 @@ Singleton {
     function splitMarkdownBlocks(markdown) {
         if (typeof markdown !== 'string')
             return [];
-        const regex = /```(\w+)?\n([\s\S]*?)```|<think>([\s\S]*?)<\/think>/g;
+        const regex = /```(\w+)?\n([\s\S]*?)```/g;
 
         let result = [];
         let lastIndex = 0;
@@ -41,60 +41,21 @@ Singleton {
                     });
                 }
             }
-            if (match[0].startsWith('```')) {
-                if (match[2] && match[2].trim()) {
-                    result.push({
-                        type: "code",
-                        lang: match[1] || "",
-                        content: match[2],
-                        completed: true
-                    });
-                }
-            } else if (match[0].startsWith('<think>')) {
-                if (match[3] && match[3].trim()) {
-                    result.push({
-                        type: "think",
-                        content: match[3],
-                        completed: true
-                    });
-                }
+            if (match[2] && match[2].trim()) {
+                result.push({
+                    type: "code",
+                    lang: match[1] || "",
+                    content: match[2],
+                    completed: true
+                });
             }
             lastIndex = regex.lastIndex;
         }
 
         if (lastIndex < markdown.length) {
             const text = markdown.slice(lastIndex);
-
-            const thinkStart = text.indexOf('<think>');
             const codeStart = text.indexOf('```');
-            if (thinkStart !== -1 && (codeStart === -1 || thinkStart < codeStart)) {
-                const beforeThink = text.slice(0, thinkStart);
-                if (beforeThink.trim()) {
-                    result.push({
-                        type: "text",
-                        content: beforeThink
-                    });
-                }
-                const rest = text.slice(thinkStart + 9);
-                const respStart = rest.indexOf(' response');
-                const thinkContent = respStart === -1 ? rest : rest.slice(0, respStart);
-                if (thinkContent.trim()) {
-                    result.push({
-                        type: "think",
-                        content: thinkContent,
-                        completed: respStart !== -1
-                    });
-                }
-                if (respStart !== -1) {
-                    const afterText = rest.slice(respStart + 9);
-                    if (afterText.trim()) {
-                        result.push({
-                            type: "text",
-                            content: afterText
-                        });
-                    }
-                }
-            } else if (codeStart !== -1) {
+            if (codeStart !== -1) {
                 const beforeCode = text.slice(0, codeStart);
                 if (beforeCode.trim()) {
                     result.push({

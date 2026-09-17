@@ -90,21 +90,13 @@ Singleton {
             shell: "main",
             componentPath: "beats/Beats",
             navRailMode: "sharp",
-            expandable: true,
+            expandable: false,
             incubatable: true,
             detachable: true,
             shape: "Bun",
             padding: 0,
             enabled: contentOptions.beats,
             colors: MediaPlayerService?.colors
-        },
-        "Games": {
-            enabled: contentOptions.games,
-            expandable: true,
-            componentPath: "games/Games",
-            icon: "joystick",
-            searchable: true,
-            shape: "Ghostish"
         },
         "History": {
             icon: "content_paste",

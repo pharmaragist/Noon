@@ -8,7 +8,6 @@ JsonAdapter {
     property list<var> models: []
     property string agent: "plan"
     property string effort: ""
-    property string persona: "main.md"
     property string model: ""
     property string currentSessionId: ""
     property int recallLimit: 10

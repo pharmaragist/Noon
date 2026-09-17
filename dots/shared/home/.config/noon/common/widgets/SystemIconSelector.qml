@@ -12,8 +12,6 @@ Item {
     anchors.fill: parent
     implicitHeight: 115
 
-    property int iconSize: 38
-
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -99,10 +97,7 @@ Item {
                         id: mouseArea
                         anchors.fill: parent
                         hoverEnabled: true
-                        StyledToolTip {
-                            content: modelData.name
-                            extraVisibleCondition:mouseArea.containsMouse
-                        }
+
                         onClicked: {
                             carousel.currentIndex = delegateItem.index;
                             IconThemesService.setIconTheme(modelData.id);
@@ -205,17 +200,19 @@ Item {
             Layout.rightMargin: Padding.massive
 
             StyledText {
-                text: "Preview size "
+                text: carousel.currentItem.modelData.id
                 Layout.fillWidth: true
                 color: Colors.colOnSurfaceVariant
                 font: Fonts.request("normal", "normal")
             }
-            StyledSpinBox {
-                from: 16
-                to: 64
-                value: root.iconSize
-                onValueChanged: root.iconSize = value
+            GroupButtonWithIcon {
+                materialIcon: "refresh"
+                implicitSize: 32
+                releaseAction: () => {
+                    IconThemesService.reload()
+                }
             }
+
             GroupButtonWithIcon {
                 materialIcon: "local_mall"
                 implicitSize: 32
