@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Shapes
+import Qt5Compat.GraphicalEffects
 
 import qs.common
 import qs.common.widgets
@@ -10,6 +12,9 @@ PanelRect {
     readonly property alias body: body
     property color bodyColor: Colors.colBackground
     property bool restTransparent: false
+    // transparent modes rest see-through but pour opaque, melting over the
+    // exact window the content wells up; opaque modes hold the solid.
+    property color _liquidColor: root.restTransparent ? Qt.rgba(root.bodyColor.r, root.bodyColor.g, root.bodyColor.b, 1 - ss(0.55, 1.0, root.grow)) : root.bodyColor
     property bool reveal: false
     // root is an invisible footprint at target size; `body` paints the shape.
     // animations off: footprint snaps, springs below drive everything.
@@ -80,6 +85,11 @@ PanelRect {
 
     // ball may exceed panel height (squash on landing); only width is capped
     property real _blob: Math.min(root.blobD, root._targetW)
+    // blob roundness relaxing into the real corners by mid-pour
+    property real _blobR: (1 - ss(1.0, 1.5, root.morph)) * 999
+    // one silhouette string feeding background + content mask, so they are
+    // always the identical shape with zero sync cost
+    property string _bodyPath: bodyPath(body.width, body.height, Math.max(root._topR, root._blobR), Math.max(root._topR, root._blobR), Math.max(root._botR, root._blobR), Math.max(root._botR, root._blobR))
 
     // one rect, one continuous pour: flat puddle (0) -> ball (1) -> panel.
     // morph chases its target on a single spring; the ss windows below shape
@@ -150,6 +160,27 @@ PanelRect {
     }
     function mix(a, b, t) {
         return a + (b - a) * t;
+    }
+    // rounded-rect silhouette with per-corner radii (SVG, y-down). Radii
+    // clamp like Rectangle does: huge radius on a square = circle, on a
+    // flat box = stadium — the whole puddle->ball->panel range falls out.
+    function bodyPath(w, h, rtl, rtr, rbr, rbl) {
+        if (w < 2 || h < 2)
+            return "";
+        rtl = Math.min(rtl, w / 2, h / 2);
+        rtr = Math.min(rtr, w / 2, h / 2);
+        rbr = Math.min(rbr, w / 2, h / 2);
+        rbl = Math.min(rbl, w / 2, h / 2);
+        const f = n => n.toFixed(1);
+        return "M " + f(rtl) + " 0"
+            + " L " + f(w - rtr) + " 0"
+            + " A " + f(rtr) + " " + f(rtr) + " 0 0 1 " + f(w) + " " + f(rtr)
+            + " L " + f(w) + " " + f(h - rbr)
+            + " A " + f(rbr) + " " + f(rbr) + " 0 0 1 " + f(w - rbr) + " " + f(h)
+            + " L " + f(rbl) + " " + f(h)
+            + " A " + f(rbl) + " " + f(rbl) + " 0 0 1 0 " + f(h - rbl)
+            + " L 0 " + f(rtl)
+            + " A " + f(rtl) + " " + f(rtl) + " 0 0 1 " + f(rtl) + " 0 Z";
     }
 
     anchors {
@@ -230,83 +261,104 @@ PanelRect {
     }
 
     // visible liquid shape, bottom-pinned so it grows upward.
-    // puddle (wide lens) -> ball (circle) -> panel, all one rect.
-    // Stack lives INSIDE body so content is always clipped to the
-    // liquid — it emerges from the pour.
-    PanelRect {
+    // puddle -> ball -> panel drawn as ONE path (bg Shape + content clipped
+    // to the identical path — zero sync cost). Same drivers, same mapping;
+    // only the renderer changed from rect to path, so the top edge is now
+    // free for wave duty next. Stack still emerges from the pour.
+    Item {
         id: body
-        enableAnimations: false // geometry follows `morph` exactly, no lag spring
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         width: Math.max(8, mix(mix(root._lakeW, root._blob, ss(0, 1, root.morph)), root._targetW, root.growC))
         height: Math.max(8, mix(mix(root._lakeH, root._blob, ss(0, 1, root.morph)), root._targetH, root.growC))
-        topRadius: root._topR
-        bottomRadius: root._botR
-        // corners resolve by mid-pour — roundness relaxes into the real
-        // radii while the panel is still growing, not after
-        radius: (1 - ss(1.0, 1.5, root.morph)) * 999
 
-        // transparent modes rest see-through but pour opaque: true bg melts
-        // over the exact window the content wells up (0.55->1.0), one
-        // matched crossfade instead of two overlapping fades. Opaque modes
-        // hold the solid throughout.
-        color: root.restTransparent ? Qt.rgba(root.bodyColor.r, root.bodyColor.g, root.bodyColor.b, 1 - ss(0.55, 1.0, root.grow)) : root.bodyColor
-
-        StyledStackView {
-            id: stack
+        Shape {
             anchors.fill: parent
-            // content appears only once the drop has mostly become panel
-            opacity: Math.max(0, (root.grow - 0.55) / 0.45)
+            ShapePath {
+                fillColor: root._liquidColor
+                strokeColor: "transparent"
+                strokeWidth: 0
+                PathSvg {
+                    path: root._bodyPath
+                }
+            }
+        }
 
-            // incoming wells up from the liquid, outgoing sinks back into it
-            pushEnter: Transition {
-                ParallelAnimation {
-                    PropertyAnimation {
-                        property: "y"
-                        from: 22
-                        to: 0
-                        duration: 260
-                        easing.type: Easing.OutCubic
-                    }
-                    PropertyAnimation {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: 210
-                        easing.type: Easing.OutCubic
-                    }
-                }
-            }
-            replaceEnter: Transition {
-                ParallelAnimation {
-                    PropertyAnimation {
-                        property: "y"
-                        from: 22
-                        to: 0
-                        duration: 260
-                        easing.type: Easing.OutCubic
-                    }
-                    PropertyAnimation {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: 210
-                        easing.type: Easing.OutCubic
+        Item {
+            id: contentClip
+            anchors.fill: parent
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: Shape {
+                    width: contentClip.width
+                    height: contentClip.height
+                    ShapePath {
+                        fillColor: "white"
+                        strokeColor: "transparent"
+                        strokeWidth: 0
+                        PathSvg {
+                            path: root._bodyPath
+                        }
                     }
                 }
             }
-            replaceExit: Transition {
-                ParallelAnimation {
-                    PropertyAnimation {
-                        property: "y"
-                        to: 12
-                        duration: 130
-                        easing.type: Easing.InCubic
+
+            StyledStackView {
+                id: stack
+                anchors.fill: parent
+                // content appears only once the drop has mostly become panel
+                opacity: Math.max(0, (root.grow - 0.55) / 0.45)
+
+                // incoming wells up from the liquid, outgoing sinks back into it
+                pushEnter: Transition {
+                    ParallelAnimation {
+                        PropertyAnimation {
+                            property: "y"
+                            from: 22
+                            to: 0
+                            duration: 260
+                            easing.type: Easing.OutCubic
+                        }
+                        PropertyAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: 210
+                            easing.type: Easing.OutCubic
+                        }
                     }
-                    PropertyAnimation {
-                        property: "opacity"
-                        to: 0
-                        duration: 120
+                }
+                replaceEnter: Transition {
+                    ParallelAnimation {
+                        PropertyAnimation {
+                            property: "y"
+                            from: 22
+                            to: 0
+                            duration: 260
+                            easing.type: Easing.OutCubic
+                        }
+                        PropertyAnimation {
+                            property: "opacity"
+                            from: 0
+                            to: 1
+                            duration: 210
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+                replaceExit: Transition {
+                    ParallelAnimation {
+                        PropertyAnimation {
+                            property: "y"
+                            to: 12
+                            duration: 130
+                            easing.type: Easing.InCubic
+                        }
+                        PropertyAnimation {
+                            property: "opacity"
+                            to: 0
+                            duration: 120
+                        }
                     }
                 }
             }
