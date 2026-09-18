@@ -8,7 +8,8 @@ PanelRect {
     id: root
     readonly property alias currentItem: stack.currentItem
     readonly property alias body: body
-    property alias bodyColor: body.color
+    property color bodyColor: Colors.colBackground
+    property bool restTransparent: false
     property bool reveal: false
     // root is an invisible footprint at target size; `body` paints the shape.
     // animations off: footprint snaps, springs below drive everything.
@@ -88,6 +89,9 @@ PanelRect {
     // the finger, thresholds commit or cancel the reveal.
     property real dragProgress: 0 // 0 hidden .. 1 revealed, wheel-driven
     property bool dragging: false
+    property real dragVel: 0 // smoothed progress/ms; flicks commit early
+    property real _dragT: 0
+    property real _dragP: 0
     property real morph: root.dragging ? root.dragProgress * 2 : (root.reveal ? 2 : 0)
 
     function dragBy(amount) {
@@ -96,8 +100,20 @@ PanelRect {
             stack.push(root.contentSource);
         }
         clearDelay.stop();
+        const now = Date.now();
+        if (!root.dragging) {
+            root.dragVel = 0;
+            root._dragT = now;
+            root._dragP = root.dragProgress;
+        }
         root.dragging = true;
         root.dragProgress = Math.max(0, Math.min(1, root.dragProgress + amount));
+        const dt = now - root._dragT;
+        if (dt > 16) {
+            root.dragVel = root.dragVel * 0.6 + (root.dragProgress - root._dragP) / dt * 0.4;
+            root._dragT = now;
+            root._dragP = root.dragProgress;
+        }
         if (!root.reveal && root.dragProgress >= 1) {
             root.dragging = false;
             root.dragProgress = 1;
@@ -177,14 +193,14 @@ PanelRect {
                 return;
             root.dragging = false;
             if (!root.reveal) {
-                if (root.dragProgress > 0.5) {
+                if (root.dragProgress > 0.5 || (root.dragVel > 0.003 && root.dragProgress > 0.15)) {
                     root.dragProgress = 1;
                     Globals.main.beam.show = true;
                 } else {
                     root.dragProgress = 0;
                 }
             } else {
-                if (root.dragProgress < 0.5) {
+                if (root.dragProgress < 0.5 || (root.dragVel < -0.003 && root.dragProgress < 0.85)) {
                     root.dragProgress = 0;
                     Globals.main.beam.show = false;
                 } else {
@@ -229,6 +245,12 @@ PanelRect {
         // corners resolve by mid-pour — roundness relaxes into the real
         // radii while the panel is still growing, not after
         radius: (1 - ss(1.0, 1.5, root.morph)) * 999
+
+        // transparent modes rest see-through but pour opaque: true bg melts
+        // over the exact window the content wells up (0.55->1.0), one
+        // matched crossfade instead of two overlapping fades. Opaque modes
+        // hold the solid throughout.
+        color: root.restTransparent ? Qt.rgba(root.bodyColor.r, root.bodyColor.g, root.bodyColor.b, 1 - ss(0.55, 1.0, root.grow)) : root.bodyColor
 
         StyledStackView {
             id: stack

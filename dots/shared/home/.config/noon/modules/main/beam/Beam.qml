@@ -190,9 +190,10 @@ Variants {
             animationDuration: 300
             height: this.currentItem?.contentItem?.height ?? root.currentModeData.size?.height ?? -1 // getDimension("height")
             width: this.currentItem?.contentItem?.width ?? root.currentModeData.size?.width ?? -1
-            bodyColor: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
+            bodyColor: Colors.colBackground
+            restTransparent: (root.currentModeData?.transparent ?? false)
 
-            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "ContentItemView") + ".qml")
+            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "ContentViewItem") + ".qml")
 
             topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
             bottomRadius: root?.currentModeData?.radius ?? Rounding.silly

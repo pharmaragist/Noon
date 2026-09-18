@@ -498,13 +498,14 @@ Singleton {
         if (!hintText)
             return query;
 
-        const prefix = config?.prefix || "";
-
         if (config?.autoComplete ?? false)
             return query;
-
-        return prefix + hintText;
+        else if (activeState === defaultState)
+            return hintText;
+        else
+            return config?.prefix + hintText;
     }
+
     readonly property var availableDefaultThemes: {
         "default": {
             "component": "BeamContentView",
@@ -515,7 +516,7 @@ Singleton {
             "component": "BeamAlternateView",
             "transparent": true,
             "popupRadius": Rounding.huge,
-            "ignoreRadiusComplement": true,
+            "ignoreRadiusComplement": true
         }
     }
 

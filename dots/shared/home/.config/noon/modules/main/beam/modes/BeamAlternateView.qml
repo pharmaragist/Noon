@@ -9,10 +9,11 @@ import qs.services
 import qs.data
 import "../applets"
 
-StyledRect {
+ContentViewItem {
     id: view
     readonly property alias focusItem: inputField
-    color: "transparent"
+    width: 600
+    height: 69
 
     function sendMessage() {
         BeamData.executeCommand();
@@ -29,8 +30,8 @@ StyledRect {
 
     RowLayout {
         anchors.fill: parent
-        anchors.topMargin: Padding.large
-        anchors.bottomMargin: Padding.large
+        // anchors.topMargin: Padding.large
+        // anchors.bottomMargin: Padding.large
 
         spacing: Padding.normal
 
