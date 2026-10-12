@@ -43,15 +43,14 @@ Scope {
                     anchors {
                         bottom: parent.bottom
                         horizontalCenter: parent.horizontalCenter
-                        bottomMargin: contentLoader.active ? -1 : -implicitHeight
+                        bottomMargin: contentLoader.active ? Sizes.elevationMargin : -implicitHeight
 
                         Behavior on bottomMargin {
                             Anim {}
                         }
                     }
 
-                    topRadius: 40
-                    enableBorders: true
+                    radius: 40
 
                     implicitWidth: Math.min(Screen.width, currentSize.width)
                     implicitHeight: Math.min(Screen.height, currentSize.height)
@@ -59,25 +58,15 @@ Scope {
                     property bool fullScreen: false
                     readonly property size currentSize: fullScreen ? Qt.size(Screen.width, Screen.height) : contentMap[root.currentMode]?.size ?? Qt.size(500, 120)
                     readonly property var contentMap: {
-                        "dlp": {
-                            comp: "DlpContent",
-                            preload: "url",
-                            size: Qt.size(800, 420)
-                        },
                         "thawb": {
                             comp: "ThawbContent",
                             preload: "url",
-                            size: Qt.size(600, 220)
-                        },
-                        "incubate": {
-                            comp: "IncubatorContent",
-                            focus: true,
-                            size: Qt.size(Screen.width * 0.8, Screen.height * 0.7)
+                            size: Qt.size(700, 220)
                         },
                         "dino": {
                             comp: "DinoContent",
                             padding: Padding.massive * 2,
-                            size: Qt.size(800, 420)
+                            size: Qt.size(800, 440)
                         },
                         "assure": {
                             comp: "AssureContent",
@@ -98,24 +87,6 @@ Scope {
                         text: "..."
                         color: Colors.colSubtext
                         font: Fonts.request("title", "subTitle")
-                    }
-                    StyledRect {
-                        id: topHandle
-                        z: 1
-                        anchors {
-                            topMargin: Padding.large
-                            top: parent.top
-                            horizontalCenter: parent.horizontalCenter
-                        }
-                        height: 8
-                        width: 100
-                        color: bg.fullScreen ? Colors.colPrimary : Colors.colOutlineVariant
-                        radius: Rounding.full
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onDoubleClicked: bg.fullScreen = !bg.fullScreen
-                        }
                     }
 
                     RippleButtonWithIcon {

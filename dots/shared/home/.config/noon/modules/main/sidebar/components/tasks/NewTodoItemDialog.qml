@@ -7,7 +7,7 @@ import qs.services
 
 BottomDialog {
     id: root
-    collapsedHeight: 460
+    baseHeight: 460
     enableStagedReveal: false
     bottomAreaReveal: true
     hoverHeight: 300
@@ -22,12 +22,16 @@ BottomDialog {
         anchors.leftMargin: Padding.massive
         spacing: Padding.normal
 
-        AccountInfoSection {}
-        PageSeparator {}
+        AccountInfoSection {
+            id: accountSection
+        }
+        PageSeparator {
+            visible: accountSection.visible
+        }
 
         StyledText {
             text: "New Task"
-            font: Fonts.request("title","subTitle")
+            font: Fonts.request("title", "subTitle")
             Layout.topMargin: Padding.massive
             color: Colors.colOnLayer3
         }

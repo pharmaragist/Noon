@@ -40,6 +40,7 @@ hl.window_rule(
 
 -- Common Floating Rules
 local apps_cfg = {
+    { class = "org.quickshell.*", center = true , size = "50% 55%"},
     { class = "org.kde.kclock.*",                         size = "50% 55%" },
     { class = "hyprland-share-picker.*",                  size = "25% 40%", center = true },
     { class = "kcm_.*" },

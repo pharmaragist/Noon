@@ -1,7 +1,7 @@
 local envs = {
 	-- Nvidia/Wayland
-	__NV_PRIME_RENDER_OFFLOAD = "1",
-	__GLX_VENDOR_LIBRARY_NAME = "nvidia",
+	-- __NV_PRIME_RENDER_OFFLOAD = "1",
+	-- __GLX_VENDOR_LIBRARY_NAME = "nvidia",
 	MOZ_ENABLE_WAYLAND = "1",
 	LIBVA_DRIVER_NAME = "iHD",
 	NVD_BACKEND = "direct",

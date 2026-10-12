@@ -8,9 +8,6 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-
-
-
 ProgressBar {
     id: root
 
@@ -44,7 +41,7 @@ ProgressBar {
     Anim on value {
         from: 0
         to: value
-        duration: root.animateOnStart ? Animations.durations.massive: 0
+        duration: root.animateOnStart ? Animations.durations.massive : 0
     }
 
     Anim on spermAmplitude {
@@ -74,7 +71,6 @@ ProgressBar {
                 ctx.clearRect(0, 0, width, height);
                 var progress = root.visualPosition;
                 if (vertical) {
-
                     var fillHeight = progress * parent.height;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;
@@ -97,7 +93,6 @@ ProgressBar {
                     }
                     ctx.stroke();
                 } else {
-
                     var fillWidth = progress * width;
                     if (root.showDot) {
                         var dotSize = root.valueBarHeight / 1.75;

@@ -21,8 +21,7 @@ Singleton {
     readonly property var searchResults: opts?.hits?.searchResults ?? []
     readonly property string lyricText: getData(lyricsFile)?.text ?? ""
     readonly property var library: getData(libraryFile)
-    readonly property var queue: getData(queueFile)?.queue ?? []
-    readonly property var baseCmd: ["python3", Paths.scriptsDir + "/beats_service.py"]
+    readonly property var baseCmd: [Paths.scriptsDir + "/beats"]
     readonly property bool isLoading: hitsProc.running
 
     property string hitsQuery: ""
@@ -106,8 +105,8 @@ Singleton {
         _daemonCmd(["preview", "--url", url]);
     }
 
-    function moveQueueItemByMpdIdx(fromMpdIdx, toMpdIdx) {
-        _daemonCmd(["queue-move", "--index", fromMpdIdx, "--new-index", toMpdIdx]);
+    function stopPreview() {
+        _daemonCmd(["preview-stop"]);
     }
 
     function addNewFolder() {
@@ -144,14 +143,6 @@ Singleton {
         }
     }
 
-    FileView {
-        id: queueFile
-        path: Qt.resolvedUrl(root.tracksDir) + "/.beats/queue.json"
-        watchChanges: true
-        preload: true
-        blockWrites: true
-        onFileChanged: queueFile.reload()
-    }
 
     FileView {
         id: lyricsFile

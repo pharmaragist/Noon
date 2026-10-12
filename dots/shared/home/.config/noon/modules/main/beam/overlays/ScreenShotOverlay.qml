@@ -191,8 +191,8 @@ Item {
             height: root.cornerSize
             radius: Rounding.verysmall
             color: "transparent"
-            
-            
+
+
             transformOrigin: Item.Center
             scale: selectionRect.visible ? 1 : 0
             opacity: selectionRect.visible ? 1 : 0

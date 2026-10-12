@@ -1,5 +1,5 @@
 import QtQuick
-import qs.store
+import qs.data
 import qs.common
 import qs.common.widgets
 import qs.modules.main.desktop.widgets
@@ -12,7 +12,8 @@ SidebarItemContainer {
     readonly property int cellSize: 190
     readonly property int gridSpacing: Padding.huge
     readonly property int halfUnit: (cellSize + gridSpacing) / 2
-    readonly property var db: WidgetsData.db
+    readonly property QtObject wData: WidgetsData {}
+    readonly property var db: wData?.db
     color: Colors.colLayer1
 
     function sizeSpan(size) {

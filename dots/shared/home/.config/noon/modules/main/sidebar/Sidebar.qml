@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
-import qs.store
+import qs.data
 import qs.common
 import qs.services
 import qs.common.functions
@@ -24,12 +24,12 @@ Scope {
             shell: "noon"
             name: "blurred_layer"
             _layer: Mem.options.sidebar.behavior.overlay ? "Overlay" : "Top"
-            implicitWidth: !pinned ? Screen.width : effectiveLayerWidth
+            implicitWidth: !pinned ? Screen.width : this.exclusiveZone + rounding
             aboveWindows: true
             keyboardFocus: true
             anchors.left: !root.rightMode || !pinned
             anchors.right: root.rightMode || !pinned
-            exclusiveZone: pinned ? effectiveLayerWidth : 0
+            exclusiveZone: pinned ? layerWidth : 0
             focusHandler.active: root.pinned || root.show
             focusHandler.onCleared: !root.pinned ? root.hide() : null
 
@@ -40,9 +40,6 @@ Scope {
                 Region {
                     item: bg
                 }
-                Region {
-                    item: bubble
-                }
             }
 
             property bool hoverMode: true
@@ -52,6 +49,7 @@ Scope {
             property int selectedTabIndex: 0
             property alias selectedCategory: content.selectedCategory
 
+            readonly property bool isHovered: hoverArea.containsMouse
             readonly property alias content: content
             required property var modelData
             readonly property bool opposeBar: true
@@ -59,34 +57,27 @@ Scope {
             readonly property bool show: !hoverMode
             readonly property bool revealCondition: (!hoverMode || hoverArea.containsMouse || content.hovered) || PolkitService.flow !== null
             readonly property int rounding: Rounding.verylarge
-            readonly property string barPosition: Mem.options.bar.behavior.position
-            readonly property int sidebarWidth: Math.min(Screen.width - 120, SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth)
+            readonly property string barPosition: BarData.position
+            readonly property int baseWidth: SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth
+            readonly property int layerWidth: baseWidth + bg.hideMargin
+            readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
-            readonly property int hoverArea: 2
-            readonly property int effectiveLayerWidth: bg.width + bubble.width + Sizes.hyprland.gapsOut
-            readonly property Component detachedWindow: DetachedSidebarWindow {}
+            readonly property int hoverDetectArea: 2
 
             function hide() {
                 if (pinned)
                     return;
                 reveal = false;
                 hoverMode = true;
-                selectedTabIndex = 0;
                 content.selectedCategory = "";
                 if (!pinned)
                     reset_reveal_conditions();
             }
 
-            function incubate(cat = selectedCategory) {
-                if (SidebarData.isIncubatable(cat)) {
-                    Globals.main.sysDialogs.mode = "incubate";
-                    Globals.main.sysDialogs.pendingData = cat;
-                    Mem.states.desktop.dialogs.lastIncubatedCategory = cat;
-                }
-            }
             function detach(cat = selectedCategory) {
-                if (SidebarData.isDetachable(cat) || !isDetached()) {
-                    detachedWindow.createObject(root, {
+                if (SidebarData.isDetachable(cat) && !isDetached()) {
+                    const app = SidebarData._get(cat)?.app ?? "Detached"
+                    NoonUtils.spawnApp(app, {
                         category: cat
                     });
                 }
@@ -122,7 +113,7 @@ Scope {
 
             HoverHandler {
                 id: hoverArea
-                implicitWidth: root.hoverArea
+                implicitWidth: root.hoverDetectArea
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: !root.rightMode ? parent.left : undefined
@@ -137,26 +128,24 @@ Scope {
                 }
             }
 
-            
             DropArea {
                 id: dropArea
                 anchors.fill: parent
                 keys: ["text/uri-list"]
-                onEntered: NoonUtils.callIpc("sidebar reveal Shelf")
+                onEntered: Ipc.call(["sidebar", "reveal", "Shelf"])
             }
 
             StyledRectangularShadow {
                 target: bg
-                show: root.reveal
+                show: Math.max(bg.anchors.leftMargin, bg.anchors.leftMargin) > -root.sidebarWidth
             }
 
             PanelRect {
                 id: bg
                 readonly property int hideMargin: state === "float" ? Sizes.elevationMargin : 0
-
+                bouncy: Mem.options.sidebar.appearance?.bouncy ?? false
                 width: root.sidebarWidth
-                animationDuration: Animations.durations.large
-
+                animationDuration: Animations.durations.normal
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
@@ -203,26 +192,18 @@ Scope {
                 ]
 
                 Behavior on anchors.leftMargin {
-                    Anim {
-                        easing.bezierCurve: Animations.curves.emphasized
-                    }
+                    enabled: !root.rightMode
+                    animation: bg.getAnimation(this, bg.bouncy, {
+                        duration: Animations.durations.verysmall
+                    })
                 }
 
                 Behavior on anchors.rightMargin {
-                    Anim {
-                        easing.bezierCurve: Animations.curves.emphasized
-                    }
+                    enabled: root.rightMode
+                    animation: bg.getAnimation(this, bg.bouncy, {
+                        duration: Animations.durations.verysmall
+                    })
                 }
-            }
-
-            SidebarBubble {
-                id: bubble
-
-                show: !hoverMode
-                rightMode: root.rightMode
-                selectedCategory: content.selectedCategory
-                colors: content.colors
-                sidebarBg: bg
             }
 
             RoundCorner {
@@ -251,7 +232,53 @@ Scope {
                 anchors.top: bg.top
                 anchors.topMargin: root.barPosition === "top" ? 0 : Sizes.frameThickness
             }
-            IpcHandler {
+
+            Connections {
+                target: root
+                enabled: Mem.options.sidebar.behavior.rememberPinned
+
+                function onSelectedCategoryChanged() {
+                    /*
+                        Delay Pinning to bypass compositor stutters
+                    */
+                    NoonUtils.inlineTimer(() => {
+                        root.pinned = Mem.states.sidebar._pinned.indexOf(selectedCategory) !== -1;
+                    }, bg.animationDuration + 100);
+                }
+
+                function onPinnedChanged() {
+                    const stt = Mem.states.sidebar;
+                    if (pinned) {
+                        if (stt._pinned.indexOf(selectedCategory) === -1)
+                            stt._pinned.push(selectedCategory);
+                    } else {
+                        const filtered = stt._pinned.filter(i => i !== selectedCategory);
+                        stt._pinned = filtered;
+                    }
+                }
+            }
+
+            Connections {
+                target: root
+                enabled: Mem.options.sidebar.behavior.rememberExpanded
+
+                function onSelectedCategoryChanged() {
+                    root.expanded = Mem.states.sidebar._expanded.indexOf(selectedCategory) !== -1;
+                }
+
+                function onExpandedChanged() {
+                    const stt = Mem.states.sidebar;
+                    if (expanded) {
+                        if (stt._expanded.indexOf(selectedCategory) === -1)
+                            stt._expanded.push(selectedCategory);
+                    } else {
+                        const filtered = stt._expanded.filter(i => i !== selectedCategory);
+                        stt._expanded = filtered;
+                    }
+                }
+            }
+
+            NpcHandler {
                 target: "sidebar"
 
                 function reveal_aux(cat: string) {
@@ -282,6 +309,10 @@ Scope {
 
                 function toggle_pin() {
                     root.pinned = !root.pinned;
+                }
+
+                function toggle_expand() {
+                    root.expanded = !root.expanded;
                 }
 
                 function hide() {

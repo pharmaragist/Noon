@@ -8,7 +8,7 @@ import Quickshell
 BottomDialog {
     id: root
 
-    collapsedHeight: parent.height * 0.65
+    baseHeight: parent.height * 0.65
     property bool isScanning: false
 
     Timer {
@@ -71,7 +71,7 @@ BottomDialog {
                     root.show = false;
                     const app = NetworkService.manager.ethernet ? Mem.options.apps.networkEthernet : Mem.options.apps.network;
                     NoonUtils.execDetached(app);
-                    NoonUtils.callIpc("sidebar hide");
+                    Ipc.call(["sidebar", "hide"]);
                 }
             }
 

@@ -8,7 +8,8 @@ import "./../hits"
 
 StyledRect {
     id: root
-    color: Colors.colLayer1
+    colors: MediaPlayerService?.colors
+    color: "transparent"// Colors.colLayer1
     radius: Rounding.verylarge
     property bool expanded
     property bool isSearching: BeatsService.hitsQuery.length > 0
@@ -30,11 +31,11 @@ StyledRect {
     }
     MaterialLoadingIndicator {
         anchors.top: parent.top
-        anchors.topMargin: BeatsService.isLoading ? Padding.massive: - Padding.massive * 5
+        anchors.topMargin: BeatsService.isLoading ? Padding.massive : -Padding.massive * 5
         anchors.horizontalCenter: parent.horizontalCenter
         loading: BeatsService.isLoading
         z: 999
-
+        colors: MediaPlayerService?.colors
         Behavior on anchors.topMargin {
             Anim {}
         }
@@ -120,7 +121,7 @@ StyledRect {
         z: controls.z - 1
         opacity: dismissArea.enabled ? 1 : 0
         anchors.fill: parent
-        color: Colors.colScrim
+        color: root.colors.colScrim
     }
     MouseArea {
         id: dismissArea

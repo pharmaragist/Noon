@@ -4,10 +4,6 @@ import qs.common
 import "./../../vendors/colors/M3.js" as M3lib
 import "./../../vendors/colors/M3Palette.js" as M3Palette
 
-
-
-
-
 Item {
     id: root
     enum State {

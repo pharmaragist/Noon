@@ -6,7 +6,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 MouseArea {
     id: root
@@ -78,15 +78,15 @@ MouseArea {
         extraVisibleCondition: root.containsMouse
         alternativeVisibleCondition: extraVisibleCondition
         anchorEdges: {
-            switch (Mem.options.bar.behavior.position) {
+            switch (BarData.position) {
             case "top":
-                return Edges.Bottom;  
+                return Edges.Bottom;
             case "bottom":
-                return Edges.Top;     
+                return Edges.Top;
             case "left":
-                return Edges.Right;   
+                return Edges.Right;
             case "right":
-                return Edges.Left;    
+                return Edges.Left;
             }
         }
     }

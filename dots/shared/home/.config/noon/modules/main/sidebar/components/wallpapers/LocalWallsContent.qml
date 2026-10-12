@@ -107,6 +107,10 @@ LayerRect {
                 anchors.margins: isKeyboardSelected ? 3 * root._spacing : root._spacing
                 isKeyboardSelected: gridView.currentIndex === index
                 isCurrentWallpaper: modelData.fileUrl.toString() === WallpaperService.currentWallpaper
+                applyAction: () => {
+                    WallpaperService.applyWallpaper(this.fileUrl)
+                    gridView.currentIndex = index
+                }
             }
 
             StyledRectangularShadow {

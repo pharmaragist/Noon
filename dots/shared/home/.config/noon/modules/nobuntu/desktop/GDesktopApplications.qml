@@ -10,7 +10,7 @@ import qs.common.widgets
 import qs.common.utils
 import qs.common.functions
 import qs.services
-import qs.store
+import qs.data
 
 Item {
     id: root
@@ -52,11 +52,11 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
                         horizontalAlignment: Text.AlignHCenter
                         truncate: true
-                        
-                        
+
+
                         Layout.maximumWidth: 50
-                        
-                        
+
+
                         text: app.name
                         color: Colors.colOnBackground
                         font.pixelSize: Fonts.sizes.small

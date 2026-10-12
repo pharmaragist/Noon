@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.store
+import qs.data
 import qs.common
 import qs.common.widgets
 
@@ -10,8 +10,9 @@ StyledRect {
     property int barSize: -1
     property bool vertical: false
     property bool verticalMode: false
-    property bool active: BarData.currentModeInfo.appearance.barGroup
+    property bool active: BarData.currentInfo.appearance.barGroup
     property color colBackground: Colors.colSurfaceContainer
+    property string position: "top"
     readonly property real padding: Padding.small
     color: active ? colBackground : "transparent"
     radius: Rounding.large

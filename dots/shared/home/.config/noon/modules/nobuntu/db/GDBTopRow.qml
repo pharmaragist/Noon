@@ -22,15 +22,15 @@ Item {
         },
         {
             icon: "emblem-system-symbolic",
-            action: () => NoonUtils.callIpc("apps settings")
+            action: () => Ipc.call(["apps", "settings"])
         },
         {
             icon: "system-shutdown-symbolic",
-            action: () => NoonUtils.callIpc("sidebar reveal Session")
+            action: () => Ipc.call(["sidebar", "reveal", "Session"])
         },
         {
             icon: "system-lock-screen-symbolic",
-            action: () => NoonUtils.callIpc("global lock")
+            action: () => Ipc.call(["global", "lock"])
         }
     ]
     RowLayout {

@@ -33,7 +33,8 @@ local beam_actions = {
     music = "ALT+M",
     weather = "ALT+W",
     hints = "ALT+Slash",
-    appearance = "S",
+    appearance = "CTRL+S",
+    tools = "CTRL+G",
 }
 
 local sidebar_actions = {
@@ -43,17 +44,17 @@ local sidebar_actions = {
     Downloads = "J",
     Beats = "M",
     API = "A",
+    History = "V",
+    Emojis= "Period",
     Sounds = "grave",
     Widgets = "Tab",
     Shelf = "Z",
     Tweaks = "I",
     Notifs = "N",
-    Bookmarks = "ALT+B",
     Web = "ALT+W",
     Plugins = "P",
     Tasks = "CTRL+T",
     Notes = "CTRL+N",
-    Games = "CTRL+G",
     Session = "Escape"
 }
 
@@ -61,10 +62,10 @@ local noon_actions = {
     toggle_zen = "CTRL+SHIFT+X",
     toggle_beam = "Super_L",
     toggle_bar_mode = "CTRL+X",
-    toggle_history = "V",
-    toggle_emoji = "Period",
     swap_bar_position = "ALT+X",
-    toggle_dock_pin = "ALT+P"
+    toggle_dock_pin = "ALT+P",
+    -- toggle_history = "V",
+    -- toggle_emoji = "Period",
 }
 
 local nobuntu_actions = {

@@ -68,6 +68,7 @@ Singleton {
         onExited: code => {
             if (code === 0) {
                 root.screenshotCompleted(outPath);
+                NoonUtils.execDetached(`wl-copy --type image/png < '${TextUtils.shellSingleQuoteEscape(outPath)}'`);
                 mainProc.outPath = "";
             }
         }

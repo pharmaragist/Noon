@@ -30,6 +30,7 @@ Singleton {
         "emphasizedAccel": [0.3, 0, 0.8, 0.15, 1, 1],
         "emphasizedDecel": [0.05, 0.7, 0.1, 1, 1, 1],
         "expressiveFastSpatial": [0.42, 1.67, 0.21, 0.9, 1, 1],
-        "expressiveDefaultSpatial": [0.38, 1.21, 0.22, 1, 1, 1]
+        "expressiveDefaultSpatial": [0.38, 1.21, 0.22, 1, 1, 1],
+        "user": [...Mem.options.appearance.animations.userCurve]
     }
 }

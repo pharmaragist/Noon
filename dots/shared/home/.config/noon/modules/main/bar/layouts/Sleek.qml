@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
+import qs.data
 import qs.services
 import qs.common
 import qs.common.widgets
@@ -15,7 +16,7 @@ StyledPanel {
     exclusiveZone: bg.implicitHeight
     fill: true
     _layer: "Bottom"
-    readonly property string pos: Mem.options.bar.behavior.position
+    readonly property string pos: BarData.position
     readonly property bool isBottom: bg.side === "bottom"
 
     anchors.bottom: pos === "bottom"

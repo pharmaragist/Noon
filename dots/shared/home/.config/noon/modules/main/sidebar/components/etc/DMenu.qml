@@ -5,7 +5,7 @@ import qs.common
 import qs.common.functions
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 SidebarItemContainer {
     id: root
@@ -16,7 +16,7 @@ SidebarItemContainer {
     onContentFocusRequested: listView.forceActiveFocus()
 
     function executeAction(x) {
-        const sanitized = x.toLowerCase(); 
+        const sanitized = x.toLowerCase();
         NoonUtils.execDetached(sanitized);
     }
 

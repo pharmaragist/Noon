@@ -9,7 +9,7 @@ import qs.common
 import qs.common.widgets
 import qs.common.functions
 import qs.common.utils
-import qs.store
+import qs.data
 
 Item {
     id: icon

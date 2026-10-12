@@ -1,7 +1,7 @@
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

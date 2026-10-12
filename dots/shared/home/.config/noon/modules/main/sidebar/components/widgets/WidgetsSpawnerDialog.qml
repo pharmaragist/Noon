@@ -7,7 +7,7 @@ BottomDialog {
     required property var db
     readonly property var store: Mem.states.sidebar.widgets
 
-    collapsedHeight: 650
+    baseHeight: 650
     enableStagedReveal: false
     bottomAreaReveal: true
     hoverHeight: 200

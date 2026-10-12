@@ -1,17 +1,17 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.common
-import qs.store
+import qs.data
 
 ColumnLayout {
     id: root
-    visible: BarData.currentModeInfo.appearance.enableSeparators
+    visible: BarData.currentInfo.appearance.separatorsMode !== "off"
 
     implicitWidth: bg.implicitWidth
     Layout.fillHeight: true
     Layout.alignment: Qt.AlignVCenter
     spacing: 2
-    state: BarData.currentModeInfo.appearance.separatorsMode
+    state: BarData.currentInfo.appearance.separatorsMode
 
     Repeater {
         model: root.state.endsWith('s') ? 3 : 1

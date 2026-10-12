@@ -7,7 +7,7 @@ import qs.common
 import qs.common.widgets
 import qs.common.utils
 import qs.services
-import qs.store
+import qs.data
 
 import "modes"
 import "overlays"
@@ -19,12 +19,9 @@ Variants {
         id: root
         name: "noanim_blurred_layer"
         required property var modelData
-        property real scrollSum: 0
-        property bool hasAttachedFile: false
         readonly property string revealReason: Globals.main.beam.reason
         readonly property bool reveal: Globals.main.beam.show
-        readonly property int elevationValue: Sizes.elevationMargin + (Mem.options.bar.behavior.position === "bottom" ? BarData.currentModeInfo.appearance.size : 0)
-        readonly property alias containsDrag: dropArea.containsDrag
+        readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})
 
@@ -35,6 +32,7 @@ Variants {
         focusHandler.active: root.reveal
         focusHandler.onCleared: root.hide()
         screen: modelData
+        _layer: "Overlay"
 
         mask: Region {
             Region {
@@ -55,15 +53,15 @@ Variants {
         }
 
         function hide() {
-            const opts = Globals.main.beam;
-            if (opts.reason !== "default")
-                opts.reason = "default";
-            else
-                opts.show = false;
+            // close only; reason resets later below-screen (clearDelay),
+            // so no content switch ever plays visibly during the rewind.
+            Globals.main.beam.show = false;
         }
 
         ScrimOverlay {
-            shown: !!root?.currentModeData?.dim
+            // tied to reveal, not just mode: dim fades with the rewind
+            // instead of lingering until the below-screen janitor runs
+            shown: !!root?.currentModeData?.dim && root.reveal
             onHide: root.hide()
         }
 
@@ -101,7 +99,6 @@ Variants {
             acceptedButtons: Qt.NoButton
             scrollGestureEnabled: true
 
-
             Timer {
                 id: idleTimer
                 repeat: true
@@ -116,25 +113,26 @@ Variants {
 
             onWheel: wheel => {
                 if (wheel.modifiers === Qt.ControlModifier) {
-                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "incubate" : "";
-                    wheel.accepted = true;
-                    return;
-                }
-                if (wheel.modifiers === Qt.ShiftModifier) {
-                    Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dino" : "";
-                    wheel.accepted = true;
-                    return;
-                }
-
-                root.scrollSum += wheel.angleDelta.y;
-
-                if (!root.reveal && root.scrollSum <= -20) {
                     Globals.main.beam.show = true;
-                    root.scrollSum = 0;
-                } else if (root.reveal && root.scrollSum >= 20) {
-                    Globals.main.beam.show = false;
-                    root.scrollSum = 0;
+                    if (wheel.angleDelta.y < 0)
+                        Globals.main.beam.reason = "appearance";
+                    if (wheel.angleDelta.y > 0)
+                        Globals.main.beam.reason = "default";
+
+                    wheel.accepted = true;
+                    return;
                 }
+                // if (wheel.modifiers === Qt.ShiftModifier) {
+                //     Globals.main.sysDialogs.mode = wheel.angleDelta.y < 0 ? "dlp" : "";
+                //     wheel.accepted = true;
+                //     return;
+                // }
+
+                // drag-to-reveal: wheel travel owns the water (puddle->ball->
+                // panel across 0..1); full travel or past-halfway on release
+                // commits, otherwise it pours back. Same gesture reversed
+                // while open pours it away.
+                bg.dragBy(-wheel.angleDelta.y / 400);
 
                 wheel.accepted = true;
             }
@@ -149,11 +147,10 @@ Variants {
 
                     let urlStrings = drop.urls.map(url => url.toString());
                     let firstUrl = urlStrings[0];
-
-                    if (NoonUtils.isOnlineUrl(firstUrl)) {
-                        NoonUtils.runDownloader(firstUrl);
-                    } else if (firstUrl.startsWith("file://")) {
+                    if (firstUrl.startsWith("file://")) {
                         Mem.states.sidebar.shelf.filePaths = [...Mem.states.sidebar.shelf.filePaths, ...urlStrings];
+                    } else {
+                        NoonUtils.runDownloader(firstUrl);
                     }
                 }
             }
@@ -163,6 +160,8 @@ Variants {
             id: popup
             target: bg
             reveal: root.reveal && root.revealReason === "default"
+            topRadius: (root.currentModeData?.ignoreRadiusComplement ?? false) ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.target.bottomRadius
+            bottomRadius: (root.currentModeData?.ignoreRadiusComplement ?? false) ? (root.currentModeData?.popupRadius ?? Rounding.huge) : this.shown ? Rounding.tiny : target.bottomRadius
         }
 
         StyledRectangularShadow {
@@ -171,26 +170,21 @@ Variants {
             show: popup?.shown ?? false
         }
 
-        StyledRectangularShadow {
-            target: bg
-            show: root.reveal && (root.currentModeData?.shadow ?? true)
-            transparency: 0.8
-        }
-
-        Content {
+        BeamBg {
             id: bg
             z: 999
             reveal: root.reveal
-            topRadius: popup.shown ? Rounding.tiny : bottomRadius
             elevationValue: root.elevationValue
             animationDuration: 300
-            bottomRadius: root.currentModeData.radius ?? height / 2
-            height: root.currentModeData.size?.height ?? 1000
-            width: root.currentModeData.size?.width ?? 1000
-            color: (root.currentModeData?.transparent ?? false) ? "transparent" : Colors.colBackground
+            height: this.currentItem?.contentItem?.height ?? root.currentModeData.size?.height ?? -1 // getDimension("height")
+            width: this.currentItem?.contentItem?.width ?? root.currentModeData.size?.width ?? -1
+            bodyColor: Colors.colBackground
+            restTransparent: (root.currentModeData?.transparent ?? false)
 
-            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "BeamContentView") + ".qml")
+            contentSource: Qt.resolvedUrl("modes/" + (root.currentModeData?.component ?? "ContentViewItem") + ".qml")
 
+            topRadius: popup?.shown ? popup.bottomRadius : this.bottomRadius
+            bottomRadius: root?.currentModeData?.radius ?? Rounding.silly
             onContentLoaded: item => {
                 if (root.reveal && "focusItem" in item)
                     item.focusItem.forceActiveFocus();

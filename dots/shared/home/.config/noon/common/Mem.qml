@@ -4,7 +4,7 @@ import QtQuick
 import Noon.Utils
 import Noon.Hypr
 import qs.common.utils
-import qs.store
+import qs.data
 
 Singleton {
     id: root
@@ -16,6 +16,7 @@ Singleton {
     readonly property var looks: looksView.data
     readonly property var ai: aiView.data
     readonly property var todo: todoView.data
+    readonly property var timers: timersView.data
     readonly property var games: gamesView.data
     readonly property var colors: colorsView.data
     readonly property var beats: beatsView.data
@@ -24,14 +25,12 @@ Singleton {
     readonly property var hypr: hyprView.variables
     readonly property var env: envView.data
 
-    EnvManager {
-        id: envView
+    readonly property EnvManager envView: EnvManager {
         path: Paths.standard.home + "/.env"
     }
 
-    HyprParser {
-        id: hyprView
-        path: Paths.hyprConfigs + "/lua/variables.lua"
+    readonly property HyprParser hyprView: HyprParser {
+        path: Paths.methods.trim(Paths.standard.config + "/hypr/lua/variables.lua")
     }
 
     readonly property ConfigFileView optionsView: ConfigFileView {
@@ -62,7 +61,7 @@ Singleton {
         state: false
         parentDir: "user/"
         fileName: "ai"
-        AiSchema {}
+        HarnessSchema {}
     }
 
     readonly property ConfigFileView todoView: ConfigFileView {
@@ -70,6 +69,13 @@ Singleton {
         parentDir: "user/"
         fileName: "todo"
         TodoSchema {}
+    }
+
+    readonly property ConfigFileView timersView: ConfigFileView {
+        state: false
+        parentDir: "user/"
+        fileName: "timers"
+        TimersSchema {}
     }
 
     readonly property ConfigFileView beatsView: ConfigFileView {

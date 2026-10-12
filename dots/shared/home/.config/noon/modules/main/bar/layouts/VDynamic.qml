@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import qs.store
+import qs.data
 import qs.common
 import qs.common.widgets
 import "./../components"
@@ -10,12 +10,12 @@ StyledPanel {
 
     property bool hovered: false
 
-    readonly property string pos: Mem.options.bar.behavior.position
+    readonly property string pos: BarData.position
     readonly property bool autoHide: Mem.options.bar.behavior.autoHide
-    readonly property bool useBg: BarData.currentModeInfo.appearance.useBg
+    readonly property bool useBg: BarData.currentInfo.appearance.useBg
     readonly property int peekSize: 10
 
-    readonly property int barWidth: BarData.currentModeInfo.appearance.size + bg.exclusionOverride
+    readonly property int barWidth: BarData.currentInfo.appearance.size + bg.exclusionOverride
     readonly property int hideMargin: autoHide && !hovered ? -(barWidth - peekSize) : 0
 
     name: "bar"

@@ -8,8 +8,8 @@ QuickToggleButton {
     id: root
 
     dialogName: "Caffaine"
-    toggled: IdleService.inhibited
+    toggled: Mem.options.services.idle.inhibit
     buttonIcon: "coffee"
     buttonName: toggled ? "Awake" : "Sleepy"
-    onClicked: IdleService.toggleInhibit()
+    onClicked: Mem.options.services.idle.inhibit = !Mem.options.services.idle.inhibit;
 }

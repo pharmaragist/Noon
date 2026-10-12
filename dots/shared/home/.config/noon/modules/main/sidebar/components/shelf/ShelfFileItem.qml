@@ -6,7 +6,7 @@ import qs.common.utils
 import qs.common.widgets
 import qs.common.functions
 import qs.services
-import qs.store
+import qs.data
 
 StyledRect {
     id: root
@@ -153,7 +153,7 @@ StyledRect {
                 "action": () => {
                     NoonUtils.open(path);
                     if (!Globals.main.sidebar.pinned) {
-                        NoonUtils.callIpc("sidebar hide");
+                        Ipc.call(["sidebar", "hide"]);
                     }
                 }
             },
@@ -163,7 +163,7 @@ StyledRect {
                 "materialIcon": "globe",
                 "action": () => {
                     NoonUtils.open(path);
-                    NoonUtils.callIpc("sidebar reveal Web");
+                    Ipc.call(["sidebar", "reveal", "Web"]);
                 }
             },
             {
@@ -172,7 +172,7 @@ StyledRect {
                 "materialIcon": "stylus",
                 "action": () => {
                     NotesService.note(path + " \n---");
-                    NoonUtils.callIpc("sidebar reveal Notes");
+                    Ipc.call(["sidebar", "reveal", "Notes"]);
                 }
             },
             {
@@ -181,17 +181,6 @@ StyledRect {
                 "action": () => {
                     if (root.index !== undefined) {
                         Mem.states.sidebar.shelf.filePaths.splice(root.index, 1);
-                    }
-                }
-            },
-            {
-                "text": "Download With Dlp",
-                "materialIcon": "download",
-                "visible": NoonUtils.checkIfDlp(root.path),
-                "action": () => {
-                    NoonUtils.runDownloader(path);
-                    if (!Globals.main.sidebar.pinned) {
-                        NoonUtils.callIpc("sidebar hide");
                     }
                 }
             },

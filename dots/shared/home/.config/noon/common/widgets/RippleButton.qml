@@ -4,9 +4,6 @@ import QtQuick.Controls
 import qs.common
 import qs.common.widgets
 
-
-
-
 Button {
     id: root
 

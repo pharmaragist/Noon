@@ -4,38 +4,44 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.common
+import qs.common.utils
 
 Singleton {
     id: root
     readonly property var cursors: Mem.store.services.cursors?.availableCursors ?? []
     readonly property string current: Mem.hypr.cursor_theme
 
+    Component.onCompleted:reload()
+
     function reload() {
-        if (!getProc.running) {
+        if (!fetcher.running) {
             Mem.store.services.cursors.availableCursors = [];
-            getProc.running = true;
+            fetcher.running = true;
         }
+    }
+
+    function set(name, size) {
+        Mem.env.XCURSOR_THEME = name;
+        NoonUtils.execDetached(["hyprctl", "setcursor", name, size]);
     }
 
     Connections {
         target: Mem.hypr
         ignoreUnknownSignals: true
+
+        function onCursor_sizeChanged() {
+            set(target?.cursor_theme, target?.cursor_size);
+        }
+
         function onCursor_themeChanged() {
-            Mem.env.XCURSOR_THEME = current;
-            NoonUtils.execDetached(["hyprctl", "setcursor", current, (Mem.hypr?.cursor_size ?? 24)]);
+            set(target?.cursor_theme, target?.cursor_size);
         }
     }
 
-    Process {
-        id: getProc
-        running: Mem.store.services.cursors.availableCursors.length === 0
-        command: ["bash", "-c", Paths.scriptsDir + "/get_cursors.sh"]
-        stdout: SplitParser {
-            onRead: line => {
-                var current = Mem.store.services.cursors.availableCursors;
-                current.push(line);
-                Mem.store.services.cursors.availableCursors = current;
-            }
-        }
+    Fetcher {
+        id: fetcher
+        command: ["bash","-c", Paths.scriptsDir + "/get_cursors.sh"]
+        onDataChanged: if (data)
+            Mem.store.services.cursors.availableCursors = fetcher?.data
     }
 }

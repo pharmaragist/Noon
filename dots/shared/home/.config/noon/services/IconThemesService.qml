@@ -5,9 +5,6 @@ import Quickshell
 import qs.common
 import qs.common.utils
 
-
-
-
 Singleton {
     id: root
 
@@ -15,11 +12,15 @@ Singleton {
     readonly property var availableIconThemeIds: availableIconThemes.map(theme => theme.id)
     readonly property list<string> baseCmd: ["uv", "run", Paths.scriptsDir + "/icons_service.py"]
     readonly property string currentIconTheme: Mem.options.desktop.icons.currentIconTheme
+
     onCurrentIconThemeChanged: setIconTheme(currentIconTheme)
+    Component.onCompleted:reload()
 
     function setIconTheme(id) {
-        if (id)
+        if (id && Mem.ready && currentIconTheme !== id) {
             NoonUtils.execDetached([...baseCmd, "set", id]);
+            Mem.options.desktop.icons.currentIconTheme = id
+        }
     }
 
     function reload() {

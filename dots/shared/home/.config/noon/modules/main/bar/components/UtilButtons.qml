@@ -17,7 +17,7 @@ BarGroup {
         },
         {
             "icon": "dashboard",
-            "action": () => NoonUtils.callIpc("sidebar reveal Notifs")
+            "action": () => Ipc.call(["sidebar", "reveal", "Notifs"])
         }
     ]
 

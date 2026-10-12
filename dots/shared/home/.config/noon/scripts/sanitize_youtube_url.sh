@@ -16,4 +16,6 @@ if [ -z "$RAW_STREAM_URL" ]; then
     exit 1
 fi
 
-noon ipc call global preview_url "$RAW_STREAM_URL"
+# ponytail: npc over its socket, noon as fallback (see screen_share_watcher).
+NPC=($(dirname "$0")/npc call); [[ -x "${NPC[0]}" ]] || NPC=(noon ipc call)
+"${NPC[@]}" global preview_url "$RAW_STREAM_URL"

@@ -89,7 +89,7 @@ Scope {
         }
     }
 
-    IpcHandler {
+    NpcHandler {
         target: "osdVolume"
         function trigger() {
             root.triggerOsd();

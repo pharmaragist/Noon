@@ -1,5 +1,6 @@
 import QtQuick
 import qs.services
+import qs.data
 import qs.common
 import qs.common.utils
 
@@ -19,33 +20,18 @@ Scope {
     // Beats {}
 
     WidgetLoader {
-        enabled: !(Globals?.topLevel?.fullscreen ?? false) && Notifications.popupAppNameList.length > 0 && Globals.main.canNotify
-        NotificationPopup {}
-    }
-
-    WidgetLoader {
-        reloadOn: Mem.options.bar.behavior.position
-        Sidebar {}
-    }
-
-    WidgetLoader {
-        enabled: Mem.options.dock.enabled
-        Dock {}
-    }
-
-    WidgetLoader {
-        enabled: Globals.main.locked
-        Lock {}
-    }
-
-    WidgetLoader {
-        reloadOn: Mem.options.bar.behavior.position
+        reloadOn: BarData.position
         Bar {}
     }
 
     WidgetLoader {
-        enabled: Mem.options.osd.enabled
-        OSDs {}
+        reloadOn: BarData.position
+        Sidebar {}
+    }
+
+    WidgetLoader {
+        enabled: Globals.main.clipboard.mode.length > 0
+        ClipboardPanel {}
     }
 
     WidgetLoader {
@@ -54,7 +40,23 @@ Scope {
     }
 
     WidgetLoader {
-        enabled: Globals.main.clipboard.mode.length > 0
-        ClipboardPanel {}
+        enabled: Mem.options.dock.enabled
+        Dock {}
+    }
+
+    WidgetLoader {
+        enabled: !(Globals?.topLevel?.fullscreen ?? false) && Notifications.popupAppNameList.length > 0 && Globals.main.canNotify
+        NotificationPopup {}
+    }
+
+
+    WidgetLoader {
+        enabled: Globals.main.locked
+        Lock {}
+    }
+
+    WidgetLoader {
+        enabled: Mem.options.osd.enabled
+        OSDs {}
     }
 }

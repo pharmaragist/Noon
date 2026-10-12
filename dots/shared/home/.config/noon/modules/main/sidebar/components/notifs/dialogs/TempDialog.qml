@@ -8,7 +8,7 @@ import qs.services
 BottomDialog {
     id: root
 
-    collapsedHeight: Math.max(parent.height * 0.6, 480)
+    baseHeight: Math.max(parent.height * 0.6, 480)
 
     readonly property bool autoEnabled: Mem.options.services.nightLight.autoNightLightCycle ?? false
 

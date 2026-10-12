@@ -18,7 +18,7 @@ Singleton {
             const domain = new URL(url).hostname;
             if (root._cache[domain])
                 return root._cache[domain];
-            const path = Paths.favicons + "/" + domain + ".ico";
+            const path = Paths.services.favicons + "/" + domain + ".ico";
             _downloader.createObject(root, {
                 domain,
                 path

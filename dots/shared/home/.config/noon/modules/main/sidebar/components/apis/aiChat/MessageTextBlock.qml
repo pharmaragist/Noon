@@ -17,16 +17,20 @@ ColumnLayout {
     property string segmentContent: ""
     property var messageData: {}
     property bool done: true
+    property bool thinking: false
     property bool forceDisableChunkSplitting: false
-
+    property font font: Fonts.request("reading", Fonts.sizes.verylarge * Mem.states.sidebar.apis.fontScale)
     property string shownText: ""
-    property bool fadeChunkSplitting: !forceDisableChunkSplitting && !editing && !/\n\|/.test(shownText) && Mem.options.sidebar.behavior.aiTextFadeIn
+    property bool fadeChunkSplitting: !forceDisableChunkSplitting && !editing && !/\n\|/.test(shownText)
 
-    property var textLineOpacities: []
     property var _formulaMap: ({})
 
     Layout.fillWidth: true
     spacing: 0
+
+    function linkMediaPaths(text) {
+        return text.replace(/(^|\s)(\/[^\s:*?"'<>|()\[\]]+\.(png|jpe?g|gif|webp|bmp|svg))/g, (m, pre, p) => `${pre}![](${p})`);
+    }
 
     function processText(input) {
         if (!input)
@@ -50,7 +54,11 @@ ColumnLayout {
                     }
                 }
             } else {
-                result += p;
+                try {
+                    result += linkMediaPaths(p);
+                } catch (e) {
+                    result += p;
+                }
             }
         }
         return result;
@@ -60,19 +68,6 @@ ColumnLayout {
         if (!root.shownText)
             return [];
         return root.fadeChunkSplitting ? root.shownText.split(/\n\n(?= {0,2})|\n(?= {0,2}[-\*])/g).filter(line => line.trim() !== "") : [root.shownText];
-    }
-
-    function syncOpacities(chunks) {
-        const prev = root.textLineOpacities;
-        const next = [];
-        for (let i = 0; i < chunks.length; i++) {
-            if (i < prev.length) {
-                next.push(prev[i]);
-            } else {
-                next.push(root.messageData?.done ? 1 : 0);
-            }
-        }
-        root.textLineOpacities = next;
     }
 
     onEditingChanged: {
@@ -87,15 +82,11 @@ ColumnLayout {
     }
 
     onShownTextChanged: {
-        const chunks = computeChunks();
-        syncOpacities(chunks);
-        chunksModel.values = chunks;
+        chunksModel.values = computeChunks();
     }
 
     onFadeChunkSplittingChanged: {
-        const chunks = computeChunks();
-        syncOpacities(chunks);
-        chunksModel.values = chunks;
+        chunksModel.values = computeChunks();
     }
 
     Timer {
@@ -127,35 +118,16 @@ ColumnLayout {
             required property string modelData
 
             Layout.fillWidth: true
-            visible: opacity > 0
-            opacity: root.fadeChunkSplitting ? (root.textLineOpacities[index] ?? (root.messageData?.done ? 1 : 0)) : 1
             readOnly: !editing
             selectByMouse: enableMouseSelection || editing
             renderType: Text.NativeRendering
-            font:Fonts.request("reading", Fonts.sizes.verylarge * Mem.states.sidebar.apis.fontScale)
+            font: root.font
             selectedTextColor: Colors.m3.m3onSecondaryContainer
             selectionColor: Colors.colSecondaryContainer
             wrapMode: TextEdit.Wrap
-            color: root.messageData?.thinking ? Colors.colSubtext : Colors.colOnLayer1
+            color: root.thinking ? Colors.colSubtext : Colors.colOnLayer1
             textFormat: renderMarkdown ? TextEdit.MarkdownText : TextEdit.PlainText
             text: modelData
-
-            Behavior on opacity {
-                Anim {}
-            }
-
-            Connections {
-                target: root
-                function onTextLineOpacitiesChanged() {
-                    if (index > 0 && index < root.textLineOpacities.length) {
-                        if (root.textLineOpacities[index - 1] >= 1) {
-                            const next = [...root.textLineOpacities];
-                            next[index] = 1;
-                            root.textLineOpacities = next;
-                        }
-                    }
-                }
-            }
 
             onTextChanged: {
                 if (root.editing)
@@ -164,7 +136,7 @@ ColumnLayout {
 
             onLinkActivated: link => {
                 Qt.openUrlExternally(link);
-                NoonUtils.callIpc("sidebar hide");
+                Ipc.call(["sidebar", "hide"]);
             }
 
             MouseArea {

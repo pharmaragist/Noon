@@ -1,53 +1,41 @@
 import QtQuick
 import QtQuick.Controls
-import qs.common
-
-
-
-
 
 StackView {
-    id: root
+    pushEnter: replaceEnter
+    pushExit: replaceExit
 
-    property int slideDirection: 1
+    popEnter: replaceEnter
+    popExit: replaceExit
 
-    replaceEnter: Transition {
+    replaceEnter: enter
+    replaceExit: exit
+
+    property var enter: Transition {
         ParallelAnimation {
-            PropertyAnimation {
+            Anim {
                 property: "scale"
-                from: 0.65
+                from: 0.9
                 to: 1
-                duration: Animations.durations.large
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
             }
-            PropertyAnimation {
+            Anim {
                 property: "opacity"
                 from: 0
                 to: 1
-                duration: Animations.durations.small
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }
-    replaceExit: Transition {
+    property var exit: Transition {
         ParallelAnimation {
-            PropertyAnimation {
+            Anim {
                 property: "scale"
                 from: 1
-                to: 0.65
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasized
-                duration: Animations.durations.large
+                to: 0.9
             }
-            PropertyAnimation {
+            Anim {
                 property: "opacity"
                 from: 1
                 to: 0
-                duration: Animations.durations.small
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Animations.curves.emphasizedAccel
             }
         }
     }

@@ -183,7 +183,7 @@ viewswitcher button:hover {
 
 #NautilusPathBar button .dim-label {
 	font-size: 14px;
-	opacity: 100%;
+	opacity: 1;
 }
 
 .nautilus-list-view, .nautilus-grid-view {
@@ -242,7 +242,7 @@ banner widget {
 	background-color: @accent_active_color;
 }
 
-.boxed-list row:insensitive {
+.boxed-list row:disabled {
 	background-color: @card_bg_color; 
 }
 
@@ -317,8 +317,10 @@ switch:checked {
 slider {
 	background: #90878f;
 	border: @secondary_sidebar_bg_color 2px solid;
-	min-width: 4px;
-	min-height: 4px;
+	padding: 0;
+	min-width: 16px;
+	min-height: 16px;
+	border-radius: 999px;
 }
 
 switch:checked slider {

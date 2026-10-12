@@ -18,8 +18,12 @@ StyledRect {
     property var colors: MediaPlayerService?.colors
     readonly property int iconSize: 24
 
+    AnimatedTabIndexPair {
+        id: playerAnim
+        index: MediaPlayerService?.selectedPlayerIndex ?? 0
+    }
+
     Rectangle {
-        id: activeIndicator
         z: 1
         implicitHeight: iconSize
         implicitWidth: iconSize
@@ -27,39 +31,9 @@ StyledRect {
         radius: Rounding.full
         color: colors.colPrimary
 
-        readonly property int selectedIndex: MediaPlayerService?.selectedPlayerIndex ?? 0
+        readonly property real itemWidth: iconSize + Padding.verysmall
 
-        x: {
-            repeater.count;
-            const item = repeater.itemAt(selectedIndex);
-            return playerSelector.x + (item ? item.x : 0);
-        }
-
-        Behavior on x {
-            enabled: repeater.count > 1
-            Anim {}
-        }
-
-        SequentialAnimation {
-            id: stretchAnim
-            Anim {
-                target: activeIndicator
-                property: "width"
-                to: iconSize * 1.5
-                duration: Animations.durations.verysmall
-            }
-            Anim {
-                target: activeIndicator
-                property: "width"
-                to: iconSize
-                duration: Animations.durations.large
-            }
-        }
-
-        onSelectedIndexChanged: {
-            if (repeater.count > 1)
-                stretchAnim.restart();
-        }
+        x: playerSelector.x + playerAnim.idx1 * itemWidth
     }
 
     RLayout {
@@ -76,7 +50,7 @@ StyledRect {
                 id: symbolItem
                 required property var modelData
                 required property int index
-                readonly property bool isSelected: index === activeIndicator.selectedIndex
+                readonly property bool isSelected: index === (MediaPlayerService?.selectedPlayerIndex ?? 0)
                 height: iconSize
                 width: iconSize
 

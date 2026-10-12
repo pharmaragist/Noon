@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 Item {
     id: root
@@ -102,10 +102,6 @@ Item {
 
                     color: colors.colLayer0
                 }
-                PropertyChanges {
-                    target: dropShadow
-                    show: false
-                }
             },
             State {
                 name: "float"
@@ -130,67 +126,132 @@ Item {
         Item {
             anchors.fill: parent
 
-            ListView {
-                id: navRailList
-                width: parent.width
-                height: Math.min(contentHeight + topMargin + bottomMargin, parent.height)
-                anchors.centerIn: parent
-                spacing: sleek ? 0 : Padding.verylarge
-                model: SidebarData.enabledCategories
-                currentIndex: SidebarData.enabledCategories.indexOf(root.selectedCategory)
-                interactive: height === parent.height
+            ButtonGroup {
+                id: panelOptions
+                visible: !!root.selectedCategory
+                vertical: true
 
-                displayMarginBeginning: topMargin
-                displayMarginEnd: bottomMargin
+                anchors {
+                    top: parent.top
+                    topMargin: Padding.huge
+                    horizontalCenter: parent.horizontalCenter
+                }
 
-                topMargin: Padding.huge
-                bottomMargin: Padding.huge
+                Repeater {
+                    model: ScriptModel {
+                        values: [
+                            {
+                                toggled: panel.pinned,
+                                icon: "push_pin",
+                                action: () => {
+                                    panel.pinned = !panel.pinned;
+                                }
+                            },
+                            {
+                                toggled: panel.expanded,
+                                visible: (SidebarData.isExpandable(root.selectedCategory) ?? true),
+                                icon: panel.expanded ? "collapse_content" : "expand_content",
+                                action: () => {
+                                    panel.expanded = !panel.expanded;
+                                }
+                            },
+                            {
+                                visible: root.selectedCategory === "Beats",
+                                icon: "close",
+                                action: () => {
+                                    BeatsService.player?.stop();
+                                }
+                            }
+                        ].filter(i => (i.visible ?? true))
+                    }
+                    GroupButtonWithIcon {
+                        required property var modelData
+                        colors: root.colors
+                        baseSize: 40
+                        buttonRadius: Rounding.normal
+                        toggled: modelData?.toggled ?? false
+                        materialIcon: modelData?.icon ?? ""
+                        downAction: () => modelData?.action() ?? null
+                    }
+                }
+            }
+            StyledRect {
+                anchors.top: panelOptions.bottom
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.topMargin: Padding.normal
+                clip: true
+                color: "transparent"
+                radius: Rounding.small
 
-                highlightFollowsCurrentItem: false
-                highlight: SidebarNavigationRailHighlight {}
-                delegate: NavigationRailButton {
-                    required property int index
-                    required property string modelData
+                ListView {
+                    id: navRailList
 
-                    fontSize: 9
-                    showText: !root.sleek
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    implicitWidth: baseSize
-                    baseSize: Math.round(navRailList.width * 2 / 3)
-                    toggled: root.selectedCategory === modelData
-                    buttonIcon: SidebarData?.getIcon(modelData, toggled ?? false)
-                    buttonText: modelData || ""
-                    highlightColor: "transparent"
-                    highlightColorHover: index === navRailList?.currentIndex ? "transparent" : root.colors.colLayer2Hover
-                    highlightColorActive: "transparent"
-                    itemColorActive: root.colors.colOnSecondaryContainer
+                    clip: true
+                    width: parent.width
+                    height: Math.min(contentHeight + topMargin + bottomMargin, parent.height)
+                    anchors.centerIn: parent
+                    spacing: sleek ? 0 : Padding.verylarge
+                    model: SidebarData.enabledCategories
+                    currentIndex: SidebarData.enabledCategories.indexOf(root.selectedCategory)
+                    interactive: height === parent.height
+                    displayMarginBeginning: topMargin
+                    displayMarginEnd: bottomMargin
 
-                    MouseArea {
-                        id: eventArea
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        propagateComposedEvents: true
-                        onClicked: event => {
-                            if (event.button === Qt.LeftButton)
-                                content.changeContent(modelData);
-                            else if (event.button === Qt.RightButton) {
-                                var pos = eventArea.mapToItem(null, event.x, event.y);
-                                root.showContextMenu(modelData, pos.x, pos.y);
+                    topMargin: Padding.normal
+                    bottomMargin: panelOptions.implicitHeight + Padding.normal
+
+                    highlightFollowsCurrentItem: false
+                    highlight: NavigationRailHighlight {
+                        rightMode: Globals.main.sidebar.rightMode
+                        target: navRailList
+                        style: Mem.options.sidebar.navRail.indicatorStyle
+                        colors: root.colors
+                    }
+                    delegate: NavigationRailButton {
+                        required property int index
+                        required property string modelData
+
+                        expanded: true
+                        fontSize: 9
+                        showText: !root.sleek
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        implicitWidth: baseSize
+                        baseSize: Math.round(navRailList.width * 0.6)
+                        toggled: root.selectedCategory === modelData
+                        buttonIcon: SidebarData?.getIcon(modelData, toggled ?? false)
+                        buttonText: modelData || ""
+                        highlightColor: "transparent"
+                        highlightColorHover: index === navRailList?.currentIndex ? "transparent" : root.colors.colLayer2Hover
+                        highlightColorActive: "transparent"
+                        itemColorActive: root.colors.colOnSecondaryContainer
+
+                        MouseArea {
+                            id: eventArea
+                            anchors.fill: parent
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            propagateComposedEvents: true
+                            onClicked: event => {
+                                if (event.button === Qt.LeftButton)
+                                    content.changeContent(modelData);
+                                else if (event.button === Qt.RightButton) {
+                                    var pos = eventArea.mapToItem(null, event.x, event.y);
+                                    root.showContextMenu(modelData, pos.x, pos.y);
+                                }
                             }
                         }
-                    }
 
-                    StyledToolTip {
-                        content: modelData
-                        extraVisibleCondition: root.sleek && selectedCategory !== ""
-                    }
+                        StyledToolTip {
+                            content: modelData
+                            extraVisibleCondition: root.sleek && selectedCategory !== ""
+                        }
 
-                    DragHandler {
-                        acceptedButtons: Qt.LeftButton
-                        xAxis.enabled: true
-                        yAxis.enabled: false
-                        onActiveChanged: if (SidebarData.isDetachable(modelData) && !SidebarData.isDetached(modelData)) {
-                            Globals.main.sidebar.detach(modelData);
+                        DragHandler {
+                            acceptedButtons: Qt.LeftButton
+                            xAxis.enabled: true
+                            yAxis.enabled: false
+                            onActiveChanged: Globals.main.sidebar.detach(modelData)
                         }
                     }
                 }
@@ -200,11 +261,11 @@ Item {
     StyledRect {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.left: panel.rightMode ? parent.left : undefined
-        anchors.right: !panel.rightMode ? parent.right : undefined
+        anchors.left: Mem.options.sidebar.navRail.reverse ^ panel.rightMode ? parent.left : undefined
+        anchors.right: Mem.options.sidebar.navRail.reverse ^ !panel.rightMode ? parent.right : undefined
 
         color: root.colors.colLayer3
         implicitWidth: 1
-        opacity: !panel.show ? 0 : 1
+        opacity: (!panel.show || bg.state !== "sharp") ? 0 : 1
     }
 }

@@ -10,7 +10,7 @@ import Quickshell
 BottomDialog {
     id: root
 
-    collapsedHeight: parent.height * 0.65
+    baseHeight: parent.height * 0.65
 
     contentItem: ColumnLayout {
         anchors.fill: parent
@@ -122,7 +122,7 @@ BottomDialog {
                 onClicked: {
                     root.show = false;
                     NoonUtils.execDetached(Mem.options.apps.bluetooth);
-                    NoonUtils.callIpc("sidebar hide");
+                    Ipc.call(["sidebar", "hide"]);
                 }
             }
 

@@ -157,6 +157,7 @@ install() {
             group=$(jq -r '.pluginGroup // empty' "$mf")
             [[ -n "$GROUP_OVERRIDE" ]] && group="$GROUP_OVERRIDE"
             [[ -n "$group" ]] || { rm -rf "$tmp"; echo "No pluginGroup in manifest, use -g to specify"; exit 1; }
+            mkdir -p "$PLUGINS_DIR/$group"
             cp -r "$(dirname "$mf")" "$PLUGINS_DIR/$group/$name"
             rm -rf "$tmp"
             ;;
@@ -168,6 +169,7 @@ install() {
                 group=$(jq -r '.pluginGroup // empty' "$manifest_file")
                 [[ -n "$GROUP_OVERRIDE" ]] && group="$GROUP_OVERRIDE"
                 [[ -n "$group" ]] || { echo "No pluginGroup in manifest, use -g to specify"; exit 1; }
+                mkdir -p "$PLUGINS_DIR/$group"
                 cp -r "$TARGET" "$PLUGINS_DIR/$group/$name"
             else
                 echo "Unsupported format. Use a directory, .tar, .tar.gz, or .zip"

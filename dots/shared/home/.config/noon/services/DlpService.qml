@@ -37,7 +37,7 @@ Singleton {
 
         if (info.audio)
             final.push("--audio");
-        else if (info.video)
+        else if (!info.audio)
             final.push("--video");
 
         if (info.quality)

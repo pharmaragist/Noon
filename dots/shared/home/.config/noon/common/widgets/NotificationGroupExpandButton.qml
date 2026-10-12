@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Services.Notifications
 import qs.common
 import qs.services
 

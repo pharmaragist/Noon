@@ -9,7 +9,7 @@ import qs.services
 Item {
     id: root
     readonly property bool mouseOriented: Mem.options.interactions.mouseOriented ?? true
-    property int collapsedHeight: 200
+    property int baseHeight: 200
     property int expandedHeight: 400
     property bool expand: false
     property bool show: false
@@ -24,7 +24,7 @@ Item {
     property alias bgAnchors: bg.anchors
     property alias backgroundOpacity: bg.opacity
     readonly property bool reveal: show || bg.visible
-    readonly property int targetHeight: show ? (expand && enableStagedReveal ? expandedHeight : collapsedHeight) : 0
+    readonly property int targetHeight: show ? (expand && enableStagedReveal ? expandedHeight : baseHeight) : 0
     property var finishAction
     property var colors: Colors
     property alias color: bg.color

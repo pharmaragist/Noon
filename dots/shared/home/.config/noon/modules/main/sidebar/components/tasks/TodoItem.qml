@@ -8,7 +8,7 @@ import qs.services
 
 StyledRect {
     id: root
-
+    property var count
     property var taskData
     property alias symbol: symb.text
     property alias colSymbol: symb.color
@@ -28,12 +28,10 @@ StyledRect {
         return diff === 0 ? "today" : diff === 1 ? "tomorrow" : "in " + diff + " days";
     }
 
-    anchors.rightMargin: Padding.normal
-    anchors.leftMargin: Padding.normal
     height: Math.max(70, textArea.contentHeight + Padding.massive)
-    radius: Rounding.large
-    opacity: 0.9
-    color: index % 2 !== 0 ? "transparent" : Colors.colLayer2
+    color: Colors.colLayer2
+    topRadius: index === 0 ? Rounding.large : 2
+    bottomRadius: index === count - 1 ? Rounding.large : 2
 
     StyledRect {
         visible: height > 0

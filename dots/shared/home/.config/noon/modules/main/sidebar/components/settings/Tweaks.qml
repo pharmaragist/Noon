@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.store
+import qs.data
 import qs.services
 import qs.common
 import qs.common.widgets
@@ -8,14 +8,17 @@ import qs.common.widgets
 SidebarItemContainer {
     id: root
 
+    readonly property TweaksData tweaksData: TweaksData {}
+
     ScriptModel {
         id: itemsModel
         values: {
-            var data = TweaksData.tweaks;
+            var data = tweaksData?.tweaks;
 
             if (root.currentCategory.length > 0) {
                 data = data.filter(cat => cat.section === root.currentCategory);
-                if (data.length === 0) return data;
+                if (data.length === 0)
+                    return data;
             }
 
             if (searchQuery) {
@@ -30,7 +33,9 @@ SidebarItemContainer {
                     if (filter(entry.section)) {
                         acc.push(entry);
                     } else if (matchingItems.length > 0) {
-                        acc.push(Object.assign({}, entry, { items: matchingItems }));
+                        acc.push(Object.assign({}, entry, {
+                            items: matchingItems
+                        }));
                     }
                     return acc;
                 }, []);
@@ -85,7 +90,7 @@ SidebarItemContainer {
 
                     StyledRect {
                         id: sectionHeaderBackground
-                        implicitWidth: children[1]?.implicitWidth + (Padding.huge * 2)
+                        implicitWidth: children[0]?.implicitWidth + (Padding.huge * 2)
                         implicitHeight: 40
                         radius: Rounding.huge
                         color: Colors.colPrimaryContainer
@@ -121,7 +126,7 @@ SidebarItemContainer {
 
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: (mouse) => {
+                            onClicked: mouse => {
                                 if (root.currentCategory.length > 0) {
                                     var pos = mapToItem(backArrow, mouse.x, mouse.y);
                                     if (pos.x >= -4 && pos.x < backArrow.width + 4 && pos.y >= -4 && pos.y < backArrow.height + 4) {
@@ -150,21 +155,21 @@ SidebarItemContainer {
                     Repeater {
                         id: itemsRepeater
                         model: ScriptModel {
-                            values: !root.showCategories ? modelData.items : []
+                            values: !root.showCategories ? modelData.items.filter(i => (i.visible ?? true)) : []
                         }
                         delegate: SettingsItem {
                             required property var modelData
                             required property int index
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            topRadius: index === 0 ? Rounding.verylarge : Rounding.verytiny + 1
-                            bottomRadius: index === itemsRepeater.count - 1 ? Rounding.verylarge : Rounding.verytiny + 1
+                            count: itemsRepeater.count
                             color: Colors.colSurfaceContainerHigh
 
                             icon: modelData?.icon ?? "settings"
                             name: modelData?.name ?? ""
                             description: modelData?.hint ?? ""
-
+                            widget: modelData?.widget
+                            widgetProps: modelData?.widgetProps
                             key: modelData?.key ?? ""
                             type: modelData?.type ?? "switch"
                             store: modelData?.store ?? false
@@ -182,7 +187,6 @@ SidebarItemContainer {
 
                             values: modelData?.values ?? []
                             fillHeight: modelData?.fillHeight ?? false
-                            visible: modelData?.visible ?? true
                             colors: root.colors
                         }
                     }

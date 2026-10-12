@@ -8,7 +8,7 @@ import qs.services
 BottomDialog {
     id: root
 
-    collapsedHeight: 440
+    baseHeight: 440
 
     contentItem: ColumnLayout {
         anchors.fill: parent
