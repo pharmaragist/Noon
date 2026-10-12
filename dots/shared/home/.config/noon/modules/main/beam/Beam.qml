@@ -22,7 +22,6 @@ Variants {
         readonly property string revealReason: Globals.main.beam.reason
         readonly property bool reveal: Globals.main.beam.show
         readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
-        readonly property alias containsDrag: dropArea.containsDrag
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})
 
@@ -169,17 +168,6 @@ Variants {
             target: popup
             transparency: 0.8
             show: popup?.shown ?? false
-        }
-
-        StyledRectangularShadow {
-            target: bg
-            // hidden during morph: re-blurring a resizing target every frame
-            // is the stutter source; fades in once the shape has landed
-            show: root.reveal && (root.currentModeData?.shadow ?? true) && !(root.currentModeData?.transparent ?? true) && bg.grow > 0.9
-            transparency: 0.85
-            Behavior on opacity {
-                Anim {}
-            }
         }
 
         BeamBg {

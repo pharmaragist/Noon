@@ -66,6 +66,14 @@ Scope {
         function toggle_bar_mode() {
             BarData.toggleLayout();
         }
+        //* Save current bar layout as preset by name.
+        function save_bar_preset(name: string) {
+            BarData.savePreset(name);
+        }
+        //* Load a bar preset (layout) from saved ones in config.
+        function load_bar_preset(name: string, orientation: string) {
+            BarData.loadPreset(name, orientation);
+        }
         //* Swap bar between top/bottom (or left/right when vertical).
         function swap_bar_position() {
             BarData.swapPosition();

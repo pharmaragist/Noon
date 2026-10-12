@@ -18,6 +18,7 @@ Item {
     property bool multipleNotifications: notificationCount > 1
     property bool expanded: false
     property bool popup: false
+    property bool omitOnDestroy: false
     property real padding: Padding.verylarge
     property int radius: Rounding.verylarge
     property color color: Colors.colLayer2
@@ -31,14 +32,18 @@ Item {
     property var dragIndexDiff: Math.abs(parentDragIndex - index)
     property real xOffset: dragIndexDiff == 0 ? Math.max(0, parentDragDistance) : parentDragDistance > dragConfirmThreshold ? 0 : dragIndexDiff == 1 ? Math.max(0, parentDragDistance * 0.3) : dragIndexDiff == 2 ? Math.max(0, parentDragDistance * 0.1) : 0
 
-    function destroyWithAnimation() {
+    function destroyWithAnimation(omit = root.popup) {
+        root.omitOnDestroy = omit;
         root.qmlParent.resetDrag();
         background.anchors.leftMargin = background.anchors.leftMargin;
         destroyAnimation.running = true;
     }
-    Component.onCompleted: NoonUtils.inlineTimer(() => {
-        destroyWithAnimation();
-    }, Mem.options.osd.timeout ?? 3000)
+    Component.onCompleted: {
+        if (root.popup)
+            NoonUtils.inlineTimer(() => {
+                root.destroyWithAnimation(true);
+            }, Mem.options.osd.timeout ?? 3000);
+    }
     SequentialAnimation {
         id: destroyAnimation
         running: false
@@ -51,7 +56,10 @@ Item {
         onFinished: () => {
             root.notifications.forEach(notif => {
                 Qt.callLater(() => {
-                    Notifications.discardNotification(notif.notificationId);
+                    if (root.omitOnDestroy)
+                        Notifications.omitNotification(notif.notificationId);
+                    else
+                        Notifications.dismissNotification(notif.notificationId);
                 });
             });
         }
@@ -214,6 +222,7 @@ Item {
                         notificationObject: modelData
                         expanded: root.expanded
                         onlyNotification: (root.notificationCount === 1)
+                        popup: root.popup
                         opacity: (!root.expanded && index == 1 && root.notificationCount > 2) ? 0.5 : 1
                         visible: root.expanded || (index < 2)
                         anchors.left: parent?.left

@@ -11,8 +11,7 @@ StackView {
     replaceEnter: enter
     replaceExit: exit
 
-    Transition {
-        id: enter
+    property var enter: Transition {
         ParallelAnimation {
             Anim {
                 property: "scale"
@@ -26,8 +25,7 @@ StackView {
             }
         }
     }
-    Transition {
-        id: exit
+    property var exit: Transition {
         ParallelAnimation {
             Anim {
                 property: "scale"

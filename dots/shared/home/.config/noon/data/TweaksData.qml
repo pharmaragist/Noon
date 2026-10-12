@@ -469,6 +469,14 @@ QtObject {
             "items": [
                 {
                     "icon": "palette",
+                    "name": "Beam Default State",
+                    "type": "combobox",
+                    "values": Object.keys(BeamData?.registry ?? {}),
+                    "hint": "Change Default state for beam",
+                    "key": "beam.behavior.defaultState"
+                },
+                {
+                    "icon": "palette",
                     "name": "Beam Default Theme",
                     "type": "combobox",
                     "values": Object.keys(BeamData?.availableDefaultThemes ?? {}),

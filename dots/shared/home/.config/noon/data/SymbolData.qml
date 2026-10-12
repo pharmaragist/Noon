@@ -13,7 +13,8 @@ QtObject {
             "firefox": "web",
             "vlc": "play_circle",
             "vlc": "play_circle",
-            "mpv": "video_library"
+            "mpv": "video_library",
+            "telegram": "chat_bubble"
         })
 
     function getGenericAppSymbolFor(cls) {

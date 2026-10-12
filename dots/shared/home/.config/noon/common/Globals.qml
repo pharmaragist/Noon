@@ -96,7 +96,7 @@ Singleton {
         Component.onCompleted: {
             if (!Mem.ready)
                 return;
-            Quickshell.watchFiles = Mem.options.desktop.shell.hotReload
+            Quickshell.watchFiles = Mem.options.desktop.shell?.hotReload ?? false
             FirstRunService.init();
             TimerService.reload();
             ClipboardService.refresh();

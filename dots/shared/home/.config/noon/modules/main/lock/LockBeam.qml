@@ -10,8 +10,11 @@ Item {
     id: root
     z: 999
     required property var context
+    property bool wasUnlocking: false
+    property bool failing: false
+    property real shakeX: 0
     implicitHeight: 65
-    implicitWidth: Sizes.beam.normal.width
+    implicitWidth: 450
 
     anchors {
         bottom: parent.bottom
@@ -19,16 +22,50 @@ Item {
         bottomMargin: -60 + Sizes.elevationMargin
     }
 
+    function shake() {
+        failing = true;
+        shakeAnim.restart();
+    }
+
+    Connections {
+        target: root.context
+
+        function onUnlockInProgressChanged() {
+            const inProgress = root.context.unlockInProgress;
+            if (!inProgress && root.wasUnlocking)
+                root.shake();
+            root.wasUnlocking = inProgress;
+        }
+    }
+
+    SequentialAnimation {
+        id: shakeAnim
+        NumberAnimation { target: root; property: "shakeX"; to: -14; duration: 50 }
+        NumberAnimation { target: root; property: "shakeX"; to: 14; duration: 70 }
+        NumberAnimation { target: root; property: "shakeX"; to: -10; duration: 60 }
+        NumberAnimation { target: root; property: "shakeX"; to: 10; duration: 60 }
+        NumberAnimation { target: root; property: "shakeX"; to: 0; duration: 50 }
+        ScriptAction {
+            script: {
+                root.failing = false;
+                if (inputField.text.length > 0)
+                    inputField.clear();
+                inputField.forceActiveFocus();
+            }
+        }
+    }
+
     StyledRect {
         id: bg
 
         z: 99
         implicitHeight: 65
-        implicitWidth: Sizes.beam.normal.width
+        implicitWidth: 400
         radius: Rounding.full
         color: Colors.colLayer0
-        
+
         anchors.centerIn: parent
+        anchors.horizontalCenterOffset: root.shakeX
 
         Item {
             id: icon
@@ -88,7 +125,7 @@ Item {
                 leftMargin: Padding.large
                 margins: Padding.normal
             }
-            enabled: !root.context.unlockInProgress
+            enabled: !root.context.unlockInProgress && !root.failing
             leftPadding: Padding.massive * 1.5
             rightPadding: Padding.massive * 1.5
             inputMethodHints: Qt.ImhSensitiveData
@@ -108,7 +145,7 @@ Item {
             id: enter
             buttonRadius: height / 2
             materialIcon: "arrow_upward"
-            enabled: !root.context.unlockInProgress
+            enabled: !root.context.unlockInProgress && !root.failing
             toggled: inputField.text.length > 0
             implicitSize: 45
             releaseAction: () => {

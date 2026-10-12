@@ -62,13 +62,20 @@ Singleton {
         return i !== -1 ? notifServer.trackedNotifications.values[i] : null;
     }
 
-    function discardNotification(id) {
+    function omitNotification(id) {
+        if (root.list.some(n => n.notificationId === id && n.popup))
+            states.list = root.list.map(n => n.notificationId === id ? Object.assign({}, n, {
+                popup: false
+            }) : n);
+    }
+
+    function dismissNotification(id) {
         if (root.list.some(n => n.notificationId === id))
             states.list = root.list.filter(n => n.notificationId !== id);
         serverNotif(id)?.dismiss();
     }
 
-    function discardAllNotifications() {
+    function dismissAllNotifications() {
         states.list = [];
         notifServer.trackedNotifications.values.forEach(n => n.dismiss());
     }
@@ -78,7 +85,7 @@ Singleton {
         const action = srv?.actions.find(a => a.identifier === identifier);
         if (action)
             action.invoke();
-        discardNotification(id);
+        dismissNotification(id);
     }
 
     Component.onCompleted: {
@@ -107,7 +114,7 @@ Singleton {
             if (!root.popupInhibited) {
                 newNotif.popup = true;
                 NoonUtils.inlineTimer(() => {
-                    newNotif.popup = false;
+                    root.omitNotification(newNotif.notificationId);
                 }, Math.max(Mem.options.osd.timeout ?? 3000, notification.expireTimeout));
             }
 

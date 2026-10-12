@@ -8,36 +8,61 @@ import qs.common.functions
 
 ContentViewItem {
     id: view
-
+    readonly property real toolSize: 60
+    readonly property var systemTools: [
+        {
+            name: "update",
+            icon: "refresh",
+            action: () => {
+                NoonUtils.runSystemUpdate();
+            }
+        },
+    ]
     PanelRect {
         id: bg
         color: Colors.colLayer0
-        // explicit cell math instead of layout implicits: each ToolItem is
-        // exactly 75x75, so size stays rock-solid while squeezed/async loading
-        width: rep.count * 75 + Math.max(0, rep.count - 1) * row.spacing + Padding.massive
-        height: 75 + Padding.huge
+        width: row.implicitWidth + Padding.massive
+        height: view.toolSize + Padding.veryhuge
         radius: Rounding.normal
 
         RowLayout {
             id: row
             anchors.centerIn: parent
-            spacing: Padding.large
+            spacing: Padding.normal
 
             Repeater {
                 id: rep
-                model: [...Mem.options.beam.content.quickActionsOptions]
-                ToolItem {
-                    required property var modelData
-                    implicitSize: 75
-                    url: modelData?.url ?? ""
-                    tooltip: modelData?.tooltip ?? ""
-                    name: modelData?.name ?? TextUtils.getDomain(this.url)
-                    mIcon: modelData?.icon ?? ""
-                    downAction: () => {
-                        const _action = modelData?.url ? NoonUtils.open(modelData.url) : modelData.action();
-                        if (!!_action)
-                            _action();
-                        view.dismiss();
+                model: [...view.systemTools, "SEPARATOR", ...Mem.options.beam.content.quickActionsBookmarks]
+                StyledLoader {
+                    sourceComponent: modelData === "SEPARATOR" ? separator : tool
+                    width: view.toolSize
+                    height: view.toolSize
+                    binds: {
+                        "toolData": () => modelData
+                    }
+                    Component {
+                        id: separator
+                        VerticalSeparator {
+                            implicitHeight: 50
+                            implicitWidth: 2
+                        }
+                    }
+                    Component {
+                        id: tool
+                        ToolItem {
+                            property var toolData
+                            implicitSize: view.toolSize
+                            url: toolData?.url ?? ""
+                            tooltip: toolData?.tooltip ?? ""
+                            name: toolData?.name ?? TextUtils.getDomain(this.url)
+                            mIcon: toolData?.icon ?? ""
+                            downAction: () => {
+                                const _action = toolData?.url ? NoonUtils.open(toolData.url) : toolData.action();
+                                if (!!_action)
+                                    _action();
+                                view.dismiss();
+                            }
+                        }
                     }
                 }
             }

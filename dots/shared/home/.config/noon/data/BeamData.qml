@@ -16,7 +16,7 @@ Singleton {
     property var suggestedApp: null
     property string activeState: defaultState ?? "launch"
     property string activeSubState: ""
-    property var registry: rebuildRegistry()
+    property var registry: ({})
 
     readonly property string defaultState: Mem.options.beam.behavior?.defaultState ?? "launch"
     readonly property string cleanQuery: query.substring(activeState === defaultState ? 0 : config?.prefix?.length)
@@ -24,6 +24,11 @@ Singleton {
     readonly property var subConfig: config?.subStates ? config.subStates[activeSubState] : null
     readonly property var rawBeamPlugins: PluginsManager?.beamPlugins
     readonly property list<string> availableAnimationStyles: ["slidebottom", "expo", "springPop", "glide"]
+    property bool _building: false
+
+    onDefaultStateChanged: rebuildRegistry()
+    Component.onCompleted: rebuildRegistry()
+    onRegistryChanged: rebuildRegistry()
 
     onQueryChanged: {
         if (query && query.length === 0) {
@@ -477,11 +482,14 @@ Singleton {
     }
 
     function rebuildRegistry() {
+        if (_building) return;
+        _building = true
         let plugins = buildPlugins();
         let original = [mainContent, plugins];
         if (Mem.options.beam.behavior.enableOldContent)
             original.push(root.oldContent);
         registry = Object.assign({}, ...original);
+        _building = false
     }
 
     function executeCommand() {

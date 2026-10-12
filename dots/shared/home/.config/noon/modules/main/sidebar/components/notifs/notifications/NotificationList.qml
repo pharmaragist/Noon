@@ -72,7 +72,7 @@ LayerRect {
             NotificationStatusButton {
                 buttonIcon: "clear_all"
                 buttonText: qsTr("Clear")
-                onClicked: () => Notifications.discardAllNotifications()
+                onClicked: () => Notifications.dismissAllNotifications()
             }
         }
     }

@@ -6,21 +6,24 @@ import Qt5Compat.GraphicalEffects
 import qs.common
 import qs.common.widgets
 
-PanelRect {
+Item {
     id: root
     readonly property alias currentItem: stack.currentItem
     readonly property alias body: body
     property color bodyColor: Colors.colBackground
     property bool restTransparent: false
+    // plain props: root is positioning only, StyledRect machinery unused
+    property int topRadius: 0
+    property int bottomRadius: 0
+    property int animationDuration: 300
     // transparent modes rest see-through but pour opaque, melting over the
     // exact window the content wells up; opaque modes hold the solid.
     property color _liquidColor: root.restTransparent ? Qt.rgba(root.bodyColor.r, root.bodyColor.g, root.bodyColor.b, 1 - ss(0.55, 1.0, root.grow)) : root.bodyColor
+    // shadow duty fully on the gradient pool below: continuous bindings,
+    // nothing to pop, gate, or fade, zero blur passes at any point.
     property bool reveal: false
     // root is an invisible footprint at target size; `body` paints the shape.
-    // animations off: footprint snaps, springs below drive everything.
-    color: "transparent"
-    clip: false
-    enableAnimations: false
+    // footprint snaps, springs below drive everything.
     property url contentSource: ""
     signal contentLoaded(var item)
     property int elevationValue: 0
@@ -143,8 +146,10 @@ PanelRect {
     property real growC: Math.min(1, root.grow)
 
     // puddle geometry: full panel-width thin lens at the screen edge
+    // (kept: body still resolves it if morph ever dips under 1)
     property real _lakeW: root._targetW
     property real _lakeH: 28
+
 
     Behavior on morph {
         SpringAnimation {
@@ -209,7 +214,7 @@ PanelRect {
     // clears the full rewind tail with margin for slow springs.
     Timer {
         id: clearDelay
-        interval: 800
+        interval: 950
         onTriggered: if (!root.reveal) {
             stack.clear();
             Globals.main.beam.reason = "default";
@@ -260,11 +265,33 @@ PanelRect {
         }
     }
 
+    // pond rig: bound shape staging the drop's birth.
+    // THE shadow: gradient ellipse tracking the water every frame. Carries
+    // full duty now that the blur halo is gone — bumped slightly to hold
+    // the panel at rest on its own.
+    RadialGradient {
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: root.height - 19
+        width: body.width * 0.8 + 30
+        height: 30
+        horizontalRadius: width / 2
+        verticalRadius: height / 2
+        opacity: 0.3
+        gradient: Gradient {
+            GradientStop {
+                position: 0.0
+                color: Colors.colShadow
+            }
+            GradientStop {
+                position: 1.0
+                color: "transparent"
+            }
+        }
+    }
+
     // visible liquid shape, bottom-pinned so it grows upward.
     // puddle -> ball -> panel drawn as ONE path (bg Shape + content clipped
-    // to the identical path — zero sync cost). Same drivers, same mapping;
-    // only the renderer changed from rect to path, so the top edge is now
-    // free for wave duty next. Stack still emerges from the pour.
+    // to the identical path — zero sync cost).
     Item {
         id: body
         anchors.horizontalCenter: parent.horizontalCenter
@@ -274,6 +301,16 @@ PanelRect {
 
         Shape {
             anchors.fill: parent
+            layer.enabled: root.reveal || root.dragging
+            layer.effect: DropShadow {
+                transparentBorder: true
+                radius: 24
+                samples: 33
+                spread: 0.2
+                color: Colors.t(Colors.colShadow, 0.85)
+                verticalOffset: 5
+                cached: true
+            }
             ShapePath {
                 fillColor: root._liquidColor
                 strokeColor: "transparent"

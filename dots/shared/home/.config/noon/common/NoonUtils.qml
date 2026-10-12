@@ -104,7 +104,7 @@ Singleton {
             player.stop();
 
         player.loops = repeats;
-        player.audioOutput.volume = obj?.volume ?? 0.15;
+        player.audioOutput.volume = obj?.volume ?? 0.1;
         player.source = path;
         player.play();
     }
@@ -115,7 +115,7 @@ Singleton {
                 name: sound,
                 pack: "ui",
                 repeats: 1,
-                volume: 0.15
+                volume: 0.01
             });
         }
     }

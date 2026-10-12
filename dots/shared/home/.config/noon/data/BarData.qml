@@ -43,6 +43,7 @@ Singleton {
         "circBattery": "MinimalBattery",
         "weather": "WeatherIndicator",
         "media": "VMedia",
+        "detailedMedia": "DetailedMedia",
         "visualizer": "VisualizerPill",
         "clock": "VClockWidget",
         "keyboard": "KeyboardLayout",
@@ -64,42 +65,25 @@ Singleton {
         "separator": "HSeparator"
     }
 
-    function loadPreset(id, orientation) {
-        const preset = currentInfo.presets[orientation].find(p => p.name === id);
+    function loadPreset(id, orientation = states.currentLayout) {
+        const info = settings[orientation];
+        const preset = info?.presets?.find(p => p.name === id);
         if (!preset)
             return;
-        ObjectUtils.applyToQtObject(root.settings[orientation[0] + "Map"], preset);
+        ObjectUtils.applyToQtObject(info?.map, preset);
     }
 
-    function saveCurrentPreset(id) {
-        const orientation = root.isVertical ? "vertical" : "horizontal";
-        const objMap = orientation[0] + "Map";
-        const currentSettings = root.settings[objMap];
-        const currentObjectData = ObjectUtils.toPlainObject(currentSettings);
-        const target = currentInfo.presets[orientation];
-        if (!target.find(p => p.name === id))
-            target.push(Object.assign({
-                name: id
-            }, currentObjectData));
+    function savePreset(id) {
+        const info = currentInfo;
+        const preset = ObjectUtils.toPlainObject(info.map);
+        const _preset = Object.assign({}, preset, {
+            "name": id
+        });
+        const exists = info.presets.findIndex(p => p.name.toLowerCase() === id.trim())
+        if (!exists)
+            info.presets.push(_preset)
     }
 
-    function savePreset(id, preset, orientation) {
-        const validOrientations = ["horizontal", "vertical"];
-        if (!preset) {
-            console.error("Given Preset Isn't Valid: ", JSON.stringify(preset));
-            return;
-        } else if (validOrientations.indexOf(orientation) === -1) {
-            console.error("Given Orientation Isn't Valid: ", JSON.stringify(orientation));
-            return;
-        }
-        const objMap = orientation[0] + "Map";
-        const store = currentInfo.presets[objMap];
-
-        const data = Object.assign({
-            name: id
-        }, preset);
-        store.push(data);
-    }
     /*
         Switches Between Vertical - Horizontal Layouts
     */

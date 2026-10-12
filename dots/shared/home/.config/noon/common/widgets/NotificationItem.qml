@@ -16,6 +16,7 @@ Item {
     property var notificationObject
     property bool expanded: false
     property bool onlyNotification: false
+    property bool popup: false
     property real fontSize: Fonts.sizes.small
     property real padding: onlyNotification ? 0 : 8
 
@@ -65,7 +66,10 @@ Item {
             to: root.width + root.dismissOvershoot
         }
         onFinished: () => {
-            Notifications.discardNotification(notificationObject.notificationId);
+            if (root.popup)
+                Notifications.omitNotification(notificationObject.notificationId);
+            else
+                Notifications.dismissNotification(notificationObject.notificationId);
         }
     }
 

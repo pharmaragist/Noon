@@ -145,14 +145,7 @@ JsonAdapter {
             property list<string> enabledApplets: ["music", "weather"]
         }
         property JO content: JO {
-            property list<var> quickActionsOptions: [
-                {
-                    name: "update",
-                    icon: "refresh",
-                    action: () => {
-                        NoonUtils.runSystemUpdate();
-                    }
-                },
+            property list<var> quickActionsBookmarks: [
                 {
                     url: "https://www.google.com"
                 },
@@ -163,13 +156,12 @@ JsonAdapter {
                     url: "https://www.reddit.com"
                 },
                 {
-                    url: "https://ww25.soap2day.day"
+                    url: "https://claude.ai/new"
                 },
                 {
-                    url: "https://ww25.soap2day.day"
-                }
+                    url: "https://gemini.google.com"
+                },
             ]
-
         }
     }
 
@@ -366,9 +358,35 @@ JsonAdapter {
         }
 
         property JO vertical: JO {
-            property list<var> presets: []
+            property list<var> presets: [
+                {
+                    "name": "default",
+                        "bottomArea": [
+                            "workspaces",
+                            "separator",
+                            "clock",
+                            "separator",
+                            "keyboard"
+                        ],
+                        "centerArea": [
+                        ],
+                        "spacing": 5,
+                        "topArea": [
+                            "materialStatusIcons",
+                            "inlineTray"
+                        ]
+                },
+                {
+                    "name": "centered",
+                    "spacing": 6,
+                    "bottomArea": ["keyboard","separator","materialStatusIcons"],
+                    "centerArea": ["media","separator","workspaces","separator","clock"],
+                    "topArea": ["logo","inlineTray"]
+                }
+            ]
 
             property JO map: JO {
+                property string name: "default"
                 property int spacing: 5
                 property list<string> topArea: ["materialStatusIcons", "inlineTray"]
                 property list<string> centerArea: []
