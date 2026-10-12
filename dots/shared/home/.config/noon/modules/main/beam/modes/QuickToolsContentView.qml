@@ -16,8 +16,13 @@ ContentViewItem {
             action: () => {
                 NoonUtils.runSystemUpdate();
             }
-        },
+        }
     ]
+    readonly property var urls: Mem.options.beam.content.quickActionsBookmarks.map(i => ({
+        isUrl: true,
+        url: i
+    }))
+
     PanelRect {
         id: bg
         color: Colors.colLayer0
@@ -32,7 +37,7 @@ ContentViewItem {
 
             Repeater {
                 id: rep
-                model: [...view.systemTools, "SEPARATOR", ...Mem.options.beam.content.quickActionsBookmarks]
+                model: [...view.systemTools, ...Mem.options.beam.content.quickActionsTools, "SEPARATOR", ...urls]
                 StyledLoader {
                     sourceComponent: modelData === "SEPARATOR" ? separator : tool
                     width: view.toolSize
@@ -52,12 +57,19 @@ ContentViewItem {
                         ToolItem {
                             property var toolData
                             implicitSize: view.toolSize
+                            isUrl: toolData?.isUrl ?? false
                             url: toolData?.url ?? ""
                             tooltip: toolData?.tooltip ?? ""
                             name: toolData?.name ?? TextUtils.getDomain(this.url)
                             mIcon: toolData?.icon ?? ""
                             downAction: () => {
-                                const _action = toolData?.url ? NoonUtils.open(toolData.url) : toolData.action();
+                                let _action = null
+                                if (toolData?.isUrl)
+                                    _action = () => NoonUtils.open(toolData?.url)
+                                else if (typeof toolData?.action === "function")
+                                    _action = toolData.action
+                                else
+                                    _action = () => NoonUtils.execDetached(toolData?.action ?? "")
                                 if (!!_action)
                                     _action();
                                 view.dismiss();
@@ -72,6 +84,7 @@ ContentViewItem {
     component ToolItem: RippleButton {
         id: root
         buttonRadius: Rounding.huge
+        property bool isUrl: false
         property string tooltip: ""
         property string name: ""
         property string mIcon: ""
@@ -85,7 +98,7 @@ ContentViewItem {
                 height: 50
                 width: 50
                 Layout.alignment: Qt.AlignCenter
-                sourceComponent: root.url.length > 0 ? favIcon : icon
+                sourceComponent: root.isUrl ? favIcon : icon
 
                 Component {
                     id: icon

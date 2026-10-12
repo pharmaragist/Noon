@@ -145,23 +145,8 @@ JsonAdapter {
             property list<string> enabledApplets: ["music", "weather"]
         }
         property JO content: JO {
-            property list<var> quickActionsBookmarks: [
-                {
-                    url: "https://www.google.com"
-                },
-                {
-                    url: "https://www.youtube.com"
-                },
-                {
-                    url: "https://www.reddit.com"
-                },
-                {
-                    url: "https://claude.ai/new"
-                },
-                {
-                    url: "https://gemini.google.com"
-                },
-            ]
+            property list<string> quickActionsBookmarks: [ "https://www.google.com","https://www.youtube.com","https://www.reddit.com","https://claude.ai/new","https://gemini.google.com"]
+            property list<var> quickActionsTools: []
         }
     }
 

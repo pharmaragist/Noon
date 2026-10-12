@@ -27,41 +27,49 @@ StyledRect {
         }
     }
 
+    function shuffle(list) {
+        const arr = list.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+        }
+        return arr;
+    }
+
     ScriptModel {
         id: filteredModel
         values: {
-            const query = (root.debouncedQuery ?? "").trim();
+            const query = (root.debouncedQuery ?? "").trim().toLowerCase();
+            const shuffleEnabled = Mem.states?.services?.beats?.shuffleTracks ?? false;
             const all = BeatsService.library || [];
+            const startsMatches = [];
+            const includesMatches = [];
 
-            // Prepare entries for dual-key fuzzy searching
-            const processed = [];
             for (let i = 0; i < all.length; i++) {
                 const t = all[i];
-                if (!t)
+                if (!t || typeof t !== "object" || !(t.title || t.file))
                     continue;
-                processed.push({
-                    "title": Fuzzy.prepare(t.title ?? ""),
-                    "artist": Fuzzy.prepare(t.artist ?? ""),
-                    "info": t
-                });
-            }
 
-            // Fuzzy search across both title and artist keys
-            const results = Fuzzy.go(query, processed, {
-                all: true,
-                keys: ["title", "artist"]
-            });
-
-            const matched = [];
-            for (let i = 0; i < results.length; i++) {
-                const res = results[i];
-                const item = res?.obj?.info ?? res?.target?.info ?? res?.obj ?? res;
-                if (item && typeof item === "object" && (item.title || item.file)) {
-                    matched.push(item);
+                if (query.length === 0) {
+                    startsMatches.push(t);
+                    continue;
                 }
+
+                const title = (t.title ?? "").toLowerCase();
+                const artist = (t.artist ?? "").toLowerCase();
+
+                if (title.startsWith(query) || artist.startsWith(query))
+                    startsMatches.push(t);
+                else if (title.includes(query) || artist.includes(query))
+                    includesMatches.push(t);
             }
 
-            return matched;
+            if (query.length === 0 && shuffleEnabled)
+                return root.shuffle(startsMatches);
+
+            return startsMatches.concat(includesMatches);
         }
     }
 

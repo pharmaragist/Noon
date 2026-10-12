@@ -93,13 +93,6 @@ func destName(archive, fallback string) string {
 
 func ensureArchive(ctx context.Context, provider, contentId string, c ocs.Content, prog func(recv, total int64, phase string)) (string, error) {
 	dir := filepath.Join(download.CacheDir(), "downloads", provider, contentId)
-	if es, _ := os.ReadDir(dir); len(es) > 0 {
-		for _, e := range es {
-			if !e.IsDir() {
-				return filepath.Join(dir, e.Name()), nil
-			}
-		}
-	}
 	if len(c.Files) == 0 {
 		return "", fmt.Errorf("no downloads")
 	}
@@ -107,6 +100,10 @@ func ensureArchive(ctx context.Context, provider, contentId string, c ocs.Conten
 	if msg != "" {
 		return "", fmt.Errorf("%s", msg)
 	}
+	// ponytail: the dist branch is force-pushed under stable URLs, so a cached
+	// archive can silently go stale (same name, new bytes). Drop the old
+	// artifact and always re-fetch instead of trusting what is on disk.
+	os.RemoveAll(dir)
 	os.MkdirAll(dir, 0755)
 	name := dl.Name
 	if name == "" {

@@ -10,9 +10,9 @@ Singleton {
     function init(force = false) {
         if (!force && !Mem.states.desktop.firstRun)
             return;
-
         doFlags();
         doXDPH();
+        doPlugins()
         doPaths();
         doEnv();
         WallpaperService.applyWallpaper(Paths.wallpapers.defaultBg);
@@ -64,5 +64,20 @@ Singleton {
             screencopy { custom_picker_binary = ${config}/noon/scripts/screen_share_watcher }
         `);
         console.warn("Screen Sharing Hack is Set");
+    }
+    function doPlugins() {
+        const content = `
+        {
+          "static": [
+            {
+              "id": "noon-plugins",
+              "name": "Noon Plugins",
+              "index": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/plugins.json"
+            }
+          ]
+        }
+        `
+        Paths.methods.createFileWith(content, Paths.shellConfigs + "/user/store-providers.json")
+        console.warn("Community Plugins Mirror is Set");
     }
 }

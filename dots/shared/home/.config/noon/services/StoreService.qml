@@ -303,7 +303,11 @@ Singleton {
     function ensureSearch(o, append, cb) {
         const key = searchKeyFor(o.provider, o.query, o.xdgType, o.categoryIds, o.sort);
         const pg = append ? cache.page + 1 : 0;
-        if (!append && cache.searchCache[key]) {
+        // ponytail: static hubs are tiny and change on every push, so never
+        // serve their persisted page-0 result; unknown providers revalidate too.
+        const prov = cache.providers.find(p => p && p.id === o.provider);
+        const alwaysFresh = !prov || !!prov.static;
+        if (!append && !alwaysFresh && cache.searchCache[key]) {
             const hit = cache.searchCache[key];
             cache.items = hit.items;
             cache.hasMore = hit.hasMore;
@@ -397,7 +401,8 @@ Singleton {
             onRead: data => root.handleLine(data)
         }
     }
-     ConfigFileView {
+
+    ConfigFileView {
         id: cacheView
         state: false
         parentDir: "user/"

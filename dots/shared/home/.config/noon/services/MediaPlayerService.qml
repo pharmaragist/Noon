@@ -23,8 +23,14 @@ Singleton {
     readonly property string artist: player ? TextUtils.cleanMusicTitle(player.trackArtist) : "No Artist"
 
     readonly property var players: Mpris?.players?.values.filter(p => {
-        return !!p.dbusName && !Mem.beats.options.excludedPlayers.includes(p);
+        const hasDbus = !!p?.dbusName;
+        const title = p?.trackTitle?.toLowerCase() ?? "";
+        const notExcluded = !Mem.beats.options.excludedPlayers.includes(p.dbusName ?? p);
+        const hasValidTitle = title.length > 0 && !(/undefined|unknown/.test(title));
+
+        return hasDbus && notExcluded && hasValidTitle;
     })
+
     readonly property QtObject symbolData: SymbolData {}
 
     onPlayersChanged: root.selectedPlayerIndex = root.playerIndex()
@@ -66,7 +72,8 @@ Singleton {
     }
 
     function getIconForPlayer(p, fallback = "music_note") {
-        if (!p) return fallback;
+        if (!p)
+            return fallback;
 
         const dic = symbolData?.mediaMap ?? ({});
         const criteria = ["identity", "desktopEntry", "dbusName"];
