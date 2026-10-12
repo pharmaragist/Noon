@@ -23,8 +23,8 @@ Item {
     }
 
     Anim on y {
-        from: Screen.height + 100 
-        to: (Screen?.height - (height * 1.4)) / 2
+        from: Screen.height + 100
+        to: (Screen?.height - (height )) / 2
         duration: 450
     }
 
@@ -63,7 +63,7 @@ Item {
 
         Shape {
             _shape: "Pill"
-            implicitSize: 180
+            implicitSize: 140
             color: Colors.colTertiaryContainer
             anchors.centerIn: parent
 
@@ -81,7 +81,7 @@ Item {
             anchors.centerIn: parent
             color: Colors.colOnTertiaryContainer
             text: DateTimeService.time
-            font: Fonts.request("numbers", 38)
+            font: Fonts.request("numbers", 28)
         }
     }
 
@@ -99,7 +99,7 @@ Item {
 
         Shape {
             shape: MaterialShape.Shape.Cookie6Sided
-            implicitSize: 140
+            implicitSize: 100
             color: Colors.colSecondary
             anchors.centerIn: parent
 
@@ -116,14 +116,14 @@ Item {
             color: Colors.colOnSecondary
             anchors.centerIn: parent
             icon: "lock"
-            iconSize: 50
+            iconSize: 35
         }
     }
 
     Shape {
         id: shape
         anchors.centerIn: parent
-        implicitSize: 550
+        implicitSize: 400
         Shape {
             anchors.centerIn: parent
             clip: true
@@ -145,29 +145,9 @@ Item {
         }
     }
 
-    CLayout {
-        anchors {
-            top: shape.bottom
-            horizontalCenter: shape.horizontalCenter
-            topMargin: Padding.large
-        }
-
-        LockControls {
-            Layout.alignment: Qt.AlignHCenter
-        }
-
-        StyledText {
-            id: greets
-            text: "Welcome Back " + TextUtils.capitalizeFirstLetter(SysInfoService.username) + "!"
-            color: Colors.colOnLayer0
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            font: Fonts.request("title", Fonts.sizes.title * 1.25)
-        }
-    }
     component Shape: MaterialShape {
         _shape: "Cookie9Sided"
-        implicitSize: 450
+        implicitSize: 320
         color: Colors.colSecondaryContainer
     }
 }
