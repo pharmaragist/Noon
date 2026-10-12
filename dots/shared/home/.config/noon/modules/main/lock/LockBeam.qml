@@ -5,6 +5,8 @@ import Quickshell
 import qs.common
 import qs.common.widgets
 import qs.services
+import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 Item {
     id: root
@@ -64,46 +66,39 @@ Item {
 
             Item {
                 id: icon
-                implicitWidth: 42
-                implicitHeight: 42
+                implicitWidth: 46
+                implicitHeight: 46
                 Layout.alignment: Qt.AlignVCenter
-                MaterialShape {
-                    z: 999
-                    implicitSize: 42
-                    _shape: "Cookie9Sided"
+
+                Shape {
+                    id: shape
                     anchors.centerIn: parent
+                    implicitSize: 46
+                    color: inputField.focus ? Colors.colPrimary : "transparent"
 
-                    readonly property string inputText: inputField.text
-
-                    color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
-                    onInputTextChanged: if (inputField.text.length === 0)
-                        rotation = 0
-
-                    RotationAnimation on rotation {
-                        running: inputField.text.length > 0
-                        loops: Animation.Infinite
-                        from: 0
-                        to: 360
-                        duration: 9000
-                        easing.type: Easing.Linear
-                    }
                     Behavior on color {
                         CAnim {}
                     }
-                    Behavior on rotation {
-                        Anim {}
-                    }
-                }
 
-                StyledText {
-                    z: 999
-                    anchors.centerIn: parent
-                    color: inputField.focus ? Colors.colOnPrimary : Colors.colOnLayer0
-                    animateChange: true
-                    text: HyprlandService.keyboardLayoutShortName
-                    font: Fonts.request("title", 18, {
-                        weight: 900
-                    })
+                    Shape {
+                        anchors.centerIn: parent
+                        clip: true
+                        StyledImage {
+                            anchors.fill: parent
+                            source: SysInfoService?.userPfp
+                        }
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            maskEnabled: true
+                            maskSource: Shape {}
+                        }
+                    }
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowBlur: 50
+                        shadowColor: "white"
+                    }
                 }
             }
 
@@ -180,5 +175,10 @@ Item {
     StyledRectangularShadow {
         target: bg
         transparency: 0.85
+    }
+    component Shape: MaterialShape {
+        _shape: "Cookie9Sided"
+        implicitSize: 40
+        color: Colors.colSecondaryContainer
     }
 }
