@@ -27,19 +27,18 @@ RedunduntMultiViewPanel {
             "component": "pages/LocalTracksPage"
         },
         {
-            "icon": "tune",
-            "name": "EQ",
-            "preload": "expanded",
-            "preloadData": root.expanded,
-            "component": "pages/EQPage"
-        },
-        {
             "icon": "for_you",
             "name": "Feed",
             "preload": "expanded",
             "preloadData": root.expanded,
             "component": "pages/HitsPage"
-        }
+        },
+        {
+            "icon": "graphic_eq",
+            "name": "Eq",
+            "component": "pages/Eq"
+        },
+
     ]
     Rectangle {
         id: backdrop

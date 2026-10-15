@@ -11,7 +11,6 @@ RippleButton {
     property bool materialIconFill: true
     property alias iconColor: symbol.color
     property alias iconSize: symbol.font.pixelSize
-    property var colors: Colors
     property bool animateIcon: false
     buttonRadius: Rounding.normal
     colBackground: colors.colLayer2
