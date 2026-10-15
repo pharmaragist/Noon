@@ -4,7 +4,7 @@ import qs.common.widgets
 import qs.services
 
 StyledRect {
-    id:root
+    id: root
     color: "transparent"
     property real fill: 0
 
@@ -12,10 +12,18 @@ StyledRect {
         anchors.centerIn: parent
         readonly property var options: {
             "distro": distroComp,
-            "symbol": symbolComp
+            "symbol": symbolComp,
+            "profile": profileComp
         }
         sourceComponent: options[Mem.options.desktop.branding.logo] ?? symbolComp
     }
+
+    readonly property Component profileComp: ClippingShape {
+        toggled: root.fill > 0
+        implicitSize: 38
+        source: SysInfoService?.userPfp
+    }
+
 
     readonly property Component symbolComp: Symbol {
         icon: Mem.options.desktop.branding.materialSymbol ?? "spark"

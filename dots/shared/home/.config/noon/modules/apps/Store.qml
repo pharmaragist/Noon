@@ -146,11 +146,13 @@ FloatingWindow {
     }
 
     function init() {
-        try {
-            svc.ensureProviders();
-            svc.ensureCategories(selectedProvider);
-        } catch (e) {}
-        setRail(root.selectedCategory);
+        // ponytail: the first providers.list is an async RPC, so wait for it
+        // before picking the rail — otherwise the Plugins rail can toast
+        // "no plugin hub configured" on the very first open.
+        svc.ensureProviders((list, err) => {
+            svc.ensureCategories(root.selectedProvider);
+            root.setRail(root.selectedCategory);
+        });
     }
 
     function doSearch(text) {

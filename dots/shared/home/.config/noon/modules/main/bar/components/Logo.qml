@@ -14,6 +14,10 @@ BarGroup {
         implicitSize: root.implicitSize
         fill: hoverArea.containsMouse ? 1 : 0
     }
+    StyledToolTip {
+        content: "Open Beam ? "
+        extraVisibleCondition: hoverArea.containsMouse
+    }
     MouseArea {
         id: hoverArea
         anchors.fill: parent

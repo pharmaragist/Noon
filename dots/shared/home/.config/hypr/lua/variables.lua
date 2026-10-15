@@ -42,7 +42,7 @@ font_main = "Google Sans Flex"
 layout = "master"
 vertical = true
 debug_overlay = false
-cursor_theme = "Breeze_Light"
+cursor_theme = "MacOS-Tahoe-Cursor"
 cursor_size = 26
 animation_style = "springs"
 animation_scale = 1
@@ -50,7 +50,7 @@ animation_mode = "slidevert"
 direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
-bar_location = "left"
+bar_location = "right"
 bar_width = 50
 -- Monitors
 active_monitor = hl.get_active_monitor()

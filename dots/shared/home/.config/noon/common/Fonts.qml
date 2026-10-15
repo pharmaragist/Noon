@@ -18,7 +18,6 @@ Singleton {
         property string monospace: "Iosevka"
         property string emoji: "Noto Color Emoji"
         property string iconMaterial: "Material Symbols Rounded"
-        property list<string> preferredLayerClockFonts: ["Badeen Display", "Ndot 55", "Six Caps", "Alfa Slab One", "Notable", "Monoton", "Titan One", "Bebas Neue", "Rubik", "UnifrakturCook"]
     }
 
     readonly property JO sizes: JO {

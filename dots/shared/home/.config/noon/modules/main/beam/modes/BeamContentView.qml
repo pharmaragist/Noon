@@ -15,7 +15,7 @@ ContentViewItem {
 
     Item {
         id: content
-        width: Math.max(BeamData.activeHint?.length, inputField.text.length) > 25 ? 1000 : 470
+        width: Math.max(BeamData.activeHint?.length, inputField.text.length) > 18 ? 1000 : 375
         height: 70
         anchors.centerIn: parent
         function sendMessage() {

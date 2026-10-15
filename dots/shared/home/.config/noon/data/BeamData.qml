@@ -51,7 +51,7 @@ Singleton {
             description: "Sends Query to AI",
             icon: "thread_unread",
             shape: "Ghostish",
-            placeholder: "You Can Ask Me Any Thing ..",
+            placeholder: "Ask Me",
             showHint: false,
             hinter: () => "",
             executor: () => {

@@ -86,7 +86,7 @@ QtObject {
                     "hint": "Logo of the system",
                     "key": "desktop.branding.logo",
                     "type": "combobox",
-                    "values": ["distro", "symbol"]
+                    "values": ["distro", "symbol", "profile"]
                 },
                 {
                     "icon": "palette",

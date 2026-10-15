@@ -27,6 +27,13 @@ RedunduntMultiViewPanel {
             "component": "pages/LocalTracksPage"
         },
         {
+            "icon": "tune",
+            "name": "EQ",
+            "preload": "expanded",
+            "preloadData": root.expanded,
+            "component": "pages/EQPage"
+        },
+        {
             "icon": "for_you",
             "name": "Feed",
             "preload": "expanded",

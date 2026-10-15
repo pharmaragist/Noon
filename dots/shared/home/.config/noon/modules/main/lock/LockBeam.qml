@@ -64,42 +64,12 @@ Item {
             anchors.rightMargin: Padding.huge
             spacing: Padding.large
 
-            Item {
+            ClippingShape {
                 id: icon
-                implicitWidth: 46
-                implicitHeight: 46
+                toggled: inputField.focus
+                implicitSize: 46
+                source: SysInfoService?.userPfp
                 Layout.alignment: Qt.AlignVCenter
-
-                Shape {
-                    id: shape
-                    anchors.centerIn: parent
-                    implicitSize: 46
-                    color: inputField.focus ? Colors.colPrimary : "transparent"
-
-                    Behavior on color {
-                        CAnim {}
-                    }
-
-                    Shape {
-                        anchors.centerIn: parent
-                        clip: true
-                        StyledImage {
-                            anchors.fill: parent
-                            source: SysInfoService?.userPfp
-                        }
-                        layer.enabled: true
-                        layer.effect: MultiEffect {
-                            maskEnabled: true
-                            maskSource: Shape {}
-                        }
-                    }
-                    layer.enabled: true
-                    layer.effect: MultiEffect {
-                        shadowEnabled: true
-                        shadowBlur: 50
-                        shadowColor: "white"
-                    }
-                }
             }
 
             M3PasswordTextEntry {

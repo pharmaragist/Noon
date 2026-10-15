@@ -32,7 +32,7 @@ Item {
                 weight: Font.DemiBold
                 family: "Roboto"
             }
-            text: DateTimeService.gnome_format
+            text: DateTimeService.twelveHour ? DateTimeService.request("hh:mm ap") : DateTimeService.request("HH:mm")
         }
         MouseArea {
             id: _event_area
