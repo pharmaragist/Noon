@@ -87,4 +87,20 @@ Scope {
             NoonUtils.execDetached(["bash", Paths.scriptsDir + "/reload_shell.sh"]);
         }
     }
+
+    NpcHandler {
+        target: "mirsal"
+
+        function feedBookmarks(content: string) {
+            console.error("MIRSAL CALLED: ", content)
+            var data;
+            try {
+                data = JSON.parse(JSON.parse(content));
+            } catch (e) {
+                console.error("Failed to parse bookmarks: ", e);
+                return;
+            }
+            Mem.states.services.bookmarks.firefoxBookmarks = data;
+        }
+    }
 }
