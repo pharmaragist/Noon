@@ -59,7 +59,7 @@ Rectangle {
             StyledIconImage {
                 anchors.centerIn: parent
                 implicitSize: root.appIconSize
-                _source: root.appIcon
+                _source: root?.appIcon ?? ""
             }
         }
 

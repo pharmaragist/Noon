@@ -14,5 +14,5 @@ GButtonWithIcon {
     colBackground: "transparent"
     colBackgroundHover: Colors.colLayer0Hover
     colBackgroundActive: Colors.colLayer0Active
-    onPressed: NoonUtils.callIpc("nobuntu toggle_overview")
+    onPressed: Ipc.call(["nobuntu", "toggle_overview"])
 }

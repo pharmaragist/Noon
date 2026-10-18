@@ -5,7 +5,7 @@ import Quickshell
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 Item {
     id: panel
@@ -35,7 +35,6 @@ Item {
             previousCategory = category;
             return;
         }
-        contentStack.slideDirection = SidebarData.getCategoryDirection(previousCategory, category);
         contentStack.replace(null, SidebarData.getComponentPath(category));
         previousCategory = category;
     }
@@ -56,7 +55,7 @@ Item {
         implicitSize: 45
         materialIcon: "close"
         opacity: this.hovered ? 1 : 0.45
-        onClicked: NoonUtils.callIpc("sidebar dismiss_aux")
+        onClicked: Ipc.call(["sidebar", "dismiss_aux"])
     }
 
     ColumnLayout {
@@ -69,7 +68,6 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            slideDirection: 1
 
             onCurrentItemChanged: {
                 const _item = contentStack.currentItem;
@@ -77,7 +75,6 @@ Item {
                     return;
 
                 const binds = {
-                    "selectedTabIndex": () => panel.selectedTabIndex,
                     "searchQuery": () => searchBar.searchText,
                     "debouncedQuery": () => searchBar.debouncedQuery,
                     "detached": () => panel._detached,
@@ -102,6 +99,28 @@ Item {
 
                 if (_item.dismiss)
                     _item.dismiss.connect(panel.parentRoot.hide);
+
+                if ("selectedTabIndex" in _item) {
+                    const states = Mem.states.sidebar;
+                    const cached = states.tabIndexCache;
+                    const cacheIndex = () => {
+                        states.tabIndexCache = Object.assign({}, cached, {
+                            [panel.category]: _item.selectedTabIndex
+                        });
+                    };
+                    if (panel.category in cached)
+                        _item.selectedTabIndex = cached[panel.category];
+                    else
+                        cacheIndex();
+
+                    _item.onSelectedTabIndexChanged.connect(() => {
+                        cacheIndex();
+                    });
+                }
+
+                NoonUtils.inlineTimer(() => {
+                    panel.focusItem.forceActiveFocus();
+                }, 100);
             }
         }
 
@@ -113,7 +132,8 @@ Item {
             property string debouncedQuery: ""
 
             onSearchTextChanged: debounceTimer.restart()
-
+            onAccepted: if (root.contentItem && ("accepted" in root.contentItem))
+                root.contentItem.accepted()
             Timer {
                 id: debounceTimer
                 interval: 180

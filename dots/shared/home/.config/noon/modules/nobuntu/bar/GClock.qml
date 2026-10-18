@@ -32,14 +32,14 @@ Item {
                 weight: Font.DemiBold
                 family: "Roboto"
             }
-            text: DateTimeService.gnome_format
+            text: DateTimeService.twelveHour ? DateTimeService.request("hh:mm ap") : DateTimeService.request("HH:mm")
         }
         MouseArea {
             id: _event_area
             cursorShape: Qt.PointingHandCursor
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: NoonUtils.callIpc("nobuntu toggle_notifs")
+            onClicked: Ipc.call(["nobuntu", "toggle_notifs"])
         }
     }
 }

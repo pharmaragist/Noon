@@ -56,6 +56,5 @@ ShellRoot {
     }
 
     DeloadBanner {}
-    MCP {}
     GlobalIPC {}
 }

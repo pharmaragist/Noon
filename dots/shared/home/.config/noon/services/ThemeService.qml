@@ -10,13 +10,6 @@ Singleton {
     id: root
 
     readonly property var modes: [
-        ...(Mem.looks.showMatugenSmartScheme ? [
-                {
-                    "name": "Smart",
-                    "value": "scheme-smart",
-                    "icon": "psychology"
-                }
-            ] : []),
         {
             "name": "Tonal Spot",
             "value": "scheme-tonal-spot",

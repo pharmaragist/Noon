@@ -1,20 +1,18 @@
 import QtQuick
 import QtQuick.Controls
-import Quickshell
-import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
+import qs.common.functions
 
 TextField {
     id: folderPathField
-
+    readonly property var methods: TextUtils
     property var colors: Colors
     property alias radius: rect.radius
     property alias bg: rect
     placeholderTextColor: colors.colOnLayer1
     color: colors.colOnLayer1
     Keys.onEscapePressed: focus = false
-    objectName: "searchInput"
     placeholderText: "Search..."
     selectionColor: colors.colSecondaryContainer
     selectedTextColor: colors.colOnSecondaryContainer

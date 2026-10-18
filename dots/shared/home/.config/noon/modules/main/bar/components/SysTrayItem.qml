@@ -6,7 +6,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 MouseArea {
     id: root
@@ -53,8 +53,8 @@ MouseArea {
             trayItemMenuHandle: root.item.menu
             anchor {
                 item: root
-                edges: Mem.options.bar.behavior.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
-                gravity: Mem.options.bar.behavior.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                edges: BarData.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                gravity: BarData.position === "bottom" ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
             }
 
             onMenuOpened: window => root.menuOpened(window)

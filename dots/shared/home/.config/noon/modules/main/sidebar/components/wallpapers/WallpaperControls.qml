@@ -5,7 +5,7 @@ import qs.common
 import qs.common.functions
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 BottomDialog {
     id: root
@@ -15,7 +15,7 @@ BottomDialog {
     z: 9999
     bottomAreaReveal: true
     hoverHeight: 230
-    collapsedHeight: 70
+    baseHeight: 70
     enableStagedReveal: false
 
     contentItem: StyledTextField {

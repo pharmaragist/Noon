@@ -11,7 +11,6 @@ Rectangle {
     property bool editMode: false
     readonly property string font: opts.font
     readonly property var weatherData: WeatherService.weatherData
-    readonly property bool arabicDayMode: states.arabicMode
     readonly property var states: Mem.states.desktop.clock
     readonly property var opts: Mem.options.desktop.clock
     readonly property real fontVOffset: activeFontInfo.offset ?? 1
@@ -90,7 +89,7 @@ Rectangle {
             opacity: 0.8
             StyledText {
                 id: dateText
-                text: arabicDayMode ? `${DateTimeService.hour}:${DateTimeService.minute}` : DateTimeService.date
+                text: DateTimeService.date
                 font.weight: root.activeFontInfo.weight ?? 700
                 font.pixelSize: 100 * opts.scale
                 font.family: root.font
@@ -124,7 +123,7 @@ Rectangle {
             font.weight: root.activeFontInfo.weight ?? 700
             font.pixelSize: 400 * opts.scale
             color: Colors.colOnBackground
-            text: arabicDayMode ? DateTimeService.arabicDayName : `${DateTimeService.hour}:${DateTimeService.minute}`
+            text: `${DateTimeService.hour}:${DateTimeService.minute}`
 
             Behavior on color {
                 CAnim {}

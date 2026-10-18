@@ -14,7 +14,7 @@ import qs.common.widgets
 import qs.common.utils
 import qs.common.functions
 import qs.services
-import qs.store
+import qs.data
 
 Variants {
     model: MonitorsInfo.all
@@ -198,7 +198,7 @@ Variants {
                 } else if (key === "Icon") {
                     r.icon = value;
                 } else if (key === "Exec") {
-                    
+
                     r.exec = value.replace(/%[fFuuAaCcCcDdFfGgHhiImMnnNvv]/g, "").trim();
                 }
             }

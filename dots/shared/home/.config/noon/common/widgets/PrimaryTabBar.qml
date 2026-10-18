@@ -7,7 +7,7 @@ import qs.common
 ColumnLayout {
     id: root
 
-    required property var tabButtonList 
+    required property var tabButtonList
     required property var externalTrackedTab
     property bool enableIndicatorAnimation: false
     property color colIndicator: colors.colPrimary ?? "#65558F"
@@ -49,7 +49,7 @@ ColumnLayout {
         }
     }
 
-    
+
     Item {
         id: tabIndicator
 
@@ -75,19 +75,24 @@ ColumnLayout {
                 return col.children[tabBar.currentIndex];
             }
             property real targetWidth: currentButton?.tabContentWidth ?? 0
-            implicitWidth: targetWidth
-            x: tabCount > 0 ? tabBar.currentIndex * fullTabSize + (fullTabSize - targetWidth) / 2 : 0
+            readonly property real targetLeft: tabCount > 0 ? tabBar.currentIndex * fullTabSize + (fullTabSize - targetWidth) / 2 : 0
+
+            AnimatedTabIndexPair {
+                id: leftBound
+                index: indicator.targetLeft
+            }
+            AnimatedTabIndexPair {
+                id: rightBound
+                index: indicator.targetLeft + indicator.targetWidth
+            }
+
+            x: Math.min(leftBound.idx1, leftBound.idx2)
+            implicitWidth: Math.max(rightBound.idx1, rightBound.idx2) - x
             color: root.colIndicator
             radius: Rounding.full ?? 9999
             anchors {
                 top: parent.top
                 bottom: parent.bottom
-            }
-            Behavior on x {
-                Anim {}
-            }
-            Behavior on implicitWidth {
-                Anim {}
             }
         }
     }

@@ -75,13 +75,46 @@ StyledPopup {
                         captureSource: winRect.modelData
                         live: true
                     }
-
-                    StyledIconImage {
-                        _source: AppSearch.guessIcon(winRect.winData?.class)
-                        implicitSize: Math.min(winRect.width, winRect.height) * 0.2
+                    RowLayout {
+                        height: 30
+                        width: Math.min(winRect.width - Padding.huge, 140 )
                         anchors.bottom: parent.bottom
-                        anchors.right: parent.right
+                        anchors.left: parent.left
                         anchors.margins: Padding.huge
+                        spacing: Padding.large
+
+                        StyledIconImage {
+                            id: winRectIcon
+                            _source: AppSearch.guessIcon(winRect.winData?.class)
+                            implicitSize: Math.min(winRect.width, winRect.height) * 0.2
+                            Layout.alignment:Qt.AlignVCenter
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 25
+                            Layout.maximumWidth: 100
+                            Layout.alignment:Qt.AlignVCenter
+                            spacing: 2
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: winRect.winData?.class
+                                font: Fonts.request("main",winRectIcon.implicitSize / 3)
+                                color:Colors.colOnLayer0
+                                truncate:true
+                                Layout.maximumHeight: 15
+                            }
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: winRect.winData?.title
+                                font: Fonts.request("main",winRectIcon.implicitSize / 3.25)
+                                color:Colors.colOnSurface
+                                truncate:true
+                                Layout.maximumHeight: 15
+                            }
+                        }
                     }
                 }
             }

@@ -55,7 +55,7 @@ BarGroup {
             id: "polkit",
             icon: "shield",
             visible: PolkitService.interactionAvailable,
-            action: () => NoonUtils.callIpc("sidebar reveal Auth"),
+            action: () => Ipc.call(["sidebar", "reveal", "Auth"]),
             tooltip: PolkitService?.flow?.message
         },
         {
@@ -138,7 +138,7 @@ BarGroup {
                     onClicked: {
                         if (modelData.dialog) {
                             Globals.main.dialogs.current = modelData.dialog;
-                            NoonUtils.callIpc("sidebar reveal Notifs");
+                            Ipc.call(["sidebar", "reveal", "Notifs"]);
                         } else
                             modelData?.action() ?? null;
                     }

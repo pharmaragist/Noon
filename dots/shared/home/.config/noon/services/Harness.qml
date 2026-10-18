@@ -1,0 +1,950 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.common
+import qs.common.utils
+import qs.common.functions
+
+Singleton {
+    id: root
+
+    signal responseFinished
+    signal permissionAsked(string title)
+
+    readonly property bool isResponding: requester.running
+    readonly property var states: Mem.ai
+    readonly property string currentSessionId: states.currentSessionId
+    readonly property var tokenCount: states.tokenCount
+    readonly property var modelList: states.models ?? []
+    readonly property string currentModelId: states.model
+    readonly property string currentEffortId: states.effort ?? ""
+    readonly property string currentAgentId: states.agent ?? "plan"
+    readonly property var skills: states.skills
+    readonly property string baseCmd: Paths.scriptsDir + "/go/ai/harness"
+    readonly property int maxLoadedMessages: 200
+    readonly property string systemPrompt: states.systemPrompt
+    readonly property var bridgeEnv: ({
+            "SESSION_DIR": root.states.sessionDir,
+            "XDG_CONFIG_HOME": root.sideConfigHome
+        })
+    property string liveContent: ""
+    property string liveThinkText: ""
+    property bool liveThinking: false
+    property bool liveDone: false
+    property var sessions: []
+    property var effortOptions: []
+    property var modeOptions: []
+    property var contextUsage: null
+    property var pendingPermission: null
+    property bool autoApproveSession: false
+    property var messageIDs: []
+    property var _idsBuf: []
+    property bool _idsDirty: false
+    property var messageQueue: []
+    property var messageByID: ({})
+    property var _pendingSend: []
+
+    Component.onCompleted: {
+        root.setupPersonality();
+        root.refreshSessions();
+        skillsFetcher.refresh();
+        root.maybePreload();
+    }
+
+    function maybePreload() {
+        if ((root.states.preloadMessages ?? false) && root.currentSessionId && root.messageIDs.length === 0 && !root.loadingMessages)
+            root.loadChat(root.currentSessionId);
+    }
+
+    onStatesChanged: root.maybePreload()
+
+    readonly property string sideConfigHome: root.cleanDir(root.states.sessionDir) + "/config"
+    readonly property string sideAgentFile: root.sideConfigHome + "/opencode/agents/noon.md"
+    property bool _sysDirty: false
+
+    onSystemPromptChanged: root.scheduleSystemSync()
+
+    function setupPersonality() {
+        const m = Paths.methods;
+        const cfg = m.trim(Paths.standard.config);
+        const cmd = `rm -rf "${root.cleanDir(root.states.sessionDir)}/persona" "${root.sideConfigHome}/opencode/system.md" "${cfg}/opencode/agents/noon.md" "${cfg}/opencode/tools/noon_shell.ts"`;
+
+        NoonUtils.execDetached(cmd);
+        root.syncSystemPrompt();
+        root.runToolsHelper([Paths.shellDir], text => {
+            if (typeof text !== "string" || text.length === 0)
+                return;
+            const toolsPath = root.sideConfigHome + "/opencode/tools/noon_shell.ts";
+            let cur = "";
+            try {
+                cur = m.readFile(toolsPath);
+            } catch (e) {
+                cur = "";
+            }
+            if (cur !== text)
+                m.createFileWith(toolsPath, text);
+        });
+    }
+
+    function shellEscape(s) {
+        return String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$").replace(/`/g, "\\`");
+    }
+
+    function syncSystemPrompt() {
+        const m = Paths.methods;
+        const body = "---\ndescription: Noon sidebar\nmode: primary\n---\n\n" + root.systemPrompt;
+        m.createFileWith(root.sideAgentFile, root.shellEscape(body));
+        const globalCfg = m.trim(Paths.standard.config) + "/opencode/opencode.jsonc";
+        const sideDir = root.sideConfigHome + "/opencode";
+        NoonUtils.inlineStdProc([root.baseCmd, "sync-config", globalCfg, sideDir], text => {
+            if (text !== "ok")
+                root.addMessage("Error: sidebar config sync failed (" + text + ")", "interface");
+        });
+    }
+
+    function scheduleSystemSync() {
+        if (root._sysDirty)
+            return;
+        root._sysDirty = true;
+        NoonUtils.inlineTimer(() => {
+            root._sysDirty = false;
+            root.syncSystemPrompt();
+        }, 200);
+    }
+
+    function plainMessage(fields) {
+        return {
+            "role": fields.role ?? "",
+            "content": fields.content ?? "",
+            "thinkText": fields.thinkText ?? "",
+            "rawContent": fields.rawContent ?? "",
+            "model": fields.model ?? "",
+            "thinking": fields.thinking ?? false,
+            "done": fields.done ?? true,
+            "queued": fields.queued ?? false,
+            "tools": fields.tools ?? [],
+            "annotationSources": fields.annotationSources ?? [],
+            "visibleToUser": fields.visibleToUser ?? true,
+            "functionPending": fields.functionPending ?? false
+        };
+    }
+
+    function trimBlob(v, max) {
+        if (typeof v === "string")
+            return v.length > max ? v.slice(0, max) + "…" : v;
+        if (v && typeof v === "object" && typeof v.content === "string" && v.content.length > max)
+            return Object.assign({}, v, {
+                content: v.content.slice(0, max) + "…"
+            });
+        return v;
+    }
+
+    function addToolPart(message, p) {
+        const st = p.state || {};
+        const entry = {
+            tool: p.tool,
+            callID: p.callID,
+            kind: p.kind || "",
+            status: st.status || "pending",
+            input: root.trimBlob(st.input, 4000),
+            output: root.trimBlob(st.output, 4000) ?? ""
+        };
+        const tools = message.tools || [];
+        const idx = tools.findIndex(t => t.callID === p.callID);
+        if (idx >= 0)
+            tools[idx] = entry;
+        else
+            tools.push(entry);
+        message.tools = tools.slice();
+        root.touchMessage(message);
+    }
+
+    function acpWrite(cmd) {
+        if (acpProc.running)
+            acpProc.write(JSON.stringify(cmd) + "\n");
+    }
+
+    function sessionCmd(cmd, extra) {
+        return Object.assign({
+            cmd: cmd,
+            sessionId: root.currentSessionId,
+            cwd: root.sessionCwd(root.currentSessionId)
+        }, extra ?? {});
+    }
+
+    function settleTurn() {
+        requester._sessionBusy = false;
+        root._pendingSend = [];
+        if (requester.running)
+            requester.markDone();
+    }
+
+    function adoptStr(obj, key, value) {
+        if (typeof value === "string" && value.length > 0)
+            obj[key] = value;
+    }
+
+    function handleSSELine(line) {
+        try {
+            root.handleSSE(JSON.parse(line));
+        } catch (e) {
+            console.warn("handleSSELine parse error:", e, "line:", line);
+        }
+    }
+
+    function adoptModels(list) {
+        if (!Array.isArray(list) || list.length === 0)
+            return;
+        const known = Array.isArray(states.models) ? states.models : [];
+        const merged = known.slice();
+        for (const m of list) {
+            if (!merged.includes(m))
+                merged.push(m);
+        }
+        states.models = merged;
+    }
+
+    function handleSSE(event) {
+        if (event.type === "ready") {
+            if (root.currentSessionId)
+                root.acpWrite(root.sessionCmd("sync"));
+            return;
+        }
+        if (event.type === "session") {
+            if (event.sessionId) {
+                root.states.currentSessionId = event.sessionId;
+                requester._sessionBusy = false;
+                if (requester.running)
+                    requester.markDone();
+                if (Array.isArray(event.efforts))
+                    root.effortOptions = event.efforts;
+                if (Array.isArray(event.modes))
+                    root.modeOptions = event.modes;
+                root.adoptModels(event.models);
+                adoptStr(states, "model", event.model);
+                adoptStr(states, "agent", event.mode);
+                adoptStr(states, "effort", event.effort);
+                const pending = root._pendingSend;
+                root._pendingSend = [];
+                for (const text of pending) {
+                    if (text.length > 0)
+                        finishSend(text);
+                }
+            }
+            return;
+        }
+        if (event.type === "efforts") {
+            if (Array.isArray(event.efforts))
+                root.effortOptions = event.efforts;
+            adoptStr(states, "effort", event.effort);
+            return;
+        }
+        if (event.type === "model") {
+            adoptStr(states, "model", event.model);
+            return;
+        }
+        if (event.type === "models") {
+            root.adoptModels(event.models);
+            return;
+        }
+        if (event.type === "usage") {
+            root.tokenCount.input = Number(event.input ?? -1);
+            root.tokenCount.output = Number(event.output ?? -1);
+            root.tokenCount.total = Number(event.total ?? -1);
+            return;
+        }
+        if (event.type === "context") {
+            root.contextUsage = {
+                used: Number(event.used ?? 0),
+                size: Number(event.size ?? 0)
+            };
+            return;
+        }
+        if (event.type === "session.info") {
+            root.refreshSessions();
+            return;
+        }
+        if (event.type === "mode") {
+            adoptStr(states, "agent", event.mode);
+            if (Array.isArray(event.modes) && event.modes.length > 0)
+                root.modeOptions = event.modes;
+            return;
+        }
+        if (event.type === "error") {
+            console.warn("acp bridge error:", event.message);
+            root.settleTurn();
+            root.addMessage("Error: " + (event.message || "unknown bridge error"), "interface");
+            return;
+        }
+        if (event.type === "agent.exited") {
+            console.warn("acp agent process exited:", event.message);
+            root.settleTurn();
+            root.addMessage("Error: agent process died (" + (event.message || "unknown") + ") — reload the shell to respawn it", "interface");
+            return;
+        }
+        if (event.type === "session.status") {
+            var s = event.properties && event.properties.status;
+            if (s) {
+                requester._sessionBusy = s.type === "busy";
+                if (s.type === "idle" && requester.running)
+                    requester.markDone();
+            }
+            return;
+        }
+        if (event.type === "permission.asked") {
+            var p = event.properties;
+            if (p && p.tool) {
+                const msgID = p.tool.messageID;
+                let target = requester.message && requester.message.opencodeId === msgID ? requester.message : null;
+                if (!target) {
+                    for (const id of root._idsBuf) {
+                        const m = root.messageByID[id];
+                        if (m && m.opencodeId && m.opencodeId === msgID) {
+                            target = m;
+                            break;
+                        }
+                    }
+                }
+                if (!target)
+                    target = requester.message;
+                if (target) {
+                    target.functionPending = true;
+                    target.permissionID = p.id;
+                    target.permissionCallID = p.tool.callID;
+                    target.permissionSessionID = p.sessionID;
+                    root.touchMessage(target);
+                    root.pendingPermission = {
+                        title: p.tool.title || "Tool call",
+                        callID: p.tool.callID,
+                        reqId: p.id,
+                        sessionID: p.sessionID
+                    };
+                    if (root.autoApproveSession)
+                        root.answerPending(true);
+                    else
+                        root.permissionAsked(p.tool.title || "Tool call");
+                }
+            }
+            return;
+        }
+        if (!requester.running)
+            return;
+        if (event.type === "message.updated") {
+            var info = event.properties && event.properties.info;
+            if (info && info.role === "user")
+                requester._userMessageId = info.id;
+        }
+        if (event.type === "message.part.updated") {
+            var part = event.properties && event.properties.part;
+            if (part && part.messageID !== requester._userMessageId)
+                requester.processPart(part);
+        }
+    }
+
+    function idForMessage(message) {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    }
+
+    function scheduleIdsFlush() {
+        if (!root._idsDirty) {
+            root._idsDirty = true;
+            NoonUtils.inlineTimer(root._flushIds, 0);
+        }
+    }
+
+    function _flushIds() {
+        root._idsDirty = false;
+        root.messageIDs = root._idsBuf.slice();
+    }
+
+    function touchMessage(msg) {
+        for (const id of root._idsBuf) {
+            if (root.messageByID[id] === msg) {
+                const next = Object.assign({}, root.messageByID);
+                next[id] = Object.assign({}, msg);
+                root.messageByID = next;
+                if (requester.message === msg)
+                    requester.message = next[id];
+                return id;
+            }
+        }
+        return "";
+    }
+
+    function pushMessage(msg) {
+        const id = idForMessage(msg);
+        root.messageByID[id] = msg;
+        root._idsBuf.push(id);
+        while (root._idsBuf.length > root.maxLoadedMessages) {
+            const oldId = root._idsBuf.shift();
+            delete root.messageByID[oldId];
+        }
+        root.scheduleIdsFlush();
+        return id;
+    }
+
+    function queueMessage(id, text) {
+        root.messageQueue = [...root.messageQueue,
+            {
+                id: id,
+                text: text
+            }
+        ];
+        if (!requester.running)
+            processQueue();
+    }
+
+    function openInTerm(sessionId = root.states.currentSessionId) {
+        NoonUtils.runInTerminal(`opencode -s '${sessionId}'`);
+    }
+
+    function addMessage(message, role) {
+        if (message.length === 0)
+            return;
+        const aiMessage = root.plainMessage({
+            "role": role,
+            "content": message,
+            "rawContent": message,
+            "thinking": false,
+            "done": true
+        });
+        root.pushMessage(aiMessage);
+    }
+
+    function removeMessage(index) {
+        if (index < 0 || index >= root._idsBuf.length)
+            return;
+        const id = root._idsBuf[index];
+        root._idsBuf.splice(index, 1);
+        delete root.messageByID[id];
+        root.scheduleIdsFlush();
+    }
+
+    function clearMessages() {
+        root._idsBuf = [];
+        root.messageByID = ({});
+        root.messageIDs = [];
+        root._idsDirty = false;
+        root.hasMoreMessages = false;
+        root.loadingMoreMessages = false;
+        root.chatOffset = 0;
+        root.liveContent = "";
+        root.liveThinkText = "";
+        root.liveThinking = false;
+        root.liveDone = false;
+        root.tokenCount.input = -1;
+        root.tokenCount.output = -1;
+        root.tokenCount.total = -1;
+    }
+
+    function resetView() {
+        root.clearMessages();
+        root.messageQueue = [];
+        root.autoApproveSession = false;
+    }
+
+    function newSession() {
+        root.resetView();
+        root.states.currentSessionId = "";
+        refreshSessions();
+    }
+
+    function loadChat(id) {
+        if (!id)
+            return;
+        root.resetView();
+        root.states.currentSessionId = id.trim().toString();
+        loadMessages(root.states.currentSessionId);
+    }
+
+    readonly property int chatBatch: Math.max(1, Math.min(50, states?.recallLimit ?? 10))
+    property bool hasMoreMessages: false
+    property bool loadingMoreMessages: false
+    property bool loadingMessages: false
+    property string _loadingSession: ""
+    property int chatOffset: 0
+
+    function insertBatch(out, prepend) {
+        if (!Array.isArray(out) || out.length === 0)
+            return 0;
+        const batch = [];
+        for (const m of out) {
+            const key = root.idForMessage(m);
+            root.messageByID[key] = m;
+            batch.push(key);
+        }
+        root._idsBuf = prepend ? batch.concat(root._idsBuf) : root._idsBuf.concat(batch);
+        while (root._idsBuf.length > root.maxLoadedMessages) {
+            const oldId = root._idsBuf.shift();
+            delete root.messageByID[oldId];
+        }
+        root.scheduleIdsFlush();
+        return out.length;
+    }
+
+    function loadMessages(id) {
+        if (root.loadingMessages && root._loadingSession === id)
+            return;
+        root.loadingMessages = true;
+        root._loadingSession = id;
+        root.runHelper("chat", [id, String(root.chatBatch), "0"], out => {
+            root.loadingMessages = false;
+            if (root._loadingSession !== root.currentSessionId)
+                return;
+            root.insertBatch(out, false);
+            if (Array.isArray(out)) {
+                root.chatOffset = root._idsBuf.length;
+                root.hasMoreMessages = out.length >= root.chatBatch;
+            }
+        });
+    }
+
+    function loadMoreMessages(onDone) {
+        if (root.loadingMoreMessages || root.loadingMessages || !root.hasMoreMessages || !root.currentSessionId) {
+            if (onDone)
+                onDone();
+            return;
+        }
+        root.loadingMoreMessages = true;
+        const sessionAtStart = root.currentSessionId;
+        const offsetAtStart = root.chatOffset;
+        root.runHelper("chat", [sessionAtStart, String(root.chatBatch), String(offsetAtStart)], out => {
+            root.loadingMoreMessages = false;
+            if (sessionAtStart !== root.currentSessionId) {
+                if (onDone)
+                    onDone();
+                return;
+            }
+            const n = root.insertBatch(out, true);
+            if (n > 0) {
+                root.chatOffset = offsetAtStart + n;
+                root.hasMoreMessages = out.length >= root.chatBatch;
+            } else {
+                root.hasMoreMessages = false;
+            }
+            if (onDone)
+                onDone();
+        });
+    }
+
+    function getModel() {
+        return {
+            name: root.currentModelId
+        };
+    }
+
+    function showStatus() {
+        const tc = root.tokenCount;
+        const cu = root.contextUsage;
+        const lines = ["Session: " + (root.currentSessionId || "(none)"), "Model: " + (root.currentModelId || "(none)") + (root.modelList.length > 0 ? "" : "  [server list not loaded yet]"), "Effort: " + (root.currentEffortId || "(none)") + (root.effortOptions.length > 0 ? "  (server offers: " + root.effortOptions.join(", ") + ")" : "  [server offers none for this model]"), "Agent mode: " + root.currentAgentId + (root.modeOptions.length > 0 ? "  (server offers: " + root.modeOptions.join(", ") + ")" : "  [server modes not loaded yet]"), "Skill: " + (root.pendingSkill || "(none armed)"), "Auto-approve: " + (root.autoApproveSession ? "on (this session)" : "off"), "Last turn tokens: " + ((tc && tc.total >= 0) ? ("in " + tc.input + " / out " + tc.output + " / total " + tc.total) : "(none yet)"), "Context window: " + (cu && cu.size > 0 ? (cu.used + " / " + cu.size + " (" + Math.round(100 * cu.used / cu.size) + "%)") : "(unknown)")];
+        root.addMessage(lines.join("\n"), "interface");
+    }
+
+    function setModel(modelId) {
+        if (!modelId || modelId.length === 0)
+            return;
+        states.model = modelId;
+        if (root.currentSessionId)
+            root.acpWrite(root.sessionCmd("model", {
+                model: modelId
+            }));
+        root.addMessage("Model set to " + modelId, "interface");
+    }
+
+    readonly property var effortList: ["minimal", "low", "medium", "high", "xhigh"]
+
+    function setEffort(effort) {
+        const e = (effort ?? "").trim();
+        if (!e) {
+            states.effort = "";
+            root.addMessage("Effort cleared", "interface");
+            return;
+        }
+        if (root.effortOptions.length > 0 && !root.effortOptions.includes(e)) {
+            root.addMessage("Effort '" + e + "' not offered by server (offers: " + root.effortOptions.join(", ") + ")", "interface");
+            return;
+        }
+        states.effort = e;
+        if (root.effortOptions.length === 0)
+            root.addMessage("Effort set to " + e + " (server offers no effort levels for the current model — stored, applies when available)", "interface");
+        else
+            root.addMessage("Effort set to " + e, "interface");
+    }
+
+    readonly property var modeFallback: ["build", "plan"]
+
+    function setAgent(mode) {
+        const m = (mode ?? "").trim();
+        if (!m)
+            return;
+        const valid = root.modeOptions.length > 0 ? root.modeOptions : root.modeFallback;
+        if (!valid.includes(m)) {
+            root.addMessage("Unknown agent mode '" + m + "' (known: " + valid.join(", ") + ")", "interface");
+            return;
+        }
+        states.agent = m;
+        if (root.currentSessionId)
+            root.acpWrite(root.sessionCmd("mode", {
+                mode: m
+            }));
+        root.addMessage("Agent mode set to " + m + " (server confirms on next event)", "interface");
+    }
+
+    property string pendingSkill: ""
+
+    function setSkill(skillName) {
+        const s = (skillName ?? "").trim();
+        if (!s) {
+            root.pendingSkill = "";
+            root.addMessage("Skill cleared", "interface");
+            return;
+        }
+        if (!root.skills.includes(s)) {
+            root.addMessage("Unknown skill '" + s + "' (known: " + root.skills.join(", ") + ")", "interface");
+            return;
+        }
+        root.pendingSkill = s;
+        root.addMessage("Skill '" + s + "' armed — the agent will load it via its skill tool on your next message (watch for the skill tool call + possible approval)", "interface");
+    }
+
+    function skillPromptPrefix() {
+        if (!root.pendingSkill)
+            return "";
+        const name = root.pendingSkill;
+        root.pendingSkill = "";
+        return "Invoke the \"" + name + "\" skill using your skill tool and follow it for the task below. If the skill tool is unavailable, say so instead of guessing.\n\nTask:\n";
+    }
+
+    function respondToPermission(messageData, response) {
+        if (!messageData || messageData.permissionID === undefined)
+            return;
+        root.acpWrite({
+            cmd: "reply",
+            reqId: Number(messageData.permissionID),
+            approved: response !== "reject"
+        });
+        root.clearPermissionFlags(messageData.permissionCallID);
+    }
+
+    function answerPending(approved) {
+        const p = root.pendingPermission;
+        if (!p)
+            return;
+        root.acpWrite({
+            cmd: "reply",
+            reqId: Number(p.reqId),
+            approved: approved
+        });
+        root.clearPermissionFlags(p.callID);
+    }
+
+    function answerAll() {
+        root.autoApproveSession = true;
+        root.answerPending(true);
+        NoonUtils.toast({
+            id: 7,
+            header: qsTr("Auto-approve on"),
+            content: qsTr("All tool calls this session run without asking"),
+            icon: "check"
+        });
+    }
+
+    function clearPermissionFlags(callID) {
+        root.pendingPermission = null;
+        for (const id of root._idsBuf) {
+            const m = root.messageByID[id];
+            if (m && m.functionPending && (callID === undefined || m.permissionCallID === callID)) {
+                m.functionPending = false;
+                delete m.permissionID;
+                delete m.permissionCallID;
+                delete m.permissionSessionID;
+                root.touchMessage(m);
+            }
+        }
+    }
+    function approveCommand(messageData) {
+        root.respondToPermission(messageData, "once");
+    }
+    function rejectCommand(messageData) {
+        root.respondToPermission(messageData, "reject");
+    }
+
+    function cleanDir(dir) {
+        const clean = Paths.methods.trim(String(dir ?? ""));
+        if (!clean.startsWith("/") || clean.includes("file:"))
+            return Paths.methods.trim(Paths.standard.home);
+        return clean;
+    }
+
+    function sessionCwd(sessionId) {
+        for (const s of root.sessions) {
+            if (s && s.id === sessionId && s.directory)
+                return root.cleanDir(s.directory);
+        }
+        return root.cleanDir("");
+    }
+
+    function createSessionAndSend(message) {
+        requester._sessionBusy = true;
+        root._pendingSend = [...root._pendingSend, message];
+        root.acpWrite(root.sessionCmd("new", {
+            model: root.currentModelId,
+            effort: root.effortOptions.includes(root.currentEffortId) ? root.currentEffortId : "",
+            mode: root.currentAgentId
+        }));
+    }
+
+    function sendUserMessage(message) {
+        if (message.length === 0)
+            return;
+        if (requester._sessionBusy || !root.currentSessionId)
+            createSessionAndSend(message);
+        else
+            finishSend(message);
+    }
+
+    function finishSend(message) {
+        const aiMessage = root.plainMessage({
+            "role": "user",
+            "content": message,
+            "rawContent": message,
+            "thinking": false,
+            "done": true,
+            "queued": true
+        });
+        const id = root.pushMessage(aiMessage);
+        root.queueMessage(id, message);
+    }
+
+    function processQueue() {
+        if (root.messageQueue.length === 0)
+            return;
+        const next = root.messageQueue[0];
+        root.messageQueue = root.messageQueue.slice(1);
+        const msg = root.messageByID[next.id];
+        if (!msg) {
+            processQueue();
+            return;
+        }
+        msg.queued = false;
+        root.touchMessage(msg);
+        requester.makeRequest(next.text);
+    }
+
+    function finalizeResponse() {
+        refreshSessions();
+        root.responseFinished();
+        processQueue();
+    }
+
+    function regenerate(messageIndex) {
+        if (messageIndex < 0 || messageIndex >= root._idsBuf.length)
+            return;
+        const id = root._idsBuf[messageIndex];
+        const message = root.messageByID[id];
+        if (message.role !== "assistant")
+            return;
+        for (let i = root._idsBuf.length - 1; i >= messageIndex; i--)
+            root.removeMessage(i);
+        const lastUserID = root._idsBuf[root._idsBuf.length - 1];
+        const lastUser = root.messageByID[lastUserID];
+        if (lastUser) {
+            root.messageQueue = [
+                {
+                    id: lastUserID,
+                    text: lastUser.rawContent
+                },
+                ...root.messageQueue];
+            if (!requester.running)
+                processQueue();
+        }
+    }
+
+    function stop() {
+        if (!requester.running)
+            return;
+        requester.running = false;
+        root.acpWrite({
+            cmd: "cancel",
+            sessionId: root.currentSessionId
+        });
+        root.clearPermissionFlags();
+        if (requester.message) {
+            requester.message.thinking = false;
+            requester.message.done = true;
+            requester.message.rawContent += "\n\n*[Stopped]*";
+            requester.message.content += "\n\n*[Stopped]*";
+            root.touchMessage(requester.message);
+            requester.syncLive();
+        }
+        root.finalizeResponse();
+    }
+
+    function refreshSessions() {
+        sessionsFetcher.refresh();
+    }
+
+    Process {
+        id: acpProc
+        running: true
+        stdinEnabled: true
+        command: [baseCmd, "acp"]
+        stdout: SplitParser {
+            onRead: data => root.handleSSELine(data)
+        }
+        environment: root.bridgeEnv
+        onExited: {
+            console.warn("acp bridge exited, restarting");
+            NoonUtils.inlineTimer(() => {
+                acpProc.running = true;
+            }, 1000);
+        }
+    }
+
+    Fetcher {
+        id: sessionsFetcher
+        command: [baseCmd, "sessions"]
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            if (Array.isArray(sessionsFetcher.data))
+                root.sessions = sessionsFetcher.data;
+        }
+    }
+
+    Fetcher {
+        id: skillsFetcher
+        command: [baseCmd, "skills"]
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            if (Array.isArray(skillsFetcher.data))
+                states.skills = skillsFetcher.data;
+        }
+    }
+
+    Fetcher {
+        id: chatFetcher
+        autoRun: false
+        property var onDone: null
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            const cb = chatFetcher.onDone;
+            chatFetcher.onDone = null;
+            if (cb)
+                cb(chatFetcher.data);
+        }
+    }
+
+    Fetcher {
+        id: toolsFetcher
+        autoRun: false
+        property var onDone: null
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            const cb = toolsFetcher.onDone;
+            toolsFetcher.onDone = null;
+            if (cb)
+                cb(toolsFetcher.data);
+        }
+    }
+
+    property int _helperToken: 0
+
+    function runHelper(cmd, args, onDone) {
+        chatFetcher.running = false;
+        const t = ++root._helperToken;
+        chatFetcher.command = [baseCmd, cmd].concat(args);
+        chatFetcher.onDone = data => {
+            if (t === root._helperToken && onDone)
+                onDone(data);
+        };
+        chatFetcher.refresh();
+    }
+
+    function runToolsHelper(args, onDone) {
+        toolsFetcher.running = false;
+        toolsFetcher.command = [baseCmd, "gen-tools"].concat(args);
+        toolsFetcher.onDone = onDone;
+        toolsFetcher.refresh();
+    }
+
+    QtObject {
+        id: requester
+        property var message: null
+        property bool running: false
+        property string _userMessageId: ""
+        property bool _sessionBusy: false
+        property bool _liveDirty: false
+
+        function syncLive() {
+            if (!requester.message)
+                return;
+            root.liveContent = requester.message.content;
+            root.liveThinkText = requester.message.thinkText;
+            root.liveThinking = requester.message.thinking;
+            root.liveDone = requester.message.done;
+            requester._liveDirty = false;
+        }
+
+        function markLiveDirty() {
+            if (!requester._liveDirty) {
+                requester._liveDirty = true;
+                NoonUtils.inlineTimer(requester.syncLive, 50);
+            }
+        }
+
+        function processPart(p) {
+            if (!requester.message.opencodeId && p.messageID)
+                requester.message.opencodeId = p.messageID;
+            if (p.type === "reasoning" && p.text) {
+                requester.message.thinking = false;
+                requester.message.thinkText += p.text;
+            } else if (p.type === "text" && p.text) {
+                requester.message.thinking = false;
+                requester.message.content += p.text;
+                requester.message.rawContent += p.text;
+            } else if (p.type === "tool") {
+                requester.message.thinking = false;
+                root.addToolPart(requester.message, p);
+                return;
+            }
+            requester.markLiveDirty();
+        }
+
+        function makeRequest(userMessage) {
+            requester.running = true;
+            requester._userMessageId = "";
+
+            requester.message = root.plainMessage({
+                "role": "assistant",
+                "content": "",
+                "rawContent": "",
+                "thinking": true,
+                "done": false
+            });
+            requester.syncLive();
+            root.pushMessage(requester.message);
+
+            root.acpWrite(root.sessionCmd("send", {
+                text: root.skillPromptPrefix() + userMessage,
+                model: root.currentModelId,
+                effort: root.effortOptions.includes(root.currentEffortId) ? root.currentEffortId : "",
+                mode: root.currentAgentId
+            }));
+        }
+
+        function markDone() {
+            const msg = requester.message;
+            if (!msg || msg.done)
+                return;
+
+            requester.running = false;
+            msg.done = true;
+            msg.thinking = false;
+            root.touchMessage(msg);
+            requester.syncLive();
+            root.finalizeResponse();
+        }
+    }
+}

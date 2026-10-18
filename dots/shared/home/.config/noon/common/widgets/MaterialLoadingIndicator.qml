@@ -9,17 +9,17 @@ Rectangle {
     property bool loading: true
     property double pullProgress: 0
 
-    
+
     property double implicitSize: 48
     implicitWidth: implicitSize
     implicitHeight: implicitSize
     radius: Math.min(width, height) / 2
-    color: Colors.colPrimaryContainer
+    color: colors.colPrimaryContainer
     property double baseShapeSize: root.implicitSize * 0.7
     property double leapZoomSize: root.baseShapeSize * 1.2
     property double leapZoomProgress: 0
-    property color shapeColor: Colors.colOnPrimaryContainer
-    
+    property color shapeColor: colors.colOnPrimaryContainer
+    property var colors: Colors
     property list<var> shapes: [MaterialShape.Shape.SoftBurst, MaterialShape.Shape.Cookie9Sided, MaterialShape.Shape.Pentagon, MaterialShape.Shape.Pill, MaterialShape.Shape.Sunny, MaterialShape.Shape.Cookie4Sided, MaterialShape.Shape.Oval,]
     property int shapeIndex: 0
     property double pullRotation: root.loading ? 0 : -(root.pullProgress * 360)

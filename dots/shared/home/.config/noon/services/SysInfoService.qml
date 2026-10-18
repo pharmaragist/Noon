@@ -1,17 +1,15 @@
 pragma Singleton
-pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.common
-import qs.common.utils
 
 Singleton {
-    property string distroName: "Unknown"
-    property string distroId: "unknown"
-    property string distroIcon: "arch-symbolic"
-    property string username: "user"
-    property string userPfp: Paths.standard.home + "/.face"
-
+    readonly property var opts: Mem.options.desktop.branding.distroInfo
+    readonly property string distroName: opts?.name
+    readonly property string distroId: opts?.id
+    readonly property string distroIcon: opts?.icon ?? "arch-symbolic"
+    readonly property string username: Quickshell.env("USER")
+    readonly property string userPfp: Paths.standard.home + "/.face"
     readonly property var distroIcons: ({
             arch: "arch-symbolic",
             endeavouros: "endeavouros-symbolic",
@@ -27,30 +25,21 @@ Singleton {
             kali: "debian-symbolic"
         })
 
-    readonly property FileView osView: FileView {
-        path: "/etc/os-release"
-        onTextChanged: {
-            const text = osView.text();
-            if (!text)
-                return;
+    Component.onCompleted: {
+        if (distroId.toLowerCase() !== "unknown")
+            return;
 
-            const prettyNameMatch = text.match(/^PRETTY_NAME="(.+?)"/m);
-            const nameMatch = text.match(/^NAME="(.+?)"/m);
-            distroName = prettyNameMatch ? prettyNameMatch[1] : (nameMatch ? nameMatch[1].replace(/Linux/i, "").trim() : "Unknown");
+        const text = Paths.methods.readFile("/etc/os-release");
+        if (!text) return;
 
-            const idMatch = text.match(/^ID=(.+)$/m);
-            const id = idMatch ? idMatch[1].trim().replace(/"/g, "") : "unknown";
-            distroId = id;
-            distroIcon = distroIcons[id] ?? "arch-symbolic";
+        const prettyNameMatch = text.match(/^PRETTY_NAME="(.+?)"/m);
+        const nameMatch = text.match(/^NAME="(.+?)"/m);
 
-            usernameProc.running = true;
-        }
-    }
+        const idMatch = text.match(/^ID=(.+)$/m);
+        const id = idMatch ? idMatch[1].trim().replace(/"/g, "") : "unknown";
 
-    readonly property Process usernameProc: Process {
-        command: ["whoami"]
-        stdout: SplitParser {
-            onRead: data => username = data.trim()
-        }
+        opts.name = prettyNameMatch ? prettyNameMatch[1] : (nameMatch ? nameMatch[1].replace(/Linux/i, "").trim() : "Unknown");
+        opts.id = id;
+        opts.icon = distroIcons[id] ?? "arch-symbolic";
     }
 }

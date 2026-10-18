@@ -13,7 +13,6 @@ RedunduntMultiViewPanel {
     clip: false
     tabButtonList: [
         {
-
             "icon": "music_note",
             "name": "Home",
             "preload": "expanded",
@@ -33,17 +32,16 @@ RedunduntMultiViewPanel {
             "preload": "expanded",
             "preloadData": root.expanded,
             "component": "pages/HitsPage"
-        }
-
-
-
-
-
-
+        },
+        {
+            "icon": "graphic_eq",
+            "name": "Eq",
+            "component": "pages/Eq"
+        },
 
     ]
     Rectangle {
-        id:backdrop
+        id: backdrop
         anchors.fill: parent
         z: -1
         opacity: 0.25

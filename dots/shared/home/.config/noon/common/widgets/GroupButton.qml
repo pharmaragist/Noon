@@ -6,10 +6,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
 
-
-
-
-
 Button {
     id: root
     property bool toggled
@@ -22,13 +18,12 @@ Button {
     property var holdAction
     property var middleClickAction
     property bool bounce: true
-    property int buttonTextPadding
-    property real baseWidth: baseSize
-    property real baseHeight: baseSize
-    property real baseSize: contentItem.implicitHeight + verticalPadding + horizontalPadding
-
-    property real clickedWidth: baseWidth + 20
-    property real clickedHeight: baseHeight
+    property int buttonTextPadding: Padding.small
+    property real baseSize: -1
+    property real baseWidth: baseSize > 0 ? baseSize : (contentItem?.contentWidth ?? contentItem.implicitWidth) + horizontalPadding
+    property real baseHeight: baseSize > 0 ? baseSize : (contentItem?.contentHeight ?? contentItem.implicitHeight) + verticalPadding
+    property real clickedWidth: (parentGroup?.vertical ?? false) ? baseWidth : baseWidth + 20
+    property real clickedHeight: (parentGroup?.vertical ?? false) ? baseHeight + 20 : baseHeight
     property var parentGroup: root.parent
     property int clickIndex: parentGroup?.clickIndex ?? -1
     Layout.fillWidth: (clickIndex - 1 <= parentGroup.children.indexOf(root) && parentGroup.children.indexOf(root) <= clickIndex + 1)
@@ -57,18 +52,18 @@ Button {
     }
 
     Behavior on implicitWidth {
-        Anim {}
+        SAnim {}
     }
 
     Behavior on implicitHeight {
-        Anim {}
+        SAnim {}
     }
 
     Behavior on leftRadius {
-        Anim {}
+        SAnim {}
     }
     Behavior on rightRadius {
-        Anim {}
+        SAnim {}
     }
 
     MouseArea {

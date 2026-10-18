@@ -7,6 +7,7 @@ import qs.common.functions
 StyledRect {
     id: root
     property var account: AuthManager?.oauthData[0]?.account ?? ({})
+    visible: account?.name?.trim().length > 0
     color: "transparent"
     radius: Rounding.verylarge
 
@@ -16,7 +17,6 @@ StyledRect {
     RowLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-
 
         anchors.verticalCenter: parent.verticalCenter
         spacing: Padding.huge

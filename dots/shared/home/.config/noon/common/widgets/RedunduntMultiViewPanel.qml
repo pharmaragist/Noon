@@ -9,6 +9,7 @@ import qs.services
 
 SidebarItemContainer {
     id: root
+    objectName: "RedunduntMultiViewPanel"
     property bool lazy: true
     property bool _pendingFocus: false
     readonly property int totalTabs: tabButtonList.length
@@ -155,13 +156,13 @@ SidebarItemContainer {
         if (root.selectedTabIndex < 0)
             return;
         root._currentChild = null;
-        if (root.item)
+        if (root.item && "contentFocusRequested" in root.item)
             root.item.contentFocusRequested();
         else
             root._pendingFocus = true;
     }
     onContentFocusRequested: {
-        if (root.item)
+        if (root.item && "contentFocusRequested" in root.item)
             root.item.contentFocusRequested();
         else
             root._pendingFocus = true;

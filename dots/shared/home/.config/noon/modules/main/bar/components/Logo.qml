@@ -2,7 +2,7 @@ import QtQuick
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 BarGroup {
     id: root
@@ -14,11 +14,15 @@ BarGroup {
         implicitSize: root.implicitSize
         fill: hoverArea.containsMouse ? 1 : 0
     }
+    StyledToolTip {
+        content: "Open Beam ? "
+        extraVisibleCondition: hoverArea.containsMouse
+    }
     MouseArea {
         id: hoverArea
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: NoonUtils.callIpc("noon toggle_beam")
+        onClicked: Ipc.call(["noon", "toggle_beam"])
     }
 }

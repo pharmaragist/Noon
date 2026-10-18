@@ -7,10 +7,15 @@ import QtQuick.Effects
 
 Rectangle {
     id: root
+
+    readonly property Component animComp: Anim {}
+    readonly property Component sAnimComp: SAnim {}
     readonly property int diagonal: Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+
     property bool enableAnimations: true
-    property bool enableShadows: false
     property bool enableBorders: false
+    property bool bouncy: true
+
     property int rightRadius
     property int leftRadius
     property int topRadius
@@ -18,6 +23,7 @@ Rectangle {
     property int implicitSize
     property int animationDuration: Animations.durations.normal
     property var colors: Colors
+    property var animProps: ({})
 
     implicitHeight: implicitSize
     implicitWidth: implicitSize
@@ -40,74 +46,53 @@ Rectangle {
             bottomLeftRadius: root?.bottomLeftRadius
         }
     }
-    transitions: Transition {
-        Anim {
+
+    function getAnimation(parent, bouncy = root.bouncy, props = root.animProps) {
+        let comp = bouncy ? sAnimComp : animComp;
+        return comp.createObject(parent, Object.assign({}, {
             duration: root.animationDuration
-            properties: "topRightRadius,bottomRightRadius,topLeftRadius,bottomLeftRadius,anchors.topMargin,anchors.bottomMargin,anchors.rightMargin,anchors.leftMargin,radius,opacity"
-        }
-        CAnim {
-            duration: root.animationDuration
-            property: "color"
-        }
+        }, props));
     }
 
     Behavior on color {
         enabled: root.enableAnimations
         CAnim {
-            duration: animationDuration
+            duration: root.animationDuration
         }
     }
 
     Behavior on opacity {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
+
     Behavior on width {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
+
     Behavior on height {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
+
     Behavior on scale {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
+
     Behavior on y {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
 
     Behavior on implicitWidth {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
+        animation: root.getAnimation(this)
     }
+
     Behavior on implicitHeight {
         enabled: root.enableAnimations
-        Anim {
-            duration: animationDuration
-        }
-    }
-    Loader {
-        anchors.fill: parent
-        active: root.enableShadows
-        onLoaded: {
-            if (item && item !== null)
-                item.target = root;
-        }
-        sourceComponent: StyledRectangularShadow {}
+        animation: root.getAnimation(this)
     }
 }

@@ -29,7 +29,7 @@ SidebarItemContainer {
             "icon": "logout",
             "tooltip": qsTr("Logout"),
             "command": "loginctl terminate-user ''",
-            "c": Colors.colPrimaryContainerActive,
+            "c": Colors.colPrimaryContainer,
             "hc": Colors.colPrimaryContainerHover,
             "i": Colors.colOnPrimaryContainer,
             "shape": "PixelCircle"
@@ -87,7 +87,7 @@ SidebarItemContainer {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: modelData?.command === "" ? NoonUtils.callIpc("global lock") : NoonUtils.execDetached(modelData.command)
+                    onClicked: modelData?.command === "" ? Ipc.call(["global", "lock"]) : NoonUtils.execDetached(modelData.command)
                 }
             }
         }

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 Repeater {
     id: root
@@ -11,14 +11,15 @@ Repeater {
     delegate: StyledLoader {
         id: loader
         required property var modelData
-
+        visible: this.active
         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
         Layout.fillHeight: true
         Layout.fillWidth: true
 
         binds: {
+            "position": () => BarData.position,
             "barSize": () => BarData.currentBarExclusiveSize,
-            "bar": () => barRoot,
+            "bar": () => panel,
             "verticalMode": () => root.vertical,
             "vertical": () => root.vertical
         }
@@ -29,10 +30,10 @@ Repeater {
         }
 
         onLoaded: if (ready) {
-            loader.active = Qt.binding(() => item.visible);
+            // loader.active = Qt.binding(() => loader.item.visible);
 
             BarData.layoutProps.forEach(prop => {
-                Layout[prop] = Qt.binding(() => item?.Layout?.[prop]);
+                Layout[prop] = Qt.binding(() => loader.item?.Layout?.[prop]);
             });
         }
     }

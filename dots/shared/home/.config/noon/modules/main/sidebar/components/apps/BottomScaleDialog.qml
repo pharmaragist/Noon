@@ -7,7 +7,7 @@ import qs.services
 
 BottomDialog {
     id: root
-    collapsedHeight: 250
+    baseHeight: 250
     enableStagedReveal: false
     bottomAreaReveal: true
     hoverHeight: 300

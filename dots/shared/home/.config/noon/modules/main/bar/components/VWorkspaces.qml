@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-import qs.store
+import qs.data
 import qs.services
 import qs.common
 import qs.common.widgets
@@ -97,29 +97,20 @@ BarGroup {
         }
     }
 
+    AnimatedTabIndexPair {
+        id: wsAnim
+        index: root.workspaceIndexInGroup
+    }
+
     Rectangle {
         z: 2
         width: root.workspaceButtonHeight - root.buttonMargin * 2
         anchors.horizontalCenter: parent.horizontalCenter
 
-        property real idx1: root.workspaceIndexInGroup
-        property real idx2: root.workspaceIndexInGroup
-
-        y: root.yAt(Math.min(idx1, idx2)) + root.buttonMargin
-        height: Math.max(0, root.yAt(Math.max(idx1, idx2) + 1) - root.yAt(Math.min(idx1, idx2)) - root.buttonMargin * 2)
+        y: root.yAt(Math.min(wsAnim.idx1, wsAnim.idx2)) + root.buttonMargin
+        height: Math.max(0, root.yAt(Math.max(wsAnim.idx1, wsAnim.idx2) + 1) - root.yAt(Math.min(wsAnim.idx1, wsAnim.idx2)) - root.buttonMargin * 2)
         radius: Rounding.full
         color: Colors.colPrimary
-
-        Behavior on idx1 {
-            Anim {
-                duration: Animations.durations.small
-            }
-        }
-        Behavior on idx2 {
-            Anim {
-                duration: Animations.durations.large
-            }
-        }
     }
 
     ColumnLayout {
@@ -180,7 +171,7 @@ BarGroup {
                 readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || windowCount === 0
                 readonly property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
                 readonly property real buttonHeight: Math.max(root.workspaceButtonHeight, windowCount * iconSize + Math.max(0, windowCount - 1) * (showNumber ? 0 : root.iconSpacing) + root.buttonVPadding) + (windowCount > 1 ? root.bgPadding : 0)
-                readonly property int positionMultiplier: Mem.options.bar.behavior.position === "left" ? -1 : 1
+                readonly property int positionMultiplier: root.position === "left" ? -1 : 1
 
                 Layout.fillWidth: true
                 height: buttonHeight

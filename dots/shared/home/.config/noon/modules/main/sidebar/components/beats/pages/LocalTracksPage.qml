@@ -17,31 +17,59 @@ StyledRect {
 
     property bool expanded
     property string debouncedQuery
+
     Connections {
         target: controls.inputArea
         function onTextChanged() {
-            setTimer.restart();
-        }
-        readonly property Timer setTimer: Timer {
-            interval: 180
-            onTriggered: root.debouncedQuery = controls.inputArea.text
+            NoonUtils.inlineTimer(() => {
+                root.debouncedQuery = controls.inputArea.text;
+            }, 200);
         }
     }
+
+    function shuffle(list) {
+        const arr = list.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+        }
+        return arr;
+    }
+
     ScriptModel {
         id: filteredModel
         values: {
-            const query = root.debouncedQuery;
-            const searchBy = text => {
-                if (query === "")
-                    return true;
-                else if (text)
-                    return (text).toLowerCase().includes(query);
-            };
-            const filtered = BeatsService.library.filter(entry => searchBy(entry.title) || searchBy(entry.artist));
-            if (Mem.states.services.beats.shuffleTracks)
-                return filtered.sort(() => Math.random() - 0.5);
-            else
-                return filtered;
+            const query = (root.debouncedQuery ?? "").trim().toLowerCase();
+            const shuffleEnabled = Mem.states?.services?.beats?.shuffleTracks ?? false;
+            const all = BeatsService.library || [];
+            const startsMatches = [];
+            const includesMatches = [];
+
+            for (let i = 0; i < all.length; i++) {
+                const t = all[i];
+                if (!t || typeof t !== "object" || !(t.title || t.file))
+                    continue;
+
+                if (query.length === 0) {
+                    startsMatches.push(t);
+                    continue;
+                }
+
+                const title = (t.title ?? "").toLowerCase();
+                const artist = (t.artist ?? "").toLowerCase();
+
+                if (title.startsWith(query) || artist.startsWith(query))
+                    startsMatches.push(t);
+                else if (title.includes(query) || artist.includes(query))
+                    includesMatches.push(t);
+            }
+
+            if (query.length === 0 && shuffleEnabled)
+                return root.shuffle(startsMatches);
+
+            return startsMatches.concat(includesMatches);
         }
     }
 
@@ -52,10 +80,12 @@ StyledRect {
     LocalControls {
         id: controls
     }
+
     function createPlaylistFromModel() {
         var playlist = [];
-        for (var i = 0; i < filteredModel.values.length; i++) {
-            var item = filteredModel.values[i];
+        var values = filteredModel.values || [];
+        for (var i = 0; i < values.length; i++) {
+            var item = values[i];
             if (item && item.title)
                 playlist.push(item.title);
         }
@@ -67,12 +97,15 @@ StyledRect {
             BeatsService.playCustomPlaylist(createPlaylistFromModel());
         }
     }
+
     function createPlaylist(fileName) {
-        BeatsService.playTrackByFile(fileName);
+        if (fileName) {
+            BeatsService.playTrackByFile(fileName);
+        }
     }
 
     radius: Rounding.verylarge
-    color: colors.colLayer1
+    color: "transparent"
     colors: MediaPlayerService?.colors
 
     StyledGridView {
@@ -84,16 +117,20 @@ StyledRect {
         model: filteredModel
         readonly property int columns: controls.listMode ? 1 : root.expanded ? 4 : 2
         cellWidth: width / columns
-        cellHeight: controls.listMode ? 76 : cellWidth
-        property string libPath: Mem.beats.directory + "/"
+        cellHeight: controls.listMode ? 110 : cellWidth
+        property string libPath: (Mem.beats?.directory ?? "") + "/"
+
         delegate: TrackItem {
             listMode: controls?.listMode ?? false
             implicitHeight: grid.cellHeight - margins
             implicitWidth: grid.cellWidth - margins
             title: modelData?.title ?? ""
             artist: modelData?.artist ?? ""
-            coverArt: grid.libPath + modelData?.cover ?? ""
+            coverArt: modelData?.cover ? (grid.libPath + modelData.cover) : ""
+
             eventArea.onClicked: event => {
+                if (!modelData)
+                    return;
                 if (event.button === Qt.LeftButton) {
                     root.createPlaylist(modelData?.file);
                 } else if (event.button === Qt.MiddleButton) {
@@ -105,11 +142,12 @@ StyledRect {
 
             TrackContextMenu {
                 id: menu
-                trackPath: grid.libPath + modelData.file
-                trackName: modelData.title
+                trackPath: modelData?.file ? (grid.libPath + modelData.file) : ""
+                trackName: modelData?.title ?? ""
             }
         }
     }
+
     MouseArea {
         id: dismissArea
         z: controls.z - 1

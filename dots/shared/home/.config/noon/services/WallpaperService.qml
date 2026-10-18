@@ -12,7 +12,7 @@ Singleton {
     property var thumbnailsData: ({})
     readonly property bool fgReady: Paths.methods.exists(currentFgPath)
     readonly property string currentWallpaper: Mem.looks.currentBg ?? Qt.resolvedUrl(Paths.wallpapers.defaultBg)
-    readonly property string currentFgPath: clean(Paths.wallpapers.depthDir + Qt.md5(clean(currentWallpaper)) + ".png")
+    readonly property string currentFgPath: getFgPathOf(currentWallpaper)
     readonly property string currentFolderPath: Mem.looks.currentFolder
     readonly property bool isBright: Mem.looks.isBright
 
@@ -38,6 +38,10 @@ Singleton {
                 console.error("Thumbnails: Failed to parse " + this.path);
             }
         }
+    }
+
+    function getFgPathOf(fileUrl) {
+        return clean(Paths.wallpapers.depthDir + Qt.md5(clean(fileUrl)) + ".png")
     }
 
     function clean(fileUrl) {

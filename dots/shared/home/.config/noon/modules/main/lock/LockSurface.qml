@@ -5,9 +5,8 @@ import Quickshell
 import Quickshell.Hyprland
 import qs.common
 import qs.common.widgets
-import qs.modules.common.bg
 import qs.services
-import qs.store
+import qs.data
 
 Rectangle {
     id: root
@@ -29,9 +28,7 @@ Rectangle {
         anchors.fill: parent
         color: Colors.t(Colors.colScrim, 0.5)
     }
-
-    LockProfilePicture {}
-
+    LockClock {}
     LockBeam {
         id: beam
         context: root.context

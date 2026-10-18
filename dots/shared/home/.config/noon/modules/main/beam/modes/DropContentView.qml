@@ -7,35 +7,44 @@ import qs.common
 import qs.common.widgets
 import qs.common.utils
 import qs.services
-import qs.store
+import qs.data
 
-RowLayout {
-    anchors.fill: parent
+ContentViewItem {
+    Item {
+        width: 600
+        height: 200
 
-    anchors.leftMargin: Padding.silly
-    anchors.rightMargin: Padding.massive
-    spacing: Padding.massive
-    z: 999
-    MaterialShapeWrappedSymbol {
-        _shape: "Pill"
-        iconSize: 120
-        text: "bookmark_add"
-        color: Colors.colPrimary
-        colSymbol: Colors.colOnPrimary
-    }
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: Padding.large
+            anchors.leftMargin: Padding.silly
+            anchors.rightMargin: Padding.silly
 
-    ColumnLayout {
-        Layout.fillWidth: true
+            spacing: Padding.massive
+            z: 999
 
-        StyledText {
-            font: Fonts.request("title", "title")
-            text: "Drop Here !"
-            color: Colors.colPrimary
-        }
-        StyledText {
-            font: Fonts.request("banner", "subTitle")
-            text: "You can drop your files now"
-            color: Colors.colOnLayer0
+            MaterialShapeWrappedSymbol {
+                _shape: "Pill"
+                iconSize: 80
+                text: "bookmark_add"
+                color: Colors.colPrimary
+                colSymbol: Colors.colOnPrimary
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+
+                StyledText {
+                    font: Fonts.request("title", 48)
+                    text: "Drop Here !"
+                    color: Colors.colPrimary
+                }
+                StyledText {
+                    font: Fonts.request("banner", 24)
+                    text: "You can drop your files now"
+                    color: Colors.colOnLayer0
+                }
+            }
         }
     }
 }

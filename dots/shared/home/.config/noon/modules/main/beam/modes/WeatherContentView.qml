@@ -6,12 +6,11 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-Item {
-    id: view
+ContentViewItem {
+    id: root
     readonly property var stats: WeatherService.weatherData
     readonly property var todayHourly: (stats.forecast ?? [])[0]?.hourly ?? []
     property date currentTime: new Date()
-
     readonly property var compassDegrees: ({
             "N": 0,
             "NNE": 22.5,
@@ -31,14 +30,7 @@ Item {
             "NNW": 337.5
         })
 
-    readonly property real windBearing: view.compassDegrees[stats.wind_direction] ?? 0
-
-    Timer {
-        interval: 60000
-        running: true
-        repeat: true
-        onTriggered: view.currentTime = new Date()
-    }
+    readonly property real windBearing: root.compassDegrees[stats.wind_direction] ?? 0
 
     readonly property int nearestIndex: {
         var nowMin = currentTime.getHours() * 60 + currentTime.getMinutes();
@@ -66,174 +58,187 @@ Item {
         return h12 + ":00 " + suffix;
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Padding.massive
-        spacing: Padding.large
+    Item {
+        id: view
+        height: 300
+        width: 450
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Padding.huge
+        Timer {
+            interval: 60000
+            running: true
+            repeat: true
+            onTriggered: root.currentTime = new Date()
+        }
 
-            ColumnLayout {
-                spacing: Padding.small
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Padding.massive
+            spacing: Padding.large
 
-                RowLayout {
-                    spacing: Padding.normal
-                    Layout.bottomMargin: Padding.small
-                    Item {
-                        implicitHeight: children[0].implicitSize
-                        implicitWidth: children[0].implicitSize
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Padding.huge
 
-                        MaterialShape {
-                            _shape: "Pill"
-                            implicitSize: 64
-                            color: Colors.colPrimary
+                ColumnLayout {
+                    spacing: Padding.small
 
-                            Anim on rotation {
-                                duration: 8000
-                                from: 0
-                                to: 360
+                    RowLayout {
+                        spacing: Padding.normal
+                        Layout.bottomMargin: Padding.small
+                        Item {
+                            implicitHeight: children[0].implicitSize
+                            implicitWidth: children[0].implicitSize
+
+                            MaterialShape {
+                                _shape: "Pill"
+                                implicitSize: 64
+                                color: Colors.colPrimary
+
+                                Anim on rotation {
+                                    duration: 8000
+                                    from: 0
+                                    to: 360
+                                }
+                            }
+                            Symbol {
+                                anchors.centerIn: parent
+                                icon: stats.material_icon
+                                iconSize: 34
+                                color: Colors.colOnPrimary
                             }
                         }
-                        Symbol {
-                            anchors.centerIn: parent
-                            icon: stats.material_icon
-                            iconSize: 34
-                            color: Colors.colOnPrimary
+
+                        StyledText {
+                            leftPadding: Padding.large
+                            font: Fonts.request("title", 44, {
+                                weight: Font.DemiBold
+                            })
+                            text: stats.current_temp
+                            color: Colors.colOnLayer0
                         }
                     }
 
                     StyledText {
-                        leftPadding: Padding.large
-                        font: Fonts.request("title", 44, {
-                            weight: Font.DemiBold
-                        })
-                        text: stats.current_temp
+                        font: Fonts.request("main", 20)
+                        text: stats.current_condition
                         color: Colors.colOnLayer0
                     }
+
+                    StyledText {
+                        font: Fonts.request("reading", 16)
+                        text: stats.location
+                        color: Colors.colSecondary
+                    }
                 }
-
-                StyledText {
-                    font: Fonts.request("main", 20)
-                    text: stats.current_condition
-                    color: Colors.colOnLayer0
-                }
-
-                StyledText {
-                    font: Fonts.request("reading", 16)
-                    text: stats.location
-                    color: Colors.colSecondary
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            ColumnLayout {
-                spacing: Padding.normal
-                Layout.alignment: Qt.AlignTop
 
                 Item {
-                    id: windArrowWrapper
-                    Layout.alignment: Qt.AlignHCenter
-                    implicitWidth: windArrow.implicitWidth
-                    implicitHeight: windArrow.implicitHeight
-                    transformOrigin: Item.Center
-                    rotation: view.windBearing
+                    Layout.fillWidth: true
+                }
 
-                    RotationAnimation on rotation {
-                        from: 360
-                        to: view.windBearing
-                        duration: 500
-                        easing.type: Easing.OutCubic
-                    }
-                    Behavior on rotation {
-                        RotationAnimation {
+                ColumnLayout {
+                    spacing: Padding.normal
+                    Layout.alignment: Qt.AlignTop
+
+                    Item {
+                        id: windArrowWrapper
+                        Layout.alignment: Qt.AlignHCenter
+                        implicitWidth: windArrow.implicitWidth
+                        implicitHeight: windArrow.implicitHeight
+                        transformOrigin: Item.Center
+                        rotation: root.windBearing
+
+                        RotationAnimation on rotation {
+                            from: 360
+                            to: root.windBearing
                             duration: 500
-                            direction: RotationAnimation.Shortest
                             easing.type: Easing.OutCubic
+                        }
+                        Behavior on rotation {
+                            RotationAnimation {
+                                duration: 500
+                                direction: RotationAnimation.Shortest
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+
+                        MaterialShape {
+                            id: windArrow
+                            anchors.centerIn: parent
+                            _shape: "Arrow"
+                            implicitSize: 54
+                            color: Colors.colTertiary
+                        }
+
+                        Symbol {
+                            icon: "navigation"
+                            anchors.centerIn: parent
+                            iconSize: 26
+                            color: Colors.colOnTertiary
                         }
                     }
 
-                    MaterialShape {
-                        id: windArrow
-                        anchors.centerIn: parent
-                        _shape: "Arrow"
-                        implicitSize: 54
-                        color: Colors.colTertiary
-                    }
-
-                    Symbol {
-                        icon: "navigation"
-                        anchors.centerIn: parent
-                        iconSize: 26
-                        color: Colors.colOnTertiary
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        font: Fonts.request("reading", 14)
+                        text: stats.wind_direction + " " + stats.wind_speed
+                        color: Colors.colSecondary
                     }
                 }
+            }
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    font: Fonts.request("reading", 14)
-                    text: stats.wind_direction + " " + stats.wind_speed
-                    color: Colors.colSecondary
+            ListView {
+                Layout.fillWidth: true
+                Layout.topMargin: Padding.large
+                Layout.preferredHeight: 100
+                orientation: ListView.Horizontal
+                spacing: Padding.normal
+                clip: true
+                model: root.todayHourly
+
+                delegate: ColumnLayout {
+                    required property var modelData
+                    required property int index
+                    readonly property bool isNearest: index === root.nearestIndex
+                    width: 56
+                    height: ListView.view.height
+                    spacing: Padding.small
+
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        font: Fonts.request("main", 18, {
+                            weight: Font.DemiBold
+                        })
+                        text: modelData.temp
+                        color: isNearest ? Colors.colPrimary : Colors.colSecondary
+                    }
+
+                    MaterialShapeWrappedSymbol {
+                        Layout.alignment: Qt.AlignHCenter
+                        _shape: "Cookie9Sided"
+                        iconSize: 28
+                        text: modelData.material_icon
+                        fill: isNearest ? 1 : 0
+                        color: isNearest ? Colors.colPrimary : Colors.colSecondary
+                        colSymbol: isNearest ? Colors.colOnPrimary : Colors.colOnSecondary
+                    }
+
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        font: Fonts.request("reading", 13)
+                        text: root.formatTime(modelData.time)
+                        color: isNearest ? Colors.colPrimary : Colors.colSecondary
+                    }
                 }
             }
-        }
 
-        ListView {
-            Layout.fillWidth: true
-            Layout.topMargin: Padding.large
-            Layout.preferredHeight: 100
-            orientation: ListView.Horizontal
-            spacing: Padding.normal
-            clip: true
-            model: view.todayHourly
-
-            delegate: ColumnLayout {
-                required property var modelData
-                required property int index
-                readonly property bool isNearest: index === view.nearestIndex
-                width: 56
-                height: ListView.view.height
-                spacing: Padding.small
-
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    font: Fonts.request("main", 18, {
-                        weight: Font.DemiBold
-                    })
-                    text: modelData.temp
-                    color: isNearest ? Colors.colPrimary : Colors.colSecondary
-                }
-
-                MaterialShapeWrappedSymbol {
-                    Layout.alignment: Qt.AlignHCenter
-                    _shape: "Cookie9Sided"
-                    iconSize: 28
-                    text: modelData.material_icon
-                    fill: isNearest ? 1 : 0
-                    color: isNearest ? Colors.colPrimary : Colors.colSecondary
-                    colSymbol: isNearest ? Colors.colOnPrimary : Colors.colOnSecondary
-                }
-
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    font: Fonts.request("reading", 13)
-                    text: view.formatTime(modelData.time)
-                    color: isNearest ? Colors.colPrimary : Colors.colSecondary
-                }
+            StyledText {
+                id: sourceHint
+                Layout.alignment: Qt.AlignHCenter
+                horizontalAlignment: Text.AlignHCenter
+                font: Fonts.request("main", "small")
+                color: Colors.colSubtext
+                text: "Source: MET"
             }
-        }
-
-        StyledText {
-            id: sourceHint
-            Layout.alignment: Qt.AlignHCenter
-            horizontalAlignment: Text.AlignHCenter
-            font: Fonts.request("main", "small")
-            color: Colors.colSubtext
-            text: "Source: MET"
         }
     }
 }

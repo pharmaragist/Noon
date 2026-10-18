@@ -8,10 +8,31 @@ import qs.common
 Singleton {
     id: root
     readonly property string deviceName: Mem.options.services.backlightDevice
-    property int currentLevel: -1
-    property int maxLevel: -1
 
-    Component.onCompleted: getProc.running = true
+    property var stats: ({
+            id: "",
+            type: "",
+            current: 0,
+            max: 2,
+            percentage: 1.0,
+            icon: "backlight_high"
+        })
+
+    Component.onCompleted: pollProc.running = true
+
+    Process {
+        id: pollProc
+        command: ["brightnessctl", "-d", root.deviceName, "-m", "g"]
+
+        stdout: SplitParser {
+            onRead: data => {
+                let parsed = root.parseLine(data);
+                if (parsed) {
+                    root.stats = parsed;
+                }
+            }
+        }
+    }
 
     Process {
         id: getAllProc
@@ -40,23 +61,16 @@ Singleton {
     }
 
     Process {
-        id: getProc
-        command: ["brightnessctl", "-d", deviceName, "-m"]
-        stdout: SplitParser {
-            onRead: data => {
-                maxLevel = parseInt(data.trim().split(',')[4]);
-                currentLevel = parseInt(data.trim().split(',')[2]);
-            }
-        }
-    }
-
-    Process {
         id: setProc
-        property int level: -1
-        command: ["brightnessctl", "-m", "-d", deviceName, "set", level.toString()]
+        property int level: 0
+        command: ["brightnessctl", "-m", "-d", root.deviceName, "set", level.toString()]
+
         stdout: SplitParser {
             onRead: data => {
-                currentLevel = data.trim().split(',')[2];
+                let parsed = root.parseLine(data);
+                if (parsed) {
+                    root.stats = parsed;
+                }
             }
         }
     }
@@ -65,30 +79,46 @@ Singleton {
         getAllProc.running = true;
     }
 
-    function get() {
-        getProc.running = true;
-    }
-
     function set(level) {
         setProc.level = level;
         setProc.running = true;
     }
 
     function cycle() {
-        let nextLevel = (currentLevel + 1) % (maxLevel + 1);
+        let current = parseInt(root.stats.current);
+        let max = parseInt(root.stats.max);
+
+        if (isNaN(current) || current < 0)
+            current = 0;
+        if (isNaN(max) || max <= 0)
+            max = 2;
+
+        let nextLevel = (current + 1) % (max + 1);
         set(nextLevel);
     }
 
-    function getMaterialIcon() {
-        switch (currentLevel) {
-        case 0:
-            return "backlight_high_off";
-        case 1:
-            return "backlight_low";
-        case 2:
-            return "backlight_high";
-        default:
-            return "backlight_high";
-        }
+    function getIcon(level) {
+        const lvl = parseInt(level);
+        const icons = ["backlight_high_off", "backlight_low", "backlight_high"];
+        return icons[lvl] ?? "backlight_high";
+    }
+
+    function parseLine(line) {
+        const i = line.trim().split(',');
+        if (i.length < 5)
+            return null;
+
+        const currentVal = parseInt(i[2]);
+        const pctStr = i[3].replace('%', '');
+        const pctVal = parseFloat(pctStr) / 100;
+
+        return {
+            id: i[0],
+            type: i[1],
+            current: currentVal,
+            percentage: isNaN(pctVal) ? 0 : pctVal,
+            max: parseInt(i[4]),
+            icon: root.getIcon(currentVal)
+        };
     }
 }

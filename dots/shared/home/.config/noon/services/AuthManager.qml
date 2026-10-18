@@ -6,7 +6,8 @@ import qs.common.utils
 
 Singleton {
     id: root
-    readonly property var oauthData: Object?.values(connections) ?? []
+    readonly property var oauthData: if (!!connections)
+        Object?.values(connections) ?? []
     readonly property var connections: {
         try {
             return JSON.parse(oauthView.text());
@@ -39,11 +40,7 @@ Singleton {
     }
     readonly property Process mainProc: Process {}
     readonly property FileView oauthView: FileView {
-        path: Qt.resolvedUrl(Paths.userOptions + "/oauth.json")
-        onLoadFailed: error => {
-            if (error === FileViewError.FileNotFound)
-                this.writeAdapter();
-        }
+        path: Qt.resolvedUrl(Paths.shellConfigs + "/user/oauth.json")
     }
 
     function isAuth(id: string) {

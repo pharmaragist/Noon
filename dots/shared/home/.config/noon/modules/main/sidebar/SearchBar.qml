@@ -4,11 +4,12 @@ import Quickshell
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 StyledRect {
     id: searchBar
     signal contentFocusRequested
+    signal accepted
 
     required property var colors
     required property var root
@@ -58,7 +59,7 @@ StyledRect {
             placeholderText: "Search..."
             color: colors.colOnLayer1
             font: Fonts.request("main", "large")
-
+            onAccepted: searchBar.accepted
             Keys.onPressed: event => {
                 if (!root.effectiveSearchable)
                     return;

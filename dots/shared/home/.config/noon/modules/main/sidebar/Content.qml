@@ -5,10 +5,9 @@ import Quickshell.Wayland
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 import "components/plugins"
-import "components/games"
 import "components/cast"
 import "components/apps"
 import "components/notes"
@@ -38,22 +37,23 @@ Item {
     property string auxSearchText: ""
     property int selectedTabIndex: 0
     property bool isResizing: false
-    property int resizeDuration: Animations.durations.small
-    readonly property int targetWidth: panelWindow?.sidebarWidth
-    readonly property var mainContentItem: mainContentLoader._item._item
+    property int resizeDuration: parent?.animationDuration
+    readonly property int targetWidth: panelWindow?.baseWidth
 
-    onWidthChanged: isResizing = true
-    Timer {
-        running: root.isResizing
-        repeat: true
-        interval: resizeDuration + 50
-        onTriggered: if (root.targetWidth === root.width)
-            root.isResizing = false
+    onWidthChanged: {
+        if (!(Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory)))
+            return;
+        root.isResizing = true;
+        NoonUtils.inlineTimer(() => {
+            if (root.width === root.targetWidth)
+                root.isResizing = false;
+        }, root.resizeDuration);
     }
 
     function dismiss() {
         panelWindow.hide();
     }
+
     function changeContent(newCategoryKey) {
         if (!newCategoryKey || !SidebarData.enabledCategories.includes(newCategoryKey) && !SidebarData.isStealth(newCategoryKey))
             return;
@@ -68,8 +68,9 @@ Item {
         selectedCategory = newCategoryKey;
     }
 
-    function incubateContent(cat) {
-        panelWindow.incubate(cat);
+    function focusMainSearchInput() {
+        const child = mainContentLoader._item?.mainLoader?.item;
+        child?.focusItem?.forceActiveFocus();
     }
 
     function toggleAux(categoryKey) {
@@ -147,7 +148,7 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        layoutDirection: !panelWindow.rightMode ? Qt.LeftToRight : Qt.RightToLeft
+        layoutDirection: (panelWindow.rightMode ^ Mem.options.sidebar.navRail.reverse) ? Qt.RightToLeft : Qt.LeftToRight
         spacing: SidebarData.getPadding(root.selectedCategory) ?? Padding.normal
 
         SidebarNavigationRail {
@@ -167,7 +168,7 @@ Item {
                 id: mainContentLoader
                 active: true
                 fade: true
-                sourceComponent: Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory) && root.isResizing ? overlay : contentRow
+                sourceComponent: root.isResizing ? overlay : contentRow
                 anchors.fill: parent
 
                 readonly property Component overlay: ResizeOverlay {

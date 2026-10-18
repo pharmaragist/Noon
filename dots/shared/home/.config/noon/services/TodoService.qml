@@ -19,17 +19,20 @@ Singleton {
     readonly property var store: Mem.todo
     readonly property var statusNames: ["Not Started", "In Progress", "Final Touches", "Finished"]
     readonly property var statusLabels: ["todo", "in_progress", "final_touches", "done"]
-    readonly property bool useGoogleTasks: false
+    readonly property bool useGoogleTasks: Mem.options.services.integrations?.googleTasks ?? false
     Component.onCompleted: Qt.callLater(pull)
 
     function _extractTags(text) {
         var tags = [];
-        var cleaned = text.replace(/#(\w+)/g, function(_, tag) {
+        var cleaned = text.replace(/#(\w+)/g, function (_, tag) {
             if (tags.indexOf(tag) === -1)
                 tags.push(tag);
             return "";
         });
-        return { tags: tags, content: cleaned.replace(/\s+/g, " ").trim() };
+        return {
+            tags: tags,
+            content: cleaned.replace(/\s+/g, " ").trim()
+        };
     }
 
     function _insertTask(desc, status, date, children, tags) {

@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import qs.common
 import qs.common.widgets
 import qs.services
-import qs.store
+import qs.data
 
 StyledPopup {
     id: root
@@ -13,31 +13,38 @@ StyledPopup {
     popupBackgroundColor: "transparent"
     property int sectionWidth: 300
 
-    ColumnLayout {
+    contentItem: StyledRect {
         anchors.centerIn: parent
-        spacing: 2
+        implicitWidth: 350
+        implicitHeight: 260
+        radius: Rounding.huge
+        color: Colors.colLayer0
+        clip: true
 
-        StyledRect {
-            Layout.preferredWidth: root.sectionWidth
-            Layout.preferredHeight: headerLayout.implicitHeight + (Padding.huge * 2)
-            Layout.fillWidth: true
-            topRadius: Rounding.verylarge
-            bottomRadius: Rounding.tiny
-            color: Colors.colLayer0
+        ShapeBackdrop {
+            _shape: "Cookie12Sided"
+            implicitSize: 210
+            x: parent?.width - this.width + Padding.silly
+            y: -Padding.silly
+            rotate: true
+            opacity: 0.35
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Padding.large
+            spacing: Padding.large
 
             RowLayout {
-                id: headerLayout
-                anchors.fill: parent
-                anchors.margins: Padding.veryhuge
-                spacing: 16
+                Layout.fillWidth: true
+                Layout.preferredHeight: 80
+                spacing: Padding.huge
 
                 Symbol {
                     leftPadding: Padding.huge
-                    Layout.preferredWidth: 44
-                    Layout.preferredHeight: 44
-                    icon: NetworkService.manager.ethernet ? "lan" : NetworkService.manager.wifi ? "wifi" : "wifi_off"
-                    color: NetworkService.manager.ethernet || NetworkService.manager.wifi ? Colors.m3.m3primary : Colors.m3.m3onError
-                    font.pixelSize: 26
+                    icon: NetworkService.manager.materialSymbol
+                    color: NetworkService.manager.ethernet || NetworkService.manager.wifi ? Colors.colPrimary : Colors.colError
+                    iconSize: 38
                 }
 
                 ColumnLayout {
@@ -46,12 +53,14 @@ StyledPopup {
 
                     StyledText {
                         text: NetworkService.manager.wifi && NetworkService.manager.networkName ? NetworkService.manager.networkName : NetworkService.manager.ipAddress
-                        font: Fonts.request("main", "large", { weight: Font.DemiBold })
+                        font: Fonts.request("main", "large", {
+                            weight: Font.DemiBold
+                        })
                         color: Colors.m3.m3onSurface
                     }
 
                     StyledText {
-                        text: NetworkService.manager.ethernet ? qsTr("Ethernet") : NetworkService.manager.wifi ? qsTr("Wi-Fi") : qsTr("Disconnected")
+                        text: NetworkService.manager.ipAddress
                         font.pixelSize: Fonts.sizes.small
                         color: Colors.m3.m3onSurfaceVariant
                         visible: NetworkService.manager.ethernet || NetworkService.manager.wifi
@@ -60,144 +69,169 @@ StyledPopup {
                     }
                 }
             }
-        }
 
-        StyledRect {
-            Layout.preferredWidth: root.sectionWidth
-            Layout.preferredHeight: speedLayout.implicitHeight + (Padding.huge * 2)
-            Layout.fillWidth: true
-            radius: Rounding.tiny
-            color: Colors.colLayer0
-            visible: NetworkService.manager.ethernet || NetworkService.manager.wifi
+            StyledRect {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: Rounding.large
+                color: Colors.colLayer1
 
-            RowLayout {
-                id: speedLayout
-                anchors.fill: parent
-                anchors.margins: Padding.veryhuge
-                spacing: 24
+                ColumnLayout {
+                    spacing: Padding.normal
+                    anchors.fill: parent
+                    anchors.margins: Padding.large
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
+                    RowLayout {
+                        id: speedLayout
+                        Layout.fillWidth: true
+                        Layout.maximumHeight: 50
+                        spacing: Padding.normal
 
-                    Symbol {
-                        icon: "keyboard_arrow_down"
-                        color: Colors.m3.m3primary
-                        font.pixelSize: 20
+                        StyledRect {
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+                            color: Colors.colLayer2
+                            radius: Rounding.large
+
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: 10
+
+                                Symbol {
+                                    icon: "keyboard_arrow_down"
+                                    color: Colors.m3.m3primary
+                                    font.pixelSize: 20
+                                }
+
+                                ColumnLayout {
+                                    spacing: 4
+
+                                    StyledText {
+                                        text: qsTr("Download")
+                                        font.pixelSize: Fonts.sizes.small
+                                        color: Colors.m3.m3onSurfaceVariant
+                                    }
+
+                                    StyledText {
+                                        text: NetworkService.manager.downloadSpeedText
+                                        font: Fonts.request("main", "small", {
+                                            weight: Font.Medium
+                                        })
+                                        color: Colors.m3.m3onSurface
+                                    }
+                                }
+                            }
+                        }
+
+                        StyledRect {
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+                            color: Colors.colLayer2
+                            radius: Rounding.large
+
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: 10
+
+                                Symbol {
+                                    icon: "keyboard_arrow_up"
+                                    color: Colors.m3.m3primary
+                                    font.pixelSize: 20
+                                }
+
+                                ColumnLayout {
+                                    spacing: 4
+
+                                    StyledText {
+                                        text: qsTr("Upload")
+                                        font.pixelSize: Fonts.sizes.small
+                                        color: Colors.m3.m3onSurfaceVariant
+                                    }
+
+                                    StyledText {
+                                        text: NetworkService.manager.uploadSpeedText
+                                        font: Fonts.request("main", "small", {
+                                            weight: Font.Medium
+                                        })
+                                        color: Colors.m3.m3onSurface
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    ColumnLayout {
-                        spacing: 4
-
-                        StyledText {
-                            text: qsTr("Download")
-                            font.pixelSize: Fonts.sizes.small
-                            color: Colors.m3.m3onSurfaceVariant
-                        }
-
-                        StyledText {
-                            text: NetworkService.manager.downloadSpeedText
-                            font: Fonts.request("main", "small", { weight: Font.Medium })
-                            color: Colors.m3.m3onSurface
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 10
-
-                    Symbol {
-                        icon: "keyboard_arrow_up"
-                        color: Colors.m3.m3primary
-                        font.pixelSize: 20
-                    }
-
-                    ColumnLayout {
-                        spacing: 4
-
-                        StyledText {
-                            text: qsTr("Upload")
-                            font.pixelSize: Fonts.sizes.small
-                            color: Colors.m3.m3onSurfaceVariant
-                        }
-
-                        StyledText {
-                            text: NetworkService.manager.uploadSpeedText
-                            font: Fonts.request("main", "small", { weight: Font.Medium })
-                            color: Colors.m3.m3onSurface
-                        }
+                    GGraph {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
                     }
                 }
             }
         }
+    }
 
-        StyledRect {
-            Layout.preferredWidth: root.sectionWidth
-            Layout.preferredHeight: metadataLayout.implicitHeight + (Padding.huge * 2)
-            Layout.fillWidth: true
-            topRadius: Rounding.tiny
-            bottomRadius: Rounding.verylarge
-            color: Colors.colLayer0
+    component GGraph: StyledRect {
+        id: ggraph
+        clip: true
+        color: "transparent"
 
-            ColumnLayout {
-                id: metadataLayout
-                anchors.fill: parent
-                anchors.margins: Padding.veryhuge
-                spacing: 14
+        readonly property int maxPoints: 24
+        property var dlHistory: []
+        property var ulHistory: []
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: NetworkService.manager.wifi && NetworkService.manager.networkStrength > 0
+        function parseSpeed(text) {
+            if (!text)
+                return 0;
+            const m = text.trim().match(/^([\d.]+)\s*(B|KB|MB|GB)\/s$/i);
+            if (!m)
+                return 0;
+            const v = parseFloat(m[1]);
+            const mult = {
+                "B": 1,
+                "KB": 1024,
+                "MB": 1024 * 1024,
+                "GB": 1024 * 1024 * 1024
+            };
+            return v * (mult[m[2].toUpperCase()] ?? 1);
+        }
 
-                    RowLayout {
-                        spacing: 8
-                        Symbol {
-                            icon: "broadcast_on_home"
-                            color: Colors.m3.m3onSurfaceVariant
-                            font.pixelSize: 18
-                        }
-                        StyledText {
-                            text: qsTr("Signal Strength")
-                            color: Colors.m3.m3onSurfaceVariant
-                        }
-                    }
+        function updateSpeed() {
+            const dl = ggraph.parseSpeed(NetworkService.manager.downloadSpeedText);
+            const ul = ggraph.parseSpeed(NetworkService.manager.uploadSpeedText);
+            let peak = 1;
+            for (const v of ggraph.dlHistory)
+                peak = Math.max(peak, v);
+            for (const v of ggraph.ulHistory)
+                peak = Math.max(peak, v);
+            peak = Math.max(peak, dl, ul, 1);
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignRight
-                        text: NetworkService.manager.networkStrengthText
-                        color: Colors.m3.m3onSurface
-                        font.weight: Font.Medium
-                    }
-                }
+            const arrDl = ggraph.dlHistory.concat([dl / peak]);
+            const arrUl = ggraph.ulHistory.concat([ul / peak]);
+            ggraph.dlHistory = arrDl.slice(-ggraph.maxPoints);
+            ggraph.ulHistory = arrUl.slice(-ggraph.maxPoints);
+            sync();
+        }
 
-                RowLayout {
-                    Layout.fillWidth: true
+        Timer {
+            interval: 4000
+            repeat: true
+            running: true
+            onTriggered: ggraph.updateSpeed()
+        }
 
-                    RowLayout {
-                        spacing: 8
-                        Symbol {
-                            icon: "lan"
-                            color: Colors.m3.m3onSurfaceVariant
-                            font.pixelSize: 18
-                        }
-                        StyledText {
-                            text: qsTr("IP Address")
-                            color: Colors.m3.m3onSurfaceVariant
-                        }
-                    }
+        Graph {
+            id: graph
+            anchors.margins: Padding.normal
+            anchors.fill: parent
+            color: Colors.colSecondary
+            fillOpacity: 0.35
+        }
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignRight
-                        text: NetworkService.manager.ipAddress
-                        color: Colors.m3.m3onSurface
-                        font.weight: Font.Medium
-                        elide: Text.ElideRight
-                    }
-                }
-            }
+        Component.onCompleted: ggraph.updateSpeed()
+
+        function sync() {
+            graph.series.clear();
+            for (var i = 0; i < ggraph.dlHistory.length; ++i)
+                graph.series.append(i, ggraph.dlHistory[i]);
         }
     }
 }

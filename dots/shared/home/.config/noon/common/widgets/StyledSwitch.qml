@@ -4,9 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.common
 
-
-
-
 Switch {
     id: root
 
@@ -43,7 +40,6 @@ Switch {
             CAnim {}
         }
     }
-
 
     indicator: StyledRect {
         width: (root.pressed || root.down) ? (28 * root.scale) : root.checked ? (24 * root.scale) : (16 * root.scale)

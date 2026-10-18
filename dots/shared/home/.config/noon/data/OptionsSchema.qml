@@ -1,0 +1,449 @@
+import qs.common
+import qs.common.utils
+import qs.services
+import QtQuick
+import Quickshell
+
+JsonAdapter {
+    property JO appearance: JO {
+        property real paddingScale: 1
+
+        property JO animations: JO {
+            property real scale: 1
+            property string curve: "emphasized"
+            property list<real> userCurve: [0.05, 0, 2 / 15, 0.06, 1 / 6, 0.4, 5 / 24, 0.82, 0.25, 1, 1, 1]
+            property bool bouncyPanels: false
+        }
+
+        property JO colors: JO {
+            property string palettePath: "auto"
+        }
+
+        property JO transparency: JO {
+            property bool blur: true
+            property bool enabled: false
+            property real scale: 0.3
+        }
+
+        property JO font: JO {
+            property real scale: 1
+            property bool ignoreSpecs: false
+        }
+
+        property JO rounding: JO {
+            property bool syncCompositor: false
+            property real scale: 1
+            property real power: 2
+        }
+
+        property JO icons: JO {
+            property bool tint: false
+        }
+
+        property JO effects: JO {
+            property bool shaders: false
+            property string currentShader: "aero"
+            property var availableShaders: []
+            property bool showCirclesOnPanel: true
+            property int circleCount: 3
+        }
+    }
+
+    property JO audio: JO {
+        property JO protection: JO {
+            property bool enable: false
+            property real maxAllowedIncrease: 100
+            property real maxAllowed: 150
+        }
+    }
+
+    property JO interactions: JO {
+        property JO scrolling: JO {
+            property bool fasterTouchpadScroll: true
+            property int mouseScrollDeltaThreshold: 120
+            property int mouseScrollFactor: 120
+            property int touchpadScrollFactor: 600
+        }
+        property bool mouseOriented: false
+    }
+
+    property JO apps: JO {
+        property string bluetooth: "kcmshell6 kcm_bluetooth"
+        property string network: "plasmawindowed org.kde.plasma.networkmanagement"
+        property string networkEthernet: "kcmshell6 kcm_networkmanagement"
+    }
+
+    property JO services: JO {
+        property JO power: JO {
+            property bool bluetoothOnBoot: true
+            property bool turbo: true
+        }
+        property JO search: JO {
+            property int nonAppResultDelay: 120
+            property bool sloppy: false
+        }
+        property JO integrations: JO {
+            property bool googleTasks: false
+            property bool googleCalendar: false
+        }
+        property JO idle: JO {
+            property int timeOut: 120
+            property bool inhibit: false
+        }
+
+        property JO time: JO {
+            property bool use12HourFormat: true
+        }
+
+        property JO weather: JO {
+            property bool useFehrenheit: false
+            property string location: "Cairo"
+        }
+
+        property JO nightLight: JO {
+            property bool autoNightLightCycle: false
+            property string autoStart: "20:00"
+            property string autoEnd: "06:00"
+            property int autoDayTemp: 6400
+            property int autoNightTemp: 3500
+        }
+
+        property JO translator: JO {
+            property int delay: 100
+            property string engine: "auto"
+            property string targetLanguage: "العربية"
+            property string sourceLanguage: "auto"
+        }
+
+        property JO matugen: JO {
+            property bool cherryPick: false
+        }
+
+        property JO wallpapers: JO {
+            property string method: "wallhaven"
+        }
+
+        property string backlightDevice: "dell::kbd_backlight"
+        property bool easyEffects: false
+        property list<string> autoExecAppsList: ["vesktop", "telegram-desktop"]
+    }
+
+    property JO battery: JO {
+        property bool autoConservativeMode: true
+        property bool automaticSuspend: true
+        property int low: 20
+        property int critical: 5
+        property int suspend: 2
+    }
+
+    property JO beam: JO {
+        property JO appearance: JO {
+            property string theme: "default"
+            property bool enableEmblem: true
+        }
+        property JO behavior: JO {
+            property bool enableOldContent: false
+            property bool scrollToReveal: true
+            property bool enableApplets: true
+            property string defaultState: "launch"
+            property list<string> enabledApplets: ["music", "weather"]
+        }
+        property JO content: JO {
+            property list<string> quickActionsBookmarks: [ "https://www.google.com","https://www.youtube.com","https://www.reddit.com","https://claude.ai/new","https://gemini.google.com"]
+            property list<var> quickActionsTools: []
+        }
+    }
+
+    property JO sidebar: JO {
+        property bool pinned: false
+
+        property JO shelf: JO {
+            property int previewDelay: 250
+        }
+
+        property JO content: JO {
+            property bool apps: true
+            property bool screenTime: true
+            property bool apis: true
+            property bool shelf: true
+            property bool tasks: true
+            property bool notifs: true
+            property bool notes: true
+            property bool beats: true
+            property bool tweaks: true
+            property bool wallpapers: true
+            property bool games: true
+            property bool session: true
+            property bool widgets: true
+            property bool overview: false
+            property bool sounds: true
+            property bool timers: true
+
+            property bool history: false
+            property bool emojies: false
+        }
+
+        property JO behavior: JO {
+            property bool overlay: false
+            property bool enableResizeOverlay: true
+            property bool rememberTabIndex: true
+            property bool rememberExpanded: true
+            property bool rememberPinned: false
+        }
+
+        property JO navRail: JO {
+            property string style: "float"
+            property string indicatorStyle: "button"
+            property bool showNavTitles: false
+            property bool reverse: false
+        }
+
+        property JO appearance: JO {
+            property string style: "float"
+            property string toolbarStyle: "tool"
+            property real itemListScale: 1
+            property bool showSliders: true
+            property bool showVolumeInputSlider: false
+            property bool alternateListStripes: true
+            property bool bouncy: false
+        }
+    }
+
+    property JO osd: JO {
+        property int timeout: 3000
+        property bool enabled: true
+    }
+
+    property JO networking: JO {
+        property string userAgent: "hyprnoon/3.0 (contact: github.com/pharmaracist"
+        property string searchEngine: "google"
+    }
+
+    property JO desktop: JO {
+        property string screenCorners: "Top"
+        property bool timerOverlayMode: true
+        property list<string> customResolutions: []
+        property bool enableFrame: false
+
+        property JO branding: JO {
+            property string logo: "symbol"
+            property string materialSymbol: "auto_awesome"
+
+            property JO distroInfo: JO {
+                property string id: "unknown"
+                property string name: "Unknown"
+                property string icon: "arch-symbolic"
+            }
+        }
+
+        property JO toasts: JO {
+            property bool enabled: true
+        }
+
+        property JO shell: JO {
+            property bool hotReload: false
+            property bool deloadOnFullscreen: false
+            property string mode: "main"
+        }
+
+        property JO widgets: JO {
+            property bool enabled: false
+            property string mode: "col"
+        }
+
+        property JO osd: JO {
+            property string mode: "BottomPill"
+        }
+
+        property JO popups: JO {
+            property string notifications: "TopRight"
+        }
+
+        property JO bg: JO {
+            property bool depthMode: false
+
+            property JO parallax: JO {
+                property bool enabled: true
+                property int parallaxLevel: 1
+                property bool allWorkspaces: true
+                property bool mouseEnabled: true
+            }
+
+            property JO live: JO {
+                property int framerate: 24
+            }
+        }
+
+        property JO clock: JO {
+            property bool enabled: false
+            property real scale: 1
+            property string font: "Badeen Display"
+        }
+
+        property JO icons: JO {
+            property bool enabled: false
+            property string currentIconTheme: "Breeze"
+            property var substitutions: ({
+                    "dev.zed.zed": "zed",
+                    "code-url-handler": "visual-studio-code",
+                    "Code": "visual-studio-code",
+                    "gnome-tweaks": "org.gnome.tweaks",
+                    "pavucontrol-qt": "pavucontrol",
+                    "wps": "wps-office2019-kprometheus",
+                    "wpsoffice": "wps-office2019-kprometheus",
+                    "footclient": "foot",
+                    "zen": "zen-browser",
+                    "brave-browser": "brave-desktop"
+                })
+            property var regexSubstitutions: [
+                {
+                    "regex": /^steam_app_(\d+)$/,
+                    "replace": "steam_icon_$1"
+                },
+                {
+                    "regex": /Minecraft.*/,
+                    "replace": "minecraft"
+                },
+                {
+                    "regex": /.*polkit.*/,
+                    "replace": "system-lock-screen"
+                },
+                {
+                    "regex": /gcr.prompter/,
+                    "replace": "system-lock-screen"
+                }
+            ]
+        }
+
+        property JO behavior: JO {
+            property JO sounds: JO {
+                property bool enabled: true
+                property real level: 0.75
+            }
+        }
+    }
+
+    property JO bar: JO {
+
+        property JO horizontal: JO {
+            property list<var> presets: []
+
+            property JO map: JO {
+                property int spacing: 5
+                property list<string> leftArea: ["workspaces"]
+                property list<string> centerArea: ["media", "separator", "clock"]
+                property list<string> rightArea: ["inlineTray", "materialStatusIcons"]
+            }
+
+            property JO appearance: JO {
+                property string style: "concave"
+                property string separatorsMode: "thin"
+                property bool enableSeparators: true
+                property bool useBg: true
+                property bool barGroup: false
+                property bool outline: true
+                property int size: 50
+            }
+        }
+
+        property JO vertical: JO {
+            property list<var> presets: [
+                {
+                    "name": "default",
+                        "bottomArea": [
+                            "workspaces",
+                            "separator",
+                            "clock",
+                            "separator",
+                            "keyboard"
+                        ],
+                        "centerArea": [
+                        ],
+                        "spacing": 5,
+                        "topArea": [
+                            "materialStatusIcons",
+                            "inlineTray"
+                        ]
+                },
+                {
+                    "name": "centered",
+                    "spacing": 6,
+                    "bottomArea": ["keyboard","separator","materialStatusIcons"],
+                    "centerArea": ["media","separator","workspaces","separator","clock"],
+                    "topArea": ["logo","inlineTray"]
+                }
+            ]
+
+            property JO map: JO {
+                property string name: "default"
+                property int spacing: 5
+                property list<string> topArea: ["materialStatusIcons", "inlineTray"]
+                property list<string> centerArea: []
+                property list<string> bottomArea: ["workspaces", "separator", "clock", "separator", "keyboard"]
+            }
+
+            property JO appearance: JO {
+                property string style: "concave"
+                property string separatorsMode: "thin"
+                property bool useBg: true
+                property bool barGroup: false
+                property bool outline: true
+                property int size: 50
+            }
+        }
+
+        property JO behavior: JO {
+            property bool autoHide: false
+            property bool showOnAll: true
+            property bool enableVisualizer: false
+        }
+
+        property JO resources: JO {
+            property bool alwaysShow: false
+            property list<string> enabledMetrics: ["memory", "cpu_temp", "cpu_usage", "swap"]
+        }
+
+        property JO statusIcons: JO {
+            property list<string> enabledStatusIcons: ["network", "bluetooth", "overheat", "polkit", "silent", "battery", "record", "mute"]
+            property bool useLegacyBatteryIcons: false
+            property string batteryMode: "symbol"
+            property bool showTextWhenAvailable: false
+        }
+
+        property JO utils: JO {
+            property list<var> customUtils: [
+                {
+                    "icon": "colorize",
+                    "action": ["hyprpicker", "-a", "-q"]
+                }
+            ]
+        }
+
+        property JO workspaces: JO {
+            property int number: 6
+            property bool showAppIcons: true
+            property bool showBigAppOnly: false
+            property bool genericSymbols: false
+            property string displayMode: "normal"
+            property string customFallback: "●"
+            property list<string> customMapping: []
+            property string unicodeChar: "♡"
+            property string unicodeMode: "unicode"
+        }
+    }
+
+    property JO dock: JO {
+        property bool enabled: false
+        property int animationDuration: 200
+
+        property JO appearance: JO {
+            property real iconSize: 100 * iconSizeMultiplier
+            property real iconSizeMultiplier: 0.5
+            property string style: "float"
+        }
+    }
+
+    property JO hacks: JO {
+        property int arbitraryRaceConditionDelay: 150
+    }
+}

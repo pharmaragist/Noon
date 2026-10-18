@@ -8,7 +8,7 @@ import qs.services
 BottomDialog {
     id: root
     readonly property bool isRecording: RecordingService.isRecording
-    collapsedHeight: isRecording ? 150 : 300
+    baseHeight: isRecording ? 150 : 300
     color: Colors.colLayer3
     clip: true
 

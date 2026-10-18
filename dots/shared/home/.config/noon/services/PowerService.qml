@@ -7,49 +7,48 @@ import qs.common
 
 Singleton {
     id: root
-
-    property string icon: "eco"
-    property string modeName: "Power Saver"
-    property string controller: Mem.states.services?.power?.controller || ""
-    property var modes: Mem.states.services?.power?.modes || []
-    property string currentMode: Mem.states.services?.power?.mode || "power-saver"
-
-    function cycleMode(reverse = false) {
-        const i = modes.indexOf(currentMode);
-        if (i === -1)
-            return;
-
-        const mode = modes[(i + (reverse ? -1 : 1) + modes.length) % modes.length];
-        NoonUtils.execDetached(`${Paths.scriptsDir}/power_service.sh set ${mode}`);
+    readonly property string currentMode: (governerWatcher?.text() ?? "").trim()
+    readonly property bool turbo: Mem.states?.services?.power?.turbo ?? true
+    readonly property bool bluetoothOnBoot: Mem.states?.services?.power?.bluetoothOnBoot ?? false
+    readonly property list<string> modes: ["powersave", "performance"]
+    readonly property string icon: {
+        switch (currentMode) {
+            case "powersave": return "eco";
+            case "performance": return "bolt";
+            default: return "eco";
+        }
     }
 
-    function getModeDisplayName(mode) {
-        return {
-            "bat": "Power Saver",
-            "power-saver": "Power Saver",
-            "balanced": "Balanced",
-            "ac": "Performance",
-            "performance": "Performance"
-        }[mode] || mode;
+    function switchMode() {
+        const nextMode = currentMode === "powersave" ? "performance" : "powersave";
+        set(nextMode);
     }
 
-    function getModeIcon(mode) {
-        return {
-            "bat": "eco",
-            "power-saver": "eco",
-            "balanced": "balance",
-            "ac": "bolt",
-            "performance": "bolt"
-        }[mode] || "eco";
+    function set(mode) {
+        proc.running = false
+        proc.running = true
     }
 
-    onCurrentModeChanged: {
-        modeName = getModeDisplayName(currentMode);
-        icon = getModeIcon(currentMode);
+    Process {
+        id: proc
+        command: ["bash","-c", `${Paths.scriptsDir}/power_service.sh  ${currentMode} ${(root.turbo ? "always" : "never")}  ${(root.bluetoothOnBoot ? "--bluetooth_boot_on" : "--bluetooth_boot_off")}`]
+    }
+
+    function toast() {
+        if (!currentMode) return;
         NoonUtils.toast({
             id: 9,
-            content: `Power mode changed to ${modeName}`,
+            content: `Power mode changed to ${currentMode}`,
             icon: icon
         });
+    }
+    onCurrentModeChanged: toast()
+
+    FileView {
+        id: governerWatcher
+        path: "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+        watchChanges: true
+        blockLoading: true
+        onFileChanged: this.reload()
     }
 }

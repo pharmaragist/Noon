@@ -11,7 +11,7 @@ LayerRect {
     clip: true
     onExpandedChanged: console.log("Child.expanded: ", expanded)
 
-    property bool expanded 
+    property bool expanded
     readonly property alias gridView: contentView
     property string searchQuery: ""
     signal dismiss
@@ -54,16 +54,10 @@ LayerRect {
         }
     }
 
-    function openCategory(items, visualItem, title) {
-        let coords = visualItem.mapToItem(root, 0, 0);
-        popup.startX = coords.x;
-        popup.startY = coords.y;
-        popup.startW = visualItem.width;
-        popup.startH = visualItem.height;
-
+    function openCategory(items, title) {
         popup.categoryTitle = title;
         popup.appsData = items;
-        popup.active = true;
+        popup.show = true;
         Qt.callLater(() => {
             popup.forceActiveFocus();
         });
@@ -79,15 +73,11 @@ LayerRect {
         cellHeight: cellWidth + Padding.massive
         model: filteredModel
         columns: root.expanded ? 4 : 2
-        opacity: popup.active ? 0 : 1
         add: null
         populate: null
         addDisplaced: null
         remove: null
         removeDisplaced: null
-        Behavior on opacity {
-            Anim {}
-        }
 
         delegate: Item {
             required property int index
@@ -107,7 +97,7 @@ LayerRect {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: openCategory(modelData.items, groupTile, modelData.category)
+                    onClicked: openCategory(modelData.items, modelData.category)
                 }
 
                 GridLayout {
@@ -147,7 +137,7 @@ LayerRect {
         }
 
         Keys.onPressed: event => {
-            
+
             const cols = Math.floor(contentView.width / contentView.cellWidth);
             const lastIndex = contentView.count - 1;
 
@@ -173,7 +163,7 @@ LayerRect {
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 if (currentIndex >= 0) {
                     const data = model.values[currentIndex];
-                    openCategory(data.items, root, data.category);
+                    openCategory(data.items, data.category);
                 }
             } else {
                 return;
@@ -187,7 +177,7 @@ LayerRect {
     }
 
     PagePlaceholder {
-        shown: contentView.count === 0 && !popup.active
+        shown: contentView.count === 0
         icon: "search"
         title: "No results for '" + root.searchQuery + "'"
         anchors.centerIn: parent

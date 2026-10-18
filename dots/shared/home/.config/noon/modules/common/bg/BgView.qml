@@ -1,198 +1,140 @@
 import QtQuick
-import QtQuick.Layouts
-import Quickshell
-import Quickshell.Widgets
-import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.data
+import qs.services
 import qs.common
 import qs.common.utils
 import qs.common.widgets
-import qs.common.functions
-import qs.services
-import qs.store
 import qs.modules.main.desktop.widgets
-
 Item {
     id: root
-
     readonly property string wallpaper: WallpaperService.currentWallpaper
     readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode
     readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
-    readonly property var workspaceList: Hyprland.workspaces.values.filter(ws => ws.id >= 0).sort((a, b) => a.id - b.id)
-    readonly property real currentWorkspace: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
-    readonly property real wallpaperScale: Mem.options.desktop.bg.parallax.parallaxStrength + 1
-    readonly property real effectiveWallpaperScale: enableParallax ? wallpaperScale : 1.0
-    readonly property real effectiveMovableXSpace: (effectiveWallpaperScale - 1) / 2 * screen.width
-    readonly property real effectiveMovableYSpace: (effectiveWallpaperScale - 1) / 2 * screen.height
-
-    readonly property bool verticalParallaxMode: Mem.options.desktop.bg.parallax.verticalParallax
+    readonly property bool parallaxAllWorkspaces: Mem.options.desktop.bg.parallax.allWorkspaces
+    readonly property bool parallaxMouseEnabled: Mem.options.desktop.bg.parallax.mouseEnabled
+    readonly property real effectiveParallaxLevel: Mem.options.desktop.bg.parallax.parallaxLevel / 50
+    readonly property real mouseSens: 2
+    readonly property real focusedWorkspaceId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+    readonly property real wallpaperScale: effectiveParallaxLevel + 1
+    readonly property real effectiveWallpaperScale: (enableParallax || parallaxMouseEnabled) ? wallpaperScale : 1.0
+    readonly property real effectiveMovableXSpace: (effectiveWallpaperScale - 1) * 0.5 * screen.width
+    readonly property real effectiveMovableYSpace: (effectiveWallpaperScale - 1) * 0.5 * screen.height
+    readonly property real mouseFactorX: (parallaxMouseEnabled && mouseTracker.containsMouse && mouseTracker.width > 0) ? Math.max(0, Math.min(1, mouseTracker.mouseX / mouseTracker.width)) : 0.5
+    readonly property real mouseFactorY: (parallaxMouseEnabled && mouseTracker.containsMouse && mouseTracker.height > 0) ? Math.max(0, Math.min(1, mouseTracker.mouseY / mouseTracker.height)) : 0.5
+    readonly property real wsShare: enableParallax ? (parallaxMouseEnabled ? 0.5 : 1.0) : 0.0
+    readonly property real mouseShare: parallaxMouseEnabled ? (enableParallax ? 0.5 : 1.0) : 0.0
+    function panOffset(factor, movable, share) {
+        if (share <= 0) return 0;
+        return -2 * movable * share * factor;
+    }
+    function mouseOffset(factor, movable, share) {
+        if (share <= 0) return 0;
+        const raw = (factor - 0.5) * 2 * movable * share * effectiveParallaxLevel * mouseSens;
+        return Math.max(-movable, Math.min(movable, raw));
+    }
     readonly property real parallaxFactor: {
-        const firstId = workspaceList[0]?.id || 1;
-        const lastId = workspaceList[workspaceList.length - 1]?.id || Mem.options.bar.workspaces.number;
+        if (root.parallaxAllWorkspaces) {
+            const firstId = 1;
+            const lastId = Mem.options.bar.workspaces.number;
+            const range = lastId - firstId;
+            return range > 0 ? Math.max(0, Math.min(1, (focusedWorkspaceId - firstId) / range)) : 0.5;
+        }
+        const values = Hyprland.workspaces.values;
+        let minId = Infinity;
+        let maxId = -Infinity;
+        for (let i = 0; i < values.length; ++i) {
+            const id = values[i].id;
+            if (id >= 0) {
+                if (id < minId)
+                    minId = id;
+                if (id > maxId)
+                    maxId = id;
+            }
+        }
+        const firstId = minId === Infinity ? 1 : minId;
+        const lastId = maxId === -Infinity ? Mem.options.bar.workspaces.number : maxId;
         const range = lastId - firstId;
-        const offset = range > 0 ? ((currentWorkspace - firstId) / range) : 0.5;
-        return Math.max(0, Math.min(1, offset));
+        return range > 0 ? Math.max(0, Math.min(1, (focusedWorkspaceId - firstId) / range)) : 0.5;
     }
 
     function calculateWidgetMargin() {
-        if (!Mem.options.desktop.bg.parallax.widgetParallax || !enableParallax)
-            return 0;
-        const directionOffset = Mem.options.bar.behavior.position === "left" ? -1 : 1;
-        return directionOffset * Mem.options.desktop.bg.parallax.parallaxStrength * Globals.main.sidebar.sidebarWidth;
+        const sidebar = Globals.main?.sidebar;
+        const hovered = !sidebar?.isHovered && !sidebar?.reveal;
+        if (!enableParallax || hovered) return 0;
+        const directionOffset = BarData.position === "left" ? -1 : 1;
+        return directionOffset * root.effectiveParallaxLevel * (sidebar.sidebarWidth ?? 0);
     }
-
-    readonly property real bgParallaxX: verticalParallaxMode ? calculateWidgetMargin() : -effectiveMovableXSpace - (parallaxFactor - 0.5) * 2 * effectiveMovableXSpace
-    readonly property real bgParallaxY: verticalParallaxMode ? -effectiveMovableYSpace - (parallaxFactor - 0.5) * 2 * effectiveMovableYSpace : 0
-    readonly property bool showOverview: Globals.main?.showBgOverview ?? false
-    readonly property size controlsSize: Sizes?.beam?.appearance
+    readonly property real bgParallaxX: {
+        const mouseDelta = mouseOffset(mouseFactorX, effectiveMovableXSpace, mouseShare);
+        if (Mem.hypr.vertical) {
+            return calculateWidgetMargin() + mouseDelta;
+        }
+        const wsDelta = panOffset(parallaxFactor, effectiveMovableXSpace, wsShare);
+        return wsDelta + mouseDelta;
+    }
+    readonly property real bgParallaxY: {
+        const mouseDelta = mouseOffset(mouseFactorY, effectiveMovableYSpace, mouseShare);
+        if (Mem.hypr.vertical) {
+            const wsDelta = panOffset(parallaxFactor, effectiveMovableYSpace, wsShare);
+            return wsDelta + mouseDelta;
+        }
+        return mouseDelta;
+    }
+    readonly property int currentBarSize: BarData?.currentBarExclusiveSize ?? 0
+    readonly property string currentBarPos: BarData?.position ?? ""
     Component.onCompleted: bgLayer.load(wallpaper)
     onWallpaperChanged: bgLayer.load(wallpaper)
-
     anchors.fill: parent
-
-    BlurredImage {
-        z: 0
+    MouseArea {
+        id: mouseTracker
         anchors.fill: parent
-        blur: true
-        source: Qt.resolvedUrl(root.wallpaper)
-        opacity: root.showOverview ? 1 : 0
-
-        Rectangle {
-            anchors.fill: parent
-            color: Colors.m3.m3scrim
-            opacity: 0.45
-        }
-
-        Behavior on opacity {
-            Anim {}
-        }
+        hoverEnabled: root.parallaxMouseEnabled
+        acceptedButtons: Qt.NoButton
+        z: -1
     }
-
-    function getMargin(direction) {
-        if (!root.showOverview)
-            return 0;
-        let _margin = 0;
-        const base = 100;
-        const bar = BarData?.currentBarExclusiveSize;
-        const pos = BarData?.position;
-        const controls = (controlsSize?.height ?? 100) + Padding.huge;
-
-
-
-
-        if (pos === direction)
-            _margin += (base + bar);
-        else
-            _margin += base;
-
-        return _margin;
-    }
-
-    StyledRectangularShadow {
-        z: 1
-        target: clipRect
-        show: root.showOverview
-        transparency: 0.25
-    }
-
     DesktopWidgets {
         z: 9999
-        function mg(d) {
-            let bd = d === BarData.position ? BarData.currentBarExclusiveSize + Padding.huge : Sizes.elevationMargin;
-            return Math.max(root.getMargin(d), bd);
-        }
-        anchors {
-            topMargin: mg("top")
-            bottomMargin: mg("bottom")
-            leftMargin: mg("left")
-            rightMargin: mg("right")
-        }
-        Behavior on anchors.topMargin {
-            Anim {}
-        }
-        Behavior on anchors.leftMargin {
-            Anim {}
-        }
-        Behavior on anchors.rightMargin {
-            Anim {}
-        }
-        Behavior on anchors.bottomMargin {
-            Anim {}
-        }
+        anchors.fill: parent
     }
-
-    ClippingRectangle {
-        id: clipRect
+    StyledLoader {
+        fade: true
+        shown: NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
+        anchors.fill: parent
+        sourceComponent: VidLayer {}
+    }
+    BgLayer {
+        id: bgLayer
         z: 1
         anchors.fill: parent
-        anchors {
-            topMargin: root.getMargin("top")
-            bottomMargin: root.getMargin("bottom")
-            leftMargin: root.getMargin("left")
-            rightMargin: root.getMargin("right")
+        enableParallax: root.enableParallax || root.parallaxMouseEnabled
+        effectiveWallpaperScale: root.effectiveWallpaperScale
+        effectiveMovableXSpace: root.effectiveMovableXSpace
+        effectiveMovableYSpace: root.effectiveMovableYSpace
+        bgParallaxX: root.bgParallaxX
+        bgParallaxY: root.bgParallaxY
+        Behavior on bgParallaxX {
+            SAnim {}
         }
-        color: "transparent"
-        radius: !root.showOverview ? 0 : Rounding.silly
-        border.width: root.showOverview ? 1 : 0
-        border.color: Colors.colOutline
-        clip: true
-
-        Behavior on anchors.topMargin {
-            Anim {}
+        Behavior on bgParallaxY {
+            SAnim {}
         }
-        Behavior on anchors.leftMargin {
-            Anim {}
-        }
-        Behavior on anchors.rightMargin {
-            Anim {}
-        }
-        Behavior on anchors.bottomMargin {
-            Anim {}
-        }
-
-        StyledLoader {
-            fade: true
-            shown: NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
-            anchors.fill: parent
-            sourceComponent: VidLayer {}
-        }
-
-        BgLayer {
-            id: bgLayer
-            z: 1
-            anchors.fill: parent
-            enableParallax: root.enableParallax
-            effectiveWallpaperScale: root.effectiveWallpaperScale
-            effectiveMovableXSpace: root.effectiveMovableXSpace
-            effectiveMovableYSpace: root.effectiveMovableYSpace
-            bgParallaxX: root.bgParallaxX
-            bgParallaxY: root.bgParallaxY
-            Behavior on bgParallaxX {
-                Anim {}
-            }
-
-            Behavior on bgParallaxY {
-                Anim {}
-            }
-        }
-
-        Loader {
-            id: layerClock
-            z: 1
-            active: fgLoader.item && fgLoader.item.status === Image.Ready && root.enableDepthMode
-            sourceComponent: LayerClock {}
-            asynchronous: true
-        }
-
-        StyledLoader {
-            id: fgLoader
-            z: 2
-            anchors.fill: parent
-            visible: active
-            fade: true
-            asynchronous: true
-            active: WallpaperService.fgReady && root.enableDepthMode
-            sourceComponent: FgLayer {}
-        }
+    }
+    Loader {
+        id: layerClock
+        z: 1
+        active: fgLoader.item && fgLoader.item.status === Image.Ready && root.enableDepthMode
+        sourceComponent: LayerClock {}
+        asynchronous: true
+    }
+    StyledLoader {
+        id: fgLoader
+        z: 2
+        anchors.fill: parent
+        visible: active
+        fade: true
+        asynchronous: true
+        active: WallpaperService.fgReady && root.enableDepthMode
+        sourceComponent: FgLayer {}
     }
 }

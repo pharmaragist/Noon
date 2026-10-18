@@ -14,24 +14,6 @@ Item {
     }
 
     AppLikeWindow {
-        id: window
-        z: getDepth(dragHandler.drag.active, 2)
-        title: "Your words will be displayed here."
-        icon: "transcribe"
-        width: Sizes.beam.dictateWindow.width
-        height: Sizes.beam.dictateWindow.height
-        draggable: true
-        center: true
-        contentItem: StyledTextArea {
-            readOnly: true
-            font: Fonts.request("reading", 50)
-            color: Colors.colOnSurfaceVariant
-            text: SpeechService.speech.length > 0 ? SpeechService.speech : "Say Something ..."
-            wrapMode: Text.Wrap
-        }
-    }
-
-    AppLikeWindow {
         id: dino
         z: getDepth(dragHandler.drag.active, 1)
         title: "I'm A Fucking Dino"

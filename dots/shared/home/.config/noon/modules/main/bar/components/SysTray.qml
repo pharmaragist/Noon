@@ -5,14 +5,14 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 Item {
     id: root
 
     property var bar
     property int iconSize: BarData.currentBarExclusiveSize / 3
-    property bool verticalMode: Mem.options.bar.behavior.position === "left" || Mem.options.bar.behavior.position === "right"
+    property bool verticalMode: BarData.position === "left" || BarData.position === "right"
     readonly property var model: SystemTray.items
 
     implicitHeight: verticalMode ? content.implicitHeight + Padding.huge : parent.height

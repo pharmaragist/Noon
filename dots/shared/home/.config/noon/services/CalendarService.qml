@@ -10,7 +10,7 @@ Singleton {
 
     readonly property var list: store.events
     readonly property var store: Mem.todo
-    readonly property bool useGoogleCalendar: false
+    readonly property bool useGoogleCalendar: Mem.options.services.integrations?.googleCalendar ?? false
 
     Component.onCompleted: Qt.callLater(pull)
 

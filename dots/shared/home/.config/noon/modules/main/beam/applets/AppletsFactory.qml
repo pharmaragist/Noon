@@ -1,18 +1,12 @@
 import QtQuick
 import qs.common
 import qs.common.widgets
-import qs.store
+import qs.data
 
 RLayout {
     id: appletsArea
     z: 999
 
-    anchors {
-        top: parent.top
-        bottom: parent.bottom
-        right: parent.right
-        rightMargin: Padding.large
-    }
     spacing: Padding.normal
 
     Repeater {

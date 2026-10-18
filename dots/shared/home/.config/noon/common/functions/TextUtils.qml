@@ -5,58 +5,28 @@ import Quickshell
 Singleton {
     id: root
 
-
-
-
-
-
-
     function format(str, ...args) {
         return str.replace(/{(\d+)}/g, (match, index) => typeof args[index] !== 'undefined' ? args[index] : match);
     }
-
-
-
-
-
 
     function getDomain(url) {
         const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/);
         return match ? match[1] : null;
     }
 
-
-
-
-
-
     function getBaseUrl(url) {
         const match = url.match(/^(https?:\/\/[^\/]+)(\/.*)?$/);
         return match ? match[1] : null;
     }
 
-
-
-
-
-
     function shellSingleQuoteEscape(str) {
-        return String(str)
-
-        .replace(/'/g, "'\\''");
+        return String(str).replace(/'/g, "'\\''");
     }
-
-
-
-
-
 
     function splitMarkdownBlocks(markdown) {
         if (typeof markdown !== 'string')
             return [];
-        const regex = /```(\w+)?\n([\s\S]*?)```|<think>([\s\S]*?)<\/think>/g;
-
-
+        const regex = /```(\w+)?\n([\s\S]*?)```/g;
 
         let result = [];
         let lastIndex = 0;
@@ -71,49 +41,21 @@ Singleton {
                     });
                 }
             }
-            if (match[0].startsWith('```')) {
-                if (match[2] && match[2].trim()) {
-                    result.push({
-                        type: "code",
-                        lang: match[1] || "",
-                        content: match[2],
-                        completed: true
-                    });
-                }
-            } else if (match[0].startsWith('<think>')) {
-                if (match[3] && match[3].trim()) {
-                    result.push({
-                        type: "think",
-                        content: match[3],
-                        completed: true
-                    });
-                }
+            if (match[2] && match[2].trim()) {
+                result.push({
+                    type: "code",
+                    lang: match[1] || "",
+                    content: match[2],
+                    completed: true
+                });
             }
             lastIndex = regex.lastIndex;
         }
 
         if (lastIndex < markdown.length) {
             const text = markdown.slice(lastIndex);
-
-            const thinkStart = text.indexOf('<think>');
             const codeStart = text.indexOf('```');
-            if (thinkStart !== -1 && (codeStart === -1 || thinkStart < codeStart)) {
-                const beforeThink = text.slice(0, thinkStart);
-                if (beforeThink.trim()) {
-                    result.push({
-                        type: "text",
-                        content: beforeThink
-                    });
-                }
-                const thinkContent = text.slice(thinkStart + 7);
-                if (thinkContent.trim()) {
-                    result.push({
-                        type: "think",
-                        content: thinkContent,
-                        completed: false
-                    });
-                }
-            } else if (codeStart !== -1) {
+            if (codeStart !== -1) {
                 const beforeCode = text.slice(0, codeStart);
                 if (beforeCode.trim()) {
                     result.push({
@@ -151,20 +93,9 @@ Singleton {
         return result;
     }
 
-
-
-
-
-
     function escapeBackslashes(str) {
         return str.replace(/\\/g, '\\\\');
     }
-
-
-
-
-
-
 
     function wordWrap(str, maxLen) {
         if (!str)
@@ -186,11 +117,6 @@ Singleton {
         return lines.join("\n");
     }
 
-
-
-
-
-
     function cleanMusicTitle(title) {
         if (!title)
             return "";
@@ -207,11 +133,6 @@ Singleton {
         return title.trim();
     }
 
-
-
-
-
-
     function friendlyTimeForSeconds(seconds) {
         if (isNaN(seconds) || seconds < 0)
             return "0:00";
@@ -226,31 +147,15 @@ Singleton {
         }
     }
 
-
-
-
-
-
     function escapeHtml(str) {
         if (typeof str !== 'string')
             return str;
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-
-
-
-
-
     function cleanCliphistEntry(str: string): string {
         return str.replace(/^\d+\t/, "");
     }
-
-
-
-
-
-
 
     function stringListContainsSubstring(str, substrings) {
         for (let i = 0; i < substrings.length; ++i) {
@@ -261,24 +166,12 @@ Singleton {
         return false;
     }
 
-
-
-
-
-
-
     function cleanPrefix(str, prefix) {
         if (str.startsWith(prefix)) {
             return str.slice(prefix.length);
         }
         return str;
     }
-
-
-
-
-
-
 
     function cleanOnePrefix(str, prefixes) {
         for (let i = 0; i < prefixes.length; ++i) {
@@ -289,13 +182,7 @@ Singleton {
         return str;
     }
 
-
-
-
-
-
     function toTitleCase(str) {
-
         return str.replace(/[-_]/g, " ").replace(/\w\S*/g, function (txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
@@ -313,29 +200,27 @@ Singleton {
         return `${unitIndex === 0 ? bytes : bytes.toFixed(2)} ${units[unitIndex]}`;
     }
 
-
-
-
-
     function separateCamelCase(str) {
         return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').replace(/\b./g, s => s.toUpperCase());
     }
 
-
-
-
-
-
+    function camelCaseFromSnakeCase(str, capitalizeFirst = false) {
+        if (!str)
+            return "";
+        let result = str.toLowerCase().replace(/_+(.)/g, (_, c) => c.toUpperCase());
+        if (capitalizeFirst) {
+            result = result.charAt(0).toUpperCase() + result.slice(1);
+        } else {
+            result = result.charAt(0).toLowerCase() + result.slice(1);
+        }
+        return result;
+    }
 
     function capitalizeFirstLetter(string) {
         if (!string)
             return "";
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
-
-
-
-
 
     function getStretch(horizontal = 0.6, vertical = 1) {
         return [

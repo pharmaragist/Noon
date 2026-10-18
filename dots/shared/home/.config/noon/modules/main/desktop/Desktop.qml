@@ -14,6 +14,7 @@ Scope {
     id: root
     readonly property var opts: Mem.options.desktop
 
+    ScreenCorners {}
     DialogPanel {}
 
     WidgetLoader {
@@ -21,10 +22,6 @@ Scope {
         DesktopClock {}
     }
 
-    WidgetLoader {
-        enabled: opts.screenCorners !== "Disabled"
-        ScreenCorners {}
-    }
 
     WidgetLoader {
         enabled: opts.icons.enabled

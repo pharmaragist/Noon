@@ -16,12 +16,6 @@ Singleton {
     property bool superPressed: superHeldShortcut.pressed
     readonly property var topLevel: ToplevelManager.activeToplevel
     readonly property bool superHeld: superHeldShortcut.pressed
-    readonly property IdleMonitor idleMonitor: IdleMonitor {
-        timeout: Mem.options.services.idle.timeOut
-        respectInhibitors: true
-        onIsIdleChanged: if (isIdle && !Mem.options.services.idle.inhibit && !(Globals.topLevel?.fullscreen ?? false))
-            Globals.main.locked = true
-    }
 
     readonly property QtObject common: QtObject {
         readonly property QtObject toasts: QtObject {
@@ -30,7 +24,6 @@ Singleton {
     }
 
     readonly property QtObject main: QtObject {
-
         property var sidebar
         property var sidebarTempItem
         property var lock
@@ -39,13 +32,13 @@ Singleton {
         property bool locked: false
         property bool exposeView: false
         property bool showOsdValues: false
-        property bool showBgOverview: false
         property bool showScreenshot: false
         property bool canNotify: sidebar?.hoverMode ?? true
 
         property QtObject beam: QtObject {
             property bool show: false
             property string reason: "default"
+            property var payload
         }
 
         property QtObject clipboard: QtObject {
@@ -68,16 +61,13 @@ Singleton {
     }
 
     readonly property QtObject xp: QtObject {
-
         property bool locked: false
-
         property bool showRun: false
         property bool showStartMenu: false
         property bool showControlPanel: false
     }
 
     readonly property QtObject nobuntu: QtObject {
-
         property QtObject db: QtObject {
             property bool show: false
         }
@@ -94,6 +84,16 @@ Singleton {
             property bool show: false
         }
     }
+    Component.onCompleted: {
+        if (Mem.ready) {
+            Quickshell.watchFiles = Mem.options.desktop.shell?.hotReload ?? false;
+            FirstRunService.init();
+        }
+        NoonUtils.playSound("device_unlocked");
+        TimerService.reload();
+        ClipboardService.refresh();
+        EqService.init();
+    }
 
     CustomShortcut {
         id: superHeldShortcut
@@ -103,16 +103,10 @@ Singleton {
     Connections {
         target: Quickshell
 
-        Component.onCompleted: {
-            TimerService.reload();
-            ClipboardService.refresh();
-            NoonUtils.playSound("device_unlocked");
-        }
-
         function onReloadFailed(error) {
             let lines = error.split('\n');
             let lastLine = lines[lines.length - 1];
-            root.toast({
+            NoonUtils.toast({
                 id: 0,
                 content: lastLine,
                 status: "error",
