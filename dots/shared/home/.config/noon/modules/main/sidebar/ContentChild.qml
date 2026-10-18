@@ -117,6 +117,10 @@ Item {
                         cacheIndex();
                     });
                 }
+
+                NoonUtils.inlineTimer(() => {
+                    panel.focusItem.forceActiveFocus();
+                }, 100);
             }
         }
 

@@ -87,7 +87,7 @@ Singleton {
     }
 
     function sudoExec(...args) {
-        execDetached(["pkexec", ...content]);
+        execDetached(["pkexec", ...args]);
     }
 
     function stopPlayer() {

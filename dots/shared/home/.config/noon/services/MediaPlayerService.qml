@@ -87,6 +87,7 @@ Singleton {
         }
     }
 
+
     Timer {
         id: positionTimer
         interval: 100

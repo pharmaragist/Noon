@@ -8,7 +8,7 @@ import qs.common.widgets
 SidebarItemContainer {
     id: root
 
-    Component.onCompleted: Qt.callLater(() => inputField.forceActiveFocus())
+    property alias focusItem: inputField
 
     function submit() {
         PolkitService.submit(inputField.text);
@@ -49,8 +49,10 @@ SidebarItemContainer {
             Layout.margins: Padding.huge
             spacing: Padding.huge
 
-            MaterialTextField {
+            ShapePasswordEntry {
                 id: inputField
+                colBackground: inputField.focus ? Colors.colLayer1Active : Colors.colLayer1
+                implicitHeight: 55
                 Layout.fillWidth: true
                 enabled: PolkitService.interactionAvailable
                 placeholderText: PolkitService.flow?.inputPrompt.trim().slice(0, -1) || ""

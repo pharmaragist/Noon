@@ -42,7 +42,6 @@ ContentViewItem {
                             }
                         },
                         {
-                            "enabled": !GowallService.isBusy,
                             "icon": GowallService.isBusy ? "hourglass" : "content_cut",
                             "action": () => {
                                 GowallService.removeBackground(WallpaperService.currentWallpaper);

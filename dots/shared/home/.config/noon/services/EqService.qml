@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.common
+import qs.common.utils
 
 Singleton {
     id: engine
@@ -46,6 +47,12 @@ Singleton {
             "Rock": [6.5, 5.5, -3.0, -6.0, -2.0, 3.5, 6.0, 7.5, 7.5, 8.0],
             "Vocals": [-2.0, -1.0, 0.0, -3.0, -4.0, 4.5, 5.5, 4.5, 2.0, 2.0]
         })
+
+    // User-saved presets (AutoEq and friends). Unlike the quick-start `profiles`
+    // above these carry full (type, frequency, gain, Q) bands, so they can
+    // reproduce parametric corrections and aren't limited to gain shaping.
+    readonly property var customPresets: customFile.data?.presets ?? []
+
     property bool _dirty: false
     property bool _wantBypass: false
     property var _pending: []
@@ -121,6 +128,10 @@ Singleton {
         running: engine.connected && engine.ready && !engine.interacting && !settleTimer.running
         repeat: true
         onTriggered: engine.refresh()
+    }
+
+    function init() {
+        NoonUtils.execDetached(["easyeffects", " --gapplication-service"]);
     }
 
     function _send(cmd) {
@@ -243,6 +254,7 @@ Singleton {
                     freq: 1000,
                     gain: 0,
                     q: 1.0,
+                    mode: 0,
                     mute: false
                 });
             engine.bands = arr;
@@ -281,6 +293,9 @@ Singleton {
         _get("band" + i + "Mute", "left", function (v) {
             engine._mutBand(i, "mute", v === "true");
         });
+        _get("band" + i + "Mode", "left", function (v) {
+            engine._mutBand(i, "mode", parseInt(v, 10) || 0);
+        });
     }
 
     function setPreamp(v) {
@@ -306,6 +321,7 @@ Singleton {
                 freq: "Frequency",
                 gain: "Gain",
                 q: "Q",
+                mode: "Mode",
                 mute: "Mute"
             })[key];
         if (!prop)
@@ -320,6 +336,84 @@ Singleton {
         const b = bands[i];
         if (b)
             setBand(i, "mute", !b.mute);
+    }
+
+    // --- Custom presets -----------------------------------------------------
+    // A custom preset is {name, preamp, source, bands: [{type, freq, gain, q}]}
+    // where `type` is an EasyEffects/LSP band type index (1 Bell, 3 Hi-shelf,
+    // 5 Lo-shelf — see common/functions/Eq.js).
+
+    function isCustomPreset(name) {
+        return customPresets.some(p => p.name === name);
+    }
+
+    function getCustomPreset(name) {
+        return customPresets.find(p => p.name === name) || null;
+    }
+
+    // Quick-start keys first, then saved presets, in one flat list.
+    function presetNames() {
+        return Object.keys(profiles).concat(customPresets.map(p => p.name));
+    }
+
+    function saveCustomPreset(name, preset) {
+        if (!name)
+            return;
+        const next = customPresets.filter(p => p.name !== name);
+        next.push({
+            name: name,
+            preamp: preset?.preamp ?? 0,
+            source: preset?.source ?? "",
+            bands: preset?.bands ?? []
+        });
+        customFile.data.presets = next;
+    }
+
+    function deleteCustomPreset(name) {
+        customFile.data.presets = customPresets.filter(p => p.name !== name);
+    }
+
+    // Writes full band geometry, not just gains, so parametric corrections
+    // survive. Bands are sorted ascending by filter count from the source.
+    // Takes the preset object directly so callers never race the persistence
+    // round-trip.
+    function applyPresetObject(preset) {
+        if (!preset || !preset.bands || preset.bands.length === 0)
+            return false;
+
+        const src = preset.bands.slice(0, 32);
+        const arr = [];
+        setNumBands(src.length);
+        setPreamp(Math.round((preset.preamp ?? 0) * 10) / 10);
+        for (let i = 0; i < src.length; i++) {
+            const b = src[i];
+            const type = b.type ?? 1;
+            const freq = b.freq ?? 1000;
+            const gain = b.gain ?? 0;
+            const q = b.q ?? 0.707;
+            arr.push({
+                type: type,
+                freq: freq,
+                gain: gain,
+                q: q,
+                mode: 6,
+                mute: false
+            });
+            setBand(i, "type", type);
+            setBand(i, "freq", freq);
+            setBand(i, "q", q);
+            // APO (DR) is the mode EasyEffects itself uses to import
+            // EqualizerAPO/AutoEq biquads, so shelf Q behaves as designed.
+            setBand(i, "mode", 6);
+            setBand(i, "gain", gain);
+        }
+        numBands = arr.length;
+        bands = arr;
+        return true;
+    }
+
+    function applyCustomPreset(name) {
+        return applyPresetObject(getCustomPreset(name));
     }
 
     function resetAll() {
@@ -381,6 +475,15 @@ Singleton {
             _flushPending();
             refresh();
             queryGlobalBypass();
+        }
+    }
+
+    PluginFileView {
+        id: customFile
+        fileName: "eq_presets"
+
+        JsonAdapter {
+            property list<var> presets: []
         }
     }
 

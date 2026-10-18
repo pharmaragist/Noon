@@ -10,8 +10,14 @@ SidebarItemContainer {
     id: root
     readonly property var engine: EqService
     readonly property var profiles: engine.profiles
+    readonly property var customPresets: engine.customPresets
+    readonly property var presetNames: engine.presetNames()
     property string activePreset: "Custom"
     colors: MediaPlayerService.colors
+
+    function isCustomPreset(name) {
+        return customPresets.some(p => p.name === name);
+    }
 
     function statusText() {
         if (!engine.connected)
@@ -26,6 +32,13 @@ SidebarItemContainer {
     function applyPreset(name) {
         if (!engine.ready)
             return;
+
+        // Saved presets carry full band geometry, so let the service drive.
+        if (isCustomPreset(name)) {
+            if (engine.applyCustomPreset(name))
+                activePreset = name;
+            return;
+        }
 
         // Ten-band starting points adapted from the Figma interface. For a
         // different band count, interpolate across the same left-to-right
@@ -345,6 +358,13 @@ SidebarItemContainer {
 
                             RippleButtonWithIcon {
                                 colors: root.colors
+                                materialIcon: "travel_explore"
+                                colBackground: "transparent"
+                                onClicked: NoonUtils.spawnApp("AutoEq")
+                            }
+
+                            RippleButtonWithIcon {
+                                colors: root.colors
                                 materialIcon: "expand_content"
                                 colBackground: "transparent"
                                 toggled: presetListView.expanded
@@ -361,7 +381,7 @@ SidebarItemContainer {
                             Layout.minimumHeight: expanded ? contentHeight : 270
                             Layout.fillHeight: true
                             Layout.fillWidth: true
-                            model: Object.keys(root.profiles)
+                            model: root.presetNames
                             spacing: Padding.small
                             currentIndex: model.indexOf(root.activePreset)
 
@@ -403,7 +423,7 @@ SidebarItemContainer {
 
                                         Symbol {
                                             anchors.centerIn: parent
-                                            icon: "graphic_eq"
+                                            icon: root.isCustomPreset(modelData) ? "headphones" : "graphic_eq"
                                             iconSize: 20
                                             color: selected ? root.colors.colOnPrimary : root.colors.colOnSurface
                                         }

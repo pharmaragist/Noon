@@ -58,12 +58,6 @@ JsonAdapter {
             property real gamma: 1
         }
 
-        property JO power: JO {
-            property string controller: ""
-            property string mode: ""
-            property list<var> modes: []
-        }
-
         property JO beam: JO {
             property string revealReason: ""
         }

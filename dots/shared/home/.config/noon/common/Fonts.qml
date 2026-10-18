@@ -37,7 +37,7 @@ Singleton {
                 "variableAxes": {
                     "rond": 100,
                     "wght": 450,
-                    "wdth": 70,
+                    "wdth": 85,
                     "opsz": 100,
                     "grad": 100
                 }
@@ -56,7 +56,7 @@ Singleton {
                 "variableAxes": {
                     "rond": 50,
                     "wght": 500,
-                    "wdth": 67,
+                    "wdth": 90,
                     "opsz": 144,
                     "grad": 150
                 }
@@ -78,10 +78,6 @@ Singleton {
                 "letterSpacing": 1.5,
                 "weight": 900,
                 "family": root.family.monospace
-            },
-            "islamic": {
-                "family": "Amiri Quran",
-                "weight": 650
             },
             "longNumbers": {
                 "family": "Google Sans Flex",

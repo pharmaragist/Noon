@@ -58,23 +58,34 @@ Variants {
             anchors.right: parent.right
             corner: RoundCorner.BottomRight
             action: () => {
-                Globals.main.beam.show = true
-                Globals.main.beam.reason = "music"
-
-                // Ipc.call(["noon", "reveal_beam", "music"]);
+                Globals.main.beam.show = true;
+                Globals.main.beam.reason = "music";
             }
         }
     }
 
-    component Corner: RoundCorner {
-        color: Mem.options.desktop.screenCorners === "Disabled" ? "transparent" : "black"
-        size: Mem?.hypr?.rounding ?? Rounding.verylarge
+    component Corner: Item {
         property var action
+        property alias corner: cornerItem.corner
+        implicitHeight: implicitWidth
+        implicitWidth: Math.min(20, cornerItem.size)
 
+        RoundCorner {
+            id: cornerItem
+            color: Mem.options.desktop.screenCorners === "Disabled" ? "transparent" : "black"
+            size: Mem?.hypr?.rounding ?? Rounding.verylarge
+        }
         MouseArea {
+            id: hoverArea
             anchors.fill: parent
             hoverEnabled: true
-            onEntered: () => action()
+            onEntered: () => {
+                hoverArea.enabled = false;
+                action();
+                NoonUtils.inlineTimer(() => {
+                    hoverArea.enabled = true;
+                }, 200);
+            }
         }
     }
 }

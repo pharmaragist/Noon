@@ -72,7 +72,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            M3PasswordTextEntry {
+            ShapePasswordEntry {
                 id: inputField
                 enabled: !root.context.unlockInProgress && !root.failing
                 leftPadding: Padding.massive * 1.5

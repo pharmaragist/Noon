@@ -74,6 +74,10 @@ JsonAdapter {
     }
 
     property JO services: JO {
+        property JO power: JO {
+            property bool bluetoothOnBoot: true
+            property bool turbo: true
+        }
         property JO search: JO {
             property int nonAppResultDelay: 120
             property bool sloppy: false

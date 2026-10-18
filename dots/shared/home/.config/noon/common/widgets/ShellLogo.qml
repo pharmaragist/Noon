@@ -22,6 +22,7 @@ StyledRect {
         toggled: root.fill > 0
         implicitSize: 38
         source: SysInfoService?.userPfp
+        _shape: "Clover4Leaf"
     }
 
 

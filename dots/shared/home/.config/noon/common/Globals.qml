@@ -84,6 +84,16 @@ Singleton {
             property bool show: false
         }
     }
+    Component.onCompleted: {
+        if (Mem.ready) {
+            Quickshell.watchFiles = Mem.options.desktop.shell?.hotReload ?? false;
+            FirstRunService.init();
+        }
+        NoonUtils.playSound("device_unlocked");
+        TimerService.reload();
+        ClipboardService.refresh();
+        EqService.init();
+    }
 
     CustomShortcut {
         id: superHeldShortcut
@@ -92,16 +102,6 @@ Singleton {
 
     Connections {
         target: Quickshell
-
-        Component.onCompleted: {
-            if (!Mem.ready)
-                return;
-            Quickshell.watchFiles = Mem.options.desktop.shell?.hotReload ?? false
-            FirstRunService.init();
-            TimerService.reload();
-            ClipboardService.refresh();
-            NoonUtils.playSound("device_unlocked");
-        }
 
         function onReloadFailed(error) {
             let lines = error.split('\n');
