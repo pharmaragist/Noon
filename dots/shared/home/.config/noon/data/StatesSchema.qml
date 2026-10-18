@@ -31,6 +31,13 @@ JsonAdapter {
 
         property JO bookmarks: JO {
             property list<var> firefoxBookmarks: []
+            /*
+            {
+                "id": "",
+                "title": "",
+                "url": ""
+            },
+            */
         }
 
         property JO notes: JO {

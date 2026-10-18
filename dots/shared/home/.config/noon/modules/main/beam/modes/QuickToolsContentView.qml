@@ -8,7 +8,9 @@ import qs.common.functions
 
 ContentViewItem {
     id: view
-    readonly property real toolSize: 60
+    readonly property real toolSize: 72
+    readonly property real itemSize: toolSize - Padding.small
+
     readonly property var systemTools: [
         {
             name: "update",
@@ -18,58 +20,77 @@ ContentViewItem {
             }
         }
     ]
-    readonly property var urls: Mem.options.beam.content.quickActionsBookmarks.map(i => ({
-        isUrl: true,
-        url: i
-    }))
+    readonly property var urls: (Mem.options?.beam?.content?.quickActionsBookmarks ?? []).map(i => ({
+                isUrl: true,
+                url: i
+            }))
+    readonly property var bookmarks: (Mem.states?.services?.bookmarks?.firefoxBookmarks ?? []).map(obj => ({
+                isUrl: true,
+                url: obj.url
+            }))
+
+    readonly property var allItems: [...systemTools, ...(Mem.options?.beam?.content?.quickActionsTools ?? []), "SEPARATOR", ...urls, "SEPARATOR", ...bookmarks]
+    readonly property int gridColumns: Math.max(1, Math.min(allItems.length, 15))
 
     PanelRect {
         id: bg
         color: Colors.colLayer0
-        width: row.implicitWidth + Padding.massive
-        height: view.toolSize + Padding.veryhuge
+
+        implicitWidth: gridLayout.implicitWidth + Padding.huge * 2
+        implicitHeight: gridLayout.implicitHeight + Padding.huge * 2
         radius: Rounding.normal
 
-        RowLayout {
-            id: row
+        GridLayout {
+            id: gridLayout
             anchors.centerIn: parent
-            spacing: Padding.normal
+            columns: view.gridColumns
+            columnSpacing: Padding.normal
+            rowSpacing: Padding.normal
 
             Repeater {
-                id: rep
-                model: [...view.systemTools, ...Mem.options.beam.content.quickActionsTools, "SEPARATOR", ...urls]
-                StyledLoader {
+                model: view.allItems
+
+                delegate: StyledLoader {
+                    Layout.preferredWidth: view.toolSize
+                    Layout.preferredHeight: view.toolSize
                     sourceComponent: modelData === "SEPARATOR" ? separator : tool
-                    width: view.toolSize
-                    height: view.toolSize
                     binds: {
                         "toolData": () => modelData
                     }
+
                     Component {
                         id: separator
-                        VerticalSeparator {
-                            implicitHeight: 50
-                            implicitWidth: 2
+                        Item {
+                            implicitWidth: view.toolSize
+                            implicitHeight: view.toolSize
+                            VerticalSeparator {
+                                anchors.centerIn: parent
+                                implicitHeight: view.itemSize * 0.6
+                                implicitWidth: 2
+                            }
                         }
                     }
+
                     Component {
                         id: tool
                         ToolItem {
                             property var toolData
-                            implicitSize: view.toolSize
+                            anchors.centerIn: parent
+                            implicitWidth: view.itemSize
+                            implicitHeight: view.itemSize
                             isUrl: toolData?.isUrl ?? false
                             url: toolData?.url ?? ""
                             tooltip: toolData?.tooltip ?? ""
                             name: toolData?.name ?? TextUtils.getDomain(this.url)
                             mIcon: toolData?.icon ?? ""
                             downAction: () => {
-                                let _action = null
+                                let _action = null;
                                 if (toolData?.isUrl)
-                                    _action = () => NoonUtils.open(toolData?.url)
+                                    _action = () => NoonUtils.open(toolData?.url);
                                 else if (typeof toolData?.action === "function")
-                                    _action = toolData.action
+                                    _action = toolData.action;
                                 else
-                                    _action = () => NoonUtils.execDetached(toolData?.action ?? "")
+                                    _action = () => NoonUtils.execDetached(toolData?.action ?? "");
                                 if (!!_action)
                                     _action();
                                 view.dismiss();
@@ -90,33 +111,32 @@ ContentViewItem {
         property string mIcon: ""
         property string url: ""
 
-        contentItem: ColumnLayout {
-            anchors.centerIn: parent
-            spacing: Padding.large
+        contentItem: Item {
+            anchors.fill: parent
 
             StyledLoader {
-                height: 50
-                width: 50
-                Layout.alignment: Qt.AlignCenter
+                anchors.centerIn: parent
+                height: Math.min(parent.width, parent.height) * 0.6
+                width: height
                 sourceComponent: root.isUrl ? favIcon : icon
 
                 Component {
                     id: icon
-
                     Symbol {
+                        anchors.centerIn: parent
                         icon: root.mIcon
                         fill: root.hovered
-                        iconSize: 30
+                        iconSize: Math.min(parent.width, parent.height)
                     }
                 }
 
                 Component {
                     id: favIcon
-
                     Favicon {
+                        anchors.centerIn: parent
                         url: root?.url
                         displayText: root.name
-                        size: 40
+                        size: Math.min(parent.width, parent.height)
                     }
                 }
             }
