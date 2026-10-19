@@ -33,7 +33,10 @@ GroupButton {
         active: true
         sourceComponent: !root.showButtonName ? symb : fullComp
     }
-
+    StyledToolTip {
+        extraVisibleCondition: !showButtonName && parent.hovered
+        content: buttonName
+    }
     readonly property Component symb: Item {
         anchors.fill: parent
         Symbol {

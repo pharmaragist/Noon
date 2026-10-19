@@ -7,16 +7,17 @@ import qs.common
 
 Singleton {
     id: root
-    readonly property string currentMode: (governerWatcher?.text() ?? "").trim()
+    readonly property string currentMode: (governerWatcher?.text() ?? "")?.trim()
     readonly property bool turbo: Mem.states?.services?.power?.turbo ?? true
     readonly property bool bluetoothOnBoot: Mem.states?.services?.power?.bluetoothOnBoot ?? false
-    readonly property list<string> modes: ["powersave", "performance"]
+    readonly property Process proc: Process {}
+
     readonly property string icon: {
-        switch (currentMode) {
-            case "powersave": return "eco";
-            case "performance": return "bolt";
-            default: return "eco";
-        }
+        const data = {
+            "powersave": "eco",
+            "performance": "bolt"
+        };
+        return data[currentMode] ?? "eco";
     }
 
     function switchMode() {
@@ -25,24 +26,10 @@ Singleton {
     }
 
     function set(mode) {
-        proc.running = false
-        proc.running = true
+        proc.running = false;
+        proc.command = ["bash", "-c", `${Paths.scriptsDir}/power_service.sh  ${mode} ${(root.turbo ? "always" : "never")}  ${(root.bluetoothOnBoot ? "--bluetooth_boot_on" : "--bluetooth_boot_off")}`];
+        proc.running = true;
     }
-
-    Process {
-        id: proc
-        command: ["bash","-c", `${Paths.scriptsDir}/power_service.sh  ${currentMode} ${(root.turbo ? "always" : "never")}  ${(root.bluetoothOnBoot ? "--bluetooth_boot_on" : "--bluetooth_boot_off")}`]
-    }
-
-    function toast() {
-        if (!currentMode) return;
-        NoonUtils.toast({
-            id: 9,
-            content: `Power mode changed to ${currentMode}`,
-            icon: icon
-        });
-    }
-    onCurrentModeChanged: toast()
 
     FileView {
         id: governerWatcher

@@ -1,6 +1,8 @@
+import QtQuick
 import Quickshell
 import qs.common
 import qs.services
+import qs.common.widgets
 
 QuickToggleButton {
     buttonName: KdeConnectService?.selectedDeviceName || "Offline"

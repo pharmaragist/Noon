@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.common
 import qs.common.widgets
+import qs.common.utils
 import qs.services
 import qs.data
 import "quickToggles"
@@ -89,6 +90,7 @@ Item {
                 anchors.margins: Padding.huge
                 spacing: Padding.normal
                 Repeater {
+                    id: mainRepeater
                     model: [
                         {
                             items: ["NetworkToggle", "BluetoothToggle"]
@@ -128,12 +130,34 @@ Item {
             snapMode: ListView.SnapToItem
             orientation: Qt.Horizontal
 
-            model: ["CaffieneToggle", "EasyEffectsToggle", "RecordToggle", "InputToggle", "BacklightToggle"]
+            model: ScriptModel {
+                values: {
+                    let final = [];
+                    let flatLarge = [];
+                    const all = quickTogglesFileModel.getArray("fileBaseName") || [];
+
+                    mainRepeater.model.forEach(item => {
+                        flatLarge = flatLarge.concat(item.items);
+                    });
+
+                    all.forEach(toggle => {
+                        if (!flatLarge.includes(toggle)) {
+                            final.push(toggle);
+                        }
+                    });
+
+                    return final;
+                }
+            }
+
             delegate: StyledLoader {
                 anchors.verticalCenter: parent?.verticalCenter
                 required property var modelData
                 source: sanitizeSource("quickToggles/", modelData)
-                onLoaded: _item.showButtonName = false
+                onLoaded: {
+                    _item.showButtonName = false;
+                    console.error(_item.buttonName);
+                }
             }
         }
     }
@@ -173,5 +197,13 @@ Item {
     component Group: LayerRect {
         Layout.fillWidth: true
         radius: Rounding.verylarge
+    }
+
+    FolderListModel {
+        id: quickTogglesFileModel
+        nameFilters: ["*.qml"]
+        folder: Qt.resolvedUrl("./quickToggles")
+        showDirs: false
+        showFiles: true
     }
 }

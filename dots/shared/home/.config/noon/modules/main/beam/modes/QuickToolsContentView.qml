@@ -95,6 +95,9 @@ ContentViewItem {
                                     _action();
                                 view.dismiss();
                             }
+                            StyledToolTip {
+                                content: TextUtils.getDomain(modelData.url)
+                            }
                         }
                     }
                 }
