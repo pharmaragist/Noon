@@ -5,8 +5,11 @@ local envs = {
 	MOZ_ENABLE_WAYLAND = "1",
 	LIBVA_DRIVER_NAME = "iHD",
 	NVD_BACKEND = "direct",
-	AQ_FORCE_LINEAR_BLIT = "1",
-	AQ_DRM_DEVICES = "/dev/dri/card0:/dev/dri/card1",
+	-- AQ_FORCE_LINEAR_BLIT = "1",
+	-- Intel iGPU primary, referenced by PCI path so it survives the cardN
+	-- renumbering between normal and "[NVIDIA OFF]" boots (the P1000 is bound
+	-- to vfio-pci there, and i915 becomes card0).
+	-- AQ_DRM_DEVICES = "/dev/dri/by-path/pci-0000:00:02.0-card",
 	UV_WORKING_DIR = home .. "/.local/state/noon/",
 	-- KDE
 	XDG_MENU_PREFIX = "plasma-",

@@ -10,6 +10,15 @@ Singleton {
     id: root
 
     property var thumbnailsData: ({})
+    readonly property var availableShaders: {
+        const shaders = [];
+        for (let i = 0; i < shaderModel.count; i++) {
+            const name = String(shaderModel.get(i, "fileName")).replace(/\.frag\.qsb$/, "");
+            if (name.length > 0)
+                shaders.push(name);
+        }
+        return shaders;
+    }
     readonly property bool fgReady: Paths.methods.exists(currentFgPath)
     readonly property string currentWallpaper: Mem.looks.currentBg ?? Qt.resolvedUrl(Paths.wallpapers.defaultBg)
     readonly property string currentFgPath: getFgPathOf(currentWallpaper)
@@ -18,6 +27,13 @@ Singleton {
 
     readonly property Process mainProc: Process {}
     readonly property Process thumbnailGenerator: Process {}
+    readonly property FolderListModel shaderModel: FolderListModel {
+        folder: Qt.resolvedUrl(Paths.wallpapers.shaders)
+        nameFilters: ["*.frag.qsb"]
+        showDirs: false
+        showFiles: true
+        sortField: FolderListModel.Name
+    }
     readonly property FolderListModel wallpaperModel: FolderListModel {
         folder: currentFolderPath
         nameFilters: [...NameFilters.picture, ...NameFilters.video]
@@ -46,6 +62,10 @@ Singleton {
 
     function clean(fileUrl) {
         return Paths.methods.trim(fileUrl);
+    }
+
+    function shaderPathFor(name) {
+        return name ? Paths.wallpapers.shaders + "/" + name + ".frag.qsb" : "";
     }
 
     function generateThumbnails(directory) {

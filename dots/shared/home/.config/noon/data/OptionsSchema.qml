@@ -31,8 +31,7 @@ JsonAdapter {
         }
 
         property JO rounding: JO {
-            property bool syncCompositor: false
-            property real scale: 1
+            property string preset: "normal"
             property real power: 2
         }
 
@@ -261,6 +260,14 @@ JsonAdapter {
 
         property JO bg: JO {
             property bool depthMode: false
+            property bool enableShaderWallpaper: false
+            property string shaderName: "aurora"
+            property real shaderSpeed: 1
+            property real shaderQuality: 0.5
+            property int shaderFramerate: 30
+            property string shaderColorA: "primary"
+            property string shaderColorB: "tertiary"
+            property string shaderColorC: "background"
 
             property JO parallax: JO {
                 property bool enabled: true

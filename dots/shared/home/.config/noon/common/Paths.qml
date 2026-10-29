@@ -50,6 +50,7 @@ Singleton {
         readonly property string matugenConfig: methods.trim(root.standard.config) + "/matugen/config.toml"
         readonly property string colGenScript: methods.trim(root.scriptsDir + "/colgen_service.py")
         readonly property string thumbScript: methods.trim(root.scriptsDir + "/thumbnails_service.py")
+        readonly property string shaders: methods.trim(standard.pictures + "/Wallpapers/Shaders")
         readonly property string main: methods.trim(standard.pictures + "/Wallpapers/")
         readonly property string depthDir: methods.trim(standard.cache + "/user/generated/depth/")
         readonly property string gowallDir: methods.trim(standard.cache + "/user/generated/gowall/")

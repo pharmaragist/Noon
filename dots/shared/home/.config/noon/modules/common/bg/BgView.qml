@@ -9,6 +9,24 @@ import qs.modules.main.desktop.widgets
 Item {
     id: root
     readonly property string wallpaper: WallpaperService.currentWallpaper
+    readonly property var shaderOpts: Mem.options.desktop.bg
+    readonly property var availableShaders: WallpaperService.availableShaders
+    readonly property string shaderName: {
+        const selected = root.shaderOpts.shaderName;
+        if (root.availableShaders.includes(selected))
+            return selected;
+        return root.availableShaders.length > 0 ? root.availableShaders[0] : "";
+    }
+    readonly property string shaderPath: WallpaperService.shaderPathFor(root.shaderName)
+    readonly property string shader: root.shaderPath.length > 0 ? Qt.resolvedUrl(root.shaderPath) : ""
+    readonly property bool enableShaders: root.shaderOpts.enableShaderWallpaper
+    readonly property bool shaderActive: root.enableShaders && root.shaderPath.length > 0
+        && Paths.methods.exists(root.shaderPath)
+    readonly property real shaderQuality: Math.max(0.1, Math.min(1, root.shaderOpts.shaderQuality))
+    readonly property int shaderFramerate: Math.max(1, root.shaderOpts.shaderFramerate)
+    readonly property color shaderColorA: shaderColor(root.shaderOpts.shaderColorA)
+    readonly property color shaderColorB: shaderColor(root.shaderOpts.shaderColorB)
+    readonly property color shaderColorC: shaderColor(root.shaderOpts.shaderColorC)
     readonly property bool enableDepthMode: Mem.options.desktop.bg.depthMode
     readonly property bool enableParallax: Mem.options.desktop.bg.parallax.enabled
     readonly property bool parallaxAllWorkspaces: Mem.options.desktop.bg.parallax.allWorkspaces
@@ -27,6 +45,9 @@ Item {
     function panOffset(factor, movable, share) {
         if (share <= 0) return 0;
         return -2 * movable * share * factor;
+    }
+    function shaderColor(token) {
+        return Colors.methods.applyAlpha(Colors.byName(token), 1);
     }
     function mouseOffset(factor, movable, share) {
         if (share <= 0) return 0;
@@ -99,7 +120,7 @@ Item {
     }
     StyledLoader {
         fade: true
-        shown: NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
+        shown: !root.shaderActive && NameFilters.video.some(format => wallpaper.endsWith(format.substring(1)))
         anchors.fill: parent
         sourceComponent: VidLayer {}
     }
@@ -120,6 +141,36 @@ Item {
             SAnim {}
         }
     }
+    StyledLoader {
+        id: shaderLoader
+        z: 1
+        anchors.fill: parent
+        fade: true
+        shown: root.shaderActive
+        sourceComponent: ShaderEffect {
+            anchors.fill: parent
+            property real time: 0
+            property vector2d resolution: Qt.vector2d(
+                root.shaderQuality < 1 ? Math.max(1, Math.round(width * root.shaderQuality)) : width,
+                root.shaderQuality < 1 ? Math.max(1, Math.round(height * root.shaderQuality)) : height)
+            property real speed: root.shaderOpts.shaderSpeed
+            property color colorA: root.shaderColorA
+            property color colorB: root.shaderColorB
+            property color colorC: root.shaderColorC
+            layer.enabled: root.shaderQuality < 1
+            layer.smooth: true
+            layer.textureSize: Qt.size(resolution.x, resolution.y)
+            blending: true
+            fragmentShader: root.shader
+
+            Timer {
+                interval: Math.max(1, Math.round(1000 / root.shaderFramerate))
+                running: root.shaderOpts.shaderSpeed > 0
+                repeat: true
+                onTriggered: time += 1.0 / root.shaderFramerate
+            }
+        }
+    }
     Loader {
         id: layerClock
         z: 1
@@ -134,7 +185,7 @@ Item {
         visible: active
         fade: true
         asynchronous: true
-        active: WallpaperService.fgReady && root.enableDepthMode
+        active: WallpaperService.fgReady && root.enableDepthMode && root.enableShaders
         sourceComponent: FgLayer {}
     }
 }

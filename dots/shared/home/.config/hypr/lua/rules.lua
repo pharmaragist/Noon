@@ -1,25 +1,22 @@
 -- Global Application Rule
 hl.window_rule({
     name = "windowrule-1",
-    match = { class = "^(.*)" },
-    no_blur = unblur_apps,
+    match = { class = "^(?!(kitty|dolphin|foot|ghostty)$)(.*)" },
+    no_blur = unblur_apps and not (terminal_opacity < 1),
     opacity = applications_opacity,
 })
-hl.window_rule({
-    name = "terminal_blur",
-    match = { class = "^(kitty*|foot*|ghostty*)" },
-    no_blur = not (terminal_opacity < 1),
-})
+
 hl.window_rule({
     name = "browser",
     match = { class = "^(firefox*)" },
     workspace = "2",
 })
 hl.window_rule({
-    name = "editor",
-    match = { class = "^(dev.zed.Zed*)" },
-    workspace = "1",
+    name = "browser",
+    no_blur = false,
+    match = { class = "^(dolphin*)" },
 })
+
 
 hl.window_rule(
     set_app_as_side_panel("380 99999", {
@@ -216,9 +213,9 @@ local layers = {
 for _, layer in ipairs(layers) do
     hl.layer_rule({
         name = layer.name,
-        blur = layer.blur,
-        xray = layer.xray,
-        ignore_alpha = layer.ignore_alpha,
+        blur = layer.blur and blur,
+        xray = layer.xray or true,
+        ignore_alpha = layer.ignore_alpha or layers_alpha,
         no_anim = layer.no_anim,
         animation = layer.animation,
         dim_around = layer.dim_around,

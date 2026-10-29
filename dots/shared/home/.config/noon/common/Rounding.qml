@@ -1,26 +1,27 @@
 pragma Singleton
-pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
-import qs.common
+import qs.common.utils
 
 Singleton {
-    property real scale: Mem.options.appearance.rounding.scale
-    property int verytiny: 2 * scale
-    property int tiny: 6 * scale
-    property int verysmall: 8 * scale
-    property int small: 10 * scale
-    property int normal: 14 * scale
-    property int large: 18 * scale
-    property int verylarge: 22 * scale
-    property int huge: 24 * scale
-    property int veryhuge: 26 * scale
-    property int massive: 30 * scale
-    property int silly: 34 * scale
-    property int full: 999 * scale
+    readonly property real scale: presets[(Mem.options.appearance.rounding.preset ?? "normal")]
+    readonly property int verytiny: 2 * scale
+    readonly property int tiny: 6 * scale
+    readonly property int verysmall: 8 * scale
+    readonly property int small: 10 * scale
+    readonly property int normal: 14 * scale
+    readonly property int large: 18 * scale
+    readonly property int verylarge: 22 * scale
+    readonly property int huge: 24 * scale
+    readonly property int veryhuge: 26 * scale
+    readonly property int massive: 30 * scale
+    readonly property int silly: 34 * scale
+    readonly property int full: 999
 
-    onScaleChanged: {
-        if (Mem.options.appearance.rounding.syncCompositor)
-            Mem.hypr.rounding = verylarge;
+    readonly property var presets: {
+        "tiny": 0.25,
+        "small": 0.5,
+        "normal": 1.0,
+        "large": 1.5,
+        "veryLarge": 1.75
     }
 }

@@ -12,6 +12,47 @@ Singleton {
         return methods.transparentize(c, amt * 0.7);
     }
 
+    function byName(name) {
+        switch (name) {
+        case "primary":
+            return colPrimary;
+        case "primaryContainer":
+            return colPrimaryContainer;
+        case "secondary":
+            return colSecondary;
+        case "secondaryContainer":
+            return colSecondaryContainer;
+        case "tertiary":
+            return colTertiary;
+        case "tertiaryContainer":
+            return colTertiaryContainer;
+        case "background":
+            return m3.m3background;
+        case "surface":
+            return m3.m3surface;
+        case "surfaceContainer":
+            return colSurfaceContainer;
+        case "surfaceContainerHigh":
+            return colSurfaceContainerHigh;
+        case "surfaceContainerHighest":
+            return colSurfaceContainerHighest;
+        case "onSurface":
+            return colOnSurface;
+        case "outline":
+            return m3.m3outline;
+        case "outlineVariant":
+            return colOutlineVariant;
+        case "error":
+            return colError;
+        case "errorContainer":
+            return colErrorContainer;
+        case "success":
+            return colSuccess;
+        default:
+            return colPrimary;
+        }
+    }
+
     function calculateTransparency() {
         if (!Mem.looks.autoTransparencySelection)
             return Mem.options.appearance.transparency.scale;
@@ -36,6 +77,25 @@ Singleton {
 
     readonly property QtObject methods: ColorUtils
     readonly property QtObject m3: PaletteService.colors
+    readonly property var paletteTokenNames: [
+        "primary",
+        "primaryContainer",
+        "secondary",
+        "secondaryContainer",
+        "tertiary",
+        "tertiaryContainer",
+        "background",
+        "surface",
+        "surfaceContainer",
+        "surfaceContainerHigh",
+        "surfaceContainerHighest",
+        "onSurface",
+        "outline",
+        "outlineVariant",
+        "error",
+        "errorContainer",
+        "success"
+    ]
 
     property real transparency: transparent ? calculateTransparency() : 0
     readonly property bool transparent: Mem.options.appearance.transparency.enabled

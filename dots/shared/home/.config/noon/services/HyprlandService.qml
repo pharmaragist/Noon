@@ -64,7 +64,8 @@ Singleton {
         data: ({
                 bar_location: () => BarData.position,
                 bar_width: () => BarData.currentBarExclusiveSize,
-                terminal_opacity: () => Mem.env.TERMINAL_OPACITY
+                terminal_opacity: () => Mem.env.TERMINAL_OPACITY,
+                rounding: () => Rounding.verylarge
             })
     }
 }

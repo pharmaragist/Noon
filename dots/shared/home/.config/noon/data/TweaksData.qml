@@ -30,10 +30,9 @@ QtObject {
                     "icon": "rounded_corner",
                     "name": "Radius",
                     "hint": "Global rounding scale for all shell widgets",
-                    "key": "appearance.rounding.scale",
-                    "type": "slider",
-                    "minValue": 0.25,
-                    "maxValue": 2
+                    "key": "appearance.rounding.preset",
+                    "type": "combobox",
+                    "values": Object.keys(Rounding.presets),
                 },
                 {
                     "icon": "rounded_corner",
@@ -73,6 +72,82 @@ QtObject {
                     "hint": "Depth layering effect on wallpaper foreground",
                     "enableTooltip": false,
                     "key": "desktop.bg.depthMode"
+                },
+                {
+                    "icon": "blur_on",
+                    "name": "Shader Wallpaper",
+                    "hint": "Render an animated shader instead of the wallpaper",
+                    "enableTooltip": false,
+                    "key": "desktop.bg.enableShaderWallpaper"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "blur_on",
+                    "name": "Shader",
+                    "hint": "Shader file used as wallpaper",
+                    "type": "combobox",
+                    "values": WallpaperService.availableShaders,
+                    "key": "desktop.bg.shaderName"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "speed",
+                    "name": "Shader Speed",
+                    "hint": "Animation speed multiplier",
+                    "type": "slider",
+                    "minValue": 0,
+                    "maxValue": 3,
+                    "stepValue": 0.1,
+                    "key": "desktop.bg.shaderSpeed"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "photo_size_select_large",
+                    "name": "Shader Quality",
+                    "hint": "Render scale; lower is faster",
+                    "type": "slider",
+                    "minValue": 0.25,
+                    "maxValue": 1,
+                    "stepValue": 0.05,
+                    "key": "desktop.bg.shaderQuality"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "frame_rate",
+                    "name": "Shader Framerate",
+                    "hint": "Animation frame rate; lower is faster",
+                    "type": "sliderStops",
+                    "minValue": 15,
+                    "maxValue": 60,
+                    "stepValue": 15,
+                    "key": "desktop.bg.shaderFramerate"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "palette",
+                    "name": "Shader Accent",
+                    "hint": "Palette color used as shader accent",
+                    "type": "combobox",
+                    "values": Colors.paletteTokenNames,
+                    "key": "desktop.bg.shaderColorA"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "palette",
+                    "name": "Shader Secondary",
+                    "hint": "Palette color used as shader secondary",
+                    "type": "combobox",
+                    "values": Colors.paletteTokenNames,
+                    "key": "desktop.bg.shaderColorB"
+                },
+                {
+                    "visible": Mem.options.desktop.bg.enableShaderWallpaper,
+                    "icon": "palette",
+                    "name": "Shader Base",
+                    "hint": "Palette color used as shader base",
+                    "type": "combobox",
+                    "values": Colors.paletteTokenNames,
+                    "key": "desktop.bg.shaderColorC"
                 },
                 {
                     "icon": "palette",
@@ -224,12 +299,6 @@ QtObject {
                     "store": "hypr",
                     "key": "rounding",
                     "type": "spin"
-                },
-                {
-                    "icon": "rounded_corner",
-                    "name": "Sync Rounding",
-                    "hint": "Match compositor rounding to shell scale",
-                    "key": "appearance.rounding.syncCompositor"
                 },
                 {
                     "icon": "shutter_speed",

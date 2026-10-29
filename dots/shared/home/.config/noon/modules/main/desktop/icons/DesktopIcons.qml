@@ -21,12 +21,11 @@ Variants {
 
     StyledPanel {
         id: root
-        visible: false
         required property var modelData
         screen: modelData
         name: "desktop_widgets_layer"
         exclusiveZone: 0
-        WlrLayershell.layer: WlrLayer.Bottom
+        _layer: "Bottom"
         fill: true
 
         margins {

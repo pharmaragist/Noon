@@ -28,7 +28,7 @@ Item {
     id: root
 
     required property var panelWindow
-    readonly property bool hovered: mouseArea?.containsMouse ?? false
+    readonly property bool hovered: rail?.hovered ?? false
     readonly property alias rail: rail
     readonly property var colors: SidebarData.getColors(selectedCategory)
     property bool auxVisible: false
@@ -139,11 +139,6 @@ Item {
         }
 
         target: PolkitService
-    }
-
-    HoverHandler {
-        id: mouseArea
-        anchors.fill: parent
     }
 
     RowLayout {

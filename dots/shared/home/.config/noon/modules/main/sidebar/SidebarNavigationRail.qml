@@ -13,6 +13,7 @@ Item {
     required property var content
     required property string selectedCategory
     required property var colors
+    readonly property alias hovered: hoverArea.containsMouse
 
     property alias radius: bg.radius
     property alias color: bg.color
@@ -31,6 +32,12 @@ Item {
     Layout.fillHeight: true
 
     signal showContextMenu(string category, int globalX, int globalY)
+
+    HoverHandler {
+        id: hoverArea
+        z: 999999
+        anchors.fill: parent
+    }
 
     StyledRect {
         id: stealthPill
