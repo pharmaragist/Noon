@@ -18,10 +18,10 @@ TabButton {
     implicitWidth: Math.max(tabContentWidth, buttonBackground.implicitWidth, minimumWidth)
     property var colors: Colors
     property color colBackground: Colors.methods.transparentize(colors.colLayer0, 1) || "transparent"
-    property color colBackgroundHover: colors.colLayer1Hover ?? "#E5DFED"
-    property color colRipple: colors.colLayer1Active ?? "#D6CEE2"
-    property color colActive: colors.colPrimary ?? "#65558F"
-    property color colInactive: colors.colOnLayer1 ?? "#45464F"
+    property color colBackgroundHover: colors.colLayer1Hover
+    property color colRipple: colors.colLayer1Active
+    property color colActive: colors.colPrimary
+    property color colInactive: colors.colOnLayer1
 
     component RippleAnim: Anim {}
 
@@ -45,7 +45,7 @@ TabButton {
             rippleAnim.restart();
         }
         onReleased: event => {
-            button.click(); 
+            button.click();
             rippleFadeAnim.restart();
         }
     }

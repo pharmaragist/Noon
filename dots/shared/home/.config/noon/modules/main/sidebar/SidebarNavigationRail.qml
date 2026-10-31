@@ -89,7 +89,7 @@ Item {
         clip: true
         radius: 0
         anchors.fill: parent
-        color: root.colors.colLayer2
+        color: root.colors.colLayer1
         layer.enabled: stealthPill.show
         layer.effect: StyledFastBlur {
             radius: 40
@@ -271,7 +271,7 @@ Item {
         anchors.left: Mem.options.sidebar.navRail.reverse ^ panel.rightMode ? parent.left : undefined
         anchors.right: Mem.options.sidebar.navRail.reverse ^ !panel.rightMode ? parent.right : undefined
 
-        color: root.colors.colLayer3
+        color: root.colors.colLayer2
         implicitWidth: 1
         opacity: (!panel.show || bg.state !== "sharp") ? 0 : 1
     }

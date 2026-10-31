@@ -56,8 +56,11 @@ PanelRect {
                 textFormat: Text.PlainText
                 text: root.hintText
                 Layout.fillWidth: true
-                font: Fonts.request("main", "title")
+                font: Fonts.request("reading", 24)
                 horizontalAlignment: Text.AlignLeft
+                readOnly: true
+                selectByMouse: false
+                selectByKeyboard: false
 
                 SyntaxHighlighter {
                     textEdit: popupText

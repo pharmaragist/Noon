@@ -1,0 +1,33 @@
+{
+
+  "seed": "{{colors.primary.default.hex}}",
+  "mode": "system",
+  "style": 0,
+  "dynamic": false,
+  "railExpanded": false,
+  "zoom": 100,
+  "volume": 100.0,
+  "autoPlay": true,
+  "normalizeLoudness": true,
+  "cacheSongs": 10,
+  "notifyTrack": false,
+  "globalShortcut": true,
+  "showTray": false,
+  "trayMark": "wordmark",
+  "discordPresence": false,
+  "closeToTray": false,
+  "openAtLogin": false,
+  "eqOn": false,
+  "eqBands": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

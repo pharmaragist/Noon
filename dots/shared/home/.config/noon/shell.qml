@@ -10,7 +10,7 @@
 //@ pragma Env QS_DROP_EXPENSIVE_FONTS=1
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QS_DISABLE_CRASH_HANDLER=1
-//@ pragma Env __NV_PRIME_RENDER_OFFLOAD=0
+//@ pragma Env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi
 
 import QtQuick
 import Quickshell

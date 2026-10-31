@@ -23,6 +23,7 @@ Singleton {
     readonly property var config: registry[activeState]
     readonly property var subConfig: config?.subStates ? config.subStates[activeSubState] : null
     readonly property var rawBeamPlugins: PluginsManager?.beamPlugins
+    readonly property TweaksData tweaksData: TweaksData {}
     readonly property list<string> availableAnimationStyles: ["slidebottom", "expo", "springPop", "glide"]
     property bool _building: false
 
@@ -283,6 +284,27 @@ Singleton {
                         })
                 }
             }
+        },
+        "tweaks": {
+            prefix: "$",
+            icon: "tune",
+            shape: "Oval",
+            description: "Search & Edit Shell Tweaks",
+            placeholder: "Search Tweaks ..",
+            showHint: true,
+            autoComplete: true,
+            hinter: () => {
+                const parts = splitTweakQuery(cleanQuery);
+                const matches = searchTweaks(parts.sel);
+                if (matches.length === 0)
+                    return "Type after $ to search tweaks — eg: blur, radius, bar";
+                let text = tweakHintText(matches[0], parts.val);
+                const others = matches.slice(1, 4).map(t => t.name || t.key);
+                if (others.length > 0)
+                    text += "\nalso: " + others.join(" · ");
+                return text;
+            },
+            executor: () => executeTweak()
         }
     }
     readonly property var oldContent: {
@@ -532,6 +554,126 @@ Singleton {
         const current = Mem.options.beam.appearance?.theme ?? "default";
         return availableDefaultThemes[(current ?? "default")];
     }
+    function splitTweakQuery(q) {
+        const sep = q.indexOf("=");
+        return {
+            sel: (sep < 0 ? q : q.substring(0, sep)).trim().toLowerCase(),
+            val: sep < 0 ? "" : q.substring(sep + 1).trim()
+        };
+    }
+
+    function flattenTweaks() {
+        const out = [];
+        for (const section of tweaksData?.tweaks ?? []) {
+            for (const item of section.items ?? []) {
+                if (item.visible === false)
+                    continue;
+                const type = item.type ?? "switch";
+                if (type === "widget" || type === "field" || (!item.name && !item.key))
+                    continue;
+                out.push(Object.assign({}, item, {
+                    type: type,
+                    section: section.section ?? ""
+                }));
+            }
+        }
+        return out;
+    }
+
+    function tweakText(m) {
+        return (m.name + " " + m.section + " " + (m.key ?? "") + " " + (m.hint ?? "")).toLowerCase();
+    }
+
+    function searchTweaks(sel) {
+        const items = flattenTweaks();
+        if (!sel)
+            return items.slice(0, 8);
+        const ranked = items.map(i => {
+            const name = (i.name ?? "").toLowerCase();
+            const text = tweakText(i);
+            let score = 0;
+            if (name.startsWith(sel))
+                score = 100;
+            else if (name.includes(sel))
+                score = 80;
+            else if (text.includes(sel))
+                score = 50;
+            return {
+                item: i,
+                score: score
+            };
+        }).filter(r => r.score > 0);
+        ranked.sort((a, b) => b.score - a.score);
+        return ranked.slice(0, 5).map(r => r.item);
+    }
+
+    function tweakBase(store) {
+        return Mem[store || "options"] ?? Mem.options;
+    }
+
+    function getTweakValue(m) {
+        return (m.key ?? "").split('.').reduce((cur, k) => cur?.[k], tweakBase(m.store));
+    }
+
+    function setTweakValue(m, value) {
+        const parts = (m.key ?? "").split('.');
+        const target = parts.slice(0, -1).reduce((cur, k) => cur[k] || (cur[k] = {}), tweakBase(m.store));
+        target[parts[parts.length - 1]] = value;
+    }
+
+    function tweakHintText(m, val) {
+        const label = (m.section ? m.section + ": " : "") + (m.name || m.key);
+        const t = m.type ?? "switch";
+        if (t === "action")
+            return label + " — enter to run";
+        const cur = getTweakValue(m);
+        if (t === "switch")
+            return label + ` — ${cur ? "on" : "off"} • enter toggles`;
+        if (t === "combobox")
+            return label + ` — ${cur} • enter` + (val ? ` sets ${val}` : ` cycles: ${(m.values ?? []).map(v => String(v?.name ?? v)).join(", ")}`);
+        return label + ` — currently ${cur} • edit in Tweaks panel`;
+    }
+
+    function executeTweak() {
+        const {sel, val} = splitTweakQuery(cleanQuery);
+        if (!sel && !val)
+            return;
+        const m = searchTweaks(sel)[0];
+        if (!m)
+            return;
+        const t = m.type ?? "switch";
+        if (t === "action") {
+            m.releaseAction?.();
+            return;
+        }
+        if (!m.key)
+            return;
+        if (t === "switch")
+            setTweakValue(m, val ? /^(1|true|on|yes)$/i.test(val) : !getTweakValue(m));
+        else if (t === "combobox") {
+            const values = (m.values ?? []).map(v => v?.name ?? v);
+            const idx = values.indexOf(String(getTweakValue(m)));
+            const pick = val ? values.find(v => String(v).toLowerCase().includes(val.toLowerCase())) : values[idx + 1] ?? values[0];
+            if (pick !== undefined)
+                setTweakValue(m, pick);
+        } else if (t === "spin" || t === "slider" || t === "sliderStops") {
+            const num = parseFloat(val);
+            if (isNaN(num))
+                return;
+            let v = num;
+            if (m.minValue !== undefined)
+                v = Math.max(m.minValue, v);
+            if (m.maxValue !== undefined)
+                v = Math.min(m.maxValue, v);
+            if (m.stepValue)
+                v = Math.round(v / m.stepValue) * m.stepValue;
+            setTweakValue(m, t === "spin" ? Math.round(v) : v);
+        } else {
+            setTweakValue(m, val);
+        }
+        getHint();
+    }
+
     Process {
         id: shellRunner
 

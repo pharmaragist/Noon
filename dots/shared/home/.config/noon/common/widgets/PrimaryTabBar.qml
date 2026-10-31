@@ -33,6 +33,7 @@ ColumnLayout {
                 buttonText: modelData.name
                 buttonIcon: modelData.icon
                 minimumWidth: 160
+                colors: root.colors
             }
         }
 
@@ -48,7 +49,6 @@ ColumnLayout {
             }
         }
     }
-
 
     Item {
         id: tabIndicator

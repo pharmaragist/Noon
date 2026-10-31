@@ -101,6 +101,10 @@ enabled = false
 input_path = '~/.config/matugen/templates/applications/telegram.tdesktop-theme'
 output_path = '~/.cache/noon/user/generated/colors/noon.tdesktop-theme'
 
+[templates.meiro]
+input_path = '~/.config/matugen/templates/applications/meiro.json'
+output_path = '~/.config/Meiro/settings.json'
+
 [templates.code]
 input_path = "~/.config/matugen/templates/applications/vscode.json"
 output_path = '~/.vscode-oss/extensions/noon/colors.json'

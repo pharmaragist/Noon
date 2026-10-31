@@ -163,63 +163,88 @@ class WallpaperSwitcher:
         time.sleep(0.2)
         return True
 
-    def extract_image_info(self, image_path):
-        from PIL import Image
+    def extract_image_info(self, image_path, size=64):
+            proc = subprocess.run(
+                [
+                    "ffmpeg", "-v", "quiet", "-i", str(image_path),
+                    "-vf", f"scale={size}:{size}:flags=area",
+                    "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "rgb24", "-",
+                ],
+                capture_output=True,
+                check=False,
+            )
+            data = proc.stdout
+            n = len(data) // 3
+            if n == 0:
+                return None, "dark", False, "scheme-tonal-spot"
 
-        im = Image.open(image_path).convert("RGB")
-        small = im.resize((200, 200))
+            buckets = {}
+            sum_r = sum_g = sum_b = 0
+            sq_r = sq_g = sq_b = 0
+            luma_sum = 0
+            sat_sum = 0.0
+            hues = set()
 
-        quantized = small.quantize(colors=8, method=Image.Quantize.MEDIANCUT)
-        palette = quantized.getpalette()
-        best_color = None
-        best_score = -1
-        for i in range(8):
-            r, g, b = palette[i * 3], palette[i * 3 + 1], palette[i * 3 + 2]
-            _, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
-            if s * v > best_score:
-                best_score = s * v
-                best_color = "{:02X}{:02X}{:02X}".format(r, g, b)
-        hex_color = best_color
+            for i in range(0, n * 3, 3):
+                r, g, b = data[i], data[i + 1], data[i + 2]
+                sum_r += r
+                sum_g += g
+                sum_b += b
+                sq_r += r * r
+                sq_g += g * g
+                sq_b += b * b
+                luma_sum += 299 * r + 587 * g + 114 * b
+                h, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+                sat_sum += s
+                hues.add(int(h * 360))
+                key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4)
+                bucket = buckets.get(key)
+                if bucket is None:
+                    buckets[key] = [1, r, g, b]
+                else:
+                    bucket[0] += 1
+                    bucket[1] += r
+                    bucket[2] += g
+                    bucket[3] += b
 
-        gray = small.convert("L")
-        gp = list(gray.get_flattened_data())
-        mean = sum(gp) / len(gp)
-        is_bright = mean >= 127
-        suggested_mode = "light" if is_bright else "dark"
+            best_color = None
+            best_score = -1.0
+            top = sorted(buckets.values(), key=lambda v: v[0], reverse=True)[:8]
+            for count, tr, tg, tb in top:
+                r, g, b = tr // count, tg // count, tb // count
+                _, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+                if s * v > best_score:
+                    best_score = s * v
+                    best_color = "{:02X}{:02X}{:02X}".format(r, g, b)
 
-        sp = list(small.get_flattened_data())
-        n = len(sp)
-        sum_r = sum_g = sum_b = 0
-        saturations, hues = [], []
-        for r, g, b in sp:
-            sum_r += r; sum_g += g; sum_b += b
-            h, s, _ = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
-            saturations.append(s)
-            hues.append(h)
-        avg_sat = sum(saturations) / n if n else 0
-        unique_hues = len({int(h * 360) for h in hues})
-        mean_r, mean_g, mean_b = sum_r / n, sum_g / n, sum_b / n
-        var_r = var_g = var_b = 0
-        for r, g, b in sp:
-            var_r += (r - mean_r) ** 2; var_g += (g - mean_g) ** 2; var_b += (b - mean_b) ** 2
-        variance = (var_r + var_g + var_b) / (3 * n) if n else 0
+            is_bright = (luma_sum / (n * 1000.0)) >= 127
+            suggested_mode = "light" if is_bright else "dark"
 
-        if variance < 50:
-            suggested_scheme = "scheme-monochrome"
-        elif avg_sat < 0.15:
-            suggested_scheme = "scheme-neutral"
-        elif avg_sat > 0.6 and unique_hues > 180:
-            suggested_scheme = "scheme-vibrant"
-        elif unique_hues > 260:
-            suggested_scheme = "scheme-rainbow"
-        elif avg_sat > 0.45 and unique_hues > 80:
-            suggested_scheme = "scheme-expressive"
-        elif unique_hues < 60:
-            suggested_scheme = "scheme-content"
-        else:
-            suggested_scheme = "scheme-tonal-spot"
+            avg_sat = sat_sum / n
+            unique_hues = len(hues)
+            mean_r, mean_g, mean_b = sum_r / n, sum_g / n, sum_b / n
+            variance = (
+                (sq_r / n - mean_r * mean_r)
+                + (sq_g / n - mean_g * mean_g)
+                + (sq_b / n - mean_b * mean_b)
+            ) / 3
 
-        return hex_color, suggested_mode, is_bright, suggested_scheme
+            if variance < 50:
+                suggested_scheme = "scheme-monochrome"
+            elif avg_sat < 0.15:
+                suggested_scheme = "scheme-neutral"
+            elif avg_sat > 0.6 and unique_hues > 180:
+                suggested_scheme = "scheme-vibrant"
+            elif unique_hues > 260:
+                suggested_scheme = "scheme-rainbow"
+            elif avg_sat > 0.45 and unique_hues > 80:
+                suggested_scheme = "scheme-expressive"
+            elif unique_hues < 60:
+                suggested_scheme = "scheme-content"
+            else:
+                suggested_scheme = "scheme-tonal-spot"
+
+            return best_color, suggested_mode, is_bright, suggested_scheme
 
     def get_effective_shell_mode(self, requested_mode=None):
         if requested_mode in ("dark", "light"):
