@@ -175,11 +175,10 @@ Singleton {
     }
 
     function execDetached(cmd) {
-        let command = cmd;
-        if (typeof cmd !== "string")
-            command = cmd.join(" ").toString();
-
-        Quickshell.execDetached(["bash", "-c", command]);
+        if (Array.isArray(cmd))
+            Quickshell.execDetached(["bash", "-c", cmd.join(' ')]);
+        else
+            Quickshell.execDetached(["bash", "-c", String(cmd)]);
     }
 
     function runInTerminal(command) {

@@ -11,6 +11,11 @@ import qs.data
 NpcHandler {
     target: "global"
 
+    //* trigger_first_run — induce first run actions (create directories, default states, ..etc).
+    function trigger_first_run() {
+        FirstRunService.init(true)
+    }
+
     //* reload — hot-reload shell in place.
     function spawn_app(app: string, payload: string): void {
         NoonUtils.spawnApp(app);

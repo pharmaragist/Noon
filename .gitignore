@@ -23,3 +23,5 @@ dots/shared/home/.config/noon/scripts/store_service
 dots/shared/home/.config/noon/scripts/ocs_service
 dots/shared/home/.config/noon/scripts/go/store/store-service
 dots/shared/home/.config/noon/scripts/go/store_service
+dots/shared/home/.config/hypr/colors.lua
+dots/shared/home/.config/hypr/hyprtoolkit.conf

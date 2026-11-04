@@ -153,12 +153,10 @@ Singleton {
     function mkdir(dirs) {
         if (!dirs)
             return;
-        if (Array.isArray(dirs)) {
-            const clean = dirs.map(d => trim(d));
-            const stringified = clean.join("' '");
-            NoonUtils.execDetached(`mkdir -p '${stringified}'`);
-        } else
-            NoonUtils.execDetached(`mkdir -p '${trim(dirs)}'`);
+        const list = Array.isArray(dirs) ? dirs : [dirs];
+        const clean = list.map(d => root.trim(d)).filter(d => d.length > 0);
+        if (clean.length === 0) return;
+        Quickshell.execDetached(["mkdir", "-p", ...clean]);
     }
 
     function copyItem(item, target) {

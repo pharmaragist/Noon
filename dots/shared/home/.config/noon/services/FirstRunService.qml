@@ -7,7 +7,7 @@ import qs.common.functions
 Singleton {
     id: root
 
-    function init(force = false) {
+    function init(force = true) {
         if (!force && !Mem.states.desktop.firstRun)
             return;
         doFlags();
@@ -18,7 +18,9 @@ Singleton {
         WallpaperService.applyWallpaper(Paths.wallpapers.defaultBg);
         console.warn("All Done !");
     }
+    function commit() {
 
+    }
     function doEnv() {
         const needed = ({
                 "SHELL": "/bin/fish",

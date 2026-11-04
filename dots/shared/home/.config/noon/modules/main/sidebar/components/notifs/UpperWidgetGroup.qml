@@ -30,6 +30,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
+
             DateUptime {}
             ButtonGroup {
                 GroupButtonWithIcon {
@@ -154,9 +155,8 @@ Item {
                 anchors.verticalCenter: parent?.verticalCenter
                 required property var modelData
                 source: sanitizeSource("quickToggles/", modelData)
-                onLoaded: {
-                    _item.showButtonName = false;
-                    console.error(_item.buttonName);
+                binds: {
+                    "showButtonName": () => false
                 }
             }
         }

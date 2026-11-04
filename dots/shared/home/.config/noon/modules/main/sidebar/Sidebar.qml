@@ -63,6 +63,7 @@ Scope {
             readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverDetectArea: 2
+            readonly property int elevation: Sizes.frameThickness + Sizes.hyprland.gapsOut
 
             function hide() {
                 if (pinned)
@@ -76,7 +77,7 @@ Scope {
 
             function detach(cat = selectedCategory) {
                 if (SidebarData.isDetachable(cat) && !isDetached()) {
-                    const app = SidebarData._get(cat)?.app ?? "Detached"
+                    const app = SidebarData._get(cat)?.app ?? "Detached";
                     NoonUtils.spawnApp(app, {
                         category: cat
                     });
@@ -142,7 +143,7 @@ Scope {
 
             PanelRect {
                 id: bg
-                readonly property int hideMargin: state === "float" ? Sizes.elevationMargin : 0
+                readonly property int hideMargin: state === "float" ? root.elevation : 0
                 bouncy: Mem.options.sidebar.appearance?.bouncy ?? false
                 width: root.sidebarWidth
                 animationDuration: Animations.durations.normal
@@ -169,8 +170,8 @@ Scope {
                             radius: root.rounding
                             enableBorders: true
                             border.color: content.rail.color
-                            anchors.topMargin: Sizes.elevationMargin
-                            anchors.bottomMargin: Sizes.elevationMargin
+                            anchors.topMargin: root.elevation
+                            anchors.bottomMargin: root.elevation
                         }
                     },
                     State {

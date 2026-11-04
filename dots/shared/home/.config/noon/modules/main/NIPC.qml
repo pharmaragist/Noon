@@ -25,6 +25,10 @@ Scope {
                 opts.show = false;
                 return;
             }
+
+            if (mode === "music" && MediaPlayerService.players.length < 1)
+                return;
+
             opts.show = true;
             opts.reason = mode;
         }
@@ -92,7 +96,7 @@ Scope {
         target: "mirsal"
 
         function feedBookmarks(content: string) {
-            console.error("MIRSAL CALLED: ", content)
+            console.error("MIRSAL CALLED: ", content);
             var data;
             try {
                 data = JSON.parse(JSON.parse(content));

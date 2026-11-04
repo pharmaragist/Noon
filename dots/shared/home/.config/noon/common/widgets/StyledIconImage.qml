@@ -1,10 +1,11 @@
 import QtQuick
+import Quickshell
+import Quickshell.Widgets
 import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
 import qs.common
-import org.kde.kirigami as Kirigami
 
-Kirigami.Icon {
+IconImage {
     id: root
 
     property real tint: 0.6
@@ -16,11 +17,7 @@ Kirigami.Icon {
     implicitWidth: implicitSize
     implicitHeight: implicitSize
 
-    roundToIconSize: false
-    animated: true
-    source: NoonUtils.iconPath(_source) ?? ""
-    placeholder: "image-x-icon"
-    fallback: "image-x-icon"
+    source: NoonUtils.iconPath(_source) ?? "image-x-icon"
 
     Loader {
         opacity: 1 - root.tint

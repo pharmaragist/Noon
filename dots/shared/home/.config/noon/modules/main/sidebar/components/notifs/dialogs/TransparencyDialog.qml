@@ -32,7 +32,9 @@ BottomDialog {
                 title: "Transparency"
                 enabled: !Globals.conservativeMode
                 checked: Mem.options.appearance.transparency.enabled
-                action: Mem.options.appearance.transparency.enabled = checked
+                action: () => {
+                    Mem.options.appearance.transparency.enabled = checked
+                }
             }
 
             OptionsSection {
@@ -40,7 +42,7 @@ BottomDialog {
                 title: "Blur Shell"
                 enabled: !Globals.conservativeMode
                 checked: Mem.hypr.blur
-                action: Mem.hypr.blur = !Mem.hypr.blur
+                action: () => Mem.hypr.blur = !Mem.hypr.blur
             }
 
             OptionsSection {
@@ -48,7 +50,7 @@ BottomDialog {
                 title: "Blur Applications"
                 enabled: !Globals.conservativeMode
                 checked: !Mem.hypr.unblur_apps
-                action: Mem.hypr.unblur_apps = !checked
+                action: () => Mem.hypr.unblur_apps = !checked
             }
 
             ColumnLayout {
@@ -102,7 +104,7 @@ BottomDialog {
         property alias icon: symb.text
         property alias checked: button.checked
         property alias title: title.text
-        property var action
+        property var action: null
         Layout.fillWidth: true
         spacing: Padding.small
         Symbol {
@@ -119,7 +121,10 @@ BottomDialog {
 
         StyledSwitch {
             id: button
-            onToggled: action()
+            onToggled: () => {
+                if (action)
+                    action()
+            }
         }
     }
 }

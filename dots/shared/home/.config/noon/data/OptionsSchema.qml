@@ -22,7 +22,7 @@ JsonAdapter {
         property JO transparency: JO {
             property bool blur: true
             property bool enabled: false
-            property real scale: 0.3
+            property real scale: 0.075
         }
 
         property JO font: JO {

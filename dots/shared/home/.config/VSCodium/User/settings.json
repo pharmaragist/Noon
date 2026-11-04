@@ -7,16 +7,25 @@
   "window.customTitleBarVisibility": "never",
   "workbench.layoutControl.enabled": false,
   "workbench.colorTheme": "Noon",
-  "editor.fontFamily": "Iosevka",
+  "editor.fontFamily": "JetBrains Mono",
   "editor.fontSize": 18,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "Delgan.qml-format",
+  "qmlFormat.command": "/usr/bin/qmlformat-qt6",
   "git.enableSmartCommit": true,
   "git.confirmSync": false,
   "qt-core.additionalQtPaths": [
     {
       "name": "Qt-5.15.18-linux-g++_from_PATH",
       "path": "/usr/bin/qtpaths"
+    },
+    {
+      "name": "Qt-6.11.2-linux-g++-x86_64_from_PATH",
+      "path": "/usr/bin/qmake"
+    },
+    {
+      "name": "Qt-6.11.2-linux-g++-x86_64_from_PATH",
+      "path": "/usr/sbin/qmake"
     }
   ],
   "redhat.telemetry.enabled": false,
@@ -26,5 +35,26 @@
   "window.zoomLevel": 1.5,
   "workbench.startupEditor": "none",
   "workbench.settings.applyToAllProfiles": [
-  ]
+  ],
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.rulers": [
+      80
+    ],
+    "editor.selectionHighlight": false,
+    "editor.tabCompletion": "onlySnippets",
+    "editor.wordBasedSuggestions": "off"
+  },
+  "terminal.integrated.env.linux": {
+    "JAVA_HOME":"/home/pharmaracist/.local/jdk/jdk-21.0.12.1+1"
+  },
+  "dart.flutterShowEmulators": "always",
+  "workbench.editorAssociations": {
+    "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.qrc": "default",
+    "{git,gitlens,chat-editing-snapshot-text-model,copilot,git-graph,git-graph-3}:/**/*.ui": "default",
+    "*.qrc": "qt-core.qrcEditor"
+  },
+  "git.openRepositoryInParentFolders": "never",
+  "qt-core.showWelcomePageOnActivation": false
 }

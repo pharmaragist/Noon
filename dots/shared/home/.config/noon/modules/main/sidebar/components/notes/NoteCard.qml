@@ -16,16 +16,6 @@ StyledRect {
     color: Colors.colLayer2
     clip: true
 
-    gradient: Gradient {
-        GradientStop {
-            position: 1
-            color: Colors.methods.transparentize(Colors.colPrimaryContainer, 0.75)
-        }
-        GradientStop {
-            position: 0.6
-            color: Colors.colLayer2
-        }
-    }
     MouseArea {
         anchors.fill: parent
         z: 1000

@@ -1,20 +1,18 @@
 local envs = {
 	-- Nvidia/Wayland
-	-- __NV_PRIME_RENDER_OFFLOAD = "1",
-	__GLX_VENDOR_LIBRARY_NAME = "iHD",
-	MOZ_ENABLE_WAYLAND = "1",
+	MOZ_ENABLE_WAYLAND = 1,
 	LIBVA_DRIVER_NAME = "iHD",
 	NVD_BACKEND = "direct",
-	AQ_FORCE_LINEAR_BLIT = "1",
+	AQ_FORCE_LINEAR_BLIT = 1,
 	UV_WORKING_DIR = home .. "/.local/state/noon/",
 	-- KDE
 	XDG_MENU_PREFIX = "plasma-",
-	PLASMA_USE_QT_SCALING = "1",
+	PLASMA_USE_QT_SCALING = 1,
 	KDE_FULL_SESSION = "true",
 	-- Qt & Electron
 	ELECTRON_OZONE_PLATFORM_HINT = "wayland",
 	QT_QPA_PLATFORM = "wayland;xcb",
-	QT_WAYLAND_DISABLE_WINDOWDECORATION = "1",
+	QT_WAYLAND_DISABLE_WINDOWDECORATION = 1,
 	QT_QPA_PLATFORMTHEME = "kde",
 	-- Paths / Venv
 	HYPRCURSOR_THEME = cursor_theme,

@@ -7,7 +7,7 @@ StyledRect {
 
     signal hide
 
-    property real level: 0.5
+    property real level: (Mem.hypr?.layers_alpha ?? 0.5) - 0.1
     property bool shown: false
 
     anchors.fill: parent
