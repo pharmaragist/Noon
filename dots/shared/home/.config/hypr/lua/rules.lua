@@ -146,6 +146,12 @@ local layers = {
         blur = false,
     },
     {
+        name = "noanim_unblurred_layer",
+        namespace = "noon:noanim_blurred_layer",
+        blur = false,
+        no_anim = true
+    },
+    {
         name = "dialog_panel",
         namespace = "noon:dialog_panel",
         blur = blur,

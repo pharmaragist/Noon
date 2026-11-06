@@ -43,13 +43,8 @@ Singleton {
                 }
             },
             "banner": {
-                "family": root.family.main,
-                "variableAxes": {
-                    "rond": 50,
-                    "opsz": 95,
-                    "wdth": 110,
-                    "wght": 900
-                }
+                "family": "EatBoy",
+                "variableAxes": {}
             },
             "title": {
                 "family": root.family.main,

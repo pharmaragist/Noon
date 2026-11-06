@@ -108,6 +108,7 @@ output_path = '~/.config/Meiro/settings.json'
 [templates.code]
 input_path = "~/.config/matugen/templates/applications/vscode.json"
 output_path = '~/.vscode-oss/extensions/noon/colors.json'
+post_hook = '~/.config/matugen/scripts/vscode-reload.sh'
 
 [templates.fuzzel]
 enabled = false

@@ -1,11 +1,10 @@
 import QtQuick
-import Quickshell
-import Quickshell.Widgets
 import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
+import Quickshell.Widgets
 import qs.common
 
-IconImage {
+Item {
     id: root
 
     property real tint: 0.6
@@ -13,25 +12,36 @@ IconImage {
     property color tintColor: Colors.m3.m3surfaceTint
     property int implicitSize: 24
     property string _source: ""
+    property string source: ""
+
+    readonly property string resolvedSource: {
+        const value = root.source || root._source;
+        if (!value)
+            return "";
+        if (value.startsWith("/") || value.startsWith("file:") || value.startsWith("image:") || value.startsWith("qrc:"))
+            return value;
+        return NoonUtils.iconPath(value) ?? "";
+    }
 
     implicitWidth: implicitSize
     implicitHeight: implicitSize
 
-    source: NoonUtils.iconPath(_source) ?? "image-x-icon"
+    IconImage {
+        id: icon
+
+        anchors.fill: parent
+        source: root.resolvedSource
+        asynchronous: true
+    }
 
     Loader {
-        opacity: 1 - root.tint
-        active: colorize
-        anchors.fill: root
-        asynchronous: true
+        anchors.fill: parent
+        active: root.colorize
 
-        sourceComponent: Item {
-            ColorOverlay {
-                z: 1
-                anchors.fill: parent
-                source: root
-                color: root.tintColor
-            }
+        sourceComponent: ColorOverlay {
+            anchors.fill: parent
+            source: icon
+            color: root.tintColor
         }
     }
 }
