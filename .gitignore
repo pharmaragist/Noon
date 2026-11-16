@@ -10,11 +10,6 @@ node_modules/
 dist/
 .vite/
 
-# SDDM
-sddm/theme.conf
-dots/.config/hypr/colors.lua
-dots/.config/hypr/hyprtoolkit.conf
-
 # autogen
 *colors.lua
 
@@ -22,3 +17,6 @@ dots/.config/hypr/hyprtoolkit.conf
 dots/shared/home/.config/noon/scripts/ocs_service
 dots/shared/home/.config/hypr/colors.lua
 dots/shared/home/.config/hypr/hyprtoolkit.conf
+
+# agent
+/graphify-out
