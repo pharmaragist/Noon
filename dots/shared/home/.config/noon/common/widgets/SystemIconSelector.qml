@@ -212,16 +212,6 @@ Item {
                     IconThemesService.reload()
                 }
             }
-
-            GroupButtonWithIcon {
-                materialIcon: "local_mall"
-                implicitSize: 32
-                releaseAction: () => {
-                    NoonUtils.spawnApp("Store", {
-                        selectedCategory: "icons"
-                    });
-                }
-            }
         }
     }
 }

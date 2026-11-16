@@ -18,9 +18,8 @@ StyledPanel {
     readonly property int elevation: mode === 0 ? Sizes.barElevation : 0
     readonly property int hideMargin: autoHide && !hovered ? -(barHeight - peekSize) : 0
 
-    name: "bar"
-    shell: "noon"
-    _layer: "Top"
+    name: "blurred_layer"
+     _layer: "Top"
     implicitHeight: barHeight + 100
     exclusiveZone: autoHide ? (hovered && !useBg ? barHeight : peekSize) : barHeight
 

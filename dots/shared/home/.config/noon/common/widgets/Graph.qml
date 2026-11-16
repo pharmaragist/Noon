@@ -1,63 +1,87 @@
 import QtQuick
-import QtGraphs
 import qs.common
 
+// Simple sparkline. QtGraphs' GraphsView spams "window doesn't exist" when its
+// host layer-shell window is hidden or reloaded, so draw the two dozen points
+// ourselves instead.
 
-
-
-
-GraphsView {
+Canvas {
     id: root
 
     property color color: Colors.colPrimary
     property real fillOpacity: 0.5
-    property alias series: line
+    property real lineWidth: 2
 
-    antialiasing: true
-    marginTop: 0
-    marginBottom: 0
-    marginLeft: 0
-    marginRight: 0
-    panStyle: GraphsView.PanStyle.None
-    zoomStyle: GraphsView.ZoomStyle.None
+    readonly property QtObject series: QtObject {
+        id: seriesData
 
-    theme: GraphsTheme {
-        backgroundVisible: false
-        plotAreaBackgroundVisible: false
-        gridVisible: true
-        labelsVisible: true
+        property var points: []
+
+        readonly property int count: points.length
+
+        signal changed()
+
+        function clear() {
+            points = [];
+            changed();
+        }
+
+        function append(x, y) {
+            points = points.concat([{
+                x: x,
+                y: y
+            }]);
+            changed();
+        }
     }
 
-    axisX: ValueAxis {
-        min: 0
-        max: Math.max(1, line.count - 1)
-        visible: false
-        lineVisible: false
-        labelsVisible: false
-        gridVisible: false
-        subGridVisible: false
+    onWidthChanged: requestPaint()
+    onHeightChanged: requestPaint()
+    onColorChanged: requestPaint()
+    onFillOpacityChanged: requestPaint()
+
+    Connections {
+        target: root.series
+
+        function onChanged() {
+            root.requestPaint();
+        }
     }
 
-    axisY: ValueAxis {
-        min: 0
-        max: 1
-        visible: false
-        lineVisible: false
-        labelsVisible: false
-        gridVisible: false
-        subGridVisible: false
-    }
+    onPaint: {
+        const ctx = getContext("2d");
+        ctx.clearRect(0, 0, width, height);
 
+        const points = root.series.points;
+        if (points.length < 2 || width <= 0 || height <= 0)
+            return;
 
-    AreaSeries {
-        borderWidth: 0
-        upperSeries: line
-        color: Colors.methods.transparentize(root.color, 1 - root.fillOpacity)
-    }
+        const pad = Math.max(1, root.lineWidth / 2);
+        const plotWidth = width - pad * 2;
+        const plotHeight = height - pad * 2;
+        const maxIndex = Math.max(1, points.length - 1);
 
-    LineSeries {
-        id: line
-        color: root.color
-        width: 2
+        const xAt = i => pad + plotWidth * i / maxIndex;
+        const yAt = value => pad + plotHeight * (1 - Math.max(0, Math.min(1, value)));
+
+        ctx.beginPath();
+        ctx.moveTo(xAt(0), yAt(points[0].y));
+        for (let i = 1; i < points.length; ++i)
+            ctx.lineTo(xAt(i), yAt(points[i].y));
+        ctx.lineTo(xAt(points.length - 1), height - pad);
+        ctx.lineTo(xAt(0), height - pad);
+        ctx.closePath();
+        ctx.fillStyle = Qt.rgba(root.color.r, root.color.g, root.color.b, root.fillOpacity);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(xAt(0), yAt(points[0].y));
+        for (let i = 1; i < points.length; ++i)
+            ctx.lineTo(xAt(i), yAt(points[i].y));
+        ctx.strokeStyle = root.color;
+        ctx.lineWidth = root.lineWidth;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
     }
 }

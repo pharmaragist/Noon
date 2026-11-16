@@ -25,8 +25,8 @@ StyledRect {
         z: 999
         anchors.centerIn: parent
         text: catInfo?.icon ?? ""
-        iconSize: 128
-        padding: 30
+        iconSize: 76
+        padding: 20
         shape: MaterialShape.Shape[catInfo?.shape]
     }
 }

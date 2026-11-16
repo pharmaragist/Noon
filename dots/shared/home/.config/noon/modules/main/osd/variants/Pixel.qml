@@ -5,23 +5,14 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-StyledPanel {
+OsdPanel {
     id: root
-    name: "blurred_layer"
-
-    property real value
-    property string icon
-    property var targetScreen
-    property bool verticalMode
-
-    signal valueModified(real newValue)
-    signal interactionStarted
-    signal interactionEnded
 
     anchors {
         right: volumeMode
         left: !volumeMode
     }
+
     margins {
         left: Sizes.elevationMargin
         right: Sizes.elevationMargin

@@ -31,7 +31,6 @@ Item {
 
         anchors.fill: parent
         source: root.resolvedSource
-        asynchronous: true
     }
 
     Loader {

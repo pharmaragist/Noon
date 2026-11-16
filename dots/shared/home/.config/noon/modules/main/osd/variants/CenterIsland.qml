@@ -8,23 +8,13 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-StyledPanel {
+OsdPanel {
     id: panelRoot
-    name: "blurred_fade_layer"
-
-    property real value
-    property string icon
-    property var targetScreen
-
-    signal valueModified(real newValue)
-    signal interactionStarted
-    signal interactionEnded
 
     mask: Region {
         item: bg
     }
 
-    exclusiveZone: -1
     fill: true
 
     Connections {

@@ -17,8 +17,7 @@ Scope {
             id: bar_panel
             required property var modelData
             screen: modelData
-            name: "bar"
-            shell: "nobuntu"
+            name: "blurred_layer"
 
             anchors {
                 top: true

@@ -36,7 +36,7 @@ PanelRect {
         spacing: Padding.verylarge
 
         StyledIconImage {
-            _source: root.appEntry?.icon
+            _source: root?.appEntry?.icon ?? ""
             visible: BeamData.activeState === "launch"
             implicitSize: 64
             Layout.leftMargin: Padding.huge

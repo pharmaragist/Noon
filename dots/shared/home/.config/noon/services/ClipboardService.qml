@@ -8,15 +8,24 @@ Singleton {
     id: root
     property var entries: []
     readonly property string cacheDir: Paths.services.clipboardCache
+
     function refresh() {
+        dbView.reload()
         if (!listProcess.running)
             listProcess.running = true;
     }
 
+    function latestImageUri() {
+        const top = root.entries[0];
+        if (!top || !top.isImage || !top.imagePath)
+            return "";
+        NoonUtils.execDetached(["bash", "-c", `mkdir -p '${root.cacheDir}' && test -f '${top.imagePath}' || cliphist decode '${top.id}' > '${top.imagePath}'`]);
+        return "file://" + top.imagePath;
+    }
+
     function copyByIndex(index) {
-        if (index < 0 || index >= entries.length)
-            return;
-        NoonUtils.execDetached(`cliphist decode '${root.entries[index].id}' | wl-copy`);
+        if (index < 0 || index >= entries.length) return;
+        NoonUtils.execDetached(`cliphist decode '${root.entries[index].id}' | wl-copy`)
     }
 
     function copy(text) {
@@ -94,6 +103,7 @@ Singleton {
     }
 
     FileView {
+        id: dbView
         path: Paths.standard.home + "/.cache/cliphist/db"
         watchChanges: true
         onFileChanged: root.refresh()

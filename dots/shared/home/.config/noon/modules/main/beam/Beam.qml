@@ -20,7 +20,7 @@ Variants {
         name: "noanim_blurred_layer"
         required property var modelData
         readonly property string revealReason: Globals.main.beam.reason
-        readonly property bool reveal: Globals.main.beam.show
+        readonly property bool reveal: Globals.main.beam.show || Globals.main.beam.pinned
         readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})

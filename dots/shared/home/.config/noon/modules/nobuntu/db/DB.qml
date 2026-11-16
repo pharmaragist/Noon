@@ -11,8 +11,7 @@ import "../common"
 StyledPanel {
     id: root
     implicitWidth: 500
-    name: "db"
-    shell: "nobuntu"
+    name: "blurred_layer"
 
     anchors {
         top: true
@@ -54,7 +53,7 @@ StyledPanel {
             GBrightnessSlider {}
             GVolumeSlider {}
             GDBGrid {}
-            
+
             Spacer {}
         }
     }

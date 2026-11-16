@@ -6,6 +6,7 @@ import qs.common
 import qs.common.utils
 import qs.common.widgets
 import qs.modules.main.desktop.widgets
+
 Item {
     id: root
     readonly property string wallpaper: WallpaperService.currentWallpaper
@@ -20,8 +21,7 @@ Item {
     readonly property string shaderPath: WallpaperService.shaderPathFor(root.shaderName)
     readonly property string shader: root.shaderPath.length > 0 ? Qt.resolvedUrl(root.shaderPath) : ""
     readonly property bool enableShaders: root.shaderOpts.enableShaderWallpaper
-    readonly property bool shaderActive: root.enableShaders && root.shaderPath.length > 0
-        && Paths.methods.exists(root.shaderPath)
+    readonly property bool shaderActive: root.enableShaders && root.shaderPath.length > 0 && Paths.methods.exists(root.shaderPath)
     readonly property real shaderQuality: Math.max(0.1, Math.min(1, root.shaderOpts.shaderQuality))
     readonly property int shaderFramerate: Math.max(1, root.shaderOpts.shaderFramerate)
     readonly property color shaderColorA: shaderColor(root.shaderOpts.shaderColorA)
@@ -43,14 +43,16 @@ Item {
     readonly property real wsShare: enableParallax ? (parallaxMouseEnabled ? 0.5 : 1.0) : 0.0
     readonly property real mouseShare: parallaxMouseEnabled ? (enableParallax ? 0.5 : 1.0) : 0.0
     function panOffset(factor, movable, share) {
-        if (share <= 0) return 0;
+        if (share <= 0)
+            return 0;
         return -2 * movable * share * factor;
     }
     function shaderColor(token) {
         return Colors.methods.applyAlpha(Colors.byName(token), 1);
     }
     function mouseOffset(factor, movable, share) {
-        if (share <= 0) return 0;
+        if (share <= 0)
+            return 0;
         const raw = (factor - 0.5) * 2 * movable * share * effectiveParallaxLevel * mouseSens;
         return Math.max(-movable, Math.min(movable, raw));
     }
@@ -82,7 +84,8 @@ Item {
     function calculateWidgetMargin() {
         const sidebar = Globals.main?.sidebar;
         const hovered = !sidebar?.isHovered && !sidebar?.reveal;
-        if (!enableParallax || hovered) return 0;
+        if (!enableParallax || hovered)
+            return 0;
         const directionOffset = BarData.position === "left" ? -1 : 1;
         return directionOffset * root.effectiveParallaxLevel * (sidebar.sidebarWidth ?? 0);
     }
@@ -116,7 +119,6 @@ Item {
     }
     DesktopWidgets {
         z: 9999
-        anchors.fill: parent
     }
     StyledLoader {
         fade: true
@@ -150,9 +152,7 @@ Item {
         sourceComponent: ShaderEffect {
             anchors.fill: parent
             property real time: 0
-            property vector2d resolution: Qt.vector2d(
-                root.shaderQuality < 1 ? Math.max(1, Math.round(width * root.shaderQuality)) : width,
-                root.shaderQuality < 1 ? Math.max(1, Math.round(height * root.shaderQuality)) : height)
+            property vector2d resolution: Qt.vector2d(root.shaderQuality < 1 ? Math.max(1, Math.round(width * root.shaderQuality)) : width, root.shaderQuality < 1 ? Math.max(1, Math.round(height * root.shaderQuality)) : height)
             property real speed: root.shaderOpts.shaderSpeed
             property color colorA: root.shaderColorA
             property color colorB: root.shaderColorB
@@ -171,21 +171,20 @@ Item {
             }
         }
     }
-    Loader {
-        id: layerClock
+    StyledLoader {
         z: 1
-        active: fgLoader.item && fgLoader.item.status === Image.Ready && root.enableDepthMode
+        fade: true
+        active: Mem.options.desktop.clock?.enabled ?? false
+        anchors.fill: parent
         sourceComponent: LayerClock {}
-        asynchronous: true
     }
+
     StyledLoader {
         id: fgLoader
         z: 2
         anchors.fill: parent
         visible: active
-        fade: true
-        asynchronous: true
-        active: WallpaperService.fgReady && root.enableDepthMode && root.enableShaders
+        active: WallpaperService.fgReady && root.enableDepthMode && !root.enableShaders
         sourceComponent: FgLayer {}
     }
 }

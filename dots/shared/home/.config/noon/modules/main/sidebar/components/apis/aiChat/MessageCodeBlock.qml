@@ -7,7 +7,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import org.kde.syntaxhighlighting as KDE
 
 StyledRect {
     id: root
@@ -49,7 +48,39 @@ StyledRect {
                 truncate: true
                 font: Fonts.request("title", "large")
                 color: Colors.colOnLayer2
-                text: root.displayLang ? KDE.Repository.definitionForName(root.displayLang).name : "plain"
+                text: {
+                    const names = {
+                        "bash": "Bash",
+                        "sh": "Shell",
+                        "shell": "Shell",
+                        "zsh": "Zsh",
+                        "fish": "Fish",
+                        "js": "JavaScript",
+                        "javascript": "JavaScript",
+                        "ts": "TypeScript",
+                        "typescript": "TypeScript",
+                        "qml": "QML",
+                        "py": "Python",
+                        "python": "Python",
+                        "go": "Go",
+                        "rs": "Rust",
+                        "rust": "Rust",
+                        "c": "C",
+                        "cpp": "C++",
+                        "json": "JSON",
+                        "yaml": "YAML",
+                        "yml": "YAML",
+                        "toml": "TOML",
+                        "html": "HTML",
+                        "css": "CSS",
+                        "sql": "SQL",
+                        "command": "Command",
+                        "plaintext": "Plain text",
+                        "txt": "Plain text"
+                    };
+                    const lang = (root.displayLang || "").toLowerCase();
+                    return names[lang] ?? (lang ? TextUtils.toTitleCase(lang) : "plain");
+                }
             }
 
             ButtonGroup {

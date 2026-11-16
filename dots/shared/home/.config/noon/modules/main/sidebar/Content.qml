@@ -38,14 +38,15 @@ Item {
     property int selectedTabIndex: 0
     property bool isResizing: false
     property int resizeDuration: parent?.animationDuration
-    readonly property int targetWidth: panelWindow?.baseWidth
+    readonly property int targetWidth: panelWindow?.sidebarWidth ?? panelWindow?.baseWidth
+    readonly property var focusItem:mainContentLoader._item?.mainLoader?.item
 
     onWidthChanged: {
         if (!(Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory)))
             return;
         root.isResizing = true;
         NoonUtils.inlineTimer(() => {
-            if (root.width === root.targetWidth)
+            if (root.width === root.targetWidth && !root.panelWindow?.resizing)
                 root.isResizing = false;
         }, root.resizeDuration);
     }
@@ -67,10 +68,8 @@ Item {
 
         selectedCategory = newCategoryKey;
     }
-
     function focusMainSearchInput() {
-        const child = mainContentLoader._item?.mainLoader?.item;
-        child?.focusItem?.forceActiveFocus();
+        focusItem?.forceActiveFocus();
     }
 
     function toggleAux(categoryKey) {
@@ -131,14 +130,30 @@ Item {
     }
 
     Connections {
+        target: root.panelWindow
+
+        function onResizingChanged() {
+            if (root.panelWindow?.resizing) {
+                if (Mem.options.sidebar.behavior.enableResizeOverlay && SidebarData.isLazy(root.selectedCategory))
+                    root.isResizing = true;
+            } else {
+                NoonUtils.inlineTimer(() => {
+                    if (root.width === root.targetWidth)
+                        root.isResizing = false;
+                }, root.resizeDuration);
+            }
+        }
+    }
+
+    Connections {
+        target: PolkitService
+
         function onFlowChanged() {
             if (PolkitService.flow)
                 changeContent("Auth");
             else
                 root.panelWindow.hide();
         }
-
-        target: PolkitService
     }
 
     RowLayout {
@@ -195,7 +210,7 @@ Item {
                             colors: root.colors
                             shape: SidebarData.getShape(root.selectedCategory)
                             icon: SidebarData.getIcon(root.selectedCategory)
-                            iconSize: 80
+                            iconSize: 74
                             title: "This Content is Detached"
                             description: "close it so u can access it here"
                         }

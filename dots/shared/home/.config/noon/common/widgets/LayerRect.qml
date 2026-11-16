@@ -5,6 +5,7 @@ import qs.common.functions
 
 StyledRect {
     id: root
+    bouncy: false
     clip: true
     property bool toggled: false
     property color colBackground: this.colors.colLayer1

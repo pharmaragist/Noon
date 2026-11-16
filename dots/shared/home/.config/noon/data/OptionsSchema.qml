@@ -119,7 +119,7 @@ JsonAdapter {
         }
 
         property JO wallpapers: JO {
-            property string method: "wallhaven"
+            property string order: "Name"
         }
 
         property string backlightDevice: "dell::kbd_backlight"
@@ -173,7 +173,6 @@ JsonAdapter {
             property bool wallpapers: true
             property bool games: true
             property bool session: true
-            property bool widgets: true
             property bool overview: false
             property bool sounds: true
             property bool timers: true
@@ -240,7 +239,6 @@ JsonAdapter {
         }
 
         property JO shell: JO {
-            property bool hotReload: false
             property bool deloadOnFullscreen: false
             property string mode: "main"
         }
@@ -261,6 +259,7 @@ JsonAdapter {
         property JO bg: JO {
             property bool depthMode: false
             property bool enableShaderWallpaper: false
+            property bool autoProcessFg: true
             property string shaderName: "aurora"
             property real shaderSpeed: 1
             property real shaderQuality: 0.5
@@ -284,7 +283,7 @@ JsonAdapter {
         property JO clock: JO {
             property bool enabled: false
             property real scale: 1
-            property string font: "Badeen Display"
+            property string font: "Eat Boy"
         }
 
         property JO icons: JO {

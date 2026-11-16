@@ -16,7 +16,7 @@ Item {
 
     readonly property real clockScale: 2.0
     property int wght: hovered ? 1000 : 100
-    property int wdth: hovered ? 0 : 118
+    property int wdth: hovered ? 0 : 100
     readonly property bool hovered: hoverArea.containsMouse
 
     Anim on scale {
@@ -39,6 +39,7 @@ Item {
 
     MouseArea {
         id: hoverArea
+        enabled: false
         anchors.fill: parent
         hoverEnabled: true
     }

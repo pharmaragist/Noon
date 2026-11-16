@@ -37,12 +37,11 @@ Singleton {
             componentPath: "etc/ScreenTime",
             enabled: contentOptions.screenTime
         },
-        "API": {
+        "AI": {
             icon: "cognition",
             activeIcon: "cognition_2",
             componentPath: "apis/AiChat",
             expandable: true,
-            incubatable: true,
             detachable: true,
             shape: "PixelCircle",
             enabled: contentOptions.apis
@@ -79,7 +78,6 @@ Singleton {
             activeIcon: "stylus_note",
             componentPath: "notes/Notes",
             expandable: true,
-            incubatable: true,
             detachable: true,
             shape: "Slanted",
             enabled: contentOptions.notes
@@ -91,7 +89,6 @@ Singleton {
             componentPath: "beats/Beats",
             navRailMode: "sharp",
             expandable: false,
-            incubatable: true,
             detachable: true,
             shape: "Bun",
             padding: 0,
@@ -119,17 +116,8 @@ Singleton {
         "Shelf": {
             icon: "shelves",
             activeIcon: "book_ribbon",
-            incubatable: true,
             componentPath: "shelf/Shelf",
             enabled: contentOptions.shelf
-        },
-        "Widgets": {
-            icon: "ripples",
-            expandable: true,
-            lazy: false,
-            expandSize: sizes.widgetsExpanded,
-            componentPath: "widgets/Widgets",
-            enabled: contentOptions.widgets
         },
         "Sounds": {
             icon: "graphic_eq",
@@ -142,7 +130,6 @@ Singleton {
             icon: "timer",
             componentPath: "timers/Timers",
             detachable: true,
-            incubatable: true,
             shape: "Cookie4Sided",
             enabled: contentOptions.timers
         },
@@ -157,7 +144,6 @@ Singleton {
         },
         "View": {
             icon: "workspaces",
-            incubatable: true,
             componentPath: "view/Overview",
             baseSize: sizes.overviewExpanded,
             stealth: !contentOptions.overview
@@ -198,6 +184,12 @@ Singleton {
             searchable: true,
             componentPath: "etc/TaskManager",
             stealth: true
+        },
+        "Widgets": {
+            icon: "ripples",
+            stealth: true,
+            baseSize: sizes.largerQuarter,
+            componentPath: "widgets/Widgets",
         },
         "Cast": {
             componentPath: "cast/Cast",
@@ -271,9 +263,6 @@ Singleton {
     }
     function isSearchable(id) {
         return !!_get(id)?.searchable;
-    }
-    function isIncubatable(id) {
-        return !!_get(id)?.incubatable;
     }
     function isDetachable(id) {
         return (!!_get(id)?.detachable || !!_get(id)?.app) ?? false;

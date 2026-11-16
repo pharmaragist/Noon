@@ -19,7 +19,6 @@ BarGroup {
     readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - 1) / number)
     readonly property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - 1) % number
 
-
     readonly property int number: Mem.options.bar.workspaces.number
     readonly property bool showBigAppOnly: Mem.options.bar.workspaces.showBigAppOnly ?? false
     readonly property bool genericSymbols: Mem.options.bar.workspaces.genericSymbols ?? false
@@ -167,9 +166,9 @@ BarGroup {
                 }
 
                 readonly property int windowCount: windows.length
+                property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
                 readonly property var windowCountFor: cls => cls ? HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue && w.class === cls).length : 0
                 readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || windowCount === 0
-                readonly property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
                 readonly property real buttonHeight: Math.max(root.workspaceButtonHeight, windowCount * iconSize + Math.max(0, windowCount - 1) * (showNumber ? 0 : root.iconSpacing) + root.buttonVPadding) + (windowCount > 1 ? root.bgPadding : 0)
                 readonly property int positionMultiplier: root.position === "left" ? -1 : 1
 
@@ -212,6 +211,14 @@ BarGroup {
 
                         Behavior on opacity {
                             Anim {}
+                        }
+
+                        Behavior on anchors.horizontalCenterOffset {
+                            SAnim {}
+                        }
+
+                        Behavior on anchors.verticalCenterOffset {
+                            SAnim {}
                         }
 
                         ColumnLayout {

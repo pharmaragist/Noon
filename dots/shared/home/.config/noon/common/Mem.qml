@@ -30,7 +30,7 @@ Singleton {
     }
 
     readonly property HyprParser hyprView: HyprParser {
-        path: Paths.methods.trim(Paths.standard.config + "/hypr/lua/variables.lua")
+        path: Paths.methods.trim(Paths.standard.config + "/hypr/core/variables.lua")
     }
 
     readonly property ConfigFileView optionsView: ConfigFileView {

@@ -7,17 +7,17 @@ PanelWindow {
     id: root
 
     property string shell: "noon"
-    required property string name
+    property string name: "standard"
     property int _margins: 0
     property bool fill: false
     property bool keyboardFocus: false
     property string _layer: "Top"
 
     focusable: keyboardFocus
-    
+
     color: "transparent"
     exclusiveZone: 0
-    
+
     WlrLayershell.layer: WlrLayer[_layer]
     WlrLayershell.namespace: shell + ":" + name
     WlrLayershell.keyboardFocus: (root.keyboardFocus === true) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None

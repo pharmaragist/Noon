@@ -27,6 +27,33 @@ Item {
                 completed: root.thinkDone
             }] : []).concat(TextUtils.splitMarkdownBlocks(root.isLive ? Harness.liveContent : (root.messageData?.content ?? "")))
 
+    readonly property var toolGroups: {
+        const tools = root.messageData?.tools ?? [];
+        if (tools.length === 0) return [];
+
+        const groups = [];
+        let current = [];
+
+        for (let i = 0; i < tools.length; i++) {
+            const t = tools[i];
+            const needsApproval = (root.messageData?.functionPending ?? false) &&
+                  t.callID !== "" &&
+                  t.callID === root.messageData?.permissionCallID;
+
+            if (needsApproval) {
+                if (current.length > 0) {
+                    groups.push(current);
+                    current = [];
+                }
+                groups.push([t]);
+            } else {
+                current.push(t);
+            }
+        }
+        if (current.length > 0) groups.push(current);
+        return groups;
+    }
+
     anchors.left: parent?.left
     anchors.right: parent?.right
     clip: true
@@ -63,16 +90,33 @@ Item {
         }
 
         Repeater {
-            model: root.messageData?.tools ?? []
-            delegate: ToolCallBlock {
+            model: root.toolGroups
+            delegate: Loader {
                 required property var modelData
+                property var items: modelData
                 Layout.fillWidth: true
-                tool: modelData?.tool ?? ""
-                callID: modelData?.callID ?? ""
-                input: modelData?.input ?? ""
-                output: modelData?.output ?? ""
-                status: modelData.status
-                raw: modelData
+                sourceComponent: modelData.length > 1 ? groupComp : singleComp
+            }
+        }
+
+        Component {
+            id: singleComp
+            ToolCallBlock {
+                property var item: parent.items[0]
+                tool: item?.tool ?? ""
+                callID: item?.callID ?? ""
+                input: item?.input ?? ""
+                output: item?.output ?? ""
+                status: item?.status ?? ""
+                raw: item
+                messageData: root.messageData
+            }
+        }
+
+        Component {
+            id: groupComp
+            ToolCallGroup {
+                tools: parent.items
                 messageData: root.messageData
             }
         }

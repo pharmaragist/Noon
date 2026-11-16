@@ -11,7 +11,6 @@ Scope {
         StyledPanel {
             required property var modelData
             visible: root.visible
-            name: "unblurred_layer"
             screen: modelData
             fill: true
             color: Colors.colLayer0

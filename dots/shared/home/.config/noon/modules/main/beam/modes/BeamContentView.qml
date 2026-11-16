@@ -13,11 +13,13 @@ ContentViewItem {
     id: view
     readonly property alias focusItem: inputField
 
-    Item {
+    RowLayout {
         id: content
-        width: Math.max(BeamData.activeHint?.length, inputField.text.length) > 18 ? 1000 : 375
+        width: Math.max(BeamData.activeHint?.length, inputField.text.length) > 18 ? 1000 : 450
         height: 70
         anchors.centerIn: parent
+        spacing: Padding.normal
+
         function sendMessage() {
             BeamData.executeCommand();
             BeamData.reset();
@@ -34,13 +36,9 @@ ContentViewItem {
         Item {
             id: icon
             visible: Mem.options.beam.appearance?.enableEmblem ?? true
-            implicitWidth: visible ? 36 : 0
-
-            anchors {
-                left: parent.left
-                verticalCenter: parent.verticalCenter
-                leftMargin: visible ? Padding.gigantic : 0
-            }
+            Layout.preferredWidth: 36
+            Layout.preferredHeight: 36
+            Layout.leftMargin: Padding.gigantic
 
             Symbol {
                 z: 999
@@ -50,8 +48,9 @@ ContentViewItem {
                 anchors.centerIn: parent
                 text: BeamData.getIcon()
             }
+
             MaterialShape {
-                anchors.centerIn: parent
+                anchors.fill: parent
                 implicitSize: 36
                 color: inputField.focus ? Colors.colPrimary : Colors.colLayer3
                 shape: BeamData.getShape()
@@ -69,106 +68,98 @@ ContentViewItem {
                 }
 
                 readonly property alias inputText: inputField.text
-                onInputTextChanged: if (inputField.text.length === 0)
-                    rotation = 0
 
                 Behavior on color {
                     CAnim {}
-                }
-
-                RotationAnimation on rotation {
-                    running: inputField.text.length > 0
-                    loops: Animation.Infinite
-                    from: 0
-                    to: 360
-                    duration: 9000
-                    easing.type: Easing.Linear
                 }
             }
         }
 
         LayerRect {
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                left: icon.right
-                right: sendButton.left
-                leftMargin: Padding.huge
-                rightMargin: Padding.small
-                margins: Padding.normal
-            }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.topMargin: Padding.normal
+            Layout.bottomMargin: Padding.normal
+            Layout.leftMargin: icon.visible ? Padding.small : Padding.gigantic
             colBackground: Colors.colLayer1
             radius: Rounding.full
 
-            StyledTextField {
-                id: inputField
+            RowLayout {
                 anchors.fill: parent
-                z: 10
-                focus: root.reveal
-                placeholderText: BeamData.config?.placeholder ?? "Ask any thing ..."
-                text: BeamData.query
-                background: null
-                selectionColor: Colors.colPrimaryContainer
-                selectedTextColor: Colors.m3.m3onPrimaryContainer
-                color: Colors.colOnLayer0
-                placeholderTextColor: Colors.colSubtext
-                selectByMouse: true
-                leftPadding: Padding.massive
-                rightPadding: Padding.massive + (appletsArea?.implicitWidth ?? 100)
-                font: Fonts.request("main", "large")
+                anchors.leftMargin: Padding.massive
+                anchors.rightMargin: Padding.large
+                spacing: Padding.small
 
-                Keys.onPressed: event => {
-                    switch (event.key) {
-                    case Qt.Key_Escape:
-                        view.dismiss();
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Return:
-                        content.sendMessage();
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Tab:
-                        const hint = BeamData.activeHint;
-                        if (hint) {
-                            BeamData.query = BeamData.autocomplete(hint);
+                StyledTextField {
+                    id: inputField
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    focus: root.reveal
+                    placeholderText: BeamData.config?.placeholder ?? "Ask Me "
+                    text: BeamData.query
+                    background: null
+                    selectionColor: Colors.colPrimaryContainer
+                    selectedTextColor: Colors.m3.m3onPrimaryContainer
+                    color: Colors.colOnLayer0
+                    placeholderTextColor: Colors.colSubtext
+                    selectByMouse: true
+                    leftPadding: 0
+                    rightPadding: 0
+                    font: Fonts.request("main", "large")
+
+                    Keys.onPressed: event => {
+                        switch (event.key) {
+                        case Qt.Key_Escape:
+                            view.dismiss();
                             event.accepted = true;
+                            break;
+                        case Qt.Key_Return:
+                            content.sendMessage();
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Tab:
+                            const hint = BeamData.activeHint;
+                            if (hint) {
+                                BeamData.query = BeamData.autocomplete(hint);
+                                event.accepted = true;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
-            }
-            AppletsFactory {
-                id: appletsArea
 
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                    right: parent.right
-                    rightMargin: Padding.large
+                AppletsFactory {
+                    id: appletsArea
+                    Layout.fillHeight: true
                 }
             }
         }
 
         GroupButtonWithIcon {
-            id: sendButton
-            releaseAction: () => {
-                content.sendMessage();
-            }
+            id: pinButton
             buttonRadius: width / 2
-            colBackground: BeamData.query.length > 0 ? Colors.colPrimaryContainer : Colors.colLayer1
+            iconSize: 22
+            baseSize: 45
+            animateIcon: true
+            materialIcon: "push_pin"
+            toggled: Globals.main.beam.pinned
+            releaseAction: () => {
+                Globals.main.beam.pinned = !Globals.main.beam.pinned
+            }
+        }
+
+        GroupButtonWithIcon {
+            id: sendButton
+            Layout.rightMargin: Padding.large
+            buttonRadius: width / 2
+            toggled: BeamData.query.length > 0
             iconSize: 22
             baseSize: 45
             animateIcon: true
             materialIcon: "arrow_upward"
-
-            anchors {
-                right: parent.right
-                rightMargin: Padding.large
-                verticalCenter: parent.verticalCenter
-            }
-
-            Behavior on opacity {
-                Anim {}
+            colBackgroundToggled: Colors.colPrimaryContainer
+            releaseAction: () => {
+                content.sendMessage();
             }
         }
     }

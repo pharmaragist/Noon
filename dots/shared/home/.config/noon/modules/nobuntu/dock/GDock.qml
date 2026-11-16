@@ -19,8 +19,7 @@ Scope {
             id: dock_panel
             required property var modelData
             screen: modelData
-            name: "gdock"
-            shell: "nobuntu"
+            name: "blurred_layer"
 
             anchors {
                 top: true

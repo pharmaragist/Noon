@@ -7,27 +7,23 @@ import qs.common.functions
 Singleton {
     id: root
 
-    function init(force = true) {
+    function init(force = false) {
         if (!force && !Mem.states.desktop.firstRun)
             return;
         doFlags();
         doXDPH();
-        doPlugins()
         doPaths();
         doEnv();
         WallpaperService.applyWallpaper(Paths.wallpapers.defaultBg);
         console.warn("All Done !");
     }
-    function commit() {
 
-    }
     function doEnv() {
         const needed = ({
                 "SHELL": "/bin/fish",
                 "XCURSOR_THEME": "Adwaita",
                 "TERMINAL_OPACITY": 1,
-                "USE_POKEMON": true,
-                "GTK_CSD": 0
+                "USE_POKEMON": true
             });
         for (const [key, value] of Object.entries(needed)) {
             Mem?.envView?.ensure(key, value);
@@ -66,20 +62,5 @@ Singleton {
             screencopy { custom_picker_binary = ${config}/noon/scripts/screen_share_watcher }
         `);
         console.warn("Screen Sharing Hack is Set");
-    }
-    function doPlugins() {
-        const content = `
-        {
-          "static": [
-            {
-              "id": "noon-plugins",
-              "name": "Noon Plugins",
-              "index": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/plugins.json"
-            }
-          ]
-        }
-        `
-        Paths.methods.createFileWith(content, Paths.shellConfigs + "/user/store-providers.json")
-        console.warn("Community Plugins Mirror is Set");
     }
 }

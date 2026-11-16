@@ -110,6 +110,10 @@ Singleton {
             brightness = value;
             setProc.command = isDdc ? ["ddcutil", "-b", busNum, "setvcp", "10", rounded] : ["brightnessctl", "s", `${rounded}%`, "--quiet"];
             setProc.startDetached();
+            if (!Notifications.silent)
+                NoonUtils.playSound("event_accepted", {
+                    volume: 0.02
+                })
         }
 
         Component.onCompleted: {

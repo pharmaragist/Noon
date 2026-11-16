@@ -45,6 +45,8 @@ Singleton {
     property var messageQueue: []
     property var messageByID: ({})
     property var _pendingSend: []
+    property var _pendingAnnotations: []
+    property bool _waitingForScreenshot: false
 
     Component.onCompleted: {
         root.setupPersonality();
@@ -65,6 +67,21 @@ Singleton {
     property bool _sysDirty: false
 
     onSystemPromptChanged: root.scheduleSystemSync()
+
+    onPermissionAsked: text => {
+        if (Globals.main.sidebar.selectedCategory !== "AI")
+            NoonUtils.requestDialog("assure", {
+                title: "Permission Request",
+                description: text,
+                acceptText: "Accept",
+                onAccepted: () => {
+                    root.answerPending(true);
+                },
+                onCanceled: () => {
+                    root.answerPending(false);
+                }
+            });
+    }
 
     function setupPersonality() {
         const m = Paths.methods;
@@ -784,6 +801,54 @@ Singleton {
 
     function refreshSessions() {
         sessionsFetcher.refresh();
+    }
+
+    function addAnnotations(urls) {
+        const list = Array.isArray(urls) ? urls : [urls];
+        const valid = list.map(u => {
+            const s = String(u ?? "").trim();
+            if (!s)
+                return "";
+            return s.startsWith("file://") ? s : "file://" + s;
+        }).filter(u => u.length > 7 && !root._pendingAnnotations.includes(u));
+
+        if (valid.length > 0) {
+            root._pendingAnnotations = root._pendingAnnotations.concat(valid);
+            return true;
+        }
+        return false;
+    }
+
+    function removeAnnotation(uri) {
+        root._pendingAnnotations = root._pendingAnnotations.filter(i => i !== uri);
+    }
+
+    function clearAnnotations() {
+        root._pendingAnnotations = [];
+    }
+
+    function captureWindowAnnotation() {
+        root._waitingForScreenshot = true;
+        ScreenShotService.request({
+            region: ScreenShotService.Regions.Window,
+            temp: true
+        });
+    }
+
+    Connections {
+        target: ScreenShotService
+        function onScreenshotCompleted(path) {
+            if (!root._waitingForScreenshot)
+                return;
+            root._waitingForScreenshot = false;
+            root.addAnnotations(path);
+
+            if (!Globals.main.sidebar.reveal || Globals.main.sidebar.selectedCategory !== "AI")
+                Ipc.call(["sidebar", "reveal", "AI"]);
+        }
+        function onScreenshotCancelled() {
+            root._waitingForScreenshot = false;
+        }
     }
 
     Process {

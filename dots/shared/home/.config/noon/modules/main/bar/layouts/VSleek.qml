@@ -11,9 +11,8 @@ import "./../components"
 
 StyledPanel {
     id: root
-    name: "bar"
-    shell: "noon"
-    exclusiveZone: bg.implicitWidth
+    name: "blurred_layer"
+     exclusiveZone: bg.implicitWidth
     fill: true
     _layer: "Bottom"
     readonly property string pos: BarData.position

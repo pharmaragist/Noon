@@ -5,26 +5,33 @@ import qs.common.functions
 import qs.common
 import QtQuick
 import Quickshell
-import Noon.Utils.Latex
 
 Singleton {
     id: root
 
     property list<string> processedHashes: []
     property string latexOutputPath: Paths.methods.trim(Paths.services.latex)
+    property bool available: false
+    property var _renderer: null
 
     signal renderFinished(string hash, string imagePath)
 
-    property LatexRenderer _renderer: LatexRenderer {
-        width: 0
-        height: 0
-        visible: false
-        cacheDir: root.latexOutputPath
-        foreground: Colors.colOnLayer1
-    }
-
     Component.onCompleted: {
-        _renderer.cached.connect((hash, filePath) => {
+        const component = Qt.createComponent(Qt.resolvedUrl("LatexRendererBridge.qml"));
+        if (component.status !== Component.Ready) {
+            console.warn("[LatexService] renderer unavailable:", component.errorString());
+            return;
+        }
+        root._renderer = component.createObject(null, {
+            "cacheDir": root.latexOutputPath,
+            "foreground": Colors.colOnLayer1
+        });
+        if (root._renderer === null) {
+            console.warn("[LatexService] failed to create renderer");
+            return;
+        }
+        root.available = true;
+        root._renderer.cached.connect((hash, filePath) => {
             if (root.processedHashes.includes(hash)) {
                 root.renderFinished(hash, filePath);
             }
@@ -32,9 +39,9 @@ Singleton {
     }
 
     function requestRender(expression) {
-        if (!expression)
+        if (!expression || !root._renderer)
             return ["", false];
-        const hash = _renderer.hashFor(expression);
+        const hash = root._renderer.hashFor(expression);
 
         if (!root.processedHashes.includes(hash)) {
             root.processedHashes.push(hash);

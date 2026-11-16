@@ -71,17 +71,35 @@ SidebarItemContainer {
         id: listView
 
         Item {
-            StyledListView {
+            property int _layoutWidth: width
+            property int _spacing: Padding.large
+            property int _baseItemWidth: 320
+            property int _columns: Math.max(1, Math.floor((_layoutWidth + _spacing) / (_baseItemWidth + _spacing)))
+            property int _cellWidth: (_layoutWidth - (_columns - 1) * _spacing) / _columns
+            property int _cellHeight: 120
+
+            onWidthChanged: _layoutWidth = width
+
+            StyledGridView {
+                id: grid
                 anchors.fill: parent
-                spacing: Padding.large
-                radius: Rounding.huge
-                clip: true
+                columns: parent._columns
+                cellWidth: parent._cellWidth
+                cellHeight: parent._cellHeight
                 _model: NotesService.cards
+
                 delegate: NoteCard {
-                    anchors.right: parent?.right
-                    anchors.left: parent?.left
+                    width: grid.cellWidth - Padding.normal
+                    height: grid.cellHeight - Padding.normal
                     onClicked: root.openNote(modelData?.name)
                 }
+            }
+
+            PagePlaceholder {
+                shown: NotesService.cards.length === 0
+                title: qsTr("No notes yet")
+                icon: "stylus"
+                anchors.centerIn: parent
             }
         }
     }

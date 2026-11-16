@@ -197,7 +197,7 @@ StyledPopup {
                                 color: MediaPlayerService?.colors?.colOnLayer2 ?? Colors.colOnSurface
                                 opacity: isCurrent ? 1.0 : (hasText ? 0.4 : 0.0)
                                 truncate: true
-                                font.family: Fonts.family.variable
+                                font.family: Fonts.family.main
                                 font.pixelSize: isCurrent ? Fonts.sizes.large : Fonts.sizes.small
                                 font.weight: isCurrent ? 600 : 450
                                 Layout.maximumWidth: 140

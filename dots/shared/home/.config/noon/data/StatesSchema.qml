@@ -14,12 +14,20 @@ JsonAdapter {
             property bool snapToGrid: true
             property var positions: []
         }
-
         property JO clock: JO {
             property real x: 0
             property real y: 0
-            property bool editMode: false
             property real scale: 1
+            property real stretchX: 1
+            property real stretchY: 1
+            property bool docked: false
+            property bool placed: false
+            property bool horizontal: false
+            property real fitX: 0
+            property real fitY: 0
+            property real fitW: 0
+            property real fitH: 0
+            property string fitDone: ""
         }
     }
 
@@ -109,6 +117,7 @@ JsonAdapter {
     property JO sidebar: JO {
         property list<string> _expanded: []
         property list<string> _pinned: []
+        property var _sizes: ({})
 
         property var tabIndexCache: ({})
         property JO shelf: JO {

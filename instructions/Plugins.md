@@ -20,7 +20,7 @@ Shared fields:
 
 ```json
 {
-  "name": "sokoun",
+  "name": "Sokoun",
   "pluginGroup": "sidebar",
   "mentainer": "your-name",
   "enabled": true,
@@ -81,25 +81,24 @@ import qs.services                // PaletteService, WallpaperService, PluginsMa
 Hub repo: `pharmaragist/Noon-Plugins`. Publishing = pull request adding four things:
 
 1. Source: `<group>/<name>/` (manifest + QML, same layout as above).
-2. Zip: `zip/<group>/<name>.zip` — lowercase filename, plugin folder at archive root.
+2. Zip: `zip/<group>/<name>.zip` — filename matches the manifest `name`, plugin folder at archive root.
 3. Thumbnail (optional, recommended): `assets/thumbs/<group>/<name>.png`. Missing thumbs fall back to the manifest `icon` in the Store; nothing breaks.
 4. Index entry in `plugins.json`:
    ```json
    {
-     "id": "sokoun",
+     "id": "Sokoun",
      "name": "Sokoun",
      "group": "sidebar",
      "description": "Ambient sounds mixer",
      "version": "1.2.0",
      "maintainer": "you",
      "icon": "equalizer",
-     "preview": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/main/assets/thumbs/sidebar/sokoun.png",
-     "download": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/main/zip/sidebar/sokoun.zip"
+     "preview": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/main/assets/thumbs/sidebar/Sokoun.png",
+     "download": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/zip/sidebar/Sokoun.zip"
    }
    ```
    `id` should equal the manifest `name`. `download` must be the raw zip URL. `preview` may be omitted.
 
-Users get it via the Store app (plugins rail) or `PluginsManager.installFromHub(id)` once their `~/.noon/user/store-providers.json` points at the raw `plugins.json`:
-```json
-{"static": [{"id": "noon-plugins", "name": "Noon Plugins", "index": "https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/main/plugins.json"}]}
-```
+Users get it via the Store app or `PluginsManager.installFromHub(id)`. The
+store reads `https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/plugins.json`
+directly through `scripts/store_service.py`; there is no provider config file.

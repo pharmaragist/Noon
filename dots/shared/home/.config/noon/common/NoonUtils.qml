@@ -109,14 +109,14 @@ Singleton {
         player.play();
     }
 
-    function playSound(sound) {
+    function playSound(sound, opts = {}) {
         if (Mem.ready && Mem.options.desktop.behavior.sounds.enabled && !Mem.states.services.notifications.silent) {
-            startPlayer({
+            startPlayer(Object.assign({},{
                 name: sound,
                 pack: "ui",
                 repeats: 1,
                 volume: 0.01
-            });
+            },opts));
         }
     }
 

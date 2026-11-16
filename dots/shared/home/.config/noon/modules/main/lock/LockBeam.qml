@@ -17,10 +17,14 @@ Item {
     implicitHeight: 100
     implicitWidth: parent?.width
 
+    Component.onCompleted: NoonUtils.inlineTimer(() => {
+        inputField.forceActiveFocus();
+    }, 250)
+
     anchors {
         bottom: parent.bottom
         horizontalCenter: parent.horizontalCenter
-        bottomMargin: -60 + Sizes.elevationMargin
+        bottomMargin: -60 + Sizes.elevatiofailTimernMargin
     }
 
     Connections {

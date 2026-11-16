@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import qs.common
 
 Item {
@@ -7,7 +8,7 @@ Item {
     required property Item target
     property real fadeSize: Colors.m3.darkmode ? 40 : 20
     property color color: Colors.colLayer0
-    property bool vertical: true
+    property bool vertical: target.orientation === ListView.Vertical || target.orientation === Qt.Vertical
 
     z: 99
     anchors.fill: target

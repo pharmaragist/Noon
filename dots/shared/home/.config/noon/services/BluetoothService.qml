@@ -4,7 +4,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
-import org.kde.bluezqt as BluezQt
 import qs.common
 
 Singleton {
@@ -186,7 +185,7 @@ Singleton {
     function isDeviceBusy(device) {
         if (!device)
             return false;
-        return device.pairing || device.connecting;
+        return device.pairing || device.state === BluetoothDeviceState.Connecting;
     }
 
     function filterConnectedDevices(devices) {
@@ -215,7 +214,7 @@ Singleton {
             device: d,
             onAccepted: () => {
                 if (!d.connected)
-                    d.connectToDevice();
+                    d.connect();
                 _popupDevice = null;
             },
             onDismiss: () => {
@@ -244,21 +243,16 @@ Singleton {
         interval: 1000
         repeat: true
         running: true
-        onTriggered: if (adapter && enabled && !adapter.discovering && !bluetoothConnected)
-            adapter.discovering = true
-    }
-
-    Connections {
-        target: BluezQt.Manager
-        function onDeviceAdded(d) {
-            _showPopup(d);
-        }
-        function onDeviceChanged(d) {
-            _showPopup(d);
-        }
-        function onUsableAdapterChanged() {
-            if (adapter && enabled && !adapter.discovering && !bluetoothConnected)
+        onTriggered: {
+            if (!adapter)
+                return;
+            if (enabled && !adapter.discovering && !bluetoothConnected)
                 adapter.discovering = true;
+            if (enabled && !bluetoothConnected) {
+                const devices = adapter.devices.values;
+                for (let i = 0; i < devices.length; ++i)
+                    root._showPopup(devices[i]);
+            }
         }
     }
 }

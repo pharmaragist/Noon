@@ -6,8 +6,6 @@ import Quickshell
 import Quickshell.Services.Pipewire
 
 
-
-
 Singleton {
     id: root
 
@@ -32,6 +30,10 @@ Singleton {
                 lastReady = true;
                 return;
             }
+            if (!Notifications.silent)
+                NoonUtils.playSound("event_accepted", {
+                    volume: 0.02
+                })
             const opts = Mem.options.audio.protection;
             const newVolume = sink.audio.volume;
             const maxAllowedIncrease = (opts.enabled ? opts.maxAllowedIncrease : opts.maxAllowed) / 100;

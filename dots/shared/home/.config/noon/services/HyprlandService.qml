@@ -47,7 +47,7 @@ Singleton {
     }
 
     readonly property FolderListModel availableAnimationsModel: FolderListModel {
-        folder: Paths.standard.config + "/hypr/lua/animations/"
+        folder: Paths.standard.config + "/hypr/core/animations/"
         nameFilters: ["*.lua"]
     }
 
@@ -65,7 +65,7 @@ Singleton {
                 bar_location: () => BarData.position,
                 bar_width: () => BarData.currentBarExclusiveSize,
                 terminal_opacity: () => Mem.env.TERMINAL_OPACITY,
-                rounding: () => Rounding.verylarge
+                rounding: () => Rounding.huge
             })
     }
 }

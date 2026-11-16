@@ -18,30 +18,20 @@ Singleton {
     readonly property bool enablePlugins: true
     readonly property list<string> plugins: allPlugins.map(plugin => plugin.group)
 
-    // available from the static hub index (see store-providers.json)
+    // available from the Noon-Plugins GitHub index
     property var hubPlugins: []
-    property string hubProvider: ""
-
 
     function refreshHub() {
-        StoreService.ensureProviders(list => {
-            const hubs = (list || []).filter(p => p && p.static);
-            if (!hubs.length) {
-                root.hubPlugins = [];
-                return;
-            }
-            root.hubProvider = hubs[0].id;
-            StoreService.contentSearch(root.hubProvider, "", "", [], "", 0, 100, (res, err) => {
-                root.hubPlugins = !err && res && Array.isArray(res.items) ? res.items : [];
-            });
+        StoreService.refresh(list => {
+            root.hubPlugins = list || [];
         });
     }
 
     function installFromHub(id) {
         const hit = hubPlugins.find(p => p && (p.id === id || p.name === id));
-        if (!hit || !hubProvider)
+        if (!hit)
             return;
-        StoreService.contentInstall(hubProvider, hit.id, "noon-plugin", hit.typeId + "/" + hit.id, (res, err) => {
+        StoreService.install(hit, (res, err) => {
             if (!err)
                 refreshAll();
         });

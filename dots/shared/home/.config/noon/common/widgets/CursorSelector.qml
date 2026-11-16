@@ -213,15 +213,6 @@ Item {
                 value: Mem.hypr.cursor_size
                 onValueChanged: Mem.hypr.cursor_size = value
             }
-            GroupButtonWithIcon {
-                materialIcon: "local_mall"
-                implicitSize: 32
-                releaseAction: () => {
-                    NoonUtils.spawnApp("Store", {
-                        selectedCategory: "cursors"
-                    });
-                }
-            }
         }
     }
 }

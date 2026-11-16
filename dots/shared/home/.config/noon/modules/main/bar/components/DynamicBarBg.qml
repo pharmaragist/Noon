@@ -85,11 +85,11 @@ PanelRect {
             }
         }
     ]
-    
+
     Rectangle {
         z:999
         implicitWidth: 1
-        anchors.left: !isLeft ? parent.left : undefined 
+        anchors.left: !isLeft ? parent.left : undefined
         anchors.right: !isRight ? parent.right: undefined
         anchors.top: !isBottom ? parent.top : undefined
         anchors.bottom: !isTop ? parent.bottom : undefined

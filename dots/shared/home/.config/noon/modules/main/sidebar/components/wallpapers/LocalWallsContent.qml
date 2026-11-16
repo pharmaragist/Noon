@@ -33,12 +33,8 @@ LayerRect {
     property int _layoutWidth: root.width
 
     onWidthChanged: {
-        if (!root.dynamic) {
-            if (!layoutDebouncer.running) {
-                root._layoutWidth = root.width;
-                layoutDebouncer.restart();
-            }
-        }
+        layoutDebouncer.interval = root.dynamic ? 80 : (Animations.durations.normal + 80);
+        layoutDebouncer.restart();
     }
 
     Timer {
@@ -48,7 +44,7 @@ LayerRect {
     }
 
     readonly property int _spacing: Padding.small
-    readonly property int _baseItemWidth: container?.expanded ? 240 : _layoutWidth
+    readonly property int _baseItemWidth: 240
     readonly property int _columns: Math.max(1, Math.floor((_layoutWidth + _spacing) / (_baseItemWidth + _spacing)))
     readonly property int _cellWidth: (_layoutWidth - (_columns - 1) * _spacing) / _columns
     readonly property int _cellHeight: (_cellWidth - _spacing * 2) * 9 / 16 + _spacing * 2
@@ -57,6 +53,8 @@ LayerRect {
         id: filteredModel
 
         values: {
+            // Re-evaluate when the folder model finishes loading after a sort change.
+            WallpaperService.wallpaperRevision;
             const model = WallpaperService.wallpaperModel;
             const count = model ? model.count : 0;
             let items = [];

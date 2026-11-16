@@ -8,7 +8,6 @@ import "widgets"
 import "icons"
 import "dialogs"
 import "toasts"
-import "clock"
 
 Scope {
     id: root
@@ -16,13 +15,7 @@ Scope {
 
     ScreenCorners {}
     DialogPanel {}
-
-    WidgetLoader {
-        enabled: !opts.bg.depthMode && !WallpaperService.fgReady && opts.clock.enabled
-        DesktopClock {}
-    }
-
-
+    OverlayLayer {}
     WidgetLoader {
         enabled: opts.icons.enabled
         DesktopIcons {}

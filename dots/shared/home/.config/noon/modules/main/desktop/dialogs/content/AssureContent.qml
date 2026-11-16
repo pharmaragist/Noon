@@ -47,7 +47,11 @@ Item {
             visible: root.content?.canCancel ?? true
             buttonText: "Cancel"
             toggled: false
-            releaseAction: () => root.dismiss()
+            releaseAction: () => {
+                Qt.callLater(() => root.dismiss());
+                if(!!root.content?.onCanceled)
+                root.content.onCanceled();
+            }
         }
 
         DialogButton {
@@ -56,6 +60,7 @@ Item {
             colText: Colors.colOnPrimary
             releaseAction: () => {
                 Qt.callLater(() => root.dismiss());
+                if(!!root.content?.onAccepted)
                 root.content.onAccepted();
             }
         }

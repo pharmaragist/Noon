@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.common
+import qs.common.utils
 
 Singleton {
     readonly property var opts: Mem.options.desktop.branding.distroInfo
@@ -10,6 +11,7 @@ Singleton {
     readonly property string distroIcon: opts?.icon ?? "arch-symbolic"
     readonly property string username: Quickshell.env("USER")
     readonly property string userPfp: Paths.standard.home + "/.face"
+    readonly property date distroAge: new Date(ageProc.birthTime > 0 ? ageProc.birthTime * 1000 : NaN)
     readonly property var distroIcons: ({
             arch: "arch-symbolic",
             endeavouros: "endeavouros-symbolic",
@@ -30,7 +32,8 @@ Singleton {
             return;
 
         const text = Paths.methods.readFile("/etc/os-release");
-        if (!text) return;
+        if (!text)
+            return;
 
         const prettyNameMatch = text.match(/^PRETTY_NAME="(.+?)"/m);
         const nameMatch = text.match(/^NAME="(.+?)"/m);
@@ -41,5 +44,16 @@ Singleton {
         opts.name = prettyNameMatch ? prettyNameMatch[1] : (nameMatch ? nameMatch[1].replace(/Linux/i, "").trim() : "Unknown");
         opts.id = id;
         opts.icon = distroIcons[id] ?? "arch-symbolic";
+    }
+
+    Process {
+        id: ageProc
+        running: true
+        command: ["stat", "-c", "%W", "/"]
+        property int birthTime: 0
+
+        stdout: SplitParser {
+            onRead: line => ageProc.birthTime = parseInt(line, 10) || 0
+        }
     }
 }

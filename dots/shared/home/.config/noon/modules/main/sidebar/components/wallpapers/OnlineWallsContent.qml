@@ -19,12 +19,8 @@ LayerRect {
     property int _layoutWidth: root.width
 
     onWidthChanged: {
-        if (!root.dynamic) {
-            if (!layoutDebouncer.running) {
-                root._layoutWidth = root.width;
-                layoutDebouncer.restart();
-            }
-        }
+        layoutDebouncer.interval = root.dynamic ? 80 : (Animations.durations.normal + 80);
+        layoutDebouncer.restart();
     }
 
     Timer {
@@ -34,7 +30,7 @@ LayerRect {
     }
 
     readonly property int _spacing: Padding.small
-    readonly property int _baseItemWidth: container?.expanded ? 240 : _layoutWidth
+    readonly property int _baseItemWidth: 240
     readonly property int _columns: Math.max(1, Math.floor((_layoutWidth + _spacing) / (_baseItemWidth + _spacing)))
     readonly property int _cellWidth: (_layoutWidth - (_columns - 1) * _spacing) / _columns
     readonly property int _cellHeight: (_cellWidth - _spacing * 2) * 9 / 16 + _spacing * 2
@@ -48,7 +44,7 @@ LayerRect {
 
     Timer {
         id: debounceTimer
-        interval: 200
+        interval: 400
         repeat: false
         onTriggered: {
             root._debouncedQuery = root.query.trim();
@@ -76,9 +72,7 @@ LayerRect {
         _model: OnlineWallpaperService.results ?? []
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 300
-        onModelChanged: if (count < 1) {
-            OnlineWallpaperService._doFetch(1, false)
-        }
+
         onContentYChanged: maybeLoadMore()
         onContentHeightChanged: maybeLoadMore()
 
@@ -132,11 +126,13 @@ LayerRect {
                 color: Colors.colLayer0
                 opacity: OnlineWallpaperService.downloadingId === modelData.id ? 0.65 : 0
 
-                MaterialLoadingIndicator {
-                    z: 999
-                    loading: parent.opacity > 0
-                    anchors.centerIn: parent
-                }
+            }
+
+            MaterialLoadingIndicator {
+                z: 999
+                visible: loading
+                loading: OnlineWallpaperService.downloadingId === modelData.id ? 0.65 : 0
+                anchors.centerIn: parent
             }
 
             StyledRectangularShadow {

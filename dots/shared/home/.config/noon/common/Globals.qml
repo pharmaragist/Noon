@@ -13,10 +13,11 @@ Singleton {
     id: root
 
     property bool deload: false
+    property real clockAspect: 0
     property bool superPressed: superHeldShortcut.pressed
     readonly property var topLevel: ToplevelManager.activeToplevel
     readonly property bool superHeld: superHeldShortcut.pressed
-
+    readonly property var exclusions: Exclusions
     readonly property QtObject common: QtObject {
         readonly property QtObject toasts: QtObject {
             property var data: []
@@ -36,6 +37,7 @@ Singleton {
         property bool canNotify: sidebar?.hoverMode ?? true
 
         property QtObject beam: QtObject {
+            property bool pinned: false
             property bool show: false
             property string reason: "default"
             property var payload
@@ -84,19 +86,18 @@ Singleton {
             property bool show: false
         }
     }
-    Component.onCompleted: {
-        if (Mem.ready) {
-            Quickshell.watchFiles = Mem.options.desktop.shell?.hotReload ?? false;
-            FirstRunService.init();
-        }
+
+    Component.onCompleted: if (!!Mem.ready) {
         NoonUtils.playSound("device_unlocked");
         TimerService.reload();
         ClipboardService.refresh();
         EqService.init();
+        // FirstRunService.init(false);
     }
 
     CustomShortcut {
         id: superHeldShortcut
+        enabled: false
         name: "superHeld"
     }
 

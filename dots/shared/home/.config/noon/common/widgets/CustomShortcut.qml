@@ -4,5 +4,6 @@ import Quickshell.Hyprland
 import Quickshell.Widgets
 
 GlobalShortcut {
-    appid: "noon"
+    property bool enabled: true
+    appid: enabled ? "noon" : ""
 }

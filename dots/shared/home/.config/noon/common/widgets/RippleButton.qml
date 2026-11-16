@@ -21,11 +21,12 @@ Button {
     property var releaseAction
     property var altAction
     property var middleClickAction
-    property color colBackground: colors.colLayer1 || "transparent"
-    property color colBackgroundHover: colors.colLayer1Hover ?? "#E5DFED"
+    property int layerNumber: 1
+    property color colBackground: colors[("colLayer" + layerNumber)] || "transparent"
+    property color colBackgroundHover: colors[("colLayer" + layerNumber + "Hover")] ?? "#E5DFED"
     property color colBackgroundToggled: colors.colPrimary ?? "#65558F"
     property color colBackgroundToggledHover: colors.colPrimaryHover ?? "#77699C"
-    property color colRipple: colors.colLayer1Active ?? "#D6CEE2"
+    property color colRipple: colors[("colLayer" + layerNumber + "Active")] ?? "#D6CEE2"
     property color colRippleToggled: colors.colPrimaryActive ?? "#D6CEE2"
     property color buttonColor: Colors.methods.transparentize(root.toggled ? (root.hovered ? colBackgroundToggledHover : colBackgroundToggled) : (root.hovered ? colBackgroundHover : colBackground), root.enabled ? 0 : 1)
     property color rippleColor: root.toggled ? colRippleToggled : colRipple

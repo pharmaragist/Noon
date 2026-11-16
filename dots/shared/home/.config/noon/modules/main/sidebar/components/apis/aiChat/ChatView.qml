@@ -41,7 +41,7 @@ StyledRect {
         onContentHeightChanged: if (!userScrolledUp)
             positionViewAtEnd()
 
-// ScriptModel diffs values into incremental insert/remove/move ops —
+        // ScriptModel diffs values into incremental insert/remove/move ops —
         // a raw JS array as model would tear down every delegate on each new
         // array identity. (values must stay unique: ids are always fresh.)
         // Per-message content updates still flow through touchMessage()
@@ -109,6 +109,6 @@ StyledRect {
         title: "Harness"
         description: "Press '/' for Command Palette."
         shape: MaterialShape.Shape.PixelCircle
-        iconSize: 120
+        iconSize: 74
     }
 }

@@ -56,8 +56,9 @@ Singleton {
             showHint: false,
             hinter: () => "",
             executor: () => {
+                revealSidebar("AI");
+                Ipc.call(["sidebar", "pin"]);
                 Harness.sendUserMessage(query);
-                revealSidebar("API");
             }
         },
         "calc": {
@@ -384,6 +385,7 @@ Singleton {
         "default": getDefaultBeamOptions(),
         "shot": {
             timeout: false,
+            canPin: true,
             overlay: "ScreenShotOverlay",
             component: "ScreenShotContentView"
         },
@@ -539,12 +541,14 @@ Singleton {
     readonly property var availableDefaultThemes: {
         "default": {
             "component": "BeamContentView",
+            "canPin": true,
             "ignoreRadiusComplement": false,
             "radius": Rounding.silly
         },
         "alternate": {
             "component": "BeamAlternateView",
             "transparent": true,
+            "canPin": true,
             "popupRadius": Rounding.huge,
             "ignoreRadiusComplement": true
         }

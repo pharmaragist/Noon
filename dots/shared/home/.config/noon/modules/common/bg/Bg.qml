@@ -16,7 +16,6 @@ Scope {
             id: backgroundPanel
             required property var modelData
             screen: modelData
-            shell: "-"
             name: "bg"
             _layer: "Background"
             color: "transparent"

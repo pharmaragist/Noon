@@ -212,7 +212,7 @@ StyledPopup {
         }
 
         Timer {
-            interval: 4000
+            interval: 2000
             repeat: true
             running: true
             onTriggered: ggraph.updateSpeed()

@@ -265,12 +265,6 @@ QtObject {
                     "key": "desktop.bg.parallax.enabled"
                 },
                 {
-                    "icon": "refresh",
-                    "name": "Hot reload ",
-                    "hint": "Enable hot reload on change of shell's qml files",
-                    "key": "desktop.shell.hotReload"
-                },
-                {
                     "icon": "image",
                     "name": "Deload On Fullscreen",
                     "hint": "Hide shell elements when app is fullscreen",
@@ -598,7 +592,7 @@ QtObject {
                     "name": "OSD Mode",
                     "key": "desktop.osd.mode",
                     "type": "combobox",
-                    "values": ["Pixel", "BottomPill", "CenterIsland", "SideBay"]
+                    "values": ["Pixel", "BottomPill", "CenterIsland", "SideBay", "Windows_10", "Simple"]
                 }
             ]
         },

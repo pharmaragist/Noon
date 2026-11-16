@@ -314,7 +314,6 @@ files = [
 	{ name = "hypridle.conf", text = "", fg = "{{colors.primary.default.hex}}" },
 	{ name = "hyprland.conf", text = "", fg = "{{colors.primary.default.hex}}" },
 	{ name = "hyprlandd.conf", text = "", fg = "{{colors.primary.default.hex}}" },
-	{ name = "hyprlock.conf", text = "", fg = "{{colors.primary.default.hex}}" },
 	{ name = "hyprpaper.conf", text = "", fg = "{{colors.primary.default.hex}}" },
 	{ name = "hyprsunset.conf", text = "", fg = "{{colors.primary.default.hex}}" },
 	{ name = "i18n.config.js", text = "󰗊", fg = "{{colors.primary.default.hex}}" },

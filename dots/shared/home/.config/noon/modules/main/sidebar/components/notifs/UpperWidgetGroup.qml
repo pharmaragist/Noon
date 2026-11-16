@@ -187,7 +187,11 @@ Item {
             StyledText {
                 font.pixelSize: Fonts.sizes.normal
                 color: Colors.colSubtext
-                text: "Up for " + DateTimeService.uptime
+                text: {
+                    const days = Math.floor((DateTimeService.clock.date - SysInfoService.distroAge) / 86400000);
+                    const age = isNaN(days) ? "" : days + (days === 1 ? " day ago" : " days ago");
+                    return "Up for " + DateTimeService.uptime + (age ? ", " + age : "");
+                }
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
                 Layout.leftMargin: Padding.large

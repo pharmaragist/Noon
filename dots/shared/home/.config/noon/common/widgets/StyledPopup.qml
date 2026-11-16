@@ -10,7 +10,7 @@ import Quickshell.Wayland
 
 LazyLoader {
     id: root
-    property string name: "blurred_layer"
+    property string name: "popup_layer"
     property Item hoverTarget
     default property Item contentItem
     property bool popupBackgroundBorders: true
@@ -20,7 +20,7 @@ LazyLoader {
     property bool extraVisibilityCondition: true
     property bool showShadow: false
     readonly property string barPosition: BarData.position
-    active: hoverTarget && hoverTarget.containsMouse && extraVisibilityCondition
+    active: hoverTarget && (hoverTarget?.containsMouse ?? false) && (extraVisibilityCondition ?? false)
     property bool focus: false
     component: StyledPanel {
         id: popupWindow

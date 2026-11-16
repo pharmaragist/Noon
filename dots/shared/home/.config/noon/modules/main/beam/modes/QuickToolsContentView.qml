@@ -13,11 +13,9 @@ ContentViewItem {
 
     readonly property var systemTools: [
         {
-            name: "update",
+            name: "Update",
             icon: "refresh",
-            action: () => {
-                NoonUtils.runSystemUpdate();
-            }
+            action: () => NoonUtils.runSystemUpdate()
         }
     ]
     readonly property var urls: (Mem.options?.beam?.content?.quickActionsBookmarks ?? []).map(i => ({
@@ -26,11 +24,59 @@ ContentViewItem {
             }))
     readonly property var bookmarks: (Mem.states?.services?.bookmarks?.firefoxBookmarks ?? []).map(obj => ({
                 isUrl: true,
+                name: obj.title ?? "",
                 url: obj.url
             }))
 
-    readonly property var allItems: [...systemTools, ...(Mem.options?.beam?.content?.quickActionsTools ?? []), "SEPARATOR", ...urls, "SEPARATOR", ...bookmarks]
-    readonly property int gridColumns: Math.max(1, Math.min(allItems.length, 15))
+    readonly property var allItems: {
+        const groups = [[...(systemTools ?? []), ...(Mem.options?.beam?.content?.quickActionsTools ?? [])], urls ?? [], bookmarks ?? []].filter(g => g.length > 0);
+
+        return groups.reduce((acc, g, i) => acc.concat(i > 0 ? ["SEPARATOR", ...g] : g), []);
+    }
+    readonly property int gridColumns: Math.max(1, Math.min((allItems ?? []).length, 15))
+
+    Component {
+        id: separatorComponent
+        Item {
+            implicitWidth: view.toolSize
+            implicitHeight: view.toolSize
+            VerticalSeparator {
+                anchors.centerIn: parent
+                implicitHeight: view.itemSize * 0.6
+                implicitWidth: 2
+            }
+        }
+    }
+
+    Component {
+        id: toolComponent
+        ToolItem {
+            property var toolData
+            anchors.centerIn: parent
+            implicitWidth: view.itemSize
+            implicitHeight: view.itemSize
+            isUrl: toolData?.isUrl ?? false
+            url: toolData?.url ?? ""
+            name: toolData?.name || TextUtils.getDomain(url)
+            tooltip: toolData?.tooltip || name
+            mIcon: toolData?.icon ?? ""
+
+            downAction: () => {
+                if (isUrl) {
+                    NoonUtils.open(url);
+                } else if (typeof toolData?.action === "function") {
+                    toolData.action();
+                } else if (toolData?.action) {
+                    NoonUtils.execDetached(toolData.action);
+                }
+                view.dismiss();
+            }
+
+            StyledToolTip {
+                content: parent.tooltip
+            }
+        }
+    }
 
     PanelRect {
         id: bg
@@ -53,53 +99,10 @@ ContentViewItem {
                 delegate: StyledLoader {
                     Layout.preferredWidth: view.toolSize
                     Layout.preferredHeight: view.toolSize
-                    sourceComponent: modelData === "SEPARATOR" ? separator : tool
-                    binds: {
-                        "toolData": () => modelData
-                    }
-
-                    Component {
-                        id: separator
-                        Item {
-                            implicitWidth: view.toolSize
-                            implicitHeight: view.toolSize
-                            VerticalSeparator {
-                                anchors.centerIn: parent
-                                implicitHeight: view.itemSize * 0.6
-                                implicitWidth: 2
-                            }
-                        }
-                    }
-
-                    Component {
-                        id: tool
-                        ToolItem {
-                            property var toolData
-                            anchors.centerIn: parent
-                            implicitWidth: view.itemSize
-                            implicitHeight: view.itemSize
-                            isUrl: toolData?.isUrl ?? false
-                            url: toolData?.url ?? ""
-                            tooltip: toolData?.tooltip ?? ""
-                            name: toolData?.name ?? TextUtils.getDomain(this.url)
-                            mIcon: toolData?.icon ?? ""
-                            downAction: () => {
-                                let _action = null;
-                                if (toolData?.isUrl)
-                                    _action = () => NoonUtils.open(toolData?.url);
-                                else if (typeof toolData?.action === "function")
-                                    _action = toolData.action;
-                                else
-                                    _action = () => NoonUtils.execDetached(toolData?.action ?? "");
-                                if (!!_action)
-                                    _action();
-                                view.dismiss();
-                            }
-                            StyledToolTip {
-                                content: TextUtils.getDomain(modelData.url)
-                            }
-                        }
-                    }
+                    sourceComponent: modelData === "SEPARATOR" ? separatorComponent : toolComponent
+                    binds: ({
+                            toolData: () => modelData
+                        })
                 }
             }
         }
@@ -137,7 +140,7 @@ ContentViewItem {
                     id: favIcon
                     Favicon {
                         anchors.centerIn: parent
-                        url: root?.url
+                        url: root.url
                         displayText: root.name
                         size: Math.min(parent.width, parent.height)
                     }

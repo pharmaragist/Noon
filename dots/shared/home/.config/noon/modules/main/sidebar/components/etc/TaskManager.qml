@@ -276,7 +276,7 @@ SidebarItemContainer {
                         shown: listView.count === 0
                         title: "No Processes"
                         icon: "check_circle"
-                        iconSize: 96
+                        iconSize: 74
                         description: root.searchQuery.length > 0 ? "No processes match your search" : ""
                     }
 

@@ -22,7 +22,7 @@ Singleton {
 
     Process {
         id: refreshProc
-        command: ["python", Paths.scriptsDir + "/rss_service.py", "--urls", root.rssUrls, "--ttl", root.rssTtl, "--file", Paths.methods.trim(rssView.path), "--image-cache-path", Paths.methods.trim(Paths.standard.cache) + "/media/rss_images"]
+        command: ["python3", Paths.scriptsDir + "/rss_service.py", "--urls", root.rssUrls, "--ttl", root.rssTtl, "--file", Paths.methods.trim(rssView.path), "--image-cache-path", Paths.methods.trim(Paths.standard.cache) + "/media/rss_images"]
         running: false
     }
 

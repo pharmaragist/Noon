@@ -9,8 +9,7 @@ import "./../common"
 
 StyledPanel {
     id: root
-    name: "notifs"
-    shell: "nobuntu"
+    name: "blurred_layer"
     visible: Globals.nobuntu.notifs.show
     anchors {
         top: true

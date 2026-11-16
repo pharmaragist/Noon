@@ -42,7 +42,7 @@ ContentViewItem {
                             }
                         },
                         {
-                            "icon": GowallService.isBusy ? "hourglass" : "content_cut",
+                            "icon": GowallService.isBusy ? GowallService.fgJob.length > 1 ? GowallService.fgJob : "hourglass" : "content_cut",
                             "action": () => {
                                 GowallService.removeBackground(WallpaperService.currentWallpaper);
                             }

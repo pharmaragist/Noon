@@ -10,8 +10,8 @@
 //@ pragma Env QS_DROP_EXPENSIVE_FONTS=1
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QS_DISABLE_CRASH_HANDLER=1
-//@ pragma Env LIBVA_DRIVER_NAME=iHD
 //@ pragma Env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi
+//@ pragma Env __NV_PRIME_RENDER_OFFLOAD=0,
 
 import QtQuick
 import Quickshell

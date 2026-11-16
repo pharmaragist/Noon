@@ -12,16 +12,6 @@ PopupWindow {
     id: root
     property var groupData
     property var parentButton
-
-    
-    
-    
-    
-    
-    
-    
-    
-
     anchor.window: parentButton?.QsWindow.window
     anchor.rect.x: parentButton ? parentButton.mapToItem(null, parentButton?.width / 2, 0).x : 0
     anchor.rect.y: 2 * Sizes.elevationMargin
@@ -50,22 +40,24 @@ PopupWindow {
             anchors.fill: parent
             anchors.margins: Sizes.elevationMargin
             clip: true
+
             StyledText {
                 id: title
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.margins: 4
-                text: root.groupData?.appId.charAt(0).toUpperCase() + root.groupData?.appId.slice(1) ?? ""
-                font.pixelSize: Fonts.sizes.small
+                anchors.margins: 6
+                text: this.methods.capitalizeFirstLetter(root.groupData?.appId)
+                font: Fonts.request("title","small")
                 color: Colors.colOnLayer0
             }
+
             StyledRect {
                 anchors.top: title.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: 5
-                color: Colors.colLayer3
+                color: "transparent"
                 radius: Rounding.verylarge - anchors.margins
 
                 Grid {

@@ -12,7 +12,6 @@ Variants {
         screen: modelData
         _layer: Mem.options.desktop?.screenCorners === "Top" ? "Top" : "Overlay"
         exclusiveZone: -1
-        name: "noanim_blurred_layer"
         fill: true
         mask: Region {
             Region {

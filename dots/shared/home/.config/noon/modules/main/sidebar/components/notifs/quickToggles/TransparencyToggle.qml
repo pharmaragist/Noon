@@ -6,7 +6,6 @@ import qs.common.widgets
 QuickToggleButton {
     id: root
 
-    dialogName: "Transparency"
     buttonName: "Transparency"
     buttonSubtext: toggled ? "Clear" : "opaque"
     toggled: Mem.options.appearance.transparency.enabled

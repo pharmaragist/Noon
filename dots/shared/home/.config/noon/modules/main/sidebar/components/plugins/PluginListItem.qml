@@ -17,47 +17,53 @@ StyledRect {
     property string subtext
     property bool enabled
     color: Colors.m3.m3surfaceContainerHigh
-    height: 72
+
+    implicitHeight: 72
+    anchors.right:parent?.right
+    anchors.left:parent?.left
 
     MouseArea {
         anchors.fill: parent
         onClicked: stateSwitch.clicked()
     }
 
-    MaterialShapeWrappedSymbol {
-        id: shape
-        anchors.left: parent.left
-        anchors.leftMargin: Padding.verylarge
-        anchors.verticalCenter: parent.verticalCenter
-        text: root.icon
-        iconSize: 18
-        padding: 12
-        shape: MaterialShape.Shape[root.shape]
-    }
 
     RLayout {
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        anchors.left: shape.right
-        anchors.leftMargin: Padding.huge
+        anchors.fill: parent
+        anchors.margins:Padding.small
+        anchors.leftMargin:Padding.huge
+        anchors.rightMargin:Padding.huge
+
+        MaterialShapeWrappedSymbol {
+            id: shape
+            text: root.icon
+            iconSize: 18
+            padding: 12
+            shape: MaterialShape.Shape[root.shape]
+        }
+
         spacing: Padding.large
 
         CLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
             spacing: 0
+
             StyledText {
+                truncate: true
                 text: root.name
                 color: Colors.colOnLayer3
                 font.pixelSize: Fonts.sizes.normal
+                Layout.maximumWidth: 100
             }
 
             StyledText {
+                truncate: true
                 visible: text.length > 0
                 text: root.subtext
                 color: Colors.colSubtext
                 font.pixelSize: Fonts.sizes.small
+                Layout.maximumWidth: 100
             }
         }
 

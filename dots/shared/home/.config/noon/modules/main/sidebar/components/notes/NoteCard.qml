@@ -15,7 +15,7 @@ StyledRect {
     implicitHeight: Math.max(100, content.implicitHeight + Padding.massive)
     color: Colors.colLayer2
     clip: true
-
+    enableAnimations: false
     MouseArea {
         anchors.fill: parent
         z: 1000

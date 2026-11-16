@@ -21,9 +21,8 @@ Scope {
 
             fill: true
             screen: modelData
-            shell: "noon"
             name: "blurred_layer"
-            _layer: Mem.options.sidebar.behavior.overlay ? "Overlay" : "Top"
+            // _layer: Mem.options.sidebar.behavior.overlay ? "Overlay" : "Top"
             implicitWidth: !pinned ? Screen.width : this.exclusiveZone + rounding
             aboveWindows: true
             keyboardFocus: true
@@ -59,8 +58,21 @@ Scope {
             readonly property int rounding: Rounding.verylarge
             readonly property string barPosition: BarData.position
             readonly property int baseWidth: SidebarData.currentSize(hoverMode, root.expanded, selectedCategory) + auxWidth
-            readonly property int layerWidth: baseWidth + bg.hideMargin
-            readonly property int sidebarWidth: Math.min(Screen.width - 120, baseWidth)
+            readonly property int layerWidth: sidebarWidth + bg.hideMargin
+            readonly property int sidebarWidth: {
+                if (dragWidth > 0 && !hoverMode && (root.resizing || !root.expanded))
+                    return Math.min(Screen.width - 120, Math.max(Sizes.sidebar.minimum, dragWidth));
+                if (root.expanded)
+                    return Math.min(Screen.width - 120, baseWidth);
+                const saved = (!hoverMode) ? ((Mem.states.sidebar?._sizes) ?? {})[selectedCategory] : undefined;
+                if (saved !== undefined)
+                    return Math.min(Screen.width - 120, Math.max(Sizes.sidebar.minimum, saved));
+                return Math.min(Screen.width - 120, baseWidth);
+            }
+            property int dragWidth: 0
+            property bool resizing: false
+            onSelectedCategoryChanged: dragWidth = 0
+            onExpandedChanged: if (!root.resizing) dragWidth = 0
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverDetectArea: 2
             readonly property int elevation: Sizes.frameThickness + Sizes.hyprland.gapsOut
@@ -121,24 +133,10 @@ Scope {
                 anchors.right: root.rightMode ? parent.right : undefined
             }
 
-            ScreenActionHintPanel {
-                target: dropArea
-                hint: {
-                    "icon": "keyboard_double_arrow_right",
-                    "text": "Drop it Inside Your Shelf !"
-                }
-            }
-
-            DropArea {
-                id: dropArea
-                anchors.fill: parent
-                keys: ["text/uri-list"]
-                onEntered: Ipc.call(["sidebar", "reveal", "Shelf"])
-            }
 
             StyledRectangularShadow {
                 target: bg
-                show: Math.max(bg.anchors.leftMargin, bg.anchors.leftMargin) > -root.sidebarWidth
+                // show: Math.max(bg.anchors.leftMargin, bg.anchors.leftMargin) > -root.sidebarWidth
             }
 
             PanelRect {
@@ -147,6 +145,7 @@ Scope {
                 bouncy: Mem.options.sidebar.appearance?.bouncy ?? false
                 width: root.sidebarWidth
                 animationDuration: Animations.durations.normal
+                enableAnimations: !root.resizing
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
@@ -204,6 +203,74 @@ Scope {
                     animation: bg.getAnimation(this, bg.bouncy, {
                         duration: Animations.durations.verysmall
                     })
+                }
+            }
+
+            StyledRect {
+                id: handle
+                z: 999
+                visible: !root.hoverMode && !root.pinned && SidebarData.isExpandable(root.selectedCategory) //  && Mem.options.sidebar.behavior?.resizable ?? true
+                width: 5
+                radius: 10
+                height: root.resizing ? 60 : 35
+                color: root.resizing ? content.colors.colOnSurface : content.colors.colOutline
+                bouncy: true
+
+                anchors.verticalCenter: bg.verticalCenter
+                anchors.left: root.rightMode ? bg.left : undefined
+                anchors.right: root.rightMode ? undefined : bg.right
+                anchors.margins: Padding.verysmall
+
+                MouseArea {
+                    id: resizer
+                    property point origin
+                    property int startWidth
+                    anchors.fill: parent
+                    enabled: !root.hoverMode && SidebarData.isExpandable(root.selectedCategory)
+                    cursorShape: Qt.SizeHorCursor
+                    preventStealing: true
+
+                    function resize(dx) {
+                        const delta = root.rightMode ? -dx : dx;
+                        root.dragWidth = Math.max(Sizes.sidebar.minimum, Math.min(Screen.width - 120, startWidth + delta));
+                        if (SidebarData.isExpandable(root.selectedCategory)) {
+                            const base = SidebarData.currentSize(false, false, root.selectedCategory);
+                            const exp = SidebarData.currentSize(false, true, root.selectedCategory);
+                            root.expanded = root.dragWidth >= (base + exp) / 2;
+                        }
+                    }
+
+                    onPressed: m => {
+                        origin = mapToGlobal(m.x, m.y);
+                        startWidth = root.sidebarWidth;
+                        root.resizing = true;
+                    }
+                    onPositionChanged: m => {
+                        if (pressed)
+                            resize(mapToGlobal(m.x, m.y).x - origin.x);
+                    }
+                    onReleased: {
+                        if (root.dragWidth > 0 && !root.expanded) {
+                            const stt = Mem.states.sidebar;
+                            const sizes = Object.assign({}, stt._sizes ?? {});
+                            sizes[root.selectedCategory] = Math.min(Screen.width - 120, Math.max(Sizes.sidebar.minimum, root.dragWidth));
+                            stt._sizes = sizes;
+                        }
+                        root.dragWidth = 0;
+                        root.resizing = false;
+                        root.content.isResizing = false;
+                    }
+                    onCanceled: {
+                        root.resizing = false;
+                        root.content.isResizing = false;
+                    }
+                    onDoubleClicked: {
+                        root.dragWidth = 0;
+                        const stt = Mem.states.sidebar;
+                        const sizes = Object.assign({}, stt._sizes ?? {});
+                        delete sizes[root.selectedCategory];
+                        stt._sizes = sizes;
+                    }
                 }
             }
 

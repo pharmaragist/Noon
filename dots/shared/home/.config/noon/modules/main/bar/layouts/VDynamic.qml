@@ -18,9 +18,8 @@ StyledPanel {
     readonly property int barWidth: BarData.currentInfo.appearance.size + bg.exclusionOverride
     readonly property int hideMargin: autoHide && !hovered ? -(barWidth - peekSize) : 0
 
-    name: "bar"
-    shell: "noon"
-    _layer: "Top"
+    name: "blurred_layer"
+     _layer: "Top"
 
     implicitWidth: barWidth + 100
     exclusiveZone: autoHide ? (hovered && !useBg ? barWidth : peekSize) : barWidth

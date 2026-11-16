@@ -17,8 +17,6 @@ Scope {
             required property var modelData
             screen: modelData
             exclusiveZone: -1
-            name: "dialog_panel"
-            shell: "noon"
             _layer: "Overlay"
             fill: true
             keyboardFocus: true

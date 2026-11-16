@@ -14,7 +14,7 @@ WidgetLoader {
 
         StyledPanel {
             required property var screen
-            name: "unblurred_fade_layer"
+            name: "fade_layer"
             screen: modelData
             fill: true
             _layer: "Overlay"

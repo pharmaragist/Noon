@@ -15,33 +15,30 @@ Singleton {
     readonly property string minute: root.request("mm")
     readonly property string second: root.request("ss")
     readonly property alias clock: clock
-    readonly property bool twelveHour: Mem.options.services.time.use12HourFormat
+    readonly property bool twelveHour: Mem.options.services.time.use12HourFormat ?? true
     readonly property string time: twelveHour ? root.request("hh:mm ap") : root.request("HH:mm")
     readonly property string hour: twelveHour ? root.request("hh AP").split(" ")[0] : root.request("HH")
-    readonly property string dayTime: twelveHour ? root.request("hh AP").split(" ")[1] : ""
+    readonly property string dayTime: twelveHour ? root.request("AP") : ""
     readonly property string collapsedCalendarFormat: root.request("dd MMMM yyyy")
-    readonly property string arabicDayName: clock.date.toLocaleDateString(Qt.locale("ar_SA"), "dddd")
 
     function request(format) {
-        if (format)
-            return Qt.formatDateTime(clock.date, format);
+        if (!format || typeof format !== "string")
+            return "";
+        return Qt.formatDateTime(clock.date, format);
     }
 
     function getRelativeTime(timestamp) {
         const now = new Date();
-        var savedTime = new Date(timestamp);
-        var diff = Math.floor((now - savedTime) / 1000);
+        const savedTime = new Date(timestamp);
+        const diff = Math.floor((now - savedTime) / 1000);
 
-        if (diff < 60) {
+        if (diff < 60)
             return diff + "s ago";
-        } else if (diff < 3600) {
+        if (diff < 3600)
             return Math.floor(diff / 60) + "m ago";
-        } else if (diff < 86400) {
+        if (diff < 86400)
             return Math.floor(diff / 3600) + "h ago";
-        } else {
-
-            return Qt.formatDate(savedTime, "MMM d, yyyy");
-        }
+        return Qt.formatDate(savedTime, "MMM d, yyyy");
     }
 
     SystemClock {
@@ -50,7 +47,6 @@ Singleton {
     }
 
     Timer {
-        id: uptimeRefresh
         interval: 60000
         running: true
         repeat: true
@@ -58,23 +54,21 @@ Singleton {
 
         onTriggered: {
             fileUptime.reload();
-            const textUptime = fileUptime.text();
-            const uptimeSeconds = parseFloat(textUptime.split(" ")[0]) || 0;
+            const uptimeSeconds = parseFloat(fileUptime.text().split(" ")[0]) || 0;
 
             const days = Math.floor(uptimeSeconds / 86400);
             const hours = Math.floor((uptimeSeconds % 86400) / 3600);
             const minutes = Math.floor((uptimeSeconds % 3600) / 60);
 
-            let parts = [];
+            const parts = [];
             if (days > 0)
                 parts.push(`${days}d`);
             if (hours > 0)
                 parts.push(`${hours}h`);
-
             if (minutes > 0 || parts.length === 0)
                 parts.push(`${minutes}m`);
 
-            uptime = parts.join(", ");
+            root.uptime = parts.join(", ");
         }
     }
 

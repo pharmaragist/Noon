@@ -17,7 +17,6 @@ Scope {
         StyledPanel {
             id: dockRoot
             name: "blurred_layer"
-            shell: "noon"
             screen: modelData
             _layer: "Top"
             required property var modelData

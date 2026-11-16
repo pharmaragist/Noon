@@ -15,21 +15,23 @@ Singleton {
     }
 
     readonly property string mainDir: Paths.services.screenshots
-    readonly property string tempPath: "/tmp/temp_screen_shot.png"
+    readonly property string tempPrefix: "/tmp/noon_ss_"
     readonly property bool isBusy: mainProc.running
     readonly property bool hasRegion: regionW > 0 && regionH > 0
     readonly property Process sattyProc: Process {}
 
     property bool isSelecting: false
+    property bool openSatty: false
     property real regionX: 0
     property real regionY: 0
     property real regionW: 0
     property real regionH: 0
 
     signal screenshotCompleted(string path)
+    signal screenshotCancelled()
 
     function delete_temp(): void {
-        NoonUtils.execDetached(["rm", "-rf", tempPath]);
+        NoonUtils.execDetached(["sh", "-c", `rm -f ${tempPrefix}*.png`]);
     }
 
     function startRegionSelect(): void {
@@ -61,15 +63,24 @@ Singleton {
     Process {
         id: mainProc
         property string outPath: ""
-        onStarted: console.log("started", mainProc.command.join(" "))
         environment: ({
-                "XDG_SCREENSHOTS_DIR": Paths.methods.trim(mainDir)
-            })
+            "XDG_SCREENSHOTS_DIR": Paths.methods.trim(mainDir)
+        })
         onExited: code => {
-            if (code === 0) {
-                root.screenshotCompleted(outPath);
-                NoonUtils.execDetached(`wl-copy --type image/png < '${TextUtils.shellSingleQuoteEscape(outPath)}'`);
-                mainProc.outPath = "";
+            const finishedPath = outPath;
+            outPath = "";
+            if (code === 0 && finishedPath.length > 0) {
+                root.screenshotCompleted(finishedPath);
+                NoonUtils.execDetached(`wl-copy --type image/png < '${TextUtils.shellSingleQuoteEscape(finishedPath)}'`);
+                if (root.openSatty) {
+                    root.openSatty = false;
+                    sattyProc.running = false;
+                    sattyProc.command = ["satty", "--filename", finishedPath];
+                    sattyProc.running = true;
+                }
+            } else {
+                root.openSatty = false;
+                root.screenshotCancelled();
             }
         }
     }
@@ -92,17 +103,25 @@ Singleton {
         const r = n => Math.round(n);
         execute(path, ["grim", "-g", `${r(root.regionX)},${r(root.regionY)} ${r(root.regionW)}x${r(root.regionH)}`, path]);
     }
+
     function hideUI() {
         Globals.main.showScreenshot = false;
         Globals.main.beam.show = false;
         Globals.main.beam.reason = "default";
     }
+
     function request(obj): void {
         if (!obj)
             return;
 
-        hideUI()
-        const outPath = obj.temp ? root.tempPath : root.mainDir + "/screenshot-" + new Date().toISOString().replace(/[:.]/g, "-") + ".png";
+        hideUI();
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const outPath = obj.temp
+            ? `${root.tempPrefix}${stamp}.png`
+            : `${root.mainDir}/screenshot-${stamp}.png`;
+
+        root.openSatty = !obj.temp;
+
         const actions = {
             [ScreenShotService.Regions.Full]: () => root.takeFullScreenshot(outPath),
             [ScreenShotService.Regions.Window]: () => root.takeWindowScreenshot(outPath),
@@ -112,12 +131,5 @@ Singleton {
         NoonUtils.inlineTimer(() => {
             actions[obj.region]();
         }, 500);
-
-        if (!obj.temp)
-            root.screenshotCompleted.connect(path => {
-                sattyProc.running = false;
-                sattyProc.command = ["satty", "--filename", path];
-                sattyProc.running = true;
-            });
     }
 }

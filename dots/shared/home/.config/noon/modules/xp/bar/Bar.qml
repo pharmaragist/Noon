@@ -15,7 +15,6 @@ StyledPanel {
 
     visible: true
     name: "bar"
-    shell: "xp"
 
     implicitHeight: XSizes.taskbar.height + Padding.normal
     exclusiveZone: XSizes.taskbar.height

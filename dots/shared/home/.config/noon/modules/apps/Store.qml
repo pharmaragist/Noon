@@ -7,43 +7,72 @@ import qs.common.widgets
 import qs.common.functions
 import qs.services
 
+// Plugin store. The rail lists plugin groups; the Python service handles the
+// Noon-Plugins GitHub index. Layout follows the original Store window.
 FloatingWindow {
     id: root
     minimumSize: Qt.size(1280, 800)
     maximumSize: Qt.size(1280, 800)
     color: Colors.m3.m3surface
     title: "Store"
-    readonly property var svc: StoreService
-    property string selectedProvider: "kde-store"
-    property string selectedCategory: "home"
-    property string category: "" // accepted for spawnApp compatibility (detach path), unused
-    property string prevProvider: "kde-store"
-    property string selectedXdg: ""
-    property var activeCats: []
-    property string activeCat: ""
+
+    property string selectedCategory: "all"
     property string query: ""
-    property bool loading: false
-    property var previewItem: null
-    property string previewPath: ""
     property var notices: []
-    readonly property var availableCategories: [
-        {
-            id: "home",
-            icon: "home"
-        },
-        {
-            id: "icons",
-            icon: "folder"
-        },
-        {
-            id: "cursors",
-            icon: "ads_click"
-        },
-        {
-            id: "plugins",
-            icon: "extension"
-        }
-    ]
+    property var previewItem: null
+
+    readonly property var availableCategories: {
+        const out = [
+            {
+                id: "all",
+                name: "All",
+                icon: "apps"
+            }
+        ];
+        for (const group of StoreService.groups)
+            out.push({
+                id: group,
+                name: Fonts.methods.capitalizeFirstLetter(group),
+                icon: StoreService.groupIcon(group)
+            });
+        return out;
+    }
+
+    readonly property var shown: {
+        const text = root.query.trim().toLowerCase();
+        return StoreService.plugins.filter(plugin => {
+            if (root.selectedCategory !== "all" && plugin.group !== root.selectedCategory)
+                return false;
+            if (!text)
+                return true;
+            return [plugin.name, plugin.id, plugin.maintainer, plugin.group].some(
+                value => String(value || "").toLowerCase().indexOf(text) !== -1);
+        });
+    }
+
+    readonly property string searchPlaceholder: {
+        if (root.selectedCategory === "all")
+            return "Search plugins...";
+        return "Search in " + Fonts.methods.capitalizeFirstLetter(root.selectedCategory) + "...";
+    }
+
+    readonly property string emptyText: {
+        if (StoreService.error !== "")
+            return StoreService.error;
+        return root.query ? "No plugins match \"" + root.query + "\"" : "No plugins found";
+    }
+
+    readonly property string previewMeta: {
+        if (!root.previewItem)
+            return "";
+        return [root.previewItem.group, root.previewItem.maintainer].filter(v => v).join(" · ");
+    }
+
+    readonly property string installingName: {
+        const plugin = StoreService.plugins.find(p => p && p.id === StoreService.installing);
+        return plugin ? plugin.name : StoreService.installing;
+    }
+
     function notify(text, status) {
         const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         notices = notices.concat([
@@ -59,192 +88,37 @@ FloatingWindow {
     }
 
     function noteColor(status) {
-        return status === "error" ? Colors.colError : status === "success" ? Colors.colPrimary : Colors.colSecondary;
-    }
-
-    function dlText() {
-        const a = svc.dlActive;
-        if (!a)
-            return "";
-        const pct = a.total > 0 ? " " + Math.round(a.progress * 100) + "%" : "";
-        const ph = a.phase === "installing" ? "Installing" : "Downloading";
-        const q = svc.dlQueue.length ? " (+" + svc.dlQueue.length + " queued)" : "";
-        return a.name + " — " + ph + pct + q;
+        if (status === "error")
+            return Colors.colError;
+        return status === "success" ? Colors.colPrimary : Colors.colSecondary;
     }
 
     function dismiss() {
         root.destroy();
     }
-    onVisibleChanged: if (!visible)
-        root.destroy()
-
-    function xdgForRail(r) {
-        return r === "icons" ? "icons" : r === "cursors" ? "cursors" : "";
-    }
-
-    function providerById(id) {
-        return svc.cache.providers.find(p => p && p.id === id);
-    }
-
-    function providerKinds(id) {
-        const p = providerById(id || selectedProvider);
-        if (p && Array.isArray(p.kinds) && p.kinds.length)
-            return p.kinds;
-        return null;
-    }
-
-    function hubId() {
-        // ponytail: Kind truth lives in Go (providers.list kinds); static flag is fallback for old backends.
-        const byKind = svc.cache.providers.filter(p => p && Array.isArray(p.kinds) && p.kinds.indexOf("noon-plugin") !== -1);
-        if (byKind.length)
-            return byKind[0].id;
-        const hubs = svc.cache.providers.filter(p => p && p.static);
-        return hubs.length ? hubs[0].id : "";
-    }
-
-    function ocsProviders() {
-        return svc.cache.providers.filter(p => p && !p.static);
-    }
 
     function setRail(r) {
-        if (r === "plugins") {
-            const hub = hubId();
-            if (!hub) {
-                root.notify("no plugin hub configured", "error");
-                return;
-            }
-            if (!isStatic())
-                root.prevProvider = selectedProvider;
-            root.selectedCategory = r;
-            root.selectedProvider = hub;
-            root.selectedXdg = "";
-            root.activeCats = [];
-            root.activeCat = "";
-            doSearch(searchField.text);
-            return;
-        }
-        if (isStatic())
-            root.selectedProvider = root.prevProvider || "kde-store";
         root.selectedCategory = r;
-        root.selectedXdg = xdgForRail(r);
-        root.activeCats = [];
-        root.activeCat = "";
-        doSearch(searchField.text);
-    }
-
-    function queryObj() {
-        return {
-            provider: selectedProvider,
-            query: root.query,
-            xdgType: selectedXdg || "",
-            categoryIds: activeCats,
-            sort: "",
-            // ponytail: OCS latency scales with page size (30 items ~8s warm,
-            // 10 items ~1.6s); grid shows ~12, Load more appends the rest.
-            pageSize: 15
-        };
-    }
-
-    function init() {
-        // ponytail: the first providers.list is an async RPC, so wait for it
-        // before picking the rail — otherwise the Plugins rail can toast
-        // "no plugin hub configured" on the very first open.
-        svc.ensureProviders((list, err) => {
-            svc.ensureCategories(root.selectedProvider);
-            root.setRail(root.selectedCategory);
-        });
-    }
-
-    function doSearch(text) {
-        root.query = text || "";
-        root.activeCats = [];
-        root.activeCat = "";
-        root.loading = true;
-        try {
-            svc.ensureSearch(queryObj(), false, (data, err) => {
-                root.loading = false;
-                if (err && err.message)
-                    root.notify(err.message, "error");
-            });
-        } catch (e) {
-            root.loading = false;
-        }
-    }
-
-    function loadMore() {
-        if (!svc.cache.hasMore || loading)
-            return;
-        root.loading = true;
-        try {
-            svc.ensureSearch(queryObj(), true, () => {
-                root.loading = false;
-            });
-        } catch (e) {
-            root.loading = false;
-        }
-    }
-
-    function isStatic() {
-        const kinds = providerKinds(selectedProvider);
-        if (kinds)
-            return kinds.indexOf("noon-plugin") !== -1;
-        const p = providerById(selectedProvider);
-        return !!(p && p.static);
-    }
-
-    function kindFor() {
-        if (isStatic())
-            return "noon-plugin";
-        const k = selectedXdg === "cursors" ? "cursor-theme" : "icon-theme";
-        const kinds = providerKinds(selectedProvider);
-        if (kinds && kinds.indexOf(k) === -1)
-            return kinds[0];
-        return k;
     }
 
     function installItem(item) {
-        if (!item || !item.id)
+        if (!item || !item.id || item.installed || StoreService.installing)
             return;
-        const name = item.name || item.id;
-        let kind = kindFor();
-        let label = name;
-        if (isStatic()) {
-            const g = item.typeId || activeCats[0] || "";
-            if (!g) {
-                root.notify("unknown plugin group", "error");
-                return;
-            }
-            const prov = providerById(root.selectedProvider);
-            if (prov && Array.isArray(prov.groups) && prov.groups.length && prov.groups.indexOf(g) === -1) {
-                root.notify("unknown plugin group", "error");
-                return;
-            }
-            kind = "noon-plugin";
-            label = g + "/" + item.id;
-        }
-        if (!svc.enqueueDownload(root.selectedProvider, item.id, kind, label, (res, err) => {
+        StoreService.install(item, (res, err) => {
             if (err)
                 root.notify(err.message || "install failed", "error");
-            else {
-                svc.markInstalled(item.id);
-                root.notify("Installed " + name, "success");
-            }
-        }))
-            root.notify(name + " is already queued", "info");
+            else
+                root.notify("Installed " + (item.name || item.id), "success");
+        });
     }
 
-    onPreviewItemChanged: {
-        root.previewPath = "";
-        const item = root.previewItem;
-        const id = item ? item.id : null;
-        if (id)
-            svc.contentPreview(root.selectedProvider, id, item.previews || [], "", (res, err) => {
-                if (!err && res && res.path && root.previewItem && root.previewItem.id === id)
-                    root.previewPath = res.path;
-            });
-    }
+    onVisibleChanged: if (!visible)
+        root.destroy()
 
-    Component.onCompleted: root.init()
+    Component.onCompleted: StoreService.ensure((list, err) => {
+        if (err)
+            root.notify(err.message || "Store unreachable", "error");
+    })
 
     Shortcut {
         sequences: ["/"]
@@ -253,9 +127,11 @@ FloatingWindow {
             searchField.selectAll();
         }
     }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
+
         RowLayout {
             Layout.margins: Padding.large
             spacing: Padding.large
@@ -276,9 +152,11 @@ FloatingWindow {
                     width: navRailList.width
                     height: navRailList.currentItem ? navRailList.currentItem.height : 0
                     y: navRailList.currentItem ? navRailList.currentItem.y : 0
+
                     Behavior on y {
                         SAnim {}
                     }
+
                     StyledRect {
                         anchors.centerIn: parent
                         width: navRailList.width * 2 / 3
@@ -290,6 +168,7 @@ FloatingWindow {
                 delegate: NavigationRailButton {
                     required property var modelData
                     required property int index
+
                     expanded: true
                     fontSize: 9
                     showText: false
@@ -298,7 +177,7 @@ FloatingWindow {
                     baseSize: Math.round(navRailList.width * 0.6)
                     toggled: root.selectedCategory === modelData.id
                     buttonIcon: modelData?.icon ?? ""
-                    buttonText: modelData?.id ?? ""
+                    buttonText: modelData?.name ?? ""
                     highlightColor: "transparent"
                     highlightColorHover: "transparent"
                     highlightColorActive: "transparent"
@@ -322,39 +201,15 @@ FloatingWindow {
                         iconSize: 26
                         color: Colors.colOnSurfaceVariant
                     }
+
                     StyledTextField {
                         id: searchField
                         Layout.fillWidth: true
-                        placeholderText: "Search in " + methods.capitalizeFirstLetter(root.selectedCategory) + "..."
+                        placeholderText: root.searchPlaceholder
                         font: Fonts.request("main", "large")
                         focus: true
                         leftPadding: Padding.massive
-                        Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                root.doSearch(searchField.text);
-                                event.accepted = true;
-                            }
-                        }
-                        background {
-                            implicitHeight: providerBox.implicitHeight
-                        }
-                    }
-                    StyledComboBox {
-                        id: providerBox
-                        visible: root.selectedCategory !== "plugins"
-                        Layout.preferredWidth: 160
-                        model: root.ocsProviders().map(p => p.name ?? p.id)
-                        currentIndex: root.ocsProviders().findIndex(i => i.id === root.selectedProvider)
-                        onActivated: {
-                            const p = root.ocsProviders()[providerBox.currentIndex];
-                            if (p && p.id) {
-                                root.selectedProvider = p.id;
-                                root.selectedCategory = p.static ? "plugins" : "home";
-                                root.selectedXdg = "";
-                                svc.ensureCategories(p.id);
-                                root.doSearch(searchField.text);
-                            }
-                        }
+                        onTextChanged: root.query = text
                     }
                 }
 
@@ -368,101 +223,62 @@ FloatingWindow {
                     color: Colors.colLayer1
                     radius: Rounding.verylarge
 
-                    ColumnLayout {
+                    StyledGridView {
+                        id: gridView
                         anchors.fill: parent
                         anchors.margins: Padding.huge
-                        spacing: Padding.huge
 
-                        ListView {
-                            clip: true
-                            visible: count > 0
-                            Layout.fillWidth: true
-                            Layout.maximumHeight: 45
-                            Layout.preferredHeight: 45
-                            orientation: Qt.Horizontal
-                            spacing: Padding.normal
-                            model: svc.chipModel(root.selectedProvider, root.selectedXdg)
-                            delegate: IconChip {
-                                text: modelData?.name ?? ""
-                                icon: modelData?.icon ?? ""
-                                toggled: root.activeCat !== "" && root.activeCat === modelData?.id
-                                downAction: () => {
-                                    if (!modelData || !modelData.id)
-                                        return;
-                                    root.activeCats = [modelData.id];
-                                    root.activeCat = modelData.id;
-                                    root.selectedXdg = "";
-                                    root.selectedCategory = root.isStatic() ? "plugins" : "home";
-                                    root.loading = true;
-                                    svc.ensureSearch(root.queryObj(), false, (d, err) => {
-                                        root.loading = false;
-                                    });
-                                }
-                            }
+                        clip: true
+                        radius: Rounding.verylarge
+                        cellWidth: 180
+                        cellHeight: 200
+                        reuseItems: false
+                        hinter.color: Colors.colLayer0
+                        _model: root.shown
+
+                        delegate: StoreItem {
+                            grid: gridView
+                        }
+                    }
+
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: Padding.normal
+                        visible: root.shown.length === 0 && !StoreService.loading
+
+                        Symbol {
+                            Layout.alignment: Qt.AlignHCenter
+                            icon: StoreService.error ? "cloud_off" : "extension_off"
+                            iconSize: 40
+                            fill: 1
+                            color: Colors.colOnSurfaceVariant
                         }
 
-                        StyledGridView {
-                            id: gridView
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            clip: true
-                            radius: Rounding.verylarge
-                            cellWidth: 180
-                            cellHeight: 200
-                            reuseItems: false
-                            hinter.color: Colors.colLayer0
-                            _model: svc.cache.items
-
-                            delegate: StoreItem {
-                                grid: gridView
-                            }
-                            onContentYChanged: {
-                                maybeLoadMore();
-                                paintVisible();
-                            }
-                            onContentHeightChanged: {
-                                maybeLoadMore();
-                                paintVisible();
-                            }
-                            onCountChanged: paintVisible()
-
-                            function maybeLoadMore() {
-                                if (contentHeight > 0 && contentY + height >= contentHeight - height * 0.25)
-                                    root.loadMore();
-                            }
-
-                            function paintVisible() {
-                                if (!count || cellHeight <= 0)
-                                    return;
-                                const cols = Math.max(1, Math.round(width / cellWidth));
-                                const rows = Math.ceil(height / cellHeight) + 1;
-                                const first = Math.max(0, Math.floor(contentY / cellHeight)) * cols;
-                                const last = Math.min(count, first + rows * cols);
-                                for (let i = first; i < last; i++) {
-                                    const it = itemAtIndex(i);
-                                    if (it)
-                                        it.loadThumb();
-                                }
-                            }
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: root.emptyText
+                            font: Fonts.request("main", "small")
+                            color: Colors.colOnSurfaceVariant
                         }
 
                         GroupButton {
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.topMargin: Padding.small
-                            visible: svc.cache.hasMore && !root.loading
-                            buttonText: "Load more"
+                            visible: StoreService.error !== ""
+                            baseWidth: 110
+                            baseHeight: 40
+                            buttonText: "Retry"
                             toggled: true
-                            downAction: () => root.loadMore()
+                            downAction: StoreService.refresh()
                         }
                     }
                 }
             }
         }
+
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 2
-            visible: svc.dlActive !== null || svc.dlQueue.length > 0
+            visible: StoreService.installing !== ""
 
             StyledText {
                 Layout.fillWidth: true
@@ -471,13 +287,12 @@ FloatingWindow {
                 font: Fonts.request("main", "verysmall")
                 color: Colors.colOnSurfaceVariant
                 truncate: true
-                text: svc.dlActive ? root.dlText() : svc.dlQueue.length + " queued"
+                text: "Installing " + root.installingName + "..."
             }
-            StyledProgressBar {
-                valueBarHeight: 4
-                valueBarGap: 4
+
+            StyledIndeterminateProgressBar {
                 Layout.fillWidth: true
-                value: svc.dlActive ? svc.dlActive.progress || 0 : 0
+                Layout.preferredHeight: 4
             }
         }
     }
@@ -511,6 +326,7 @@ FloatingWindow {
                         radius: 2
                         color: root.noteColor(modelData.status)
                     }
+
                     StyledText {
                         id: noteText
                         Layout.fillWidth: true
@@ -528,19 +344,22 @@ FloatingWindow {
         z: 9999
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: loading ? 150 + Padding.large : -150
+        anchors.topMargin: StoreService.loading ? 150 + Padding.large : -150
+
         Behavior on anchors.topMargin {
             SAnim {}
         }
-        visible: loading
+
+        visible: StoreService.loading
         implicitSize: 60
-        loading: root.loading
+        loading: StoreService.loading
     }
 
     StyledRect {
         anchors.fill: parent
         visible: root.previewItem !== null
         color: Colors.t(Colors.colScrim, 60)
+        z: 100
 
         MouseArea {
             anchors.fill: parent
@@ -553,6 +372,10 @@ FloatingWindow {
             anchors.centerIn: parent
             radius: Rounding.huge
             color: Colors.colSurfaceContainer
+
+            MouseArea {
+                anchors.fill: parent
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -570,6 +393,7 @@ FloatingWindow {
                         color: Colors.colOnSurface
                         wrapMode: Text.Wrap
                     }
+
                     GroupButtonWithIcon {
                         baseSize: 32
                         materialIcon: "close"
@@ -577,22 +401,52 @@ FloatingWindow {
                         onClicked: root.previewItem = null
                     }
                 }
-                CroppedImage {
+
+                StyledRect {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    clip: true
+                    color: Colors.colLayer1
                     radius: Rounding.large
-                    source: root.previewPath
-                    fillMode: Image.PreserveAspectFit
+                    clip: true
+
+                    Symbol {
+                        anchors.centerIn: parent
+                        icon: root.previewItem && root.previewItem.icon ? root.previewItem.icon : "extension"
+                        iconSize: 64
+                        fill: 1
+                        color: Colors.colOnLayer1
+                    }
+
+                    CroppedImage {
+                        anchors.fill: parent
+                        radius: Rounding.large
+                        source: root.previewItem ? (root.previewItem.preview || "") : ""
+                    }
                 }
-                GroupButtonWithIcon {
-                    Layout.alignment: Qt.AlignHCenter
-                    baseSize: 40
-                    materialIcon: "download"
-                    toggled: true
-                    onClicked: {
-                        root.installItem(root.previewItem);
-                        root.previewItem = null;
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Padding.small
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: root.previewMeta
+                        font: Fonts.request("main", "verysmall")
+                        color: Colors.colOnSurfaceVariant
+                        truncate: true
+                    }
+
+                    GroupButtonWithIcon {
+                        baseSize: 40
+                        materialIcon: root.previewItem && root.previewItem.installed ? "check" : "download"
+                        toggled: true
+                        enabled: root.previewItem && !root.previewItem.installed
+                            && StoreService.installing === ""
+                        onClicked: {
+                            if (root.previewItem && !root.previewItem.installed)
+                                root.installItem(root.previewItem);
+                            root.previewItem = null;
+                        }
                     }
                 }
             }
@@ -603,27 +457,6 @@ FloatingWindow {
         property Item grid: null
         required property var modelData
         required property int index
-        property string thumb: ""
-        property bool thumbAsked: false
-
-        function loadThumb() {
-            if (thumbAsked)
-                return;
-            thumbAsked = true;
-            const item = modelData;
-            const id = item ? item.id : null;
-            if (id)
-                svc.contentPreview(root.selectedProvider, id, item.previews || [], "small", (res, err) => {
-                    if (!err && res && res.path && modelData && modelData.id === id)
-                        thumb = res.path;
-                });
-        }
-        onModelDataChanged: {
-            thumb = "";
-            thumbAsked = false;
-            if (grid)
-                grid.paintVisible();
-        }
 
         width: grid?.cellWidth - Padding.normal
         height: grid?.cellHeight - Padding.normal
@@ -642,22 +475,28 @@ FloatingWindow {
 
                 MouseArea {
                     anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: root.previewItem = modelData
                 }
 
                 StyledImage {
+                    id: previewImage
                     z: 1
                     mipmap: false
                     anchors.fill: parent
-                    source: thumb
+                    source: modelData && modelData.preview ? modelData.preview : ""
+                    asynchronous: true
                     fillMode: Image.PreserveAspectCrop
+                    visible: status === Image.Ready
                 }
 
                 Symbol {
                     anchors.centerIn: parent
                     z: 0
-                    visible: thumb === ""
-                    icon: modelData?.icon || svc.typeIcon(modelData?.typeName) || "image"
+                    visible: !(modelData && modelData.preview) || previewImage.status !== Image.Ready
+                    icon: modelData?.icon
+                        || StoreService.groupIcon(modelData ? modelData.group : "")
+                        || "image"
                     iconSize: 32
                     fill: 1
                     color: Colors.colOnLayer1
@@ -672,11 +511,12 @@ FloatingWindow {
                     implicitWidth: badgeText.implicitWidth + Padding.normal * 2
                     radius: Rounding.full
                     color: Colors.colSecondaryContainer
-                    visible: root.isStatic() && (modelData && modelData.typeId || "") !== ""
+                    visible: (modelData?.group ?? "") !== ""
+
                     StyledText {
                         id: badgeText
                         anchors.centerIn: parent
-                        text: modelData?.typeId ?? ""
+                        text: modelData?.group ?? ""
                         font: Fonts.request("main", "verysmall")
                         color: Colors.colOnSecondaryContainer
                     }
@@ -719,9 +559,12 @@ FloatingWindow {
 
                             StyledText {
                                 Layout.fillWidth: true
-                                text: modelData?.installed ? "Installed" : modelData?.downloadsCount ?? 0
+                                text: modelData?.installed
+                                    ? "Installed"
+                                    : (modelData?.maintainer || modelData?.group || "")
                                 font: Fonts.request("main", "verysmall")
                                 color: Colors.colOnSurfaceVariant
+                                truncate: true
                             }
                         }
                     }
@@ -729,8 +572,10 @@ FloatingWindow {
                     GroupButtonWithIcon {
                         baseSize: 32
                         Layout.rightMargin: 6
+                        visible: modelData && !modelData.installed
                         materialIcon: "download"
                         toggled: true
+                        enabled: modelData && StoreService.installing === ""
                         onClicked: root.installItem(modelData)
                     }
                 }

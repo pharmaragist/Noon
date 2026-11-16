@@ -13,7 +13,7 @@ NpcHandler {
 
     //* trigger_first_run — induce first run actions (create directories, default states, ..etc).
     function trigger_first_run() {
-        FirstRunService.init(true)
+        FirstRunService.init(true);
     }
 
     //* reload — hot-reload shell in place.
@@ -216,4 +216,10 @@ NpcHandler {
     function install_pkg(name: string) {
         PackagesService.install(name);
     }
+
+    //* gen_opencode_tools — generates agent tools for opencode from ipc .
+    function gen_opencode_tools() {
+        Harness.runToolsHelper(Paths.shellDir)
+    }
+
 }

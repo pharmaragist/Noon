@@ -13,9 +13,8 @@ StyledPanel {
     readonly property string pos: BarData.position
     readonly property int maxChunkWidth: 250
 
-    name: "bar"
-    shell: "noon"
-    implicitHeight: barHeight + 100
+    name: "blurred_layer"
+     implicitHeight: barHeight + 100
     exclusiveZone: barHeight + Sizes.elevationMargin
     anchors.top: pos === "top"
     anchors.bottom: pos === "bottom"

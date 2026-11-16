@@ -5,18 +5,9 @@ import qs.common
 import qs.common.widgets
 import qs.services
 
-StyledPanel {
+OsdPanel {
     id: panelRoot
-    name: "fade_layer"
 
-    property real value
-    property string icon
-    property var targetScreen
-
-    signal valueModified(real newValue)
-    signal interactionStarted
-    signal interactionEnded
-    visible:true
     anchors {
         top: true
         left: true

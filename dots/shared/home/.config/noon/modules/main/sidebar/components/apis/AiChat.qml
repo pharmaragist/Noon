@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt.labs.qmlmodels
 import Quickshell
 import qs.services
 import qs.common
@@ -73,11 +74,78 @@ SidebarItemContainer {
             description: qsTr("Send LaTeX test messages"),
             execute: () => {
                 Harness.clearMessages();
-                const tests = ["Inline: $$E = mc^2$$", "Quadratic: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$", "Integral: $$\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)$$", "Matrix: $$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$", "Summation: $$\\sum_{k=1}^{n} \\frac{1}{k} \\approx \\ln(n) + \\gamma$$", "Greek: $$\\alpha \\beta \\gamma \\delta \\epsilon \\theta \\pi \\sigma \\omega \\phi \\psi \\mu$$", "Limit: $$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$$", "Trig: $$\\sin^2 \\theta + \\cos^2 \\theta = 1$$", "Nested fraction: $$\\frac{1 + \\frac{1}{x}}{1 - \\frac{1}{x}}$$", "Piecewise: $$f(x) = \\begin{cases} x^2 & x \\ge 0 \\\\ -x & x < 0 \\end{cases}$$", "Decorations: $$\\hat{a} \\; \\bar{b} \\; \\vec{c} \\; \\dot{d} \\; \\ddot{e}$$", "Binomial: $$\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$$", "Text in math: $$\\text{area} = \\pi r^2 \\quad \\text{for } r \\ge 0$$", "Set builder: $$\\{ x \\in \\mathbb{R} \\mid |x| < 1 \\}$$",];
+                const tests = [
+                    "Inline: $$E = mc^2$$",
+                    "Quadratic: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$",
+                    "Integral: $$\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)$$",
+                    "Matrix: $$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$",
+                    "Summation: $$\\sum_{k=1}^{n} \\frac{1}{k} \\approx \\ln(n) + \\gamma$$",
+                    "Greek: $$\\alpha \\beta \\gamma \\delta \\epsilon \\theta \\pi \\sigma \\omega \\phi \\psi \\mu$$",
+                    "Limit: $$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$$",
+                    "Trig: $$\\sin^2 \\theta + \\cos^2 \\theta = 1$$",
+                    "Nested fraction: $$\\frac{1 + \\frac{1}{x}}{1 - \\frac{1}{x}}$$",
+                    "Piecewise: $$f(x) = \\begin{cases} x^2 & x \\ge 0 \\\\ -x & x < 0 \\end{cases}$$",
+                    "Decorations: $$\\hat{a} \\; \\bar{b} \\; \\vec{c} \\; \\dot{d} \\; \\ddot{e}$$",
+                    "Binomial: $$\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$$",
+                    "Text in math: $$\\text{area} = \\pi r^2 \\quad \\text{for } r \\ge 0$$",
+                    "Set builder: $$\\{ x \\in \\mathbb{R} \\mid |x| < 1 \\}$$"
+                ];
                 tests.forEach(t => Harness.addMessage(t, "ai"));
             }
         }
     ]
+
+    function sendText(text) {
+        const trimmed = text.trim();
+        const paths = Harness._pendingAnnotations.map(u => u.replace(/^file:\/\//, ""));
+        const payload = paths.length > 0
+            ? (trimmed.length > 0 ? trimmed + "\n\nAttachments:\n" + paths.join("\n") : paths.join("\n"))
+            : text;
+
+        utils.sendText(payload);
+        Harness.clearAnnotations();
+    }
+
+    function updateSuggestions() {
+        utils.updateSuggestions();
+    }
+
+    function handleInputKeyPress(event) {
+        if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !(event.modifiers & Qt.ShiftModifier)) {
+            if (suggestions.visible) {
+                utils.handleInputKeyPress(event);
+                return;
+            }
+            if (messageInputField.text.trim().length > 0 || Harness._pendingAnnotations.length > 0) {
+                const text = messageInputField.text;
+                messageInputField.clear();
+                root.sendText(text);
+                event.accepted = true;
+                return;
+            }
+        }
+        utils.handleInputKeyPress(event);
+    }
+
+    function tryPasteAttachment() {
+        const clip = (Quickshell.clipboardText ?? "").trim();
+        if (clip.includes("file://")) {
+            const lines = clip.split(/\r?\n/).map(s => s.trim()).filter(s => s.startsWith("file://"));
+            return Harness.addAnnotations(lines);
+        }
+
+        const isCliphistBinary = /^\[\[ binary data .+ \]\]$/.test(clip);
+        const top = ClipboardService.entries[0];
+        if ((clip.length === 0 || isCliphistBinary) && top?.isImage) {
+            const imgUri = ClipboardService.latestImageUri();
+            if (imgUri.length > 0)
+                return Harness.addAnnotations([imgUri]);
+        }
+
+        return false;
+    }
+
+    Keys.onPressed: event => utils.handleGlobalKey(event)
 
     ChatUtils {
         id: utils
@@ -89,24 +157,21 @@ SidebarItemContainer {
         onExpandRequested: root.expandRequested()
     }
 
-    function sendText(text) {
-        utils.sendText(text);
-    }
-
-    function updateSuggestions() {
-        utils.updateSuggestions();
-    }
-
-    function handleInputKeyPress(event) {
-        utils.handleInputKeyPress(event);
-    }
-
-    Keys.onPressed: event => utils.handleGlobalKey(event)
-
     Connections {
         target: Harness
         function onPermissionAsked(title) {
             utils.notifyPermissionAsked(title);
+        }
+    }
+
+    DropArea {
+        id: dropArea
+        anchors.fill: parent
+        keys: ["text/uri-list"]
+        onDropped: drop => {
+            if (drop.hasUrls && !Harness.addAnnotations(drop.urls)) {
+                messageInputField.text += " " + drop.urls.join(" ");
+            }
         }
     }
 
@@ -123,11 +188,13 @@ SidebarItemContainer {
         DescriptionBox {
             text: utils.suggestionList[suggestions.selectedIndex]?.description ?? ""
             showArrows: utils.suggestionList.length > 1
-            pageText: utils.suggestionList.length > suggestions.pageSize ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, utils.suggestionList.length)}/${utils.suggestionList.length}` : ""
+            pageText: utils.suggestionList.length > suggestions.pageSize
+                ? `${suggestions.pageOffset + 1}-${Math.min(suggestions.pageOffset + suggestions.pageSize, utils.suggestionList.length)}/${utils.suggestionList.length}`
+                : ""
         }
 
         LayerRect {
-            colBackground: messageInputField.focus ? Colors.colLayer3 : Colors.colLayer2
+            colBackground: dropArea.containsDrag ? Colors.colLayer3Active : messageInputField.focus ? Colors.colLayer3 : Colors.colLayer2
             Layout.fillWidth: true
             radius: Rounding.huge
             implicitHeight: Math.max(inputAreaCol.implicitHeight + Padding.huge, 45)
@@ -136,7 +203,6 @@ SidebarItemContainer {
             ColumnLayout {
                 id: inputAreaCol
                 spacing: Padding.huge
-
                 anchors {
                     fill: parent
                     margins: Padding.normal
@@ -150,12 +216,13 @@ SidebarItemContainer {
                     visible: Harness.pendingPermission !== null
 
                     RowLayout {
-                        anchors.fill: parent
-
-                        anchors.leftMargin: Padding.huge
-                        anchors.rightMargin: Padding.large
-
-                        anchors.margins: Padding.normal
+                        anchors {
+                            fill: parent
+                            topMargin: Padding.normal
+                            bottomMargin: Padding.normal
+                            leftMargin: Padding.huge
+                            rightMargin: Padding.large
+                        }
                         spacing: Padding.small
 
                         Symbol {
@@ -172,12 +239,14 @@ SidebarItemContainer {
                             font: Fonts.request("main", "normal")
                             color: Colors.colOnSecondaryContainer
                         }
+
                         RippleButtonWithIcon {
                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                             implicitSize: 34
                             materialIcon: "close"
                             downAction: () => Harness.answerPending(false)
                         }
+
                         RippleButtonWithIcon {
                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                             toggled: true
@@ -185,6 +254,7 @@ SidebarItemContainer {
                             materialIcon: "check"
                             downAction: () => Harness.answerPending(true)
                         }
+
                         RippleButtonWithIcon {
                             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                             implicitSize: 34
@@ -196,6 +266,135 @@ SidebarItemContainer {
                     }
                 }
 
+                StyledRect {
+                    id: annotationsArea
+                    readonly property bool hasAttachments: Harness._pendingAnnotations.length > 0
+
+                    radius: Rounding.large
+                    color: Colors.colLayer2
+                    Layout.fillWidth: true
+                    implicitHeight: hasAttachments ? 75 : 0
+                    opacity: hasAttachments ? 1 : 0
+                    visible: implicitHeight > 0
+                    clip: true
+                    bouncy: false
+
+                    ScrollEdgeFade {
+                        target: annotationsList
+                        color: Colors.colLayer3
+                    }
+
+                    ListView {
+                        id: annotationsList
+                        anchors.fill: parent
+                        anchors.margins: Padding.small
+                        orientation: ListView.Horizontal
+                        spacing: Padding.small
+                        model: ScriptModel {
+                            values: Harness._pendingAnnotations.map(uri => {
+                                const ext = FileUtils.getEscapedFileExtension(uri).toLowerCase();
+                                return {
+                                    uri: uri,
+                                    extension: ext,
+                                    isImage: ["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "avif"].includes(ext)
+                                };
+                            })
+                        }
+                        delegate: DelegateChooser {
+                            role: "isImage"
+
+                            DelegateChoice {
+                                roleValue: true
+                                AttachmentShell {
+                                    required property var modelData
+                                    implicitWidth: 75
+                                    uri: modelData.uri
+
+                                    Image {
+                                        id: thumb
+                                        anchors.fill: parent
+                                        source: modelData.uri
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        cache: false
+                                        sourceSize.width: 150
+                                        sourceSize.height: 150
+
+                                        Timer {
+                                            interval: 120
+                                            repeat: true
+                                            running: thumb.status === Image.Error || thumb.status === Image.Null
+                                            property int attempts: 0
+                                            onTriggered: {
+                                                if (++attempts > 15) {
+                                                    stop();
+                                                    return;
+                                                }
+                                                const src = thumb.source;
+                                                thumb.source = "";
+                                                thumb.source = src;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            DelegateChoice {
+                                roleValue: false
+                                AttachmentShell {
+                                    required property var modelData
+                                    implicitWidth: 200
+                                    uri: modelData.uri
+
+                                    RowLayout {
+                                        anchors {
+                                            fill: parent
+                                            topMargin: Padding.tiny
+                                            bottomMargin: Padding.tiny
+                                            leftMargin: Padding.large
+                                            rightMargin: Padding.large
+                                        }
+                                        spacing: Padding.large
+
+                                        Rectangle {
+                                            width: 45
+                                            height: 45
+                                            color: Colors.colSecondaryContainer
+                                            radius: Rounding.small
+
+                                            Symbol {
+                                                anchors.centerIn: parent
+                                                icon: "folder"
+                                                iconSize: 24
+                                                color: Colors.colOnSecondaryContainer
+                                            }
+                                        }
+
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+
+                                            StyledText {
+                                                Layout.fillWidth: true
+                                                text: FileUtils.getEscapedFileName(modelData.uri)
+                                                font: Fonts.request("title", "small")
+                                                color: Colors.colOnLayer3
+                                                truncate: true
+                                            }
+
+                                            StyledText {
+                                                Layout.fillWidth: true
+                                                text: modelData.extension
+                                                font: Fonts.request("normal", "small")
+                                                color: Colors.colSubtext
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 FlowButtonGroup {
                     id: suggestions
                     visible: utils.suggestionList.length > 0 && messageInputField.text.length > 0
@@ -203,7 +402,6 @@ SidebarItemContainer {
                     property int pageSize: 10
                     property int pageOffset: 0
                     Layout.fillWidth: true
-
                     spacing: Padding.normal
                     Layout.topMargin: Padding.normal
                     Layout.leftMargin: Padding.small
@@ -263,14 +461,32 @@ SidebarItemContainer {
                             }
                             root.updateSuggestions();
                         }
-                        Keys.onPressed: event => root.handleInputKeyPress(event)
+                        Keys.onPressed: event => {
+                            if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_V) {
+                                if (root.tryPasteAttachment()) {
+                                    event.accepted = true;
+                                    return;
+                                }
+                            }
+                            root.handleInputKeyPress(event);
+                        }
+                    }
+
+                    RippleButtonWithIcon {
+                        materialIcon: "crop_free"
+                        implicitSize: 35
+                        Layout.rightMargin: 4
+                        buttonRadius: Rounding.large
+                        colBackground: "transparent"
+                        onClicked: Harness.captureWindowAnnotation()
                     }
 
                     Item {
                         id: sendButton
                         implicitHeight: 50
                         implicitWidth: 50
-                        readonly property bool toggled: Harness.isResponding || messageInputField.text.length > 0
+                        readonly property bool hasContent: messageInputField.text.length > 0 || Harness._pendingAnnotations.length > 0
+                        readonly property bool toggled: Harness.isResponding || hasContent
 
                         SequentialAnimation {
                             loops: Animation.Infinite
@@ -295,7 +511,7 @@ SidebarItemContainer {
                             implicitSize: 38
                             anchors.centerIn: parent
                             shape: {
-                                if (!Harness.isResponding && messageInputField.text.length === 0)
+                                if (!Harness.isResponding && !sendButton.hasContent)
                                     return MaterialShape.Shape.Cookie6Sided;
                                 if (Harness.isResponding)
                                     return MaterialShape.Shape.Cookie12Sided;
@@ -310,7 +526,7 @@ SidebarItemContainer {
 
                         Symbol {
                             text: {
-                                if (!Harness.isResponding && messageInputField.text.length === 0)
+                                if (!Harness.isResponding && !sendButton.hasContent)
                                     return "mic";
                                 if (Harness.isResponding)
                                     return "stop";
@@ -331,7 +547,7 @@ SidebarItemContainer {
                             onClicked: {
                                 if (Harness.isResponding) {
                                     Harness.stop();
-                                } else if (messageInputField.text.length > 0) {
+                                } else if (sendButton.hasContent) {
                                     const text = messageInputField.text;
                                     messageInputField.clear();
                                     root.sendText(text);
@@ -341,6 +557,35 @@ SidebarItemContainer {
                     }
                 }
             }
+        }
+    }
+
+    component AttachmentShell: Item {
+        id: shell
+        required property string uri
+        default property alias content: body.data
+
+        anchors.top: parent?.top
+        anchors.bottom: parent?.bottom
+
+        RippleButtonWithIcon {
+            z: 2
+            implicitSize: 26
+            layerNumber: 2
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: -Padding.small
+            materialIcon: "close"
+            releaseAction: () => Harness.removeAnnotation(shell.uri)
+        }
+
+        StyledRect {
+            id: body
+            z: 1
+            color: Colors.colLayer3
+            radius: Rounding.normal
+            anchors.fill: parent
+            clip: true
         }
     }
 }

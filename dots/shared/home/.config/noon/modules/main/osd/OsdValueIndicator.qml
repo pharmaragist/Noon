@@ -6,7 +6,6 @@ import qs.services
 
 StyledLoader {
     id: root
-    asynchronous: true
     source: sanitizeSource("variants/", currentVariant)
     property bool volumeMode: false
     required property real value

@@ -44,6 +44,10 @@ ColumnLayout {
                 const formula = p.slice(2, -2).trim();
                 if (formula) {
                     const [hash, ready] = LatexService.requestRender(formula);
+                    if (!hash) {
+                        result += `$$${formula}$$`;
+                        continue;
+                    }
                     const imagePath = `${LatexService.latexOutputPath}/${hash}.png`;
                     if (_formulaMap[hash] !== undefined) {
                         result += `![formula](${_formulaMap[hash]})`;

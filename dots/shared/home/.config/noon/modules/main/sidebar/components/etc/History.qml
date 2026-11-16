@@ -15,7 +15,7 @@ SidebarItemContainer {
         }
     }
 
-    
+
     ScriptModel {
         id: filteredModel
         values: {
@@ -33,7 +33,9 @@ SidebarItemContainer {
 
     StyledListView {
         id: listView
-        hint: false
+        hint: true
+        hinter.anchors.margins: - Padding.large
+        hinter.color: Colors.colLayer1
         anchors.margins: Padding.large
         anchors.fill: parent
         animateAppearance: true
@@ -50,20 +52,22 @@ SidebarItemContainer {
             id: loader
             required property int index
             required property var modelData
+            readonly property bool isSelected: listView.currentIndex === index
 
-            width: listView.width
+            anchors.left: parent?.left
+            anchors.right: parent?.right
+
             height: modelData.isImage ? 140 : 70
 
             sourceComponent: modelData.isImage ? imageDelegate : textDelegate
 
-            property bool isSelected: listView.currentIndex === index
             binds: ({
                 itemData: () => modelData,
-                selected: () => loader.isSelected
+                selected: () => this.isSelected
             })
         }
 
-        
+
         Component {
             id: imageDelegate
 
@@ -92,7 +96,7 @@ SidebarItemContainer {
                     }
                 }
 
-                
+
                 StyledRect {
                     anchors.fill: parent
                     visible: selected
@@ -123,7 +127,7 @@ SidebarItemContainer {
             }
         }
 
-        
+
         Component {
             id: textDelegate
 
@@ -149,7 +153,7 @@ SidebarItemContainer {
             }
         }
 
-        
+
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Up) {
                 if (currentIndex <= 0) {
@@ -185,12 +189,7 @@ SidebarItemContainer {
             }
         }
     }
-    ScrollEdgeFade {
-        target: listView
-        anchors.fill: parent
-    }
 
-    
     PagePlaceholder {
         shown: listView.count === 0
         title: root.searchQuery ? qsTr("No matches found") : qsTr("Clipboard is empty")

@@ -14,7 +14,7 @@ Item {
     readonly property string widgetsPath: "../widgets/"
     readonly property QtObject wData: WidgetsData {}
     readonly property var widgetObjects: wData.desktopWidgets
-    readonly property bool rightMode: BarData.position === "right"
+    readonly property bool rightMode: BarData.position === "left"
     anchors.top: parent.top
     anchors.left: !rightMode ? parent.left : undefined
     anchors.right: rightMode ? parent.right : undefined

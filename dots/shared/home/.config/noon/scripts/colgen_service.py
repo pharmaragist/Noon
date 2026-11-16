@@ -7,9 +7,15 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
+
+_original_print = print
+
+
+def print(*args, **kwargs):
+    kwargs.setdefault("file", sys.stderr)
+    _original_print(*args, **kwargs)
 
 XDG_STATE_HOME = os.path.expanduser("~/.local/state")
 CONFIG_FILE = Path(os.path.expanduser("~/.noon/user/looks.json"))
@@ -43,18 +49,6 @@ class WallpaperSwitcher:
             print(f"WARNING: Error loading looks: {e}")
             return dict(self._looks_default)
 
-    def _save_looks(self):
-        try:
-            CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-            with tempfile.NamedTemporaryFile(
-                mode="w", delete=False, suffix=".json", dir=CONFIG_FILE.parent
-            ) as tmp:
-                json.dump(self.looks, tmp, indent=4)
-                tmp_path = Path(tmp.name)
-            shutil.move(tmp_path, CONFIG_FILE)
-        except Exception as e:
-            print(f"ERROR: Failed to save looks: {e}")
-
     def get_current_shell_mode(self):
         mode = self.looks.get("mode", "dark")
         return mode if mode in ("dark", "light") else "dark"
@@ -86,15 +80,12 @@ class WallpaperSwitcher:
     def set_shell_mode(self, mode):
         if mode in ("dark", "light"):
             self.looks["mode"] = mode
-            self._save_looks()
 
     def set_is_bright(self, is_bright):
         self.looks["isBright"] = bool(is_bright)
-        self._save_looks()
 
     def set_is_live(self, is_live):
         self.looks["isLive"] = bool(is_live)
-        self._save_looks()
 
     def toggle_shell_mode(self):
         new_mode = "light" if self.get_current_shell_mode() == "dark" else "dark"
@@ -110,7 +101,6 @@ class WallpaperSwitcher:
             self.looks["isBright"] = bool(is_bright)
         if is_live is not None:
             self.looks["isLive"] = bool(is_live)
-        self._save_looks()
 
     def shell_run(self, cmd, capture_output=False):
         try:
@@ -142,7 +132,6 @@ class WallpaperSwitcher:
             return False
 
         self.looks["extractedColor"] = color
-        self._save_looks()
 
         if shutil.which("matugen"):
             cmd = f"matugen color hex {color} --mode {shell_mode} --continue-on-error"
@@ -357,12 +346,12 @@ class WallpaperSwitcher:
         palette_file = Path(path)
         if not palette_file.is_file():
             print(f"ERROR: Palette not found: {palette_file}")
-            return False
+            return {"ok": False, "error": f"Palette not found: {palette_file}"}
 
         current_mode = mode or self.get_current_shell_mode()
         if not shutil.which("matugen"):
             print("ERROR: matugen not found")
-            return False
+            return {"ok": False, "error": "matugen not found"}
 
         cmd = f"matugen json {shlex.quote(str(palette_file))} --mode {current_mode}"
         cmd += " >/dev/null 2>&1"
@@ -370,13 +359,13 @@ class WallpaperSwitcher:
 
         self.set_shell_mode(current_mode)
         self.setup_gnome_theme(current_mode)
-        return True
+        return {"ok": True, "command": "json", "mode": current_mode}
 
     def handle_set(self, file_path, mode=None, scheme=None):
         path = Path(file_path)
         if not path.is_file():
             print(f"ERROR: File not found: {path}")
-            return False
+            return {"ok": False, "error": f"File not found: {path}"}
 
         is_vid = self.is_video(path)
         color_source = path
@@ -389,14 +378,14 @@ class WallpaperSwitcher:
 
         if not self.is_image(color_source):
             print(f"ERROR: Color source is not a valid image: {color_source}")
-            return False
+            return {"ok": False, "error": f"Color source is not a valid image: {color_source}"}
 
         hex_color, suggested_mode, is_bright, suggested_scheme = (
             self.extract_image_info(str(color_source))
         )
         if not hex_color:
             print("ERROR: Could not extract color from image")
-            return False
+            return {"ok": False, "error": "Could not extract color from image"}
 
         if mode in ("dark", "light"):
             current_mode = mode
@@ -423,13 +412,21 @@ class WallpaperSwitcher:
             current_mode, current_scheme, is_bright=is_bright, is_live=is_vid
         )
         self.setup_gnome_theme(current_mode)
-        return True
+        return {
+            "ok": True,
+            "command": "set",
+            "color": hex_color,
+            "mode": current_mode,
+            "scheme": current_scheme,
+            "isBright": bool(is_bright),
+            "isLive": bool(is_vid),
+        }
 
     def handle_color(self, hex_color, mode=None, scheme=None):
         hex_color = hex_color.lstrip("#")
         if not re.match(r"^[A-Fa-f0-9]{6}$", hex_color):
             print("ERROR: Invalid colour format (use #RRGGBB or RRGGBB)")
-            return False
+            return {"ok": False, "error": "Invalid colour format (use #RRGGBB or RRGGBB)"}
 
         current_mode = self.get_effective_shell_mode(requested_mode=mode)
         current_scheme = self.get_effective_color_scheme(requested_scheme=scheme)
@@ -441,7 +438,15 @@ class WallpaperSwitcher:
             current_mode, current_scheme, is_bright=False, is_live=False
         )
         self.setup_gnome_theme(current_mode)
-        return True
+        return {
+            "ok": True,
+            "command": "color",
+            "color": hex_color,
+            "mode": current_mode,
+            "scheme": current_scheme,
+            "isBright": False,
+            "isLive": False,
+        }
 
     def handle_mode(self, mode):
         if mode == "toggle":
@@ -450,26 +455,31 @@ class WallpaperSwitcher:
             self.set_shell_mode(mode)
         else:
             print(f"ERROR: Invalid mode '{mode}'. Use dark, light, or toggle")
-            return False
+            return {"ok": False, "error": f"Invalid mode '{mode}'. Use dark, light, or toggle"}
 
         new_mode = self.get_current_shell_mode()
         color = self.looks.get("extractedColor", "")
         if color:
             self.apply_colors(color=color, mode=new_mode)
         self.setup_gnome_theme(new_mode)
-        return True
+        return {
+            "ok": True,
+            "command": "mode",
+            "mode": new_mode,
+            "color": color,
+        }
 
     def handle_choose(self, mode=None, scheme=None):
         file_path = self.pick_file()
         if not file_path or not Path(file_path).is_file():
             print("ERROR: No file selected")
-            return False
+            return {"ok": False, "error": "No file selected"}
         return self.handle_set(file_path, mode=mode, scheme=scheme)
 
     def handle_pick(self):
         color = self.pick_color()
         if not color:
-            return False
+            return {"ok": False, "error": "No color selected"}
         return self.handle_color(color)
 
 
@@ -517,6 +527,8 @@ def main():
             switcher.handle_choose(mode=args.mode, scheme=args.scheme)
         elif args.command == "pick":
             switcher.handle_pick()
+        else:
+            print(f"ERROR: Unknown command: {args.command}")
     except KeyboardInterrupt:
         print("\nInterrupted by user")
         sys.exit(130)
@@ -524,6 +536,8 @@ def main():
         print(f"ERROR: Fatal error: {e}")
         sys.exit(1)
 
+    sys.stdout.write(json.dumps(switcher.looks) + "\n")
+    sys.stdout.flush()
 
 if __name__ == "__main__":
     main()

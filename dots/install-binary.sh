@@ -2,10 +2,12 @@
 set -euo pipefail
 
 DESTDIR="${DESTDIR:-}"
+BIN_DIR="${DESTDIR}/usr/local/bin"
 
-cat > "$DESTDIR/usr/local/bin/noon" <<'EOF'
+install -d "$BIN_DIR"
+cat > "$BIN_DIR/noon" <<'EOF'
 #!/bin/sh
 QS_CONFIG="${SHELL_PATH:-$HOME/.config/noon}"
 exec qs -c "$QS_CONFIG" "$@"
 EOF
-chmod 755 "$DESTDIR/usr/local/bin/noon"
+chmod 755 "$BIN_DIR/noon"

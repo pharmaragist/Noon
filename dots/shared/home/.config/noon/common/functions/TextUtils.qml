@@ -10,8 +10,9 @@ Singleton {
     }
 
     function getDomain(url) {
-        const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/]+)/);
-        return match ? match[1] : null;
+        if (!url) return "";
+        const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^\/:?#]+)/);
+        return match ? match[1] : "";
     }
 
     function getBaseUrl(url) {

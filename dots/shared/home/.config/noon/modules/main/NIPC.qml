@@ -82,6 +82,10 @@ Scope {
         function swap_bar_position() {
             BarData.swapPosition();
         }
+        //* Pin/unpin beam so it stays visible.
+        function toggle_beam_pin() {
+            Globals.main.beam.pinned = !Globals.main.beam.pinned
+        }
         //* Pin/unpin the dock so it stays visible.
         function toggle_dock_pin() {
             Mem.states.dock.pinned = !Mem.states.dock.pinned;

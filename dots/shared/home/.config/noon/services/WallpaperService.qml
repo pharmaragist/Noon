@@ -10,6 +10,20 @@ Singleton {
     id: root
 
     property var thumbnailsData: ({})
+    property bool fgReady: false
+    property string lastPositionedFg: ""
+    readonly property bool depthMode: Mem.options.desktop.bg.depthMode
+    readonly property bool autoProcessFg: Mem.options.desktop.bg.autoProcessFg
+    readonly property string currentWallpaper: Mem?.looks?.currentBg ?? Qt.resolvedUrl(Paths.wallpapers.defaultBg)
+    readonly property string currentFgPath: getFgPathOf(currentWallpaper)
+    readonly property string currentFolderPath: Mem.looks.currentFolder
+
+    property bool wallpaperFolderSlash: false
+    property int wallpaperRevision: 0
+    readonly property string wallpaperFolder: {
+        const base = String(root.currentFolderPath).replace(/\/+$/, "");
+        return base + (root.wallpaperFolderSlash ? "/" : "");
+    }
     readonly property var availableShaders: {
         const shaders = [];
         for (let i = 0; i < shaderModel.count; i++) {
@@ -19,13 +33,6 @@ Singleton {
         }
         return shaders;
     }
-    readonly property bool fgReady: Paths.methods.exists(currentFgPath)
-    readonly property string currentWallpaper: Mem.looks.currentBg ?? Qt.resolvedUrl(Paths.wallpapers.defaultBg)
-    readonly property string currentFgPath: getFgPathOf(currentWallpaper)
-    readonly property string currentFolderPath: Mem.looks.currentFolder
-    readonly property bool isBright: Mem.looks.isBright
-
-    readonly property Process mainProc: Process {}
     readonly property Process thumbnailGenerator: Process {}
     readonly property FolderListModel shaderModel: FolderListModel {
         folder: Qt.resolvedUrl(Paths.wallpapers.shaders)
@@ -35,12 +42,17 @@ Singleton {
         sortField: FolderListModel.Name
     }
     readonly property FolderListModel wallpaperModel: FolderListModel {
-        folder: currentFolderPath
+        folder: root.wallpaperFolder
         nameFilters: [...NameFilters.picture, ...NameFilters.video]
         showDirs: false
         showFiles: true
-        sortField: FolderListModel.Time
+        sortField: FolderListModel[TextUtils.capitalizeFirstLetter(Mem.options.services.wallpapers.order)]
         onCountChanged: root.generateThumbnails(root.currentFolderPath)
+        onSortFieldChanged: root.wallpaperFolderSlash = !root.wallpaperFolderSlash
+        onStatusChanged: {
+            if (status === FolderListModel.Ready)
+                root.wallpaperRevision++;
+        }
     }
     readonly property FileView thumbsView: FileView {
         watchChanges: true
@@ -56,8 +68,44 @@ Singleton {
         }
     }
 
+    onCurrentWallpaperChanged: Qt.callLater(syncFg)
+
+    Timer {
+        interval: 500
+        repeat: true
+        running: root.depthMode && root.autoProcessFg && !root.fgReady
+        onTriggered: {
+            root.fgReady = Paths.methods.exists(root.currentFgPath);
+            if (root.fgReady)
+                root.autoPosClock();
+        }
+    }
+
+    function syncFg() {
+        if (!Mem.ready)
+            return;
+        root.fgReady = root.depthMode && Paths.methods.exists(root.currentFgPath);
+        if (root.fgReady)
+            autoPosClock();
+        else if (root.depthMode && root.autoProcessFg)
+            GowallService.removeBackground(root.currentWallpaper);
+    }
+
+    function autoPosClock() {
+        if (!root.fgReady || !root.depthMode)
+            return;
+        if (root.currentFgPath === root.lastPositionedFg)
+            return;
+        root.lastPositionedFg = root.currentFgPath;
+        const clock = Mem.states.desktop.clock;
+        const aspect = Math.min(5, Math.max(0.2, Globals.clockAspect || (clock.horizontal ? 1.9 : 0.48)));
+        posProc.running = false;
+        posProc.command = ["python3", Paths.scriptsDir + "/position_clock.py", clean(currentFgPath), String(aspect)];
+        posProc.running = true;
+    }
+
     function getFgPathOf(fileUrl) {
-        return clean(Paths.wallpapers.depthDir + Qt.md5(clean(fileUrl)) + ".png")
+        return clean(Paths.wallpapers.depthDir + Qt.md5(clean(fileUrl)) + ".png");
     }
 
     function clean(fileUrl) {
@@ -103,7 +151,7 @@ Singleton {
     }
 
     function loadJson(file) {
-        _cmd("json", `${clean(file)}`)
+        _cmd("json", `${clean(file)}`);
     }
 
     function pickAccentColor() {
@@ -128,5 +176,28 @@ Singleton {
     function applyRandomWallpaper() {
         if (wallpaperModel.count > 0)
             applyWallpaper(wallpaperModel.get(Math.floor(Math.random() * wallpaperModel.count), "fileUrl"));
+    }
+
+    Fetcher {
+        id: mainProc
+        autoRun: false
+        mute: true
+        onDataChanged: if (this.data) {
+            const binds = ["mode", "scheme", "isBright", "isLive", "extractedColor"];
+            binds.forEach(i => {
+                if (data[i] !== undefined)
+                    Mem.looks[i] = mainProc.data[i];
+            });
+        }
+    }
+
+    Fetcher {
+        id: posProc
+        onDataChanged: if (this.data) {
+            const binds = ["fitX", "fitY", "fitW", "fitH"];
+            binds.forEach(i => {
+                Mem.states.desktop.clock[i] = posProc.data[i];
+            });
+        }
     }
 }

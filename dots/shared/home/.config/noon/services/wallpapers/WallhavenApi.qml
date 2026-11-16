@@ -43,12 +43,15 @@ QtObject {
 
     function buildUrl(page, query, categoryIndex) {
         const cat = root.categories[categoryIndex];
-        let url = root.endpoint + "?sorting=" + cat.sorting + "&page=" + page + "&categories=110" + "&purity=100";
+        let url = root.endpoint + "?page=" + page + "&categories=110" + "&purity=100";
 
-        if (query)
+        if (query) {
             url += "&q=" + encodeURIComponent(query);
-        if (cat.range)
-            url += "&toplist_range=" + cat.range;
+        } else {
+            url += "&sorting=" + cat.sorting;
+            if (cat.range)
+                url += "&toplist_range=" + cat.range;
+        }
         if (root.apiKey)
             url += "&apikey=" + root.apiKey;
 

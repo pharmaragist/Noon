@@ -6,7 +6,7 @@ JsonAdapter {
     property bool autoSchemeSelection: false
     property bool autoShellMode: false
     property string mode: "dark"
-    property string scheme: "scheme-rainbow"
+    property string scheme: "scheme-tonal-spot"
     property string extractedColor: "808080"
     property bool isLive: true
     property bool isBright: false

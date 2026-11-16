@@ -18,7 +18,7 @@ Item {
     readonly property string deviceName: {
         if (!device)
             return "Unknown Device";
-        return device.friendlyName || device.remoteName || device.name || device.address || "Unknown Device";
+        return device.deviceName || device.name || device.address || "Unknown Device";
     }
 
     readonly property var deviceInfo: {
@@ -43,7 +43,7 @@ Item {
             }
         ];
 
-        const str = ((device.name || device.remoteName || "") + " " + (device.icon || "")).toLowerCase();
+        const str = ((device.name || device.deviceName || "") + " " + (device.icon || "")).toLowerCase();
         return table.find(cat => cat.candidates.some(i => str.includes(i))) ?? null;
     }
 
