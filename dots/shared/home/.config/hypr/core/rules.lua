@@ -6,9 +6,15 @@ local function anchored(pattern)
 end
 
 hl.window_rule({
-    name = "global",
+    name = "overrides",
     match = { class = "^(?!(kitty|dolphin|foot|ghostty)$)(.*)" },
-    no_blur = true,
+    no_blur = unblur_apps,
+})
+
+hl.window_rule({
+    name = "global",
+    match = { class = "^.*" },
+    no_blur = unblur_apps,
 })
 
 hl.window_rule({
@@ -76,8 +82,7 @@ for _, app in ipairs(floating_apps) do
         float = true,
         size = app.size,
         center = app.center,
-        move = app.move,
-        animation = "none",
+        move = app.move
     })
 end
 

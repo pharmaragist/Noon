@@ -3,11 +3,15 @@ import Quickshell.Io
 
 Process {
     property var callback
+    property string output: ""
 
     stdout: StdioCollector {
-        onStreamFinished: {
-            callback(text.trim());
-            destroy();
-        }
+        onStreamFinished: output = text.trim()
+    }
+
+    onExited: {
+        if (callback)
+            callback(output);
+        destroy();
     }
 }

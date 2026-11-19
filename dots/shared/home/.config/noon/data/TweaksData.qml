@@ -32,7 +32,7 @@ QtObject {
                     "hint": "Global rounding scale for all shell widgets",
                     "key": "appearance.rounding.preset",
                     "type": "combobox",
-                    "values": Object.keys(Rounding.presets),
+                    "values": Object.keys(Rounding.presets)
                 },
                 {
                     "icon": "rounded_corner",
@@ -189,6 +189,13 @@ QtObject {
                     "name": "Cursor Theme",
                     "type": "widget",
                     "widget": "CursorSelector"
+                },
+                {
+                    "icon": "notifications",
+                    "name": "SoundPack",
+                    "key": "desktop.behavior.sounds.soundPack",
+                    "type": "combobox",
+                    "values": Mem.store.services.sounds.availableSounds.map(i => i.name) ?? []
                 },
                 {
                     "icon": "notifications",

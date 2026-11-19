@@ -62,18 +62,21 @@ StyledPopup {
 
         SectionLabel {
             text: "STORAGE"
-            visible: ResourcesService.stats.disks && ResourcesService.stats.disks.length > 0
+            visible: ResourcesService.watcher.diskCount > 0
         }
 
         Repeater {
-            model: ResourcesService.stats.disks
+            model: ResourcesService.watcher.diskCount
             delegate: ColumnLayout {
+                id: diskItem
+                required property int index
+                readonly property var disk: (ResourcesService.stats.disks ?? [])[index] ?? ({})
                 Layout.fillWidth: true
                 spacing: 2
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: modelData.type.toUpperCase()
+                    text: diskItem.disk.type ? diskItem.disk.type.toUpperCase() : ""
                     color: Colors.m3.m3onSurfaceVariant
                     font: Fonts.request("main", "verysmall", { weight: Font.Medium })
                     elide: Text.ElideMiddle
@@ -81,9 +84,9 @@ StyledPopup {
                 }
 
                 ResourceBar {
-                    title: modelData.mount   
-                    value: modelData.total > 0 ? modelData.used / modelData.total : 0
-                    valueText: (modelData.used / 1073741824).toFixed(1) + " GB / " + (modelData.total / 1073741824).toFixed(1) + " GB"
+                    title: diskItem.disk.mount ?? ""
+                    value: diskItem.disk.total > 0 ? diskItem.disk.used / diskItem.disk.total : 0
+                    valueText: ((diskItem.disk.used ?? 0) / 1073741824).toFixed(1) + " GB / " + ((diskItem.disk.total ?? 0) / 1073741824).toFixed(1) + " GB"
                 }
 
                 Item {
@@ -93,8 +96,11 @@ StyledPopup {
         }
 
         Repeater {
-            model: ResourcesService.stats.gpus
+            model: ResourcesService.watcher.gpuCount
             delegate: ColumnLayout {
+                id: gpuItem
+                required property int index
+                readonly property var gpu: (ResourcesService.stats.gpus ?? [])[index] ?? ({})
                 Layout.fillWidth: true
                 spacing: 4
 
@@ -109,7 +115,7 @@ StyledPopup {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: modelData.name
+                    text: gpuItem.gpu.name ?? ""
                     color: Colors.m3.m3onSurfaceVariant
                     font: Fonts.request("main", "small", { weight: Font.Bold })
                     elide: Text.ElideRight
@@ -117,29 +123,29 @@ StyledPopup {
 
                 ResourceBar {
                     title: "Utilization"
-                    value: modelData.utilization / 100
-                    valueText: modelData.utilization.toFixed(1) + "%"
+                    value: (gpuItem.gpu.utilization ?? 0) / 100
+                    valueText: (gpuItem.gpu.utilization ?? 0).toFixed(1) + "%"
                 }
 
                 ResourceBar {
                     title: "Temperature"
-                    value: Math.min(modelData.temperature / 100, 1.0)
-                    valueText: modelData.temperature.toFixed(1) + " °C"
-                    visible: modelData.temperature > 0
+                    value: Math.min((gpuItem.gpu.temperature ?? 0) / 100, 1.0)
+                    valueText: (gpuItem.gpu.temperature ?? 0).toFixed(1) + " °C"
+                    visible: (gpuItem.gpu.temperature ?? 0) > 0
                 }
 
                 ResourceBar {
                     title: "VRAM"
-                    value: modelData.memory_total > 0 ? modelData.memory_used / modelData.memory_total : 0
-                    valueText: modelData.memory_used.toFixed(0) + " MB" + " / " + modelData.memory_total.toFixed(0) + " MB"
-                    visible: modelData.memory_total > 0
+                    value: gpuItem.gpu.memory_total > 0 ? gpuItem.gpu.memory_used / gpuItem.gpu.memory_total : 0
+                    valueText: (gpuItem.gpu.memory_used ?? 0).toFixed(0) + " MB" + " / " + (gpuItem.gpu.memory_total ?? 0).toFixed(0) + " MB"
+                    visible: (gpuItem.gpu.memory_total ?? 0) > 0
                 }
 
                 ResourceBar {
                     title: "Power"
-                    value: modelData.power_limit > 0 ? Math.min(modelData.power_draw / modelData.power_limit, 1.0) : 0
-                    valueText: modelData.power_limit > 0 ? modelData.power_draw.toFixed(1) + " W" + " / " + modelData.power_limit.toFixed(1) + " W" : modelData.power_draw.toFixed(1) + " W"
-                    visible: modelData.power_draw > 0
+                    value: gpuItem.gpu.power_limit > 0 ? Math.min(gpuItem.gpu.power_draw / gpuItem.gpu.power_limit, 1.0) : 0
+                    valueText: gpuItem.gpu.power_limit > 0 ? gpuItem.gpu.power_draw.toFixed(1) + " W" + " / " + gpuItem.gpu.power_limit.toFixed(1) + " W" : (gpuItem.gpu.power_draw ?? 0).toFixed(1) + " W"
+                    visible: (gpuItem.gpu.power_draw ?? 0) > 0
                 }
             }
         }

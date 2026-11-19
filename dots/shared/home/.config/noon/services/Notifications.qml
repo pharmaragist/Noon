@@ -109,7 +109,7 @@ Singleton {
             const newNotif = plainNotif(notification, notification.id + root._idOffset);
 
             if (!root.silent)
-                NoonUtils.playSound("notif_1");
+                NoonUtils.playSound("message-new-instant");
 
             if (!root.popupInhibited) {
                 newNotif.popup = true;

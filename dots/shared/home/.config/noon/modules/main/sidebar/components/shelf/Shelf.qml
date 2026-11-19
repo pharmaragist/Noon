@@ -34,7 +34,7 @@ SidebarItemContainer {
             if (!Globals.main.sidebar.pinned) {
                 Ipc.call(["sidebar", "hide"]);
             }
-            NoonUtils.playSound("event_accepted");
+            NoonUtils.playSound("message");
         }
 
         StyledRect {

@@ -14,28 +14,38 @@ BarGroup {
     readonly property bool isCharging: UPower.displayDevice.state == UPowerDeviceState.Charging
     property bool revealAll: false
     readonly property int itemSize: 22
-    readonly property var content: [
+    readonly property var metrics: [
         {
             id: "memory",
-            icon: "settings_slow_motion",
-            percentage: (ResourcesService.stats.mem_total - ResourcesService.stats.mem_available) / ResourcesService.stats.mem_total
+            icon: "settings_slow_motion"
         },
         {
             id: "swap",
-            icon: "swap_horiz",
-            percentage: (ResourcesService.stats.swap_total - ResourcesService.stats.swap_free) / ResourcesService.stats.swap_total
+            icon: "swap_horiz"
         },
         {
             id: "cpu_usage",
-            icon: "memory",
-            percentage: ResourcesService.stats.cpu_percent / 100
+            icon: "memory"
         },
         {
             id: "cpu_temp",
-            icon: "thermometer",
-            percentage: ResourcesService.stats.cpu_temp / 100
+            icon: "thermometer"
         }
     ]
+    function metricPercentage(i) {
+        var s = ResourcesService.stats;
+        if (i === 0)
+            return s.mem_total > 0 ? (s.mem_total - s.mem_available) / s.mem_total : 0;
+        if (i === 1)
+            return s.swap_total > 0 ? (s.swap_total - s.swap_free) / s.swap_total : 0;
+        if (i === 2)
+            return (s.cpu_percent ?? 0) / 100;
+        return (s.cpu_temp ?? 0) / 100;
+    }
+    function metricVisible(i) {
+        var opts = Mem.options.bar.resources;
+        return opts.enabledMetrics.indexOf(metrics[i].id) !== -1 && (opts.showAlways || metricPercentage(i) > 0);
+    }
     Layout.preferredHeight: content.implicitHeight + Padding.massive + (revealAll ? 20 : 0)
     Layout.preferredWidth: content.implicitWidth + Padding.massive + (revealAll ? 20 : 0)
 
@@ -62,19 +72,13 @@ BarGroup {
         rows: !verticalMode ? 1 : -1
         columns: verticalMode ? 1 : -1
         Repeater {
-            model: ScriptModel {
-                values: {
-                    return root.content.filter(item => {
-                        const isEnabled = Mem.options.bar.resources.enabledMetrics.indexOf(item.id) !== -1;
-                        const isMoreThanZero = Mem.options.bar.resources.showAlways || item.percentage > 0;
-                        return isEnabled && isMoreThanZero;
-                    });
-                }
-            }
+            model: root.metrics
             delegate: Resource {
                 required property var modelData
-                iconName: modelData?.icon ?? ""
-                percentage: modelData?.percentage ?? -1
+                required property int index
+                visible: root.metricVisible(index)
+                iconName: modelData.icon
+                percentage: root.metricPercentage(index)
                 shown: true
                 collapsed: !root.revealAll
                 itemSize: root.itemSize

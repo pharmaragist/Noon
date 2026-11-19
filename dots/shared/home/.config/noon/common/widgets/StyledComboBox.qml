@@ -15,7 +15,8 @@ ComboBox {
     property bool showDisplayIcon: true
 
     readonly property var currentInfo: {
-        if (!Array.isArray(_model) || _model.length === 0) return null;
+        if (!Array.isArray(_model) || _model.length === 0)
+            return null;
         if (typeof _model[0] === "object")
             return _model.find(i => i.name === displayText);
         else
@@ -86,7 +87,10 @@ ComboBox {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: popup.visible ? popup.close() : popup.open()
+        onClicked: {
+            NoonUtils.playSound("message");
+            popup.visible ? popup.close() : popup.open();
+        }
     }
 
     popup: Popup {

@@ -18,13 +18,13 @@ Item {
         let sound = () => {
             switch (root.state) {
             case "error":
-                return "event_invalid";
+                return "dialog-error";
             case "success":
-                return "task_completed";
+                return "complete";
             case "warning":
-                return "power_low";
+                return "dialog-warning";
             default:
-                return "device_added";
+                return "device-added";
             }
         };
         NoonUtils.playSound(sound);

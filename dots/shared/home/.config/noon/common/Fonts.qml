@@ -13,14 +13,17 @@ Singleton {
     readonly property QtObject methods: TextUtils
     readonly property bool ignoreVariableSpecs: Mem.options.appearance.font.ignoreSpecs
 
-    readonly property JO family: JO {
+    readonly property QtObject family: QtObject {
         property string main: "Google Sans Flex"
         property string monospace: "Iosevka"
+        property string display: "Climate Crisis"
         property string emoji: "Noto Color Emoji"
         property string iconMaterial: "Material Symbols Rounded"
     }
-
-    readonly property JO sizes: JO {
+    readonly property QtObject candidates: QtObject {
+        property list<string> display: ["Eat Boy", "Modak", "Badeen Display", "Bagel Fat One" ,"Climate Crisis"]
+    }
+    readonly property QtObject sizes: QtObject {
         property real scale: 1
         property int verysmall: 12 * scale
         property int small: 14 * scale
@@ -43,7 +46,7 @@ Singleton {
                 }
             },
             "banner": {
-                "family": "EatBoy",
+                "family": "Climate Crisis",
                 "variableAxes": {}
             },
             "title": {

@@ -22,10 +22,10 @@ Scope {
     Connections {
         function onLockedChanged() {
             if (Globals.main.locked) {
-                NoonUtils.playSound("locked");
+                NoonUtils.playSound("service-logout");
                 lock.locked = true;
             } else if (!Globals.main.locked) {
-                NoonUtils.playSound("unlocked");
+                NoonUtils.playSound("service-login");
                 lock.locked = false;
             }
         }

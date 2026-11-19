@@ -72,7 +72,7 @@ Button {
         onPressAndHold: root.holdAction()
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onPressed: event => {
-            NoonUtils.playSound("task_added");
+            NoonUtils.playSound("message");
             if (event.button === Qt.RightButton) {
                 if (root.altAction)
                     root.altAction();

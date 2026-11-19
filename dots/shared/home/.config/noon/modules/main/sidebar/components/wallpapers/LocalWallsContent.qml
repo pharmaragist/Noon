@@ -146,7 +146,7 @@ LayerRect {
                     const selectedData = filteredModel.values[currentIndex];
                     if (selectedData && selectedData.fileUrl) {
                         WallpaperService.applyWallpaper(selectedData.fileUrl);
-                        NoonUtils.playSound("event_accepted");
+                        NoonUtils.playSound("message");
                     }
                 }
             } else if (event.key === Qt.Key_Escape) {

@@ -12,6 +12,9 @@ Scope {
     NpcHandler {
         target: "noon"
 
+        function play_sound(sound:string ) {
+            NoonUtils.playSound(sound)
+        }
         //* toggle_expose — show/hide the expose window overview.
         function toggle_expose() {
             Globals.main.exposeView = !Globals.main.exposeView;

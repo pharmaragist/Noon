@@ -116,7 +116,7 @@ SidebarItemContainer {
                     Spacer {}
 
                     RippleButtonWithIcon {
-                        materialIcon: addDialog.alarmMode ? "timer" : "alarm"
+                        materialIcon: addDialog.alarmMode ? "timer" : "alarm-clock-elapsed"
 
                         Layout.alignment: Qt.AlignRight | Qt.AlignTop
 
@@ -219,7 +219,7 @@ SidebarItemContainer {
                     spacing: Padding.normal
 
                     Symbol {
-                        text: addDialog.alarmMode ? "alarm" : "edit"
+                        text: addDialog.alarmMode ? "alarm-clock-elapsed" : "edit"
 
                         fill: 1
 

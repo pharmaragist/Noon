@@ -76,9 +76,9 @@ Singleton {
     }
 
     onIsLowAndNotCharging: if (isLowAndNotCharging)
-        NoonUtils.playSound("power_low")
+        NoonUtils.playSound("dialog-warning")
     onIsChargingChanged: if (isCharging) {
-        NoonUtils.playSound("power_plugged");
+        NoonUtils.playSound("power-plug");
         NoonUtils.toast({
             id: 3,
             content: "Charging",
@@ -86,7 +86,7 @@ Singleton {
             status: "success"
         });
     } else {
-        NoonUtils.playSound("power_unplugged");
+        NoonUtils.playSound("power-unplug");
         NoonUtils.toast({
             id: 3,
             content: "Discharging",

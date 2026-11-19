@@ -8,7 +8,12 @@ import qs.services
 QuickToggleButton {
     id: root
 
-    toggled: Mem.options.services.easyEffects
+    Component.onCompleted: {
+        return NoonUtils.isProcRunning("easyeffects", answer => {
+            root.toggled = answer;
+        });
+    }
+
     buttonName: "EasyEffects"
     buttonIcon: "graphic_eq"
     onClicked: {
@@ -17,7 +22,7 @@ QuickToggleButton {
             NoonUtils.execDetached(["pkill", "easyeffects"]);
         } else {
             toggled = !toggled;
-            NoonUtils.execDetached(["easyeffects", "--service-mode"]);
+            NoonUtils.execDetached(["easyeffects", "--gapplication-service"]);
         }
     }
 
@@ -28,16 +33,6 @@ QuickToggleButton {
         command: ["bash", "-c", "command -v easyeffects"]
         onExited: (exitCode, exitStatus) => {
             root.visible = exitCode === 0;
-        }
-    }
-
-    Process {
-        id: fetchActiveState
-
-        running: true
-        command: ["pidof", "easyeffects"]
-        onExited: (exitCode, exitStatus) => {
-            root.toggled = exitCode === 0;
         }
     }
 }

@@ -62,7 +62,10 @@ SpinBox {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.value -= root.stepSize
+            onClicked: {
+                NoonUtils.playSound("message")
+                root.value -= root.stepSize
+            }
         }
 
         Behavior on color {
@@ -93,7 +96,10 @@ SpinBox {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.value += root.stepSize
+            onClicked: {
+                NoonUtils.playSound("message")
+                root.value += root.stepSize
+            }
         }
 
         Behavior on color {

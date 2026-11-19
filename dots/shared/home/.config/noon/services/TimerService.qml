@@ -50,14 +50,14 @@ Singleton {
             name: name,
             duration: duration,
             startedIn: autoStart ? Date.now() : 0,
-            icon: root.presets.find(p => p.duration === duration)?.icon ?? (wakeTime ? "alarm" : "timer")
+            icon: root.presets.find(p => p.duration === duration)?.icon ?? (wakeTime ? "alarm-clock-elapsed" : "timer")
         };
 
         Mem.timers.nextTimerId = nextTimerId + 1;
         Mem.timers.timers = timers.concat([newTimer]);
 
         if (autoStart)
-            NoonUtils.playSound("record_started");
+            NoonUtils.playSound("message");
 
         return newTimer.id;
     }
@@ -85,7 +85,7 @@ Singleton {
             };
         });
 
-        NoonUtils.playSound("record_started");
+        NoonUtils.playSound("message");
     }
 
     function pauseTimer(timerId) {
@@ -298,7 +298,7 @@ Singleton {
             const elapsed = Math.floor((now - timer.startedIn) / 1000);
 
             if (elapsed >= timer.duration) {
-                NoonUtils.playSound("record_stopped");
+                NoonUtils.playSound("complete");
                 NoonUtils.wake(`${timer.name} is Done !`);
                 timerFinished(timer.id, timer.name);
                 continue;

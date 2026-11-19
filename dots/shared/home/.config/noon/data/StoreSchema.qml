@@ -21,6 +21,9 @@ JsonAdapter {
         property JO icons: JO {
             property list<var> availableIconThemes: []
         }
+        property JO sounds: JO {
+            property list<var> availableSounds: []
+        }
         property JO ambientSounds: JO {
             property list<var> availableSounds: []
         }

@@ -31,7 +31,7 @@ Singleton {
                 return;
             }
             if (!Notifications.silent)
-                NoonUtils.playSound("event_accepted", {
+                NoonUtils.playSound("message", {
                     volume: 0.02
                 })
             const opts = Mem.options.audio.protection;

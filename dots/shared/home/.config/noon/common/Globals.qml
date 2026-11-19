@@ -88,7 +88,7 @@ Singleton {
     }
 
     Component.onCompleted: if (!!Mem.ready) {
-        NoonUtils.playSound("device_unlocked");
+        NoonUtils.playSound("device-added");
         TimerService.reload();
         ClipboardService.refresh();
         EqService.init();

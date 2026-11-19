@@ -159,11 +159,12 @@ SidebarItemContainer {
                 }
             }
         }
-        StackLayout {
+        StyledStackView {
             id: pages
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: root.showStats ? 1 : 0
+            clip: true
+            initialItem: processesPage
 
             ColumnLayout {
                 id: processesPage
@@ -306,154 +307,157 @@ SidebarItemContainer {
                     }
                 }
             }
+        }
+    }
+    Component {
+        id: statsPageComponent
 
-            ColumnLayout {
-                id: statsPage
-                spacing: Padding.verylarge
+        ColumnLayout {
+            id: statsPage
+            spacing: Padding.verylarge
 
-                StyledListView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.leftMargin: Padding.large
-                    Layout.rightMargin: Padding.large
-                    Layout.bottomMargin: Padding.normal
-                    spacing: Padding.large
-                    clip: true
-                    hint: true
+            StyledListView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.leftMargin: Padding.large
+                Layout.rightMargin: Padding.large
+                Layout.bottomMargin: Padding.normal
+                spacing: Padding.large
+                clip: true
+                hint: true
 
-                    model: {
-                        var secs = [];
-                        var r = root.res;
+                model: {
+                    var secs = [];
+                    var r = root.res;
 
-                        if (r) {
-                            var cpuItems = [];
+                    if (r) {
+                        var cpuItems = [];
+                        cpuItems.push({
+                            label: "Usage",
+                            value: r.cpu_percent / 100,
+                            text: r.cpu_percent.toFixed(1) + "%"
+                        });
+                        if (r.cpu_temp > 0)
                             cpuItems.push({
-                                label: "Usage",
-                                value: r.cpu_percent / 100,
-                                text: r.cpu_percent.toFixed(1) + "%"
+                                label: "Temperature",
+                                value: Math.min(r.cpu_temp / 100, 1.0),
+                                text: r.cpu_temp.toFixed(1) + " °C"
                             });
-                            if (r.cpu_temp > 0)
-                                cpuItems.push({
-                                    label: "Temperature",
-                                    value: Math.min(r.cpu_temp / 100, 1.0),
-                                    text: r.cpu_temp.toFixed(1) + " °C"
-                                });
-                            if (r.cpu_total_freq_ghz > 0)
-                                cpuItems.push({
-                                    label: "Clock",
-                                    value: Math.min(r.cpu_freq_ghz / r.cpu_total_freq_ghz, 1.0),
-                                    text: r.cpu_freq_ghz.toFixed(2) + " / " + r.cpu_total_freq_ghz.toFixed(2) + " GHz"
-                                });
-                            secs.push({
-                                title: "CPU",
-                                items: cpuItems
+                        if (r.cpu_total_freq_ghz > 0)
+                            cpuItems.push({
+                                label: "Clock",
+                                value: Math.min(r.cpu_freq_ghz / r.cpu_total_freq_ghz, 1.0),
+                                text: r.cpu_freq_ghz.toFixed(2) + " / " + r.cpu_total_freq_ghz.toFixed(2) + " GHz"
                             });
+                        secs.push({
+                            title: "CPU",
+                            items: cpuItems
+                        });
 
-                            var memItems = [];
-                            var used = r.mem_total - r.mem_available;
+                        var memItems = [];
+                        var used = r.mem_total - r.mem_available;
+                        memItems.push({
+                            label: "RAM",
+                            value: r.mem_total > 0 ? used / r.mem_total : 0,
+                            text: (used / 1073741824).toFixed(1) + " / " + (r.mem_total / 1073741824).toFixed(1) + " GB"
+                        });
+                        if (r.swap_total > 0) {
+                            var swapUsed = r.swap_total - r.swap_free;
                             memItems.push({
-                                label: "RAM",
-                                value: r.mem_total > 0 ? used / r.mem_total : 0,
-                                text: (used / 1073741824).toFixed(1) + " / " + (r.mem_total / 1073741824).toFixed(1) + " GB"
+                                label: "Swap",
+                                value: swapUsed / r.swap_total,
+                                text: (swapUsed / 1073741824).toFixed(1) + " / " + (r.swap_total / 1073741824).toFixed(1) + " GB"
                             });
-                            if (r.swap_total > 0) {
-                                var swapUsed = r.swap_total - r.swap_free;
-                                memItems.push({
-                                    label: "Swap",
-                                    value: swapUsed / r.swap_total,
-                                    text: (swapUsed / 1073741824).toFixed(1) + " / " + (r.swap_total / 1073741824).toFixed(1) + " GB"
+                        }
+                        secs.push({
+                            title: "Memory",
+                            items: memItems
+                        });
+
+                        if (r.disks && r.disks.length > 0) {
+                            var diskItems = [];
+                            for (var d = 0; d < r.disks.length; d++) {
+                                var disk = r.disks[d];
+                                diskItems.push({
+                                    subtitle: disk.type.toUpperCase(),
+                                    label: disk.mount,
+                                    value: disk.total > 0 ? disk.used / disk.total : 0,
+                                    text: (disk.used / 1073741824).toFixed(1) + " / " + (disk.total / 1073741824).toFixed(1) + " GB"
                                 });
                             }
                             secs.push({
-                                title: "Memory",
-                                items: memItems
+                                title: "Storage",
+                                items: diskItems
                             });
-
-                            if (r.disks && r.disks.length > 0) {
-                                var diskItems = [];
-                                for (var d = 0; d < r.disks.length; d++) {
-                                    var disk = r.disks[d];
-                                    diskItems.push({
-                                        subtitle: disk.type.toUpperCase(),
-                                        label: disk.mount,
-                                        value: disk.total > 0 ? disk.used / disk.total : 0,
-                                        text: (disk.used / 1073741824).toFixed(1) + " / " + (disk.total / 1073741824).toFixed(1) + " GB"
-                                    });
-                                }
-                                secs.push({
-                                    title: "Storage",
-                                    items: diskItems
-                                });
-                            }
-
-                            if (r.gpus) {
-                                for (var i = 0; i < r.gpus.length; i++) {
-                                    var gpu = r.gpus[i];
-                                    var gpuItems = [];
-                                    gpuItems.push({
-                                        label: "Utilization",
-                                        value: gpu.utilization / 100,
-                                        text: gpu.utilization.toFixed(1) + "%"
-                                    });
-                                    if (gpu.temperature > 0)
-                                        gpuItems.push({
-                                            label: "Temperature",
-                                            value: Math.min(gpu.temperature / 100, 1.0),
-                                            text: gpu.temperature.toFixed(1) + " °C"
-                                        });
-                                    if (gpu.memory_total > 0)
-                                        gpuItems.push({
-                                            label: "VRAM",
-                                            value: gpu.memory_used / gpu.memory_total,
-                                            text: gpu.memory_used.toFixed(0) + " / " + gpu.memory_total.toFixed(0) + " MB"
-                                        });
-                                    if (gpu.power_draw > 0)
-                                        gpuItems.push({
-                                            label: "Power",
-                                            value: gpu.power_limit > 0 ? Math.min(gpu.power_draw / gpu.power_limit, 1.0) : 0,
-                                            text: gpu.power_limit > 0 ? gpu.power_draw.toFixed(1) + " / " + gpu.power_limit.toFixed(1) + " W" : gpu.power_draw.toFixed(1) + " W"
-                                        });
-                                    secs.push({
-                                        title: gpu.name,
-                                        items: gpuItems
-                                    });
-                                }
-                            }
                         }
 
-                        return secs;
+                        if (r.gpus) {
+                            for (var i = 0; i < r.gpus.length; i++) {
+                                var gpu = r.gpus[i];
+                                var gpuItems = [];
+                                gpuItems.push({
+                                    label: "Utilization",
+                                    value: gpu.utilization / 100,
+                                    text: gpu.utilization.toFixed(1) + "%"
+                                });
+                                if (gpu.temperature > 0)
+                                    gpuItems.push({
+                                        label: "Temperature",
+                                        value: Math.min(gpu.temperature / 100, 1.0),
+                                        text: gpu.temperature.toFixed(1) + " °C"
+                                    });
+                                if (gpu.memory_total > 0)
+                                    gpuItems.push({
+                                        label: "VRAM",
+                                        value: gpu.memory_used / gpu.memory_total,
+                                        text: gpu.memory_used.toFixed(0) + " / " + gpu.memory_total.toFixed(0) + " MB"
+                                    });
+                                if (gpu.power_draw > 0)
+                                    gpuItems.push({
+                                        label: "Power",
+                                        value: gpu.power_limit > 0 ? Math.min(gpu.power_draw / gpu.power_limit, 1.0) : 0,
+                                        text: gpu.power_limit > 0 ? gpu.power_draw.toFixed(1) + " / " + gpu.power_limit.toFixed(1) + " W" : gpu.power_draw.toFixed(1) + " W"
+                                    });
+                                secs.push({
+                                    title: gpu.name,
+                                    items: gpuItems
+                                });
+                            }
+                        }
                     }
 
-                    delegate: ResourceCard {
-                        required property var modelData
-                        title: modelData.title
-                        anchors.right: parent?.right
-                        anchors.left: parent?.left
+                    return secs;
+                }
 
-                        Repeater {
-                            model: modelData.items
-                            delegate: ColumnLayout {
-                                Layout.fillWidth: true
-                                spacing: 0
+                delegate: ResourceCard {
+                    required property var modelData
+                    title: modelData.title
+                    anchors.right: parent?.right
+                    anchors.left: parent?.left
 
-                                StyledText {
-                                    text: modelData?.subtitle ?? ""
-                                    visible: modelData.subtitle !== undefined
-                                    color: Colors.m3.m3onSurfaceVariant
-                                    font: Fonts.request("main", Fonts.sizes.verysmall, { weight: Font.Medium })
-                                    elide: Text.ElideMiddle
-                                    opacity: 0.7
-                                }
+                    Repeater {
+                        model: modelData.items
+                        delegate: ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
 
-                                ResourceBar {
-                                    title: modelData.label
-                                    value: modelData.value
-                                    valueText: modelData.text
-                                }
+                            StyledText {
+                                text: modelData?.subtitle ?? ""
+                                visible: modelData.subtitle !== undefined
+                                color: Colors.m3.m3onSurfaceVariant
+                                font: Fonts.request("main", Fonts.sizes.verysmall, { weight: Font.Medium })
+                                elide: Text.ElideMiddle
+                                opacity: 0.7
+                            }
 
-                                Item {
-                                    Layout.preferredHeight: modelData.subtitle !== undefined ? 4 : 0
-                                }
+                            ResourceBar {
+                                title: modelData.label
+                                value: modelData.value
+                                valueText: modelData.text
+                            }
+
+                            Item {
+                                Layout.preferredHeight: modelData.subtitle !== undefined ? 4 : 0
                             }
                         }
                     }
@@ -463,9 +467,18 @@ SidebarItemContainer {
     }
 
     onContentFocusRequested: {
-        if (pages.currentIndex === 0 && listView.count > 0) {
+        if (pages.currentItem === processesPage && listView.count > 0) {
             listView.currentIndex = 0;
             listView.forceActiveFocus();
+        }
+    }
+
+    onShowStatsChanged: {
+        if (root.showStats) {
+            if (pages.depth === 1)
+                pages.push(statsPageComponent);
+        } else if (pages.depth > 1) {
+            pages.pop();
         }
     }
 

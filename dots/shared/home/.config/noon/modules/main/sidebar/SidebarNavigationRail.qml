@@ -217,6 +217,7 @@ Item {
                         colors: root.colors
                     }
                     delegate: NavigationRailButton {
+                        id: navButton
                         required property int index
                         required property string modelData
 
@@ -240,6 +241,7 @@ Item {
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
                             propagateComposedEvents: true
                             onClicked: event => {
+                                NoonUtils.playSound("message")
                                 if (event.button === Qt.LeftButton)
                                     content.changeContent(modelData);
                                 else if (event.button === Qt.RightButton) {

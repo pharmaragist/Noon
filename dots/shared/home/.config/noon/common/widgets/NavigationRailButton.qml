@@ -31,7 +31,7 @@ TabButton {
     background: null
 
     PointingHandInteraction {}
-
+    onPressed: NoonUtils.playSound("message")
     contentItem: Item {
         id: buttonContent
 

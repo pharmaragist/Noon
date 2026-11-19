@@ -10,8 +10,8 @@ Item {
     id: root
     anchors.fill: parent
 
-    readonly property JO clock: Mem.states.desktop.clock
-
+    readonly property var clock: Mem.states.desktop.clock
+    readonly property string fontFamily: Mem.options.desktop.clock.font
     readonly property real pad: Padding.massive
     readonly property real dockMargin: Padding.large
     readonly property real overlap: 0.3
@@ -179,7 +179,7 @@ Item {
         visible: false
         text: "0"
         font.pixelSize: 100
-        font.family: "Eat Boy"
+        font.family: root.fontFamily
     }
 
     StyledText {
@@ -188,7 +188,7 @@ Item {
         visible: false
         text: ":"
         font.pixelSize: 100
-        font.family: "Eat Boy"
+        font.family: root.fontFamily
     }
 
     component Grip: Rectangle {
@@ -229,63 +229,271 @@ Item {
         }
     }
 
-    component SwitchRow: RowLayout {
-        id: row
-
-        property string label: ""
-        property bool checked: false
-
-        signal toggled
-
-        spacing: 16
-        Layout.fillWidth: true
-
-        StyledText {
-            Layout.fillWidth: true
-            text: row.label
-            color: Colors.colOnSecondaryContainer
-        }
-
-        Item {
-            implicitWidth: toggle.implicitWidth * toggle.scale
-            implicitHeight: toggle.implicitHeight * toggle.scale
-
-            StyledSwitch {
-                id: toggle
-
-                scale: 0.75
-                transformOrigin: Item.TopLeft
-                checked: row.checked
-                onToggled: row.toggled()
-            }
-        }
-    }
-
     component Pill: Rectangle {
         id: pill
 
         property string text: ""
+        property bool filled: false
 
         signal clicked
 
         Layout.fillWidth: true
-        implicitWidth: label.implicitWidth + 24
-        implicitHeight: label.implicitHeight + 12
+        implicitWidth: label.implicitWidth + 28
+        implicitHeight: label.implicitHeight + 16
         radius: height / 2
-        color: Qt.alpha(Colors.colOnSecondaryContainer, 0.12)
+        color: filled ? Colors.colPrimary : Qt.alpha(Colors.colOnSecondaryContainer, 0.12)
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+        }
 
         StyledText {
             id: label
 
             anchors.centerIn: parent
             text: pill.text
-            color: Colors.colOnSecondaryContainer
+            color: pill.filled ? Colors.colSecondaryContainer : Colors.colOnSecondaryContainer
         }
 
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: pill.clicked()
+        }
+    }
+
+    component SectionLabel: RowLayout {
+        id: head
+
+        property string title: ""
+        property string value: ""
+
+        Layout.fillWidth: true
+        spacing: 8
+
+        StyledText {
+            text: head.title
+            font: Fonts.request("main", 14)
+            color: Colors.colOnSecondaryContainer
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignRight
+            elide: Text.ElideRight
+            text: head.value
+            font: Fonts.request("main", 12)
+            color: Qt.alpha(Colors.colOnSecondaryContainer, 0.7)
+        }
+    }
+
+    component ToggleTile: Rectangle {
+        id: tile
+
+        property string label: ""
+        property string hint: ""
+        property bool checked: false
+
+        signal toggled
+
+        Layout.fillWidth: true
+        implicitHeight: 64
+        radius: 20
+        color: Qt.alpha(Colors.colOnSecondaryContainer, 0.08)
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: tile.toggled()
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 16
+            anchors.rightMargin: 12
+            spacing: 12
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 2
+
+                StyledText {
+                    text: tile.label
+                    color: Colors.colOnSecondaryContainer
+                }
+
+                StyledText {
+                    visible: text.length > 0
+                    text: tile.hint
+                    font: Fonts.request("main", 12)
+                    color: Qt.alpha(Colors.colOnSecondaryContainer, 0.7)
+                }
+            }
+
+            Item {
+                implicitWidth: toggle.implicitWidth * toggle.scale
+                implicitHeight: toggle.implicitHeight * toggle.scale
+
+                StyledSwitch {
+                    id: toggle
+
+                    scale: 0.75
+                    transformOrigin: Item.TopLeft
+                    checked: tile.checked
+                    onToggled: tile.toggled()
+                }
+            }
+        }
+    }
+
+    component LayoutTile: Rectangle {
+        id: tile
+
+        property string label: ""
+        property bool selected: false
+        property bool horizontalGlyph: false
+        readonly property color ink: selected ? Colors.colSecondaryContainer : Colors.colOnSecondaryContainer
+
+        signal clicked
+
+        Layout.fillWidth: true
+        Layout.preferredWidth: 1
+        implicitHeight: 84
+        radius: selected ? 30 : 18
+        color: selected ? Colors.colPrimary : Qt.alpha(Colors.colOnSecondaryContainer, 0.08)
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+        }
+
+        Behavior on radius {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.OutBack
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: tile.clicked()
+        }
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 8
+
+            Item {
+                Layout.alignment: Qt.AlignHCenter
+                implicitWidth: 48
+                implicitHeight: 34
+
+                Grid {
+                    anchors.centerIn: parent
+                    visible: !tile.horizontalGlyph
+                    columns: 2
+                    spacing: 3
+
+                    Repeater {
+                        model: 4
+
+                        Rectangle {
+                            width: 14
+                            height: 14
+                            radius: 4
+                            color: tile.ink
+                        }
+                    }
+                }
+
+                Row {
+                    anchors.centerIn: parent
+                    visible: tile.horizontalGlyph
+                    spacing: 3
+
+                    Repeater {
+                        model: 5
+
+                        Rectangle {
+                            required property int index
+
+                            width: index === 2 ? 3 : 7
+                            height: 14
+                            radius: 2
+                            opacity: index === 2 ? 0.5 : 1
+                            color: tile.ink
+                        }
+                    }
+                }
+            }
+
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: tile.label
+                font: Fonts.request("main", 13)
+                color: tile.ink
+            }
+        }
+    }
+
+    component FontTile: Rectangle {
+        id: tile
+
+        property string family: ""
+        property bool selected: false
+        readonly property color ink: selected ? Colors.colSecondaryContainer : Colors.colOnSecondaryContainer
+
+        signal clicked
+
+        implicitWidth: 76
+        implicitHeight: 88
+        radius: selected ? 28 : 18
+        color: selected ? Colors.colPrimary : Qt.alpha(Colors.colOnSecondaryContainer, 0.08)
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+        }
+
+        Behavior on radius {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.OutBack
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: tile.clicked()
+        }
+
+        ColumnLayout {
+            anchors.centerIn: parent
+            width: parent.width - 12
+            spacing: 4
+
+            StyledText {
+                Layout.alignment: Qt.AlignHCenter
+                text: "12"
+                font.family: tile.family
+                font.pixelSize: 30
+                color: tile.ink
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                text: tile.family
+                font: Fonts.request("main", 10)
+                color: tile.ink
+            }
         }
     }
 
@@ -382,7 +590,7 @@ Item {
                     text: index === 2 ? ":" : root.digits[slot]
                     renderType: Text.CurveRendering
                     font.pixelSize: grid.px
-                    font.family: "Eat Boy"
+                    font.family: root.fontFamily
                     color: index === 2 ? Colors.colOnBackground : ((Math.floor(slot / 2) + slot) % 2 === 0 ? Colors.colPrimary : Colors.colSecondaryContainer)
                 }
             }
@@ -460,7 +668,7 @@ Item {
         visible: root.editMode && !root.busy
         color: Colors.colSecondaryContainer
         radius: Rounding.large
-        width: Math.max(options.implicitWidth, 190) + margin * 2
+        width: 300 + margin * 2
         height: options.implicitHeight + margin * 2
         x: root.clamp(frame.x + (frame.width - width) / 2, 0, Math.max(0, root.width - width))
         y: Math.max(0, fitsBelow ? frame.y + frame.height + 10 : frame.y - height - 10)
@@ -470,10 +678,75 @@ Item {
 
             anchors.fill: parent
             anchors.margins: card.margin
-            spacing: 10
+            spacing: 16
 
-            SwitchRow {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    StyledText {
+                        text: "Clock"
+                        font: Fonts.request("main", 20)
+                        color: Colors.colOnSecondaryContainer
+                    }
+
+                    StyledText {
+                        text: "Drag to move, pull the edges to resize"
+                        font: Fonts.request("main", 12)
+                        color: Qt.alpha(Colors.colOnSecondaryContainer, 0.7)
+                    }
+                }
+
+                Pill {
+                    Layout.fillWidth: false
+                    text: "Done"
+                    filled: true
+                    onClicked: root.editMode = false
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                SectionLabel {
+                    title: "Layout"
+                    value: root.horizontal ? "Horizontal" : "Vertical"
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    LayoutTile {
+                        label: "Vertical"
+                        selected: !root.horizontal
+                        horizontalGlyph: false
+                        onClicked: {
+                            root.clock.horizontal = false;
+                            root.touch();
+                        }
+                    }
+
+                    LayoutTile {
+                        label: "Horizontal"
+                        selected: root.horizontal
+                        horizontalGlyph: true
+                        onClicked: {
+                            root.clock.horizontal = true;
+                            root.touch();
+                        }
+                    }
+                }
+            }
+
+            ToggleTile {
                 label: "Docked"
+                hint: "Pinned to the bottom left"
                 checked: root.docked
                 onToggled: {
                     root.setDocked(!root.docked);
@@ -481,30 +754,49 @@ Item {
                 }
             }
 
-            SwitchRow {
-                label: "Horizontal"
-                checked: root.horizontal
-                onToggled: {
-                    root.clock.horizontal = !root.horizontal;
-                    root.touch();
-                }
-            }
-
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Pill {
-                    text: "Reset"
-                    onClicked: {
-                        root.resetAll();
-                        root.touch();
-                    }
+                SectionLabel {
+                    title: "Font"
+                    value: root.fontFamily
                 }
 
-                Pill {
-                    text: "Done"
-                    onClicked: root.editMode = false
+                ListView {
+                    id: fontList
+
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 88
+                    orientation: ListView.Horizontal
+                    spacing: 8
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    model: Fonts.candidates.display
+                    onContentXChanged: root.touch()
+
+                    WheelHandler {
+                        onWheel: e => fontList.contentX = root.clamp(fontList.contentX - e.angleDelta.y, 0, Math.max(0, fontList.contentWidth - fontList.width))
+                    }
+
+                    delegate: FontTile {
+                        required property string modelData
+
+                        family: modelData
+                        selected: modelData === root.fontFamily
+                        onClicked: {
+                            Mem.options.desktop.clock.font = modelData;
+                            root.touch();
+                        }
+                    }
+                }
+            }
+
+            Pill {
+                text: "Reset size and position"
+                onClicked: {
+                    root.resetAll();
+                    root.touch();
                 }
             }
         }

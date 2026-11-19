@@ -324,7 +324,8 @@ JsonAdapter {
         property JO behavior: JO {
             property JO sounds: JO {
                 property bool enabled: true
-                property real level: 0.75
+                property real level: 0.85
+                property string soundPack: "freedesktop"
             }
         }
     }

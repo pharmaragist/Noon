@@ -10,24 +10,17 @@ WidgetContainer {
     readonly property int implicitCircSize: root.isSmall ? 40 : (root.isXLarge ? 83 : 64)
     readonly property int columns: root.isLarge || root.isXLarge ? 4 : 2
     readonly property int rows: root.isLarge || root.isXLarge ? 2 : 1
-    readonly property var resourcesModel: [
-        {
-            iconName: "memory",
-            percentage: (ResourcesService.stats.mem_total - ResourcesService.stats.mem_available) / ResourcesService.stats.mem_total
-        },
-        {
-            iconName: "swap_horiz",
-            percentage: (ResourcesService.stats.swap_total - ResourcesService.stats.swap_free) / ResourcesService.stats.swap_total
-        },
-        {
-            iconName: "settings_slow_motion",
-            percentage: ResourcesService.stats.cpu_percent / 100
-        },
-        {
-            iconName: "thermometer",
-            percentage: ResourcesService.stats.cpu_temp / 100
-        }
-    ]
+    readonly property var icons: ["memory", "swap_horiz", "settings_slow_motion", "thermometer"]
+    function percentage(i) {
+        var s = ResourcesService.stats;
+        if (i === 0)
+            return s.mem_total > 0 ? (s.mem_total - s.mem_available) / s.mem_total : 0;
+        if (i === 1)
+            return s.swap_total > 0 ? (s.swap_total - s.swap_free) / s.swap_total : 0;
+        if (i === 2)
+            return (s.cpu_percent ?? 0) / 100;
+        return (s.cpu_temp ?? 0) / 100;
+    }
 
     normal: GridLayout {
         columns: root.columns
@@ -38,10 +31,11 @@ WidgetContainer {
         anchors.right: root.isSmall ? 0 : Padding.massive
         anchors.fill: parent
         Repeater {
-            model: ScriptModel {
-                values: resourcesModel
-            }
+            model: 4
             delegate: ColumnLayout {
+                id: metric
+                required property int index
+                readonly property real pct: root.percentage(index)
                 spacing: Padding.small
                 Item {
                     Layout.topMargin: (root.isLarge || root.isXLarge) ? Padding.huge : 0
@@ -49,20 +43,20 @@ WidgetContainer {
                     implicitWidth: root.implicitCircSize
                     ClippedFilledCircularProgress {
                         anchors.centerIn: parent
-                        value: modelData.percentage
+                        value: metric.pct
                         implicitSize: root.implicitCircSize
                     }
                     Symbol {
                         anchors.centerIn: parent
                         fill: 1
-                        text: modelData.iconName
+                        text: root.icons[index]
                         font.pixelSize: root.implicitCircSize * 0.6
                         color: Colors.colOnPrimary
                     }
                 }
                 StyledText {
                     visible: root.isLarge || root.isXLarge
-                    text: Math.round(modelData.percentage * 100) + (modelData.iconName === "thermometer" ? "°C" : "%")
+                    text: Math.round(metric.pct * 100) + (root.icons[index] === "thermometer" ? "°C" : "%")
                     color: Colors.colOnSurface
                     font: Fonts.request("numbers", Fonts.sizes.huge)
                     Layout.alignment: Qt.AlignHCenter

@@ -120,7 +120,7 @@ SidebarItemContainer {
                     anchors.fill: parent
                     onClicked: {
                         ClipboardService.copyByIndex(itemData.index);
-                        NoonUtils.playSound("event_accepted");
+                        NoonUtils.playSound("message");
                         root.dismiss();
                     }
                 }
@@ -147,7 +147,7 @@ SidebarItemContainer {
                 colSubtext: !hovered && isColor ? Colors.methods.colorWithLightness(colTitle, 0.2) : colors.colSubtext
                 releaseAction: () => {
                     ClipboardService.copyByIndex(itemData.index);
-                    NoonUtils.playSound("event_accepted");
+                    NoonUtils.playSound("message");
                     root.dismiss();
                 }
             }
@@ -171,7 +171,7 @@ SidebarItemContainer {
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 if (currentIndex >= 0 && currentIndex < model.values.length) {
                     ClipboardService.copyByIndex(model.values[currentIndex].index);
-                    NoonUtils.playSound("event_accepted");
+                    NoonUtils.playSound("message");
                     root.dismiss();
                 }
                 event.accepted = true;

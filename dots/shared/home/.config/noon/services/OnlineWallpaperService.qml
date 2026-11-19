@@ -160,7 +160,7 @@ Singleton {
             root.downloadingId = "";
             if (code === 0) {
                 WallpaperService.applyWallpaper(_pendingUrl);
-                NoonUtils.playSound("event_accepted");
+                NoonUtils.playSound("message");
                 refreshTimer.restart();
             }
         }

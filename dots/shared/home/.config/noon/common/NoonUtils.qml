@@ -96,33 +96,36 @@ Singleton {
     }
 
     function startPlayer(obj) {
-        const pack = `/${(obj.pack ?? "ui")}/`;
-        const path = Qt.resolvedUrl(Paths.assets + "/sounds") + pack + obj.name + ".ogg";
+        const name = obj.name;
+        const pack = Mem.options.desktop?.behavior?.sounds?.soundPack ?? "freedesktop";
+        const info = Mem.store.services.sounds.availableSounds.find(i => i.name === pack);
+        const path = (info?.path ?? "/usr/share/sounds/freedesktop") + "/stereo/" + name + ".oga";
         const repeats = obj.repeats < 0 ? MediaPlayer.Infinite : (obj?.repeats ?? 1);
 
         if (player.playbackState === MediaPlayer.PlayingState)
             player.stop();
-
         player.loops = repeats;
         player.audioOutput.volume = obj?.volume ?? 0.1;
-        player.source = path;
-        player.play();
+        player.source = "file://" + path;
+        Qt.callLater(() => {
+            player.play();
+        });
     }
 
     function playSound(sound, opts = {}) {
         if (Mem.ready && Mem.options.desktop.behavior.sounds.enabled && !Mem.states.services.notifications.silent) {
-            startPlayer(Object.assign({},{
-                name: sound,
-                pack: "ui",
+            const name = (typeof sound === "function") ? sound() : sound;
+            startPlayer(Object.assign({}, {
+                name: name,
                 repeats: 1,
                 volume: 0.01
-            },opts));
+            }, opts));
         }
     }
 
     function wake(name = "Wake Up!", message = "Click Below to Dismiss") {
         startPlayer({
-            name: "alarm",
+            name: "alarm-clock-elapsed",
             repeats: -1,
             volume: 1
         });
@@ -205,6 +208,12 @@ Singleton {
         timer.start();
     }
 
+    function isProcRunning(proc, callback) {
+        inlineStdProc(["pidof", proc], out => {
+            callback(out.length > 0);
+        });
+    }
+
     function isOnlineUrl(url) {
         return url.startsWith("http") || url.startsWith("https" || url.contains("www"));
     }
@@ -237,10 +246,18 @@ Singleton {
         }
     }
 
+    Fetcher {
+        id: soundFetch
+        running: true
+        command: [Paths.scriptsDir + "/get_sounds.sh"]
+        onDataChanged: if (data)
+            Mem.store.services.sounds.availableSounds = data
+    }
+
     MediaPlayer {
         id: player
         audioOutput: AudioOutput {
-            volume: 0.1
+            volume: Mem.options.desktop.behavior.sounds.level ?? 0.15
         }
 
         property int remainingRepeats: 0
