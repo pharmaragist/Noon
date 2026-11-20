@@ -15,6 +15,10 @@ dist/
 
 # built Go binaries (rebuilt via: go build ./... under each scripts/go/*)
 dots/shared/home/.config/noon/scripts/ocs_service
+
+# Rust harness build output (rebuilt via: cargo build --release in scripts/rust/ai)
+dots/shared/home/.config/noon/scripts/rust/ai/target/
+dots/shared/home/.config/noon/scripts/rust/ai/harness
 dots/shared/home/.config/hypr/colors.lua
 dots/shared/home/.config/hypr/hyprtoolkit.conf
 

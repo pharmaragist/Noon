@@ -599,7 +599,7 @@ QtObject {
                     "name": "OSD Mode",
                     "key": "desktop.osd.mode",
                     "type": "combobox",
-                    "values": ["Pixel", "BottomPill", "CenterIsland", "SideBay", "Windows_10", "Simple"]
+                    "values": ["Pixel", "BottomPill", "CenterIsland", "Windows_10", "Simple"]
                 }
             ]
         },

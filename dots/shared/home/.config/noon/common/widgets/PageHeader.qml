@@ -7,6 +7,9 @@ import qs.common.widgets
 
 RowLayout {
     id: root
+    readonly property alias titleItem: titleArea
+    readonly property alias subTitleItem: subTitleArea
+
     property var target: parent?.parent.parent ?? null
     property alias title: titleArea.text
     property alias subTitle: subTitleArea.text

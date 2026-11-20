@@ -29,6 +29,10 @@ Singleton {
     function runSystemUpdate() {
         execDetached([Paths.scriptsDir + "/distro_update.sh"]);
     }
+    // Arrays handed through `property var` become QVariantList; Array.isArray() misses them.
+    function isList(value) {
+        return value !== null && typeof value === "object" && typeof value.length === "number";
+    }
     function requestDialog(dialog, data) {
         if (!dialog)
             return;

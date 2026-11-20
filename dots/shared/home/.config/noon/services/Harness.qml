@@ -1,11 +1,13 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
+import Qt.labs.platform
 import Quickshell
 import Quickshell.Io
 import qs.common
 import qs.common.utils
 import qs.common.functions
+import qs.common.widgets
 
 Singleton {
     id: root
@@ -22,13 +24,19 @@ Singleton {
     readonly property string currentEffortId: states.effort ?? ""
     readonly property string currentAgentId: states.agent ?? "plan"
     readonly property var skills: states.skills
-    readonly property string baseCmd: Paths.scriptsDir + "/go/ai/harness"
+    readonly property string baseCmd: Paths.scriptsDir + "/rust/ai/harness"
     readonly property int maxLoadedMessages: 200
     readonly property string systemPrompt: states.systemPrompt
     readonly property var bridgeEnv: ({
             "SESSION_DIR": root.states.sessionDir,
             "XDG_CONFIG_HOME": root.sideConfigHome
         })
+    readonly property string sideConfigHome: root.cleanDir(root.states.sessionDir) + "/config"
+    readonly property string sideAgentFile: root.sideConfigHome + "/opencode/agents/noon.md"
+    readonly property int chatBatch: Math.max(1, Math.min(50, states?.recallLimit ?? 10))
+    readonly property var effortList: ["minimal", "low", "medium", "high", "xhigh"]
+    readonly property var modeFallback: ["build", "plan"]
+
     property string liveContent: ""
     property string liveThinkText: ""
     property bool liveThinking: false
@@ -37,16 +45,38 @@ Singleton {
     property var effortOptions: []
     property var modeOptions: []
     property var contextUsage: null
+    property var turnCost: null
     property var pendingPermission: null
+    property var pendingElicitation: null
     property bool autoApproveSession: false
     property var messageIDs: []
-    property var _idsBuf: []
-    property bool _idsDirty: false
     property var messageQueue: []
     property var messageByID: ({})
+    property string pendingSkill: ""
+    property bool hasMoreMessages: false
+    property bool loadingMoreMessages: false
+    property bool loadingMessages: false
+    property int chatOffset: 0
+
+    property var _idsBuf: []
+    property bool _idsDirty: false
     property var _pendingSend: []
     property var _pendingAnnotations: []
     property bool _waitingForScreenshot: false
+    property bool _sysDirty: false
+    property bool _sessDirty: false
+    property string _lastSyncedPrompt: ""
+    property string _loadingSession: ""
+    property int _idSeq: 0
+    property int _liveCount: 0
+    property int _restartCount: 0
+    property var _byOcId: ({})
+    property var _cwdBySession: ({})
+    property var _permQueue: []
+    property var _permMsgIds: []
+    property var _permDialog: null
+    property var _pendingAttachments: []
+    property string _lastCompactionPhase: ""
 
     Component.onCompleted: {
         root.setupPersonality();
@@ -55,32 +85,32 @@ Singleton {
         root.maybePreload();
     }
 
+    onStatesChanged: root.maybePreload()
+    onSystemPromptChanged: root.scheduleSystemSync()
+    onSessionsChanged: root._rebuildCwdMap()
+
+    onPermissionAsked: text => {
+        if (Globals.main.sidebar.selectedCategory === "AI")
+            return;
+        const p = root.pendingPermission;
+        const rid = p ? p.reqId : "";
+        const options = p && Array.isArray(p.options) ? p.options : [];
+        if (options.length > 0) {
+            root._showPermissionOptions(text, rid, options);
+            return;
+        }
+        NoonUtils.requestDialog("assure", {
+            title: "Permission Request",
+            description: text,
+            acceptText: "Accept",
+            onAccepted: () => root.resolvePermission(rid, true),
+            onCanceled: () => root.resolvePermission(rid, false)
+        });
+    }
+
     function maybePreload() {
         if ((root.states.preloadMessages ?? false) && root.currentSessionId && root.messageIDs.length === 0 && !root.loadingMessages)
             root.loadChat(root.currentSessionId);
-    }
-
-    onStatesChanged: root.maybePreload()
-
-    readonly property string sideConfigHome: root.cleanDir(root.states.sessionDir) + "/config"
-    readonly property string sideAgentFile: root.sideConfigHome + "/opencode/agents/noon.md"
-    property bool _sysDirty: false
-
-    onSystemPromptChanged: root.scheduleSystemSync()
-
-    onPermissionAsked: text => {
-        if (Globals.main.sidebar.selectedCategory !== "AI")
-            NoonUtils.requestDialog("assure", {
-                title: "Permission Request",
-                description: text,
-                acceptText: "Accept",
-                onAccepted: () => {
-                    root.answerPending(true);
-                },
-                onCanceled: () => {
-                    root.answerPending(false);
-                }
-            });
     }
 
     function setupPersonality() {
@@ -111,7 +141,9 @@ Singleton {
 
     function syncSystemPrompt() {
         const m = Paths.methods;
-        const body = "---\ndescription: Noon sidebar\nmode: primary\n---\n\n" + root.systemPrompt;
+        const prompt = root.systemPrompt;
+        root._lastSyncedPrompt = prompt;
+        const body = "---\ndescription: Noon sidebar\nmode: primary\n---\n\n" + prompt;
         m.createFileWith(root.sideAgentFile, root.shellEscape(body));
         const globalCfg = m.trim(Paths.standard.config) + "/opencode/opencode.jsonc";
         const sideDir = root.sideConfigHome + "/opencode";
@@ -127,8 +159,18 @@ Singleton {
         root._sysDirty = true;
         NoonUtils.inlineTimer(() => {
             root._sysDirty = false;
-            root.syncSystemPrompt();
+            if (root.systemPrompt !== root._lastSyncedPrompt)
+                root.syncSystemPrompt();
         }, 200);
+    }
+
+    function _newId() {
+        root._idSeq += 1;
+        return "m" + root._idSeq.toString(36);
+    }
+
+    function idForMessage(message) {
+        return root._newId();
     }
 
     function plainMessage(fields) {
@@ -143,6 +185,7 @@ Singleton {
             "queued": fields.queued ?? false,
             "tools": fields.tools ?? [],
             "annotationSources": fields.annotationSources ?? [],
+            "attachments": fields.attachments ?? [],
             "visibleToUser": fields.visibleToUser ?? true,
             "functionPending": fields.functionPending ?? false
         };
@@ -158,6 +201,101 @@ Singleton {
         return v;
     }
 
+    function scheduleIdsFlush() {
+        if (!root._idsDirty) {
+            root._idsDirty = true;
+            NoonUtils.inlineTimer(root._flushIds, 0);
+        }
+    }
+
+    function _flushIds() {
+        root._idsDirty = false;
+        root.messageIDs = root._idsBuf.slice();
+    }
+
+    function _commit(id, next) {
+        const map = Object.assign({}, root.messageByID);
+        map[id] = next;
+        root.messageByID = map;
+        if (requester.messageId === id)
+            requester.message = next;
+    }
+
+    function updateMessage(id, mutate) {
+        const cur = root.messageByID[id];
+        if (!cur)
+            return null;
+        const next = Object.assign({}, cur);
+        mutate(next);
+        root._commit(id, next);
+        return next;
+    }
+
+    function touchMessage(msg) {
+        const id = msg ? msg._id : "";
+        if (!id || !root.messageByID[id])
+            return "";
+        root._commit(id, Object.assign({}, msg));
+        return id;
+    }
+
+    function _drop(id) {
+        const m = root.messageByID[id];
+        if (m && m.opencodeId && root._byOcId[m.opencodeId] === id)
+            delete root._byOcId[m.opencodeId];
+        delete root.messageByID[id];
+    }
+
+    function _trim() {
+        const extra = root._idsBuf.length - root.maxLoadedMessages;
+        if (extra <= 0)
+            return;
+        let hist = 0;
+        for (const id of root._idsBuf.splice(0, extra)) {
+            const m = root.messageByID[id];
+            if (m && m._hist)
+                hist++;
+            root._drop(id);
+        }
+        if (hist > 0 && root.currentSessionId) {
+            root.chatOffset = Math.max(0, root.chatOffset - hist);
+            root.hasMoreMessages = true;
+        }
+    }
+
+    function pushMessage(msg) {
+        const id = root._newId();
+        msg._id = id;
+        root.messageByID[id] = msg;
+        root._idsBuf.push(id);
+        if (msg.role === "user" || msg.role === "assistant")
+            root._liveCount++;
+        root._trim();
+        root.scheduleIdsFlush();
+        return id;
+    }
+
+    function addMessage(message, role) {
+        if (message.length === 0)
+            return;
+        root.pushMessage(root.plainMessage({
+            "role": role,
+            "content": message,
+            "rawContent": message,
+            "thinking": false,
+            "done": true
+        }));
+    }
+
+    function removeMessage(index) {
+        if (index < 0 || index >= root._idsBuf.length)
+            return;
+        const id = root._idsBuf[index];
+        root._idsBuf.splice(index, 1);
+        root._drop(id);
+        root.scheduleIdsFlush();
+    }
+
     function addToolPart(message, p) {
         const st = p.state || {};
         const entry = {
@@ -168,19 +306,147 @@ Singleton {
             input: root.trimBlob(st.input, 4000),
             output: root.trimBlob(st.output, 4000) ?? ""
         };
-        const tools = message.tools || [];
+        const tools = (message.tools || []).slice();
         const idx = tools.findIndex(t => t.callID === p.callID);
         if (idx >= 0)
             tools[idx] = entry;
         else
             tools.push(entry);
-        message.tools = tools.slice();
+        message.tools = tools;
         root.touchMessage(message);
     }
 
+    function clearMessages() {
+        moreFetcher.running = false;
+        moreFetcher.token++;
+        chatFetcher.running = false;
+        chatFetcher.token++;
+        root._idsBuf = [];
+        root.messageByID = ({});
+        root._byOcId = ({});
+        root.messageIDs = [];
+        root._idsDirty = false;
+        root._liveCount = 0;
+        root.hasMoreMessages = false;
+        root.loadingMoreMessages = false;
+        root.loadingMessages = false;
+        root._loadingSession = "";
+        root.chatOffset = 0;
+        root.liveContent = "";
+        root.liveThinkText = "";
+        root.liveThinking = false;
+        root.liveDone = false;
+        root.tokenCount.input = -1;
+        root.tokenCount.output = -1;
+        root.tokenCount.total = -1;
+    }
+
+    function resetView() {
+        root.messageQueue = [];
+        if (requester.running)
+            root.stop();
+        root._pendingSend = [];
+        root.clearAttachments();
+        requester._sessionBusy = false;
+        root.clearPermissionFlags();
+        root.contextUsage = null;
+        root.clearMessages();
+        root.autoApproveSession = false;
+    }
+
+    function newSession() {
+        root.resetView();
+        root.states.currentSessionId = "";
+        root.refreshSessions();
+    }
+
+    function loadChat(id) {
+        if (!id)
+            return;
+        root.resetView();
+        root.states.currentSessionId = id.trim().toString();
+        root.loadMessages(root.states.currentSessionId);
+    }
+
+    function insertBatch(out, prepend) {
+        if (!Array.isArray(out) || out.length === 0)
+            return 0;
+        const map = root.messageByID;
+        const batch = new Array(out.length);
+        for (let i = 0; i < out.length; i++) {
+            const m = out[i];
+            const key = root._newId();
+            m._id = key;
+            m._hist = true;
+            if (m.opencodeId)
+                root._byOcId[m.opencodeId] = key;
+            map[key] = m;
+            batch[i] = key;
+        }
+        root._idsBuf = prepend ? batch.concat(root._idsBuf) : root._idsBuf.concat(batch);
+        if (!prepend)
+            root._trim();
+        root.scheduleIdsFlush();
+        return out.length;
+    }
+
+    function loadMessages(id) {
+        if (root.loadingMessages && root._loadingSession === id)
+            return;
+        root.loadingMessages = true;
+        root._loadingSession = id;
+        root.runHelper("chat", [id, String(root.chatBatch), "0"], out => {
+            root.loadingMessages = false;
+            if (root._loadingSession !== root.currentSessionId)
+                return;
+            root.insertBatch(out, false);
+            if (Array.isArray(out)) {
+                root.chatOffset = out.length;
+                root.hasMoreMessages = out.length >= root.chatBatch;
+            }
+        });
+    }
+
+    function loadMoreMessages(onDone) {
+        if (root.loadingMoreMessages || root.loadingMessages || !root.hasMoreMessages || !root.currentSessionId) {
+            if (onDone)
+                onDone();
+            return;
+        }
+        root.loadingMoreMessages = true;
+        const sessionAtStart = root.currentSessionId;
+        const offsetAtStart = root.chatOffset;
+        const args = [sessionAtStart, String(root.chatBatch), String(offsetAtStart + root._liveCount)];
+        root._runOn(moreFetcher, "chat", args, out => {
+            root.loadingMoreMessages = false;
+            if (sessionAtStart !== root.currentSessionId) {
+                if (onDone)
+                    onDone();
+                return;
+            }
+            const n = root.insertBatch(out, true);
+            if (n > 0) {
+                root.chatOffset = offsetAtStart + n;
+                root.hasMoreMessages = out.length >= root.chatBatch;
+            } else {
+                root.hasMoreMessages = false;
+            }
+            if (onDone)
+                onDone();
+        });
+    }
+
     function acpWrite(cmd) {
-        if (acpProc.running)
-            acpProc.write(JSON.stringify(cmd) + "\n");
+        if (!acpProc.running) {
+            console.warn("acp bridge down, dropped:", cmd.cmd);
+            if (cmd.cmd === "send" || cmd.cmd === "new") {
+                root.settleTurn();
+                root.addMessage("Error: agent bridge is not running — restarting, try again", "interface");
+            }
+            return false;
+        }
+        acpProc.write(JSON.stringify(cmd) + "\n");
+        return true;
     }
 
     function sessionCmd(cmd, extra) {
@@ -203,7 +469,25 @@ Singleton {
             obj[key] = value;
     }
 
+    function adoptModels(list) {
+        if (!Array.isArray(list) || list.length === 0)
+            return;
+        const known = Array.isArray(states.models) ? states.models : [];
+        const seen = new Set(known);
+        const merged = known.slice();
+        for (const m of list) {
+            if (!seen.has(m)) {
+                seen.add(m);
+                merged.push(m);
+            }
+        }
+        if (merged.length !== known.length)
+            states.models = merged;
+    }
+
     function handleSSELine(line) {
+        if (!line)
+            return;
         try {
             root.handleSSE(JSON.parse(line));
         } catch (e) {
@@ -211,339 +495,397 @@ Singleton {
         }
     }
 
-    function adoptModels(list) {
-        if (!Array.isArray(list) || list.length === 0)
+    function _onSession(event) {
+        if (!event.sessionId)
             return;
-        const known = Array.isArray(states.models) ? states.models : [];
-        const merged = known.slice();
-        for (const m of list) {
-            if (!merged.includes(m))
-                merged.push(m);
-        }
-        states.models = merged;
+        root.states.currentSessionId = event.sessionId;
+        requester._sessionBusy = false;
+        if (requester.running)
+            requester.markDone();
+        if (Array.isArray(event.efforts))
+            root.effortOptions = event.efforts;
+        if (Array.isArray(event.modes))
+            root.modeOptions = event.modes;
+        root.adoptModels(event.models);
+        root.adoptStr(states, "model", event.model);
+        root.adoptStr(states, "agent", event.mode);
+        root.adoptStr(states, "effort", event.effort);
+        const pending = root._pendingSend;
+        root._pendingSend = [];
+        for (const entry of pending)
+            root.finishSend(entry.text, entry.attachments);
     }
 
     function handleSSE(event) {
-        if (event.type === "ready") {
+        if (!event || typeof event.type !== "string")
+            return;
+        switch (event.type) {
+        case "ready":
+            root._restartCount = 0;
             if (root.currentSessionId)
                 root.acpWrite(root.sessionCmd("sync"));
             return;
-        }
-        if (event.type === "session") {
-            if (event.sessionId) {
-                root.states.currentSessionId = event.sessionId;
-                requester._sessionBusy = false;
-                if (requester.running)
-                    requester.markDone();
-                if (Array.isArray(event.efforts))
-                    root.effortOptions = event.efforts;
-                if (Array.isArray(event.modes))
-                    root.modeOptions = event.modes;
-                root.adoptModels(event.models);
-                adoptStr(states, "model", event.model);
-                adoptStr(states, "agent", event.mode);
-                adoptStr(states, "effort", event.effort);
-                const pending = root._pendingSend;
-                root._pendingSend = [];
-                for (const text of pending) {
-                    if (text.length > 0)
-                        finishSend(text);
-                }
-            }
+        case "session":
+            root._onSession(event);
             return;
-        }
-        if (event.type === "efforts") {
+        case "efforts":
             if (Array.isArray(event.efforts))
                 root.effortOptions = event.efforts;
-            adoptStr(states, "effort", event.effort);
+            root.adoptStr(states, "effort", event.effort);
             return;
-        }
-        if (event.type === "model") {
-            adoptStr(states, "model", event.model);
+        case "model":
+            root.adoptStr(states, "model", event.model);
             return;
-        }
-        if (event.type === "models") {
+        case "models":
             root.adoptModels(event.models);
             return;
-        }
-        if (event.type === "usage") {
+        case "usage":
             root.tokenCount.input = Number(event.input ?? -1);
             root.tokenCount.output = Number(event.output ?? -1);
             root.tokenCount.total = Number(event.total ?? -1);
             return;
-        }
-        if (event.type === "context") {
+        case "context":
             root.contextUsage = {
                 used: Number(event.used ?? 0),
                 size: Number(event.size ?? 0)
             };
+            root.turnCost = event.cost ?? null;
             return;
-        }
-        if (event.type === "session.info") {
+        case "session.info":
             root.refreshSessions();
             return;
-        }
-        if (event.type === "mode") {
-            adoptStr(states, "agent", event.mode);
+        case "mode":
+            root.adoptStr(states, "agent", event.mode);
             if (Array.isArray(event.modes) && event.modes.length > 0)
                 root.modeOptions = event.modes;
             return;
-        }
-        if (event.type === "error") {
+        case "error":
             console.warn("acp bridge error:", event.message);
+            root.clearAttachments();
             root.settleTurn();
             root.addMessage("Error: " + (event.message || "unknown bridge error"), "interface");
             return;
-        }
-        if (event.type === "agent.exited") {
+        case "agent.exited":
             console.warn("acp agent process exited:", event.message);
             root.settleTurn();
             root.addMessage("Error: agent process died (" + (event.message || "unknown") + ") — reload the shell to respawn it", "interface");
             return;
-        }
-        if (event.type === "session.status") {
-            var s = event.properties && event.properties.status;
-            if (s) {
-                requester._sessionBusy = s.type === "busy";
-                if (s.type === "idle" && requester.running)
-                    requester.markDone();
-            }
-            return;
-        }
-        if (event.type === "permission.asked") {
-            var p = event.properties;
-            if (p && p.tool) {
-                const msgID = p.tool.messageID;
-                let target = requester.message && requester.message.opencodeId === msgID ? requester.message : null;
-                if (!target) {
-                    for (const id of root._idsBuf) {
-                        const m = root.messageByID[id];
-                        if (m && m.opencodeId && m.opencodeId === msgID) {
-                            target = m;
-                            break;
-                        }
-                    }
-                }
-                if (!target)
-                    target = requester.message;
-                if (target) {
-                    target.functionPending = true;
-                    target.permissionID = p.id;
-                    target.permissionCallID = p.tool.callID;
-                    target.permissionSessionID = p.sessionID;
-                    root.touchMessage(target);
-                    root.pendingPermission = {
-                        title: p.tool.title || "Tool call",
-                        callID: p.tool.callID,
-                        reqId: p.id,
-                        sessionID: p.sessionID
-                    };
-                    if (root.autoApproveSession)
-                        root.answerPending(true);
-                    else
-                        root.permissionAsked(p.tool.title || "Tool call");
-                }
-            }
-            return;
-        }
-        if (!requester.running)
-            return;
-        if (event.type === "message.updated") {
-            var info = event.properties && event.properties.info;
-            if (info && info.role === "user")
-                requester._userMessageId = info.id;
-        }
-        if (event.type === "message.part.updated") {
-            var part = event.properties && event.properties.part;
-            if (part && part.messageID !== requester._userMessageId)
-                requester.processPart(part);
-        }
-    }
-
-    function idForMessage(message) {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
-    }
-
-    function scheduleIdsFlush() {
-        if (!root._idsDirty) {
-            root._idsDirty = true;
-            NoonUtils.inlineTimer(root._flushIds, 0);
-        }
-    }
-
-    function _flushIds() {
-        root._idsDirty = false;
-        root.messageIDs = root._idsBuf.slice();
-    }
-
-    function touchMessage(msg) {
-        for (const id of root._idsBuf) {
-            if (root.messageByID[id] === msg) {
-                const next = Object.assign({}, root.messageByID);
-                next[id] = Object.assign({}, msg);
-                root.messageByID = next;
-                if (requester.message === msg)
-                    requester.message = next[id];
-                return id;
-            }
-        }
-        return "";
-    }
-
-    function pushMessage(msg) {
-        const id = idForMessage(msg);
-        root.messageByID[id] = msg;
-        root._idsBuf.push(id);
-        while (root._idsBuf.length > root.maxLoadedMessages) {
-            const oldId = root._idsBuf.shift();
-            delete root.messageByID[oldId];
-        }
-        root.scheduleIdsFlush();
-        return id;
-    }
-
-    function queueMessage(id, text) {
-        root.messageQueue = [...root.messageQueue,
+        case "session.status":
             {
-                id: id,
-                text: text
+                const s = event.properties && event.properties.status;
+                if (s) {
+                    requester._sessionBusy = s.type === "busy";
+                    if (s.type === "idle" && requester.running)
+                        requester.markDone();
+                }
             }
-        ];
-        if (!requester.running)
-            processQueue();
+            return;
+        case "permission.asked":
+            root._onPermissionEvent(event);
+            return;
+        case "message.updated":
+            if (requester.running) {
+                const info = event.properties && event.properties.info;
+                if (info && info.role === "user")
+                    requester._userMessageId = info.id;
+            }
+            return;
+        case "message.part.updated":
+            if (requester.running) {
+                const part = event.properties && event.properties.part;
+                if (part && part.messageID !== requester._userMessageId)
+                    requester.processPart(part);
+            }
+            return;
+        case "elicitation":
+            root._onElicitation(event);
+            return;
+        case "compaction":
+            root._onCompaction(event);
+            return;
+        case "child.session":
+            root._onChildSession(event);
+            return;
+        case "steer.result":
+            if (event.outcome === "promptRequired")
+                NoonUtils.toast({
+                    id: 18,
+                    header: qsTr("Steer"),
+                    content: qsTr("Prompt required"),
+                    icon: "info"
+                });
+            return;
+        case "session.forked":
+            root.refreshSessions();
+            return;
+        }
+    }
+
+    function _onPermissionEvent(event) {
+        const p = event.properties;
+        if (!p || !p.tool)
+            return;
+        if (root._permQueue.some(q => q.reqId === p.id))
+            return;
+
+        const title = p.tool.title || "Tool call";
+        const mid = root._byOcId[p.tool.messageID] ?? requester.messageId;
+        if (mid && root.messageByID[mid]) {
+            root.updateMessage(mid, m => {
+                m.functionPending = true;
+                m.permissionID = p.id;
+                m.permissionCallID = p.tool.callID;
+                m.permissionSessionID = p.sessionID;
+            });
+            if (!root._permMsgIds.includes(mid))
+                root._permMsgIds = root._permMsgIds.concat([mid]);
+        }
+
+        const entry = {
+            title: title,
+            callID: p.tool.callID,
+            reqId: p.id,
+            sessionID: p.sessionID,
+            options: Array.isArray(p.options) ? p.options : []
+        };
+        root._permQueue = root._permQueue.concat([entry]);
+
+        if (root.autoApproveSession) {
+            root.resolvePermission(entry.reqId, true);
+            return;
+        }
+        if (root._permQueue.length === 1) {
+            root.pendingPermission = entry;
+            root.permissionAsked(title);
+        }
+    }
+
+    function _clearFlagsFor(callID) {
+        const keep = [];
+        for (const id of root._permMsgIds) {
+            const m = root.messageByID[id];
+            if (!m)
+                continue;
+            if (callID === undefined || m.permissionCallID === callID) {
+                root.updateMessage(id, n => {
+                    n.functionPending = false;
+                    delete n.permissionID;
+                    delete n.permissionCallID;
+                    delete n.permissionSessionID;
+                });
+            } else {
+                keep.push(id);
+            }
+        }
+        root._permMsgIds = keep;
+    }
+
+    function resolvePermission(reqId, approved, optionId) {
+        if (reqId === undefined || reqId === "")
+            return;
+        const reply = {
+            cmd: "reply",
+            reqId: reqId,
+            approved: approved
+        };
+        if (optionId !== undefined && optionId !== null && optionId !== "")
+            reply.optionId = optionId;
+        root.acpWrite(reply);
+        if (root._permDialog && root._permDialog.reqId === reqId) {
+            const dlg = root._permDialog;
+            root._permDialog = null;
+            Qt.callLater(() => dlg.destroy());
+        }
+        const entry = root._permQueue.find(e => e.reqId === reqId);
+        if (!entry)
+            return;
+        const wasHead = root.pendingPermission && root.pendingPermission.reqId === reqId;
+        root._permQueue = root._permQueue.filter(e => e.reqId !== reqId);
+        root._clearFlagsFor(entry.callID);
+        if (!wasHead)
+            return;
+        const head = root._permQueue.length > 0 ? root._permQueue[0] : null;
+        root.pendingPermission = head;
+        if (!head)
+            return;
+        if (root.autoApproveSession)
+            root.resolvePermission(head.reqId, true);
+        else
+            root.permissionAsked(head.title);
+    }
+
+    function _showPermissionOptions(text, reqId, options) {
+        if (root._permDialog) {
+            const old = root._permDialog;
+            root._permDialog = null;
+            Qt.callLater(() => old.destroy());
+        }
+        const parent = Globals.main.sidebar;
+        if (!parent) {
+            NoonUtils.requestDialog("assure", {
+                title: "Permission Request",
+                description: text,
+                acceptText: "Accept",
+                onAccepted: () => root.resolvePermission(reqId, true),
+                onCanceled: () => root.resolvePermission(reqId, false)
+            });
+            return;
+        }
+        const buttons = [{
+                label: qsTr("Reject"),
+                action: () => root.resolvePermission(reqId, false)
+            }];
+        for (const opt of options) {
+            const approved = !String(opt.kind ?? "").startsWith("reject");
+            buttons.push({
+                label: String(opt.name ?? opt.optionId ?? "Allow"),
+                action: () => root.resolvePermission(reqId, approved, opt.optionId)
+            });
+        }
+        root._permDialog = permissionDialogComponent.createObject(parent, {
+            reqId: reqId,
+            dialogText: text,
+            buttonData: buttons
+        });
+    }
+
+    function respondToPermission(messageData, response) {
+        if (!messageData || messageData.permissionID === undefined)
+            return;
+        root.resolvePermission(messageData.permissionID, response !== "reject");
+    }
+
+    function answerPending(approved) {
+        const p = root.pendingPermission;
+        if (!p)
+            return;
+        root.resolvePermission(p.reqId, approved);
+    }
+
+    function answerAll() {
+        root.autoApproveSession = true;
+        root.answerPending(true);
+        NoonUtils.toast({
+            id: 7,
+            header: qsTr("Auto-approve on"),
+            content: qsTr("All tool calls this session run without asking"),
+            icon: "check"
+        });
+    }
+
+    function clearPermissionFlags(callID) {
+        if (callID === undefined) {
+            root._permQueue = [];
+            root.pendingPermission = null;
+            if (root._permDialog) {
+                const dlg = root._permDialog;
+                root._permDialog = null;
+                Qt.callLater(() => dlg.destroy());
+            }
+        } else {
+            root._permQueue = root._permQueue.filter(e => e.callID !== callID);
+            root.pendingPermission = root._permQueue.length > 0 ? root._permQueue[0] : null;
+        }
+        root._clearFlagsFor(callID);
+    }
+
+    function approveCommand(messageData) {
+        root.respondToPermission(messageData, "once");
+    }
+
+    function rejectCommand(messageData) {
+        root.respondToPermission(messageData, "reject");
+    }
+
+    function _onElicitation(event) {
+        if (event.reqId === undefined)
+            return;
+        const schema = event.schema && typeof event.schema === "object" ? event.schema : {};
+        const props = schema.properties && typeof schema.properties === "object"
+            ? schema.properties : {};
+        const fields = [];
+        const values = {};
+        for (const key of Object.keys(props)) {
+            const spec = props[key] || {};
+            let def = spec.default;
+            if (def === undefined) {
+                if (spec.type === "boolean")
+                    def = false;
+                else if (spec.type === "array")
+                    def = [];
+                else if (spec.type === "number" || spec.type === "integer")
+                    def = 0;
+                else if (NoonUtils.isList(spec.oneOf))
+                    def = spec.oneOf[0]?.const ?? "";
+                else if (NoonUtils.isList(spec.enum))
+                    def = spec.enum[0] ?? "";
+                else
+                    def = "";
+            }
+            values[key] = def;
+            fields.push({ key: key, spec: spec, values: values });
+        }
+        root.pendingElicitation = {
+            reqId: event.reqId,
+            message: String(event.message ?? ""),
+            fields: fields,
+            values: values
+        };
+    }
+
+    function answerElicitation(accepted, values) {
+        const pending = root.pendingElicitation;
+        if (!pending)
+            return;
+        root.pendingElicitation = null;
+        root._writeElicitation(pending.reqId, accepted, values ?? pending.values);
+    }
+
+    function _writeElicitation(reqId, accepted, values) {
+        const cmd = {
+            cmd: "elicit",
+            reqId: reqId,
+            accepted: accepted
+        };
+        if (accepted)
+            cmd.content = Object.assign({}, values);
+        root.acpWrite(cmd);
+    }
+
+    function _onCompaction(event) {
+        const phase = String(event.phase ?? "start");
+        if (phase === root._lastCompactionPhase)
+            return;
+        root._lastCompactionPhase = phase;
+        NoonUtils.toast({
+            id: 17,
+            header: qsTr("Compaction"),
+            content: phase === "start" ? qsTr("Compacting context…") : qsTr("Context compacted"),
+            icon: "autorenew"
+        });
+    }
+
+    function _onChildSession(event) {
+        const msg = requester.message;
+        if (!msg)
+            return;
+        root.addToolPart(msg, {
+            tool: "child.session",
+            callID: String(event.childSessionId ?? ""),
+            kind: "child",
+            state: {
+                status: "info",
+                input: {
+                    title: String(event.title ?? event.childSessionId ?? "child"),
+                    depth: Number(event.depth ?? 0)
+                },
+                output: ""
+            }
+        });
     }
 
     function openInTerm(sessionId = root.states.currentSessionId) {
         NoonUtils.runInTerminal(`opencode -s '${sessionId}'`);
-    }
-
-    function addMessage(message, role) {
-        if (message.length === 0)
-            return;
-        const aiMessage = root.plainMessage({
-            "role": role,
-            "content": message,
-            "rawContent": message,
-            "thinking": false,
-            "done": true
-        });
-        root.pushMessage(aiMessage);
-    }
-
-    function removeMessage(index) {
-        if (index < 0 || index >= root._idsBuf.length)
-            return;
-        const id = root._idsBuf[index];
-        root._idsBuf.splice(index, 1);
-        delete root.messageByID[id];
-        root.scheduleIdsFlush();
-    }
-
-    function clearMessages() {
-        root._idsBuf = [];
-        root.messageByID = ({});
-        root.messageIDs = [];
-        root._idsDirty = false;
-        root.hasMoreMessages = false;
-        root.loadingMoreMessages = false;
-        root.chatOffset = 0;
-        root.liveContent = "";
-        root.liveThinkText = "";
-        root.liveThinking = false;
-        root.liveDone = false;
-        root.tokenCount.input = -1;
-        root.tokenCount.output = -1;
-        root.tokenCount.total = -1;
-    }
-
-    function resetView() {
-        root.clearMessages();
-        root.messageQueue = [];
-        root.autoApproveSession = false;
-    }
-
-    function newSession() {
-        root.resetView();
-        root.states.currentSessionId = "";
-        refreshSessions();
-    }
-
-    function loadChat(id) {
-        if (!id)
-            return;
-        root.resetView();
-        root.states.currentSessionId = id.trim().toString();
-        loadMessages(root.states.currentSessionId);
-    }
-
-    readonly property int chatBatch: Math.max(1, Math.min(50, states?.recallLimit ?? 10))
-    property bool hasMoreMessages: false
-    property bool loadingMoreMessages: false
-    property bool loadingMessages: false
-    property string _loadingSession: ""
-    property int chatOffset: 0
-
-    function insertBatch(out, prepend) {
-        if (!Array.isArray(out) || out.length === 0)
-            return 0;
-        const batch = [];
-        for (const m of out) {
-            const key = root.idForMessage(m);
-            root.messageByID[key] = m;
-            batch.push(key);
-        }
-        root._idsBuf = prepend ? batch.concat(root._idsBuf) : root._idsBuf.concat(batch);
-        while (root._idsBuf.length > root.maxLoadedMessages) {
-            const oldId = root._idsBuf.shift();
-            delete root.messageByID[oldId];
-        }
-        root.scheduleIdsFlush();
-        return out.length;
-    }
-
-    function loadMessages(id) {
-        if (root.loadingMessages && root._loadingSession === id)
-            return;
-        root.loadingMessages = true;
-        root._loadingSession = id;
-        root.runHelper("chat", [id, String(root.chatBatch), "0"], out => {
-            root.loadingMessages = false;
-            if (root._loadingSession !== root.currentSessionId)
-                return;
-            root.insertBatch(out, false);
-            if (Array.isArray(out)) {
-                root.chatOffset = root._idsBuf.length;
-                root.hasMoreMessages = out.length >= root.chatBatch;
-            }
-        });
-    }
-
-    function loadMoreMessages(onDone) {
-        if (root.loadingMoreMessages || root.loadingMessages || !root.hasMoreMessages || !root.currentSessionId) {
-            if (onDone)
-                onDone();
-            return;
-        }
-        root.loadingMoreMessages = true;
-        const sessionAtStart = root.currentSessionId;
-        const offsetAtStart = root.chatOffset;
-        root.runHelper("chat", [sessionAtStart, String(root.chatBatch), String(offsetAtStart)], out => {
-            root.loadingMoreMessages = false;
-            if (sessionAtStart !== root.currentSessionId) {
-                if (onDone)
-                    onDone();
-                return;
-            }
-            const n = root.insertBatch(out, true);
-            if (n > 0) {
-                root.chatOffset = offsetAtStart + n;
-                root.hasMoreMessages = out.length >= root.chatBatch;
-            } else {
-                root.hasMoreMessages = false;
-            }
-            if (onDone)
-                onDone();
-        });
     }
 
     function getModel() {
@@ -570,8 +912,6 @@ Singleton {
         root.addMessage("Model set to " + modelId, "interface");
     }
 
-    readonly property var effortList: ["minimal", "low", "medium", "high", "xhigh"]
-
     function setEffort(effort) {
         const e = (effort ?? "").trim();
         if (!e) {
@@ -590,8 +930,6 @@ Singleton {
             root.addMessage("Effort set to " + e, "interface");
     }
 
-    readonly property var modeFallback: ["build", "plan"]
-
     function setAgent(mode) {
         const m = (mode ?? "").trim();
         if (!m)
@@ -609,8 +947,6 @@ Singleton {
         root.addMessage("Agent mode set to " + m + " (server confirms on next event)", "interface");
     }
 
-    property string pendingSkill: ""
-
     function setSkill(skillName) {
         const s = (skillName ?? "").trim();
         if (!s) {
@@ -618,8 +954,9 @@ Singleton {
             root.addMessage("Skill cleared", "interface");
             return;
         }
-        if (!root.skills.includes(s)) {
-            root.addMessage("Unknown skill '" + s + "' (known: " + root.skills.join(", ") + ")", "interface");
+        const known = Array.isArray(root.skills) ? root.skills : [];
+        if (!known.includes(s)) {
+            root.addMessage("Unknown skill '" + s + "' (known: " + known.join(", ") + ")", "interface");
             return;
         }
         root.pendingSkill = s;
@@ -634,60 +971,6 @@ Singleton {
         return "Invoke the \"" + name + "\" skill using your skill tool and follow it for the task below. If the skill tool is unavailable, say so instead of guessing.\n\nTask:\n";
     }
 
-    function respondToPermission(messageData, response) {
-        if (!messageData || messageData.permissionID === undefined)
-            return;
-        root.acpWrite({
-            cmd: "reply",
-            reqId: Number(messageData.permissionID),
-            approved: response !== "reject"
-        });
-        root.clearPermissionFlags(messageData.permissionCallID);
-    }
-
-    function answerPending(approved) {
-        const p = root.pendingPermission;
-        if (!p)
-            return;
-        root.acpWrite({
-            cmd: "reply",
-            reqId: Number(p.reqId),
-            approved: approved
-        });
-        root.clearPermissionFlags(p.callID);
-    }
-
-    function answerAll() {
-        root.autoApproveSession = true;
-        root.answerPending(true);
-        NoonUtils.toast({
-            id: 7,
-            header: qsTr("Auto-approve on"),
-            content: qsTr("All tool calls this session run without asking"),
-            icon: "check"
-        });
-    }
-
-    function clearPermissionFlags(callID) {
-        root.pendingPermission = null;
-        for (const id of root._idsBuf) {
-            const m = root.messageByID[id];
-            if (m && m.functionPending && (callID === undefined || m.permissionCallID === callID)) {
-                m.functionPending = false;
-                delete m.permissionID;
-                delete m.permissionCallID;
-                delete m.permissionSessionID;
-                root.touchMessage(m);
-            }
-        }
-    }
-    function approveCommand(messageData) {
-        root.respondToPermission(messageData, "once");
-    }
-    function rejectCommand(messageData) {
-        root.respondToPermission(messageData, "reject");
-    }
-
     function cleanDir(dir) {
         const clean = Paths.methods.trim(String(dir ?? ""));
         if (!clean.startsWith("/") || clean.includes("file:"))
@@ -695,17 +978,34 @@ Singleton {
         return clean;
     }
 
-    function sessionCwd(sessionId) {
+    function _rebuildCwdMap() {
+        const map = ({});
         for (const s of root.sessions) {
-            if (s && s.id === sessionId && s.directory)
-                return root.cleanDir(s.directory);
+            if (s && s.id && s.directory)
+                map[s.id] = root.cleanDir(s.directory);
         }
-        return root.cleanDir("");
+        root._cwdBySession = map;
+    }
+
+    function sessionCwd(sessionId) {
+        return root._cwdBySession[sessionId] ?? root.cleanDir("");
+    }
+
+    function refreshSessions() {
+        if (root._sessDirty)
+            return;
+        root._sessDirty = true;
+        NoonUtils.inlineTimer(() => {
+            root._sessDirty = false;
+            sessionsFetcher.refresh();
+        }, 100);
     }
 
     function createSessionAndSend(message) {
+        const attachments = root._pendingAttachments.slice();
+        root.clearAttachments();
         requester._sessionBusy = true;
-        root._pendingSend = [...root._pendingSend, message];
+        root._pendingSend = [...root._pendingSend, { text: message, attachments: attachments }];
         root.acpWrite(root.sessionCmd("new", {
             model: root.currentModelId,
             effort: root.effortOptions.includes(root.currentEffortId) ? root.currentEffortId : "",
@@ -714,69 +1014,93 @@ Singleton {
     }
 
     function sendUserMessage(message) {
-        if (message.length === 0)
+        if (message.length === 0 && root._pendingAttachments.length === 0)
             return;
         if (requester._sessionBusy || !root.currentSessionId)
-            createSessionAndSend(message);
+            root.createSessionAndSend(message);
         else
-            finishSend(message);
+            root.finishSend(message);
     }
 
-    function finishSend(message) {
-        const aiMessage = root.plainMessage({
+    function finishSend(message, attachments) {
+        const atts = attachments ?? root._pendingAttachments.slice();
+        root.clearAttachments();
+        const id = root.pushMessage(root.plainMessage({
             "role": "user",
             "content": message,
             "rawContent": message,
             "thinking": false,
             "done": true,
-            "queued": true
-        });
-        const id = root.pushMessage(aiMessage);
-        root.queueMessage(id, message);
+            "queued": true,
+            "attachments": atts
+        }));
+        root.queueMessage(id, message, atts);
+    }
+
+    function queueMessage(id, text, attachments) {
+        root.messageQueue = [...root.messageQueue,
+            {
+                id: id,
+                text: text,
+                attachments: attachments ?? []
+            }
+        ];
+        if (!requester.running)
+            root.processQueue();
     }
 
     function processQueue() {
-        if (root.messageQueue.length === 0)
+        if (requester.running)
             return;
-        const next = root.messageQueue[0];
-        root.messageQueue = root.messageQueue.slice(1);
-        const msg = root.messageByID[next.id];
-        if (!msg) {
-            processQueue();
+        while (root.messageQueue.length > 0) {
+            const next = root.messageQueue[0];
+            root.messageQueue = root.messageQueue.slice(1);
+            if (!root.messageByID[next.id])
+                continue;
+            root.updateMessage(next.id, m => {
+                m.queued = false;
+            });
+            requester.makeRequest(next.text, next.attachments);
             return;
         }
-        msg.queued = false;
-        root.touchMessage(msg);
-        requester.makeRequest(next.text);
     }
 
     function finalizeResponse() {
-        refreshSessions();
+        root.refreshSessions();
         root.responseFinished();
-        processQueue();
+        root.processQueue();
     }
 
     function regenerate(messageIndex) {
-        if (messageIndex < 0 || messageIndex >= root._idsBuf.length)
+        const buf = root._idsBuf;
+        if (messageIndex < 0 || messageIndex >= buf.length)
             return;
-        const id = root._idsBuf[messageIndex];
-        const message = root.messageByID[id];
-        if (message.role !== "assistant")
+        const message = root.messageByID[buf[messageIndex]];
+        if (!message || message.role !== "assistant")
             return;
-        for (let i = root._idsBuf.length - 1; i >= messageIndex; i--)
-            root.removeMessage(i);
-        const lastUserID = root._idsBuf[root._idsBuf.length - 1];
-        const lastUser = root.messageByID[lastUserID];
-        if (lastUser) {
-            root.messageQueue = [
-                {
-                    id: lastUserID,
-                    text: lastUser.rawContent
-                },
-                ...root.messageQueue];
-            if (!requester.running)
-                processQueue();
+        for (const id of buf.splice(messageIndex, buf.length - messageIndex))
+            root._drop(id);
+        root.scheduleIdsFlush();
+
+        let lastUserID = "";
+        for (let i = buf.length - 1; i >= 0; i--) {
+            const m = root.messageByID[buf[i]];
+            if (m && m.role === "user") {
+                lastUserID = buf[i];
+                break;
+            }
         }
+        if (!lastUserID)
+            return;
+        root.messageQueue = [
+            {
+                id: lastUserID,
+                text: root.messageByID[lastUserID].rawContent,
+                attachments: root.messageByID[lastUserID].attachments ?? []
+            },
+            ...root.messageQueue];
+        if (!requester.running)
+            root.processQueue();
     }
 
     function stop() {
@@ -788,19 +1112,19 @@ Singleton {
             sessionId: root.currentSessionId
         });
         root.clearPermissionFlags();
+        const mark = "\n\n*[Stopped]*";
+        const apply = m => {
+            m.thinking = false;
+            m.done = true;
+            m.rawContent += mark;
+            m.content += mark;
+        };
         if (requester.message) {
-            requester.message.thinking = false;
-            requester.message.done = true;
-            requester.message.rawContent += "\n\n*[Stopped]*";
-            requester.message.content += "\n\n*[Stopped]*";
-            root.touchMessage(requester.message);
+            if (!root.updateMessage(requester.messageId, apply))
+                apply(requester.message);
             requester.syncLive();
         }
         root.finalizeResponse();
-    }
-
-    function refreshSessions() {
-        sessionsFetcher.refresh();
     }
 
     function addAnnotations(urls) {
@@ -827,6 +1151,32 @@ Singleton {
         root._pendingAnnotations = [];
     }
 
+    function pickAttachments() {
+        attachmentFileDialog.open();
+    }
+
+    function addAttachment(path) {
+        let p = String(path ?? "");
+        if (p.startsWith("file://")) {
+            p = p.slice(7);
+            try {
+                p = decodeURIComponent(p);
+            } catch (e) {
+                // Leave malformed encoding untouched.
+            }
+        }
+        if (p && !root._pendingAttachments.includes(p))
+            root._pendingAttachments = root._pendingAttachments.concat([p]);
+    }
+
+    function removeAttachment(path) {
+        root._pendingAttachments = root._pendingAttachments.filter(p => p !== path);
+    }
+
+    function clearAttachments() {
+        root._pendingAttachments = [];
+    }
+
     function captureWindowAnnotation() {
         root._waitingForScreenshot = true;
         ScreenShotService.request({
@@ -851,26 +1201,68 @@ Singleton {
         }
     }
 
+    FileDialog {
+        id: attachmentFileDialog
+        title: qsTr("Attach files")
+        fileMode: FileDialog.OpenFiles
+        onAccepted: {
+            for (const f of files)
+                root.addAttachment(f);
+        }
+    }
+
+    Component {
+        id: permissionDialogComponent
+        CenterDialog {
+            id: permDlg
+            property var reqId: ""
+            property string dialogText: ""
+
+            show: true
+            onDismissed: root.resolvePermission(permDlg.reqId, false)
+
+            contentItem: Item {
+                implicitWidth: 400
+                implicitHeight: msg.implicitHeight
+
+                StyledText {
+                    id: msg
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                    }
+                    text: permDlg.dialogText
+                    wrapMode: Text.WordWrap
+                    color: Colors.colOnLayer0
+                    font: Fonts.request("main", "small")
+                }
+            }
+        }
+    }
+
     Process {
         id: acpProc
         running: true
         stdinEnabled: true
-        command: [baseCmd, "acp"]
+        command: [root.baseCmd, "acp"]
         stdout: SplitParser {
             onRead: data => root.handleSSELine(data)
         }
         environment: root.bridgeEnv
         onExited: {
             console.warn("acp bridge exited, restarting");
+            root.settleTurn();
+            root._restartCount++;
             NoonUtils.inlineTimer(() => {
                 acpProc.running = true;
-            }, 1000);
+            }, Math.min(1000 * root._restartCount, 10000));
         }
     }
 
     Fetcher {
         id: sessionsFetcher
-        command: [baseCmd, "sessions"]
+        command: [root.baseCmd, "sessions"]
         environment: root.bridgeEnv
         onStreamFinished: {
             if (Array.isArray(sessionsFetcher.data))
@@ -880,17 +1272,18 @@ Singleton {
 
     Fetcher {
         id: skillsFetcher
-        command: [baseCmd, "skills"]
+        command: [root.baseCmd, "skills"]
         environment: root.bridgeEnv
         onStreamFinished: {
             if (Array.isArray(skillsFetcher.data))
-                states.skills = skillsFetcher.data;
+                root.states.skills = skillsFetcher.data;
         }
     }
 
     Fetcher {
         id: chatFetcher
         autoRun: false
+        property int token: 0
         property var onDone: null
         environment: root.bridgeEnv
         onStreamFinished: {
@@ -902,8 +1295,23 @@ Singleton {
     }
 
     Fetcher {
+        id: moreFetcher
+        autoRun: false
+        property int token: 0
+        property var onDone: null
+        environment: root.bridgeEnv
+        onStreamFinished: {
+            const cb = moreFetcher.onDone;
+            moreFetcher.onDone = null;
+            if (cb)
+                cb(moreFetcher.data);
+        }
+    }
+
+    Fetcher {
         id: toolsFetcher
         autoRun: false
+        property int token: 0
         property var onDone: null
         environment: root.bridgeEnv
         onStreamFinished: {
@@ -914,41 +1322,42 @@ Singleton {
         }
     }
 
-    property int _helperToken: 0
-
-    function runHelper(cmd, args, onDone) {
-        chatFetcher.running = false;
-        const t = ++root._helperToken;
-        chatFetcher.command = [baseCmd, cmd].concat(args);
-        chatFetcher.onDone = data => {
-            if (t === root._helperToken && onDone)
+    function _runOn(fetcher, cmd, args, onDone) {
+        fetcher.running = false;
+        const t = ++fetcher.token;
+        fetcher.command = [root.baseCmd, cmd].concat(args);
+        fetcher.onDone = data => {
+            if (t === fetcher.token && onDone)
                 onDone(data);
         };
-        chatFetcher.refresh();
+        fetcher.refresh();
+    }
+
+    function runHelper(cmd, args, onDone) {
+        root._runOn(chatFetcher, cmd, args, onDone);
     }
 
     function runToolsHelper(args, onDone) {
-        toolsFetcher.running = false;
-        toolsFetcher.command = [baseCmd, "gen-tools"].concat(args);
-        toolsFetcher.onDone = onDone;
-        toolsFetcher.refresh();
+        root._runOn(toolsFetcher, "gen-tools", args, onDone);
     }
 
     QtObject {
         id: requester
         property var message: null
+        property string messageId: ""
         property bool running: false
         property string _userMessageId: ""
         property bool _sessionBusy: false
         property bool _liveDirty: false
 
         function syncLive() {
-            if (!requester.message)
+            const m = requester.message;
+            if (!m)
                 return;
-            root.liveContent = requester.message.content;
-            root.liveThinkText = requester.message.thinkText;
-            root.liveThinking = requester.message.thinking;
-            root.liveDone = requester.message.done;
+            root.liveContent = m.content;
+            root.liveThinkText = m.thinkText;
+            root.liveThinking = m.thinking;
+            root.liveDone = m.done;
             requester._liveDirty = false;
         }
 
@@ -960,24 +1369,31 @@ Singleton {
         }
 
         function processPart(p) {
-            if (!requester.message.opencodeId && p.messageID)
-                requester.message.opencodeId = p.messageID;
+            const msg = requester.message;
+            if (!msg)
+                return;
+            if (!msg.opencodeId && p.messageID) {
+                msg.opencodeId = p.messageID;
+                if (requester.messageId)
+                    root._byOcId[p.messageID] = requester.messageId;
+            }
             if (p.type === "reasoning" && p.text) {
-                requester.message.thinking = false;
-                requester.message.thinkText += p.text;
+                msg.thinking = false;
+                msg.thinkText += p.text;
             } else if (p.type === "text" && p.text) {
-                requester.message.thinking = false;
-                requester.message.content += p.text;
-                requester.message.rawContent += p.text;
+                msg.thinking = false;
+                msg.content += p.text;
+                msg.rawContent += p.text;
             } else if (p.type === "tool") {
-                requester.message.thinking = false;
-                root.addToolPart(requester.message, p);
+                msg.thinking = false;
+                root.addToolPart(msg, p);
                 return;
             }
             requester.markLiveDirty();
         }
 
-        function makeRequest(userMessage) {
+        function makeRequest(userMessage, attachments) {
+            const atts = Array.isArray(attachments) ? attachments : [];
             requester.running = true;
             requester._userMessageId = "";
 
@@ -988,14 +1404,16 @@ Singleton {
                 "thinking": true,
                 "done": false
             });
+            requester.messageId = "";
             requester.syncLive();
-            root.pushMessage(requester.message);
+            requester.messageId = root.pushMessage(requester.message);
 
             root.acpWrite(root.sessionCmd("send", {
-                text: root.skillPromptPrefix() + userMessage,
+                text: (userMessage.startsWith("/") ? "" : root.skillPromptPrefix()) + userMessage,
                 model: root.currentModelId,
                 effort: root.effortOptions.includes(root.currentEffortId) ? root.currentEffortId : "",
-                mode: root.currentAgentId
+                mode: root.currentAgentId,
+                attachments: atts
             }));
         }
 
@@ -1003,11 +1421,13 @@ Singleton {
             const msg = requester.message;
             if (!msg || msg.done)
                 return;
-
             requester.running = false;
-            msg.done = true;
-            msg.thinking = false;
-            root.touchMessage(msg);
+            const apply = m => {
+                m.done = true;
+                m.thinking = false;
+            };
+            if (!root.updateMessage(requester.messageId, apply))
+                apply(msg);
             requester.syncLive();
             root.finalizeResponse();
         }

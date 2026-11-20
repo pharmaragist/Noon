@@ -24,6 +24,6 @@ StyledPanel {
     signal interactionEnded
 
     visible: true
-    exclusiveZone: -1
+    exclusiveZone: 0
     _layer: "Overlay"
 }

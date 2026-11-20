@@ -9,7 +9,7 @@ import Quickshell
 BarGroup {
     id: root
 
-    property int discSize: barSize / 2
+    readonly property int discSize: barSize / 2.2
     Layout.fillWidth: true
     radius: Rounding.full
     Layout.preferredHeight: discSize
@@ -138,7 +138,7 @@ BarGroup {
             z: 2
             fill: 1
             anchors.centerIn: parent
-            font.pixelSize: Math.round(root.implicitSize * 0.65)
+            font.pixelSize: Math.round(root.discSize / 2)
             text: MediaPlayerService.isPlaying(root.player) ? "music_note" : "pause"
             color: root.colors.colLayer0
         }

@@ -145,7 +145,7 @@ func cmdSessions() error {
 	defer db.Close()
 
 	rows, err := db.Query(`SELECT id, title, time_created, time_updated, directory, project_id
-		FROM session ORDER BY time_updated DESC`)
+		FROM session_v2 ORDER BY time_updated DESC`)
 	if err != nil {
 		return err
 	}
@@ -154,8 +154,12 @@ func cmdSessions() error {
 	out := []Session{}
 	for rows.Next() {
 		var s Session
-		if err := rows.Scan(&s.ID, &s.Title, &s.Created, &s.Updated, &s.Directory, &s.ProjectID); err != nil {
+		var title sql.NullString
+		if err := rows.Scan(&s.ID, &title, &s.Created, &s.Updated, &s.Directory, &s.ProjectID); err != nil {
 			return err
+		}
+		if title.Valid {
+			s.Title = title.String
 		}
 		out = append(out, s)
 	}
@@ -180,105 +184,119 @@ func cmdChat(sessionID string, limit, offset int) error {
 	}
 	defer db.Close()
 
-	query := `SELECT m.id,
-		  json_extract(m.data, '$.role'), json_extract(m.data, '$.agent'),
-		  json_extract(m.data, '$.model.modelID'), p.data
-		FROM message m LEFT JOIN part p ON p.message_id = m.id
-		WHERE m.session_id = ?
-		  AND m.id IN (SELECT id FROM message WHERE session_id = ? ORDER BY rowid DESC LIMIT ? OFFSET ?)
-		ORDER BY m.rowid ASC`
-	rows, err := db.Query(query, sessionID, sessionID, limit, offset)
+	rows, err := db.Query(`SELECT seq, type, data FROM session_message WHERE session_id = ? ORDER BY seq DESC LIMIT ? OFFSET ?`, sessionID, limit, offset)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	type msg struct {
-		role  sql.NullString
-		agent sql.NullString
-		model sql.NullString
-		part  []json.RawMessage
+	type row struct {
+		seq  int64
+		typ  string
+		data string
 	}
-	order := []string{}
-	byID := map[string]*msg{}
+	collected := []row{}
 	for rows.Next() {
-		var mid string
-		var m msg
-		var pdata sql.NullString
-		if err := rows.Scan(&mid, &m.role, &m.agent, &m.model, &pdata); err != nil {
+		var r row
+		if err := rows.Scan(&r.seq, &r.typ, &r.data); err != nil {
 			return err
 		}
-		if _, ok := byID[mid]; !ok {
-			byID[mid] = &msg{role: m.role, agent: m.agent, model: m.model}
-			order = append(order, mid)
-		}
-		if pdata.Valid && len(pdata.String) > 0 {
-			byID[mid].part = append(byID[mid].part, json.RawMessage(pdata.String))
-		}
+		collected = append(collected, r)
 	}
 	if err := rows.Err(); err != nil {
 		return err
 	}
+	for i, j := 0, len(collected)-1; i < j; i, j = i+1, j-1 {
+		collected[i], collected[j] = collected[j], collected[i]
+	}
 
 	out := []Message{}
-	for _, mid := range order {
-		m := byID[mid]
+	for _, r := range collected {
+		var d struct {
+			Agent   string `json:"agent"`
+			Model   struct {
+				ID string `json:"id"`
+			} `json:"model"`
+			Content []struct {
+				Type  string          `json:"type"`
+				Text  string          `json:"text"`
+				ID    string          `json:"id"`
+				Name  string          `json:"name"`
+				State json.RawMessage `json:"state"`
+			} `json:"content"`
+			Text string `json:"text"`
+		}
+		if err := json.Unmarshal([]byte(r.data), &d); err != nil {
+			continue
+		}
 
 		var txt strings.Builder
 		var think strings.Builder
 		tools := []ToolCall{}
-		for _, pd := range m.part {
-			var p struct {
-				Type   string          `json:"type"`
-				Text   string          `json:"text"`
-				Tool   string          `json:"tool"`
-				CallID string          `json:"callID"`
-				State  json.RawMessage `json:"state"`
-			}
-			if err := json.Unmarshal(pd, &p); err != nil {
-				continue
-			}
-			switch p.Type {
-			case "text":
-				txt.WriteString(p.Text)
-			case "reasoning":
-				think.WriteString(p.Text)
-			case "tool":
-				var st struct {
-					Status string          `json:"status"`
-					Input  json.RawMessage `json:"input"`
-					Output string          `json:"output"`
+		if r.typ == "user" {
+			txt.WriteString(d.Text)
+		} else {
+			for _, part := range d.Content {
+				switch part.Type {
+				case "text":
+					txt.WriteString(part.Text)
+				case "reasoning":
+					think.WriteString(part.Text)
+				case "tool":
+					var st struct {
+						Status string          `json:"status"`
+						Input  json.RawMessage `json:"input"`
+						Output string          `json:"output"`
+						Error  interface{}     `json:"error"`
+					}
+					json.Unmarshal(part.State, &st)
+					output := st.Output
+					if output == "" && st.Error != nil {
+						if s, ok := st.Error.(string); ok {
+							output = s
+						} else {
+							b, _ := json.Marshal(st.Error)
+							output = string(b)
+						}
+					}
+					tools = append(tools, ToolCall{
+						Tool:   part.Name,
+						CallID: part.ID,
+						Status: st.Status,
+						Input:  st.Input,
+						Output: truncateString(output, 4000),
+					})
 				}
-				json.Unmarshal(p.State, &st)
-				tools = append(tools, ToolCall{
-					Tool:   p.Tool,
-					CallID: p.CallID,
-					Status: st.Status,
-					Input:  st.Input,
-					Output: truncateString(st.Output, 4000),
-				})
 			}
 		}
 
 		content := txt.String()
 		thinkText := think.String()
-		if strings.TrimSpace(content) == "" && strings.TrimSpace(thinkText) == "" && len(tools) == 0 {
+		if r.typ == "user" && strings.TrimSpace(content) == "" {
 			continue
 		}
+		if r.typ != "user" && strings.TrimSpace(content) == "" && strings.TrimSpace(thinkText) == "" && len(tools) == 0 {
+			continue
+		}
+
 		raw := truncateString(content, 100000)
 		content = truncateString(collapseInjectedBlocks(content), 30000)
+		role := r.typ
+		if role != "user" && role != "assistant" {
+			role = "assistant"
+		}
 		out = append(out, Message{
-			Role:              m.role.String,
+			Role:              role,
 			Content:           content,
 			ThinkText:         truncateString(thinkText, 30000),
 			RawContent:        raw,
-			Model:             m.model.String,
+			Model:             d.Model.ID,
 			Thinking:          false,
 			Done:              true,
 			Tools:             tools,
 			AnnotationSources: []interface{}{},
 			VisibleToUser:     true,
-			Agent:             m.agent.String,
+			Agent:             d.Agent,
 		})
 	}
 	return emit(out)

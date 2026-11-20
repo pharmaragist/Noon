@@ -9,7 +9,7 @@ mainMod = "SUPER"
 -- Apps
 terminal = "kitty"
 terminal_alt = "foot"
-terminal_opacity = 0.75
+terminal_opacity = ""
 browser = "firefox"
 browser_alt = "hellium"
 editor = "zed"
@@ -32,7 +32,7 @@ shadows = true
 shadows_power = 3
 shadows_range = 35
 gaps_in = 2
-gaps_out = 4
+gaps_out = 5
 gaps_special = 40
 borders = 0
 rounding = 24
@@ -53,7 +53,7 @@ direction = vertical and "vertical" or "horizontal"
 external_monitor_mode = "1920x1080@75"
 float_apps = false
 bar_location = "left"
-bar_width = 52
+bar_width = 50
 
 -- Monitors
 active_monitor = hl.get_active_monitor()

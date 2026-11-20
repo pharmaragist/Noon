@@ -40,7 +40,7 @@ QtObject {
     }
 
     function sendText(text) {
-        if ((text ?? "").trim().length === 0)
+        if ((text ?? "").trim().length === 0 && Harness._pendingAttachments.length === 0)
             return;
         const parts = text.trim().split(" ");
         const cmd = commands.find(c => c.name === parts[0].substring(1));

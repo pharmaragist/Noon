@@ -1,0 +1,62 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "noon",
+  "instructions": [],
+  "mcp": {
+    "servers": {
+      "github": {
+        "command": [
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "disabled": false,
+        "type": "local"
+      },
+      "photocraft": {
+        "command": [
+          "photocraft-cli",
+          "mcp",
+          "--bridge",
+          "127.0.0.1:7878",
+          "--control-token-file",
+          "/home/pharmaracist/.config/photocraft/control.token"
+        ],
+        "disabled": false,
+        "type": "local"
+      },
+      "rea": {
+        "command": [
+          "npx",
+          "-y",
+          "rea-agents@6.5.0",
+          "mcp"
+        ],
+        "disabled": false,
+        "environment": {
+          "HOPPER_LAUNCHER_PATH": "/opt/hopper/bin/Hopper"
+        },
+        "type": "local"
+      },
+      "workbench": {
+        "codemode": false,
+        "command": [
+          "node",
+          "/home/pharmaracist/opencode-workbench/src/main.js",
+          "mcp"
+        ],
+        "disabled": false,
+        "type": "local"
+      }
+    }
+  },
+  "permission": {
+    "*": "ask",
+    "read": "allow"
+  },
+  "provider": {
+    "google": {
+      "api_key": "AIzaSyBTnxbwKQYDcImfv-9iTMaGUnkhNsHxm1Q"
+    }
+  }
+}

@@ -87,7 +87,6 @@ StyledRect {
                 messageData: msg
                 messageInputField: root.inputField
             }
-
             anchors.left: parent?.left
             anchors.right: parent?.right
             anchors.margins: Padding.normal

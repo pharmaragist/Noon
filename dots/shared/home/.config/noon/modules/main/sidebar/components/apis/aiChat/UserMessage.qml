@@ -53,15 +53,90 @@ Item {
             leftMargin: Padding.huge
             rightMargin: Padding.huge
 
-            child: MessageTextBlock {
-                focus: root.editing
-                editing: root.editing
-                renderMarkdown: root.renderMarkdown
-                enableMouseSelection: root.enableMouseSelection
-                segmentContent: root.messageData?.content ?? ""
-                messageData: root.messageData
-                done: root.messageData?.done ?? false
-                forceDisableChunkSplitting: root.messageData?.content?.includes("```") ?? true
+            child: ColumnLayout {
+                spacing: Padding.normal
+
+                Repeater {
+                    model: root.messageData?.attachments ?? []
+
+                    delegate: StyledRect {
+                        id: fileCard
+                        required property var modelData
+                        readonly property string path: String(modelData ?? "")
+                        readonly property string fileName: FileUtils.fileNameForPath(path)
+                        readonly property string extension: {
+                            const idx = fileCard.fileName.lastIndexOf(".");
+                            return idx > 0 ? fileCard.fileName.slice(idx + 1).toLowerCase() : "";
+                        }
+                        readonly property string iconName: {
+                            const ext = fileCard.extension;
+                            if (["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext))
+                                return "image";
+                            if (["pdf", "md", "txt", "doc", "docx"].includes(ext))
+                                return "description";
+                            if (["zip", "tar", "gz", "7z"].includes(ext))
+                                return "folder_zip";
+                            return "draft";
+                        }
+
+                        Layout.fillWidth: true
+                        implicitHeight: 46
+                        radius: Rounding.normal
+                        color: Colors.colLayer3
+                        clip: true
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Padding.small
+                            spacing: Padding.normal
+
+                            StyledRect {
+                                Layout.preferredWidth: 28
+                                Layout.preferredHeight: 28
+                                radius: Rounding.small
+                                color: Colors.colSecondaryContainer
+
+                                Symbol {
+                                    anchors.centerIn: parent
+                                    icon: fileCard.iconName
+                                    iconSize: 17
+                                    fill: 1
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+
+                                StyledText {
+                                    Layout.fillWidth: true
+                                    text: fileCard.fileName
+                                    font: Fonts.request("main", "small")
+                                    color: Colors.colOnLayer3
+                                    truncate: true
+                                }
+                                StyledText {
+                                    visible: fileCard.extension.length > 0
+                                    text: fileCard.extension.toUpperCase()
+                                    font.pixelSize: Fonts.sizes.verysmall
+                                    color: Colors.colSubtext
+                                }
+                            }
+                        }
+                    }
+                }
+
+                MessageTextBlock {
+                    Layout.fillWidth: true
+                    focus: root.editing
+                    editing: root.editing
+                    renderMarkdown: root.renderMarkdown
+                    enableMouseSelection: root.enableMouseSelection
+                    segmentContent: root.messageData?.content ?? ""
+                    messageData: root.messageData
+                    done: root.messageData?.done ?? false
+                    forceDisableChunkSplitting: root.messageData?.content?.includes("```") ?? true
+                }
             }
         }
 

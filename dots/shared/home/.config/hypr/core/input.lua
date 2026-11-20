@@ -16,6 +16,13 @@ hl.gesture({
     mode = "live"
 })
 hl.gesture({
+    fingers = 2,
+    direction = "pinch",
+    action = "resize",
+    mods = "SUPER",
+    mode = "live"
+})
+hl.gesture({
     fingers = 3,
     mods = "CTRL",
     direction = "down",

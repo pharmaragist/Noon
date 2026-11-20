@@ -1,3 +1,5 @@
+-- Dummy for fallbacks and overrided by core.variables
+require("dummy.variables")
 require("core.variables")
 require("colors")
 require("core.hacks")

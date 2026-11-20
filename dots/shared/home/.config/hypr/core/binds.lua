@@ -66,6 +66,7 @@ m_bind("down", hl.dsp.focus({ direction = "d" }))
 m_bind("mouse:272", hl.dsp.window.drag(), { mouse = true })
 m_bind("mouse:274", hl.dsp.window.drag(), { mouse = true })
 m_bind("CTRL+mouse:272", hl.dsp.window.resize(), { mouse = true })
+m_bind("mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Layout: fine pixel scroll
 m_bind("P", hl.dsp.window.pin())

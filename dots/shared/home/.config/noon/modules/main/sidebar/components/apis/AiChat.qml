@@ -25,6 +25,11 @@ SidebarItemContainer {
             execute: args => Harness.newSession()
         },
         {
+            name: "compact",
+            description: qsTr("Compact session context"),
+            execute: () => Harness.sendUserMessage("/compact")
+        },
+        {
             name: "session",
             description: qsTr("Select Session"),
             execute: args => Harness.loadChat(args.join(" ").trim())
@@ -116,7 +121,8 @@ SidebarItemContainer {
                 utils.handleInputKeyPress(event);
                 return;
             }
-            if (messageInputField.text.trim().length > 0 || Harness._pendingAnnotations.length > 0) {
+            if (messageInputField.text.trim().length > 0 || Harness._pendingAnnotations.length > 0
+                    || Harness._pendingAttachments.length > 0) {
                 const text = messageInputField.text;
                 messageInputField.clear();
                 root.sendText(text);
@@ -194,14 +200,17 @@ SidebarItemContainer {
         }
 
         LayerRect {
+            id: entryBg
             colBackground: dropArea.containsDrag ? Colors.colLayer3Active : messageInputField.focus ? Colors.colLayer3 : Colors.colLayer2
             Layout.fillWidth: true
             radius: Rounding.huge
-            implicitHeight: Math.max(inputAreaCol.implicitHeight + Padding.huge, 45)
+            implicitHeight: Math.max((Harness.pendingElicitation
+                ? elicitComposer.implicitHeight : inputAreaCol.implicitHeight) + Padding.huge, 45)
             clip: true
 
             ColumnLayout {
                 id: inputAreaCol
+                visible: !Harness.pendingElicitation
                 spacing: Padding.huge
                 anchors {
                     fill: parent
@@ -440,6 +449,71 @@ SidebarItemContainer {
                     }
                 }
 
+                StyledRect {
+                    id: attachmentsArea
+                    readonly property bool hasPaths: Harness._pendingAttachments.length > 0
+
+                    radius: Rounding.large
+                    color: Colors.colLayer2
+                    Layout.fillWidth: true
+                    implicitHeight: hasPaths ? 40 : 0
+                    opacity: hasPaths ? 1 : 0
+                    visible: implicitHeight > 0
+                    clip: true
+                    bouncy: false
+
+                    ListView {
+                        anchors.fill: parent
+                        anchors.margins: Padding.small
+                        orientation: ListView.Horizontal
+                        spacing: Padding.small
+                        model: Harness._pendingAttachments
+
+                        delegate: StyledRect {
+                            id: attachmentChip
+                            required property var modelData
+                            readonly property string fileName: FileUtils.fileNameForPath(
+                                String(modelData ?? ""))
+                            implicitHeight: 30
+                            implicitWidth: Math.min(attachmentName.implicitWidth + 76, 260)
+                            radius: Rounding.normal
+                            color: Colors.colLayer3
+
+                            RowLayout {
+                                anchors {
+                                    fill: parent
+                                    leftMargin: Padding.small
+                                    rightMargin: Padding.tiny
+                                }
+                                spacing: Padding.tiny
+
+                                Symbol {
+                                    Layout.preferredWidth: 16
+                                    Layout.preferredHeight: 16
+                                    icon: "attach_file"
+                                    iconSize: 14
+                                    fill: 1
+                                }
+
+                                StyledText {
+                                    id: attachmentName
+                                    Layout.fillWidth: true
+                                    text: attachmentChip.fileName
+                                    font: Fonts.request("main", "small")
+                                    color: Colors.colOnLayer3
+                                    truncate: true
+                                }
+
+                                RippleButtonWithIcon {
+                                    implicitSize: 22
+                                    materialIcon: "close"
+                                    releaseAction: () => Harness.removeAttachment(modelData)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 RowLayout {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
@@ -481,11 +555,22 @@ SidebarItemContainer {
                         onClicked: Harness.captureWindowAnnotation()
                     }
 
+                    RippleButtonWithIcon {
+                        materialIcon: "attach_file"
+                        implicitSize: 35
+                        Layout.rightMargin: 4
+                        buttonRadius: Rounding.large
+                        colBackground: "transparent"
+                        onClicked: Harness.pickAttachments()
+                    }
+
                     Item {
                         id: sendButton
                         implicitHeight: 50
                         implicitWidth: 50
-                        readonly property bool hasContent: messageInputField.text.length > 0 || Harness._pendingAnnotations.length > 0
+                        readonly property bool hasContent: messageInputField.text.length > 0
+                            || Harness._pendingAnnotations.length > 0
+                            || Harness._pendingAttachments.length > 0
                         readonly property bool toggled: Harness.isResponding || hasContent
 
                         SequentialAnimation {
@@ -555,6 +640,17 @@ SidebarItemContainer {
                             }
                         }
                     }
+                }
+            }
+
+            ElicitComposer {
+                id: elicitComposer
+                visible: !!Harness.pendingElicitation
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    margins: Padding.normal
                 }
             }
         }

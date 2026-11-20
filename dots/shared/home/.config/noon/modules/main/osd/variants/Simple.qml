@@ -28,7 +28,7 @@ OsdPanel {
     }
 
     function getM(side) {
-        return BarData.currentState.position === side ? BarData.currentInfo.appearance.size + Padding.huge : Sizes.elevationMargin
+        return Sizes.elevationMargin
     }
 
     function poke() {

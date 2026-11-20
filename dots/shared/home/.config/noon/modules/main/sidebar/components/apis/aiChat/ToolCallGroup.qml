@@ -1,8 +1,9 @@
+import QtQuick
+import QtQuick.Layouts
 import qs.services
 import qs.common
 import qs.common.widgets
-import QtQuick
-import QtQuick.Layouts
+import qs.common.functions
 
 Item {
     id: root
@@ -21,7 +22,7 @@ Item {
     readonly property string headerSummary: {
         const counts = {};
         for (let i = 0; i < tools.length; i++) {
-            const name = this.methods.capitalizeFirstLetter(tools[i]?.tool ?? "tool");
+            const name = TextUtils.capitalizeFirstLetter(tools[i]?.tool ?? "tool");
             counts[name] = (counts[name] ?? 0) + 1;
         }
         return Object.entries(counts)

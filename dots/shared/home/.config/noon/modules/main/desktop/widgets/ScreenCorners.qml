@@ -56,10 +56,7 @@ Variants {
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             corner: RoundCorner.BottomRight
-            action: () => {
-                Globals.main.beam.show = true;
-                Globals.main.beam.reason = "music";
-            }
+            action: () => {}
         }
     }
 

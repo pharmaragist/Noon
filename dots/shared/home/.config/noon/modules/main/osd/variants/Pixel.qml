@@ -28,7 +28,7 @@ OsdPanel {
         id: pill
         anchors.centerIn: parent
 
-        implicitWidth: 65
+        implicitWidth: 55
         implicitHeight: 280
 
         enableBorders: true
@@ -45,7 +45,7 @@ OsdPanel {
                 implicitHeight: width
 
                 MaterialShape {
-                    implicitSize: 40
+                    implicitSize: 35
                     rotation: 360 * value
                     anchors.centerIn: parent
                     color: root.value > 0 ? Colors.colPrimary : Colors.colLayer2
@@ -58,7 +58,7 @@ OsdPanel {
                 Symbol {
                     fill: 1
                     text: root.icon
-                    font.pixelSize: 18
+                    font.pixelSize: 16
                     anchors.centerIn: symbol
                     color: root.value > 0 ? Colors.colOnPrimary : Colors.colOnLayer2
                 }
