@@ -27,7 +27,7 @@ Singleton {
         return component.createObject(root, propTable ?? {});
     }
     function runSystemUpdate() {
-        execDetached([Paths.scriptsDir + "/distro_update.sh"]);
+        execDetached([Paths.scripts.updateDistro]);
     }
     // Arrays handed through `property var` become QVariantList; Array.isArray() misses them.
     function isList(value) {
@@ -253,7 +253,7 @@ Singleton {
     Fetcher {
         id: soundFetch
         running: true
-        command: [Paths.scriptsDir + "/get_sounds.sh"]
+        command: [Paths.scripts.getSounds]
         onDataChanged: if (data)
             Mem.store.services.sounds.availableSounds = data
     }

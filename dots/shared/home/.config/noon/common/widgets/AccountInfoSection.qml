@@ -6,8 +6,6 @@ import qs.common.functions
 
 StyledRect {
     id: root
-    property var account: AuthManager?.oauthData[0]?.account ?? ({})
-    visible: account?.name?.trim().length > 0
     color: "transparent"
     radius: Rounding.verylarge
 
@@ -44,8 +42,7 @@ StyledRect {
             CroppedImage {
                 z: 1
                 anchors.fill: parent
-                visible: account.image.length > 0
-                source: account?.image
+                source: SysInfoService.userPfp
             }
 
             Symbol {
@@ -63,7 +60,7 @@ StyledRect {
                 z: 999
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: NoonUtils.execDetached([Paths.scriptsDir + "/set_face.sh"])
+                onClicked: NoonUtils.execDetached([Paths.scripts.setFace])
             }
         }
 
@@ -75,7 +72,7 @@ StyledRect {
                 truncate: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignLeft
-                text: TextUtils.capitalizeFirstLetter(account.name)
+                text: TextUtils.capitalizeFirstLetter(SysInfoService.username)
                 color: Colors.colOnLayer2
                 font: Fonts.request("title", "huge")
             }
@@ -84,7 +81,7 @@ StyledRect {
                 truncate: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignLeft
-                text: account.handler
+                text: SysInfoService.distroId
                 color: Colors.colSubtext
                 font: Fonts.request("title", "small")
             }

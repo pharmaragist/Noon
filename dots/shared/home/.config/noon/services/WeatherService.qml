@@ -13,7 +13,7 @@ Singleton {
 
     readonly property bool isLoading: fetcher.running
     readonly property bool isReady: !!weatherData && !("error" in weatherData)
-    readonly property list<string> command: [Paths.scriptsDir + "/weather_service", "-c", opts?.location, (opts.useFehrenheit ? "-f" : "")]
+    readonly property list<string> command: [Paths.scripts.weather, "-c", opts?.location, (opts.useFehrenheit ? "-f" : "")]
 
     onCommandChanged: if (command)
         loadWeather(true)

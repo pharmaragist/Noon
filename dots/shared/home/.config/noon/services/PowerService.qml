@@ -27,7 +27,7 @@ Singleton {
 
     function set(mode) {
         proc.running = false;
-        proc.command = ["bash", "-c", `${Paths.scriptsDir}/power_service.sh  ${mode} ${(root.turbo ? "always" : "never")}  ${(root.bluetoothOnBoot ? "--bluetooth_boot_on" : "--bluetooth_boot_off")}`];
+        proc.command = ["bash", "-c", `${Paths.scripts.power} ${mode} ${(root.turbo ? "always" : "never")} ${(root.bluetoothOnBoot ? "--bluetooth_boot_on" : "--bluetooth_boot_off")}`];
         proc.running = true;
     }
 

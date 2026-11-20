@@ -81,10 +81,6 @@ JsonAdapter {
             property int nonAppResultDelay: 120
             property bool sloppy: false
         }
-        property JO integrations: JO {
-            property bool googleTasks: false
-            property bool googleCalendar: false
-        }
         property JO idle: JO {
             property int timeOut: 120
             property bool inhibit: false
@@ -176,6 +172,7 @@ JsonAdapter {
             property bool overview: false
             property bool sounds: true
             property bool timers: true
+            property bool widgets: true
 
             property bool history: false
             property bool emojies: false

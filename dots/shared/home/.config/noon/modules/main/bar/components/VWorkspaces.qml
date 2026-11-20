@@ -247,7 +247,8 @@ BarGroup {
                                     Layout.alignment: Qt.AlignHCenter
 
                                     StyledIconImage {
-                                        anchors.fill: parent
+                                        implicitSize: button.iconSize
+                                        anchors.centerIn: parent
                                         visible: genericSymbol === ""
                                         source: windowData?.class ? NoonUtils.iconPath(desktopEntry?.genericIcon || desktopEntry?.icon || "applications-system") : ""
                                         tint: 0.4

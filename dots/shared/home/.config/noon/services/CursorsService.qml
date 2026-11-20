@@ -40,7 +40,7 @@ Singleton {
 
     Fetcher {
         id: fetcher
-        command: ["bash","-c", Paths.scriptsDir + "/get_cursors.sh"]
+        command: ["bash","-c", Paths.scripts.getCursors]
         onDataChanged: if (data)
             Mem.store.services.cursors.availableCursors = fetcher?.data
     }

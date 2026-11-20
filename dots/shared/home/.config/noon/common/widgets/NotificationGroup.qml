@@ -1,14 +1,8 @@
 import qs.common
-import "notification_utils.js" as NotificationUtils
-import Qt5Compat.GraphicalEffects
-import QtQuick
 import qs.services
-import QtQuick.Controls
-import QtQuick.Effects
+import "notification_utils.js" as NotificationUtils
+import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Widgets
-import Quickshell.Hyprland
 
 Item {
     id: root
@@ -21,62 +15,55 @@ Item {
     property bool omitOnDestroy: false
     property real padding: Padding.verylarge
     property int radius: Rounding.verylarge
-    property color color: Colors.colLayer2
-    implicitHeight: background.implicitHeight
-
+    property color color: popup ? Colors.colLayer0 : Colors.colLayer2
     property real dragConfirmThreshold: 70
     property real dismissOvershoot: 20
-    property var qmlParent: root?.parent?.parent ?? null
-    property var parentDragIndex: qmlParent.dragIndex
-    property var parentDragDistance: qmlParent.dragDistance
-    property var dragIndexDiff: Math.abs(parentDragIndex - index)
-    property real xOffset: dragIndexDiff == 0 ? Math.max(0, parentDragDistance) : parentDragDistance > dragConfirmThreshold ? 0 : dragIndexDiff == 1 ? Math.max(0, parentDragDistance * 0.3) : dragIndexDiff == 2 ? Math.max(0, parentDragDistance * 0.1) : 0
+
+    readonly property var qmlParent: parent?.parent ?? null
+    readonly property int dragIndexDiff: Math.abs((qmlParent?.dragIndex ?? -1) - index)
+    readonly property real dragDistance: qmlParent?.dragDistance ?? 0
+    readonly property real xOffset: {
+        if (dragIndexDiff === 0)
+            return Math.max(0, dragDistance);
+        if (dragDistance > dragConfirmThreshold)
+            return 0;
+        if (dragIndexDiff === 1)
+            return Math.max(0, dragDistance * 0.3);
+        if (dragIndexDiff === 2)
+            return Math.max(0, dragDistance * 0.1);
+        return 0;
+    }
+
+    implicitHeight: background.implicitHeight
+    onPopupChanged: if (popup &&  !expanded && !!notificationGroup)
+        NoonUtils.inlineTimer(() => root?.destroyWithAnimation(true), Mem.options.osd.timeout ?? 3000);
 
     function destroyWithAnimation(omit = root.popup) {
-        root.omitOnDestroy = omit;
-        root.qmlParent.resetDrag();
+        omitOnDestroy = omit;
+        qmlParent?.resetDrag();
         background.anchors.leftMargin = background.anchors.leftMargin;
-        destroyAnimation.running = true;
+        destroyAnimation.start();
     }
-    Component.onCompleted: {
-        if (root.popup)
-            NoonUtils.inlineTimer(() => {
-                root.destroyWithAnimation(true);
-            }, Mem.options.osd.timeout ?? 3000);
+
+    function toggleExpanded() {
+        implicitHeightAnim.enabled = expanded;
+        expanded = !expanded;
     }
+
     SequentialAnimation {
         id: destroyAnimation
-        running: false
-
         Anim {
             target: background.anchors
             property: "leftMargin"
             to: root.width + root.dismissOvershoot
         }
-        onFinished: () => {
-            root.notifications.forEach(notif => {
-                Qt.callLater(() => {
-                    if (root.omitOnDestroy)
-                        Notifications.omitNotification(notif.notificationId);
-                    else
-                        Notifications.dismissNotification(notif.notificationId);
-                });
-            });
-        }
-    }
-
-    function toggleExpanded() {
-        if (expanded)
-            implicitHeightAnim.enabled = true;
-        else
-            implicitHeightAnim.enabled = false;
-        root.expanded = !root.expanded;
+        onFinished: notifications.forEach(n => Qt.callLater(() => omitOnDestroy ? Notifications.omitNotification(n.notificationId) : Notifications.dismissNotification(n.notificationId)))
     }
 
     DragManager {
         id: dragManager
         anchors.fill: parent
-        interactive: !expanded
+        interactive: !root.expanded
         automaticallyReset: false
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
 
@@ -86,49 +73,34 @@ Item {
             else if (mouse.button === Qt.MiddleButton)
                 root.destroyWithAnimation();
         }
-
-        onDraggingChanged: () => {
-            if (dragging) {
+        onDraggingChanged: {
+            if (dragging && root.qmlParent)
                 root.qmlParent.dragIndex = root.index ?? root.parent.children.indexOf(root);
-            }
         }
-
-        onDragDiffXChanged: () => {
-            root.qmlParent.dragDistance = dragDiffX;
-        }
-
-        onDragReleased: (diffX, diffY) => {
-            if (diffX > root.dragConfirmThreshold)
-                root.destroyWithAnimation();
-            else
-                dragManager.resetDrag();
-        }
+        onDragDiffXChanged: if (root.qmlParent)
+            root.qmlParent.dragDistance = dragDiffX
+        onDragReleased: diffX => diffX > root.dragConfirmThreshold ? root.destroyWithAnimation() : resetDrag()
     }
 
     StyledRectangularShadow {
         target: background
-        visible: popup
+        visible: root.popup
     }
 
     Rectangle {
         id: background
-        anchors.left: parent.left
         width: parent.width
         color: root.color
         radius: root.radius
+        clip: true
+        anchors.left: parent.left
         anchors.leftMargin: root.xOffset
-        border {
-            color: Colors.colOutline
-            width: root.popup ? 1 : 0
-        }
+        implicitHeight: root.expanded ? row.implicitHeight + root.padding * 2 : Math.min(80, row.implicitHeight + root.padding * 2)
+
         Behavior on anchors.leftMargin {
             enabled: !dragManager.dragging
             Anim {}
         }
-
-        clip: true
-        implicitHeight: expanded ? row.implicitHeight + padding * 2 : Math.min(80, row.implicitHeight + padding * 2)
-
         Behavior on implicitHeight {
             id: implicitHeightAnim
             Anim {}
@@ -136,95 +108,82 @@ Item {
 
         RowLayout {
             id: row
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: root.padding
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: root.padding
+            }
             spacing: 10
 
             NotificationAppIcon {
-
                 Layout.alignment: Qt.AlignTop
-                Layout.fillWidth: false
-                image: root?.multipleNotifications ? "" : notificationGroup?.notifications[0]?.image ?? ""
-                appIcon: notificationGroup?.appIcon
-                summary: notificationGroup?.notifications[root.notificationCount - 1]?.summary
+                image: root.multipleNotifications ? "" : (root.notifications[0]?.image ?? "")
+                appIcon: root.notificationGroup?.appIcon
+                summary: root.notifications[root.notificationCount - 1]?.summary
             }
 
             ColumnLayout {
-
                 Layout.fillWidth: true
-                spacing: expanded ? (root.multipleNotifications ? (notificationGroup?.notifications[root.notificationCount - 1].image != "") ? 35 : 5 : 0) : 0
+                spacing: {
+                    if (!root.expanded || !root.multipleNotifications)
+                        return 2;
+                    return root.notifications[root.notificationCount - 1]?.image !== "" ? 35 : 5;
+                }
 
                 Behavior on spacing {
                     Anim {}
                 }
 
-                Item {
+                RowLayout {
                     id: topRow
-
                     Layout.fillWidth: true
-                    property real fontSize: Fonts.sizes.verysmall
-                    property bool showAppName: root.multipleNotifications
-                    implicitHeight: Math.max(topTextRow.implicitHeight, expandButton.implicitHeight)
+                    spacing: Padding.small
 
-                    RowLayout {
-                        id: topTextRow
-                        anchors.left: parent.left
-                        anchors.right: expandButton.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 5
-                        StyledText {
-                            id: appName
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
-                            text: (topRow.showAppName ? notificationGroup?.appName : notificationGroup?.notifications[0]?.summary) || ""
-                            font.pixelSize: topRow.showAppName ? topRow.fontSize : Fonts.sizes.small
-                            color: topRow.showAppName ? Colors.colSubtext : Colors.colOnLayer2
-                        }
-                        StyledText {
-                            id: timeText
-
-                            Layout.rightMargin: 10
-                            horizontalAlignment: Text.AlignLeft
-                            text: NotificationUtils.getFriendlyNotifTimeString(notificationGroup?.time)
-                            font.pixelSize: topRow.fontSize
-                            color: Colors.colSubtext
-                        }
+                    StyledText {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        text: (root.multipleNotifications ? root.notificationGroup?.appName : root.notifications[0]?.summary) || ""
+                        font.pixelSize: root.multipleNotifications ? Fonts.sizes.verysmall : Fonts.sizes.small
+                        color: root.multipleNotifications ? Colors.colSubtext : Colors.colOnLayer2
                     }
+
+                    StyledText {
+                        Layout.rightMargin: 10
+                        text: NotificationUtils.getFriendlyNotifTimeString(root.notificationGroup?.time)
+                        font.pixelSize: Fonts.sizes.verysmall
+                        color: Colors.colSubtext
+                    }
+
                     NotificationGroupExpandButton {
-                        id: expandButton
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
                         count: root.notificationCount
                         expanded: root.expanded
-                        fontSize: topRow.fontSize
-                        onClicked: {
-                            root.toggleExpanded();
-                        }
+                        fontSize: Fonts.sizes.verysmall
+                        onClicked: root.toggleExpanded()
                     }
                 }
 
                 StyledListView {
                     id: notificationsColumn
-                    implicitHeight: contentHeight
                     Layout.fillWidth: true
-                    spacing: expanded ? 5 : 3
-
+                    implicitHeight: contentHeight
                     interactive: false
+                    spacing: root.expanded ? 5 : 3
+                    _model: root.expanded ? [...root.notifications].reverse() : [...root.notifications].reverse().slice(0, 2)
+
                     Behavior on spacing {
                         Anim {}
                     }
-                    _model: root.expanded ? root.notifications.slice().reverse() : root.notifications.slice().reverse().slice(0, 2)
+
                     delegate: NotificationItem {
                         required property int index
                         required property var modelData
                         notificationObject: modelData
                         expanded: root.expanded
-                        onlyNotification: (root.notificationCount === 1)
+                        onlyNotification: root.notificationCount === 1
                         popup: root.popup
-                        opacity: (!root.expanded && index == 1 && root.notificationCount > 2) ? 0.5 : 1
-                        visible: root.expanded || (index < 2)
+                        opacity: !root.expanded && index === 1 && root.notificationCount > 2 ? 0.5 : 1
+                        visible: root.expanded || index < 2
                         anchors.left: parent?.left
                         anchors.right: parent?.right
                     }

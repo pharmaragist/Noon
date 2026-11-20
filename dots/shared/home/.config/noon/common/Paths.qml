@@ -49,8 +49,6 @@ Singleton {
     readonly property QtObject wallpapers: QtObject {
         readonly property string defaultBg: methods.trim(root.assets + "/images/default_wallpaper.png")
         readonly property string matugenConfig: methods.trim(root.standard.config) + "/matugen/config.toml"
-        readonly property string colGenScript: methods.trim(root.scriptsDir + "/colgen_service.py")
-        readonly property string thumbScript: methods.trim(root.scriptsDir + "/thumbnails_service.py")
         readonly property string shaders: methods.trim(standard.pictures + "/Wallpapers/Shaders")
         readonly property string main: methods.trim(standard.pictures + "/Wallpapers/")
         readonly property string depthDir: methods.trim(standard.cache + "/user/generated/depth/")
@@ -62,5 +60,50 @@ Singleton {
         readonly property string dock: main + "/dock"
         readonly property string sidebar: main + "/sidebar"
         readonly property string palettes: main + "/palettes"
+    }
+
+    readonly property QtObject scripts: QtObject {
+        readonly property string base: root.scriptsDir
+
+        // Language roots
+        readonly property string bin: base + "/bin"
+        readonly property string python: base + "/python"
+        readonly property string bash: base + "/bash"
+
+        // Binaries
+        readonly property string beats: bin + "/beats"
+        readonly property string weather: bin + "/weather"
+        readonly property string npc: bin + "/npc"
+        readonly property string screenShareWatcher: bin + "/screen_share_watcher"
+        readonly property string harness: bin + "/harness"
+
+        // Python
+        readonly property string colors: python + "/colors.py"
+        readonly property string dlpHelper: python + "/dlpHelper.py"
+        readonly property string icons: python + "/icons.py"
+        readonly property string packages: python + "/packages.py"
+        readonly property string positionClock: python + "/position_clock.py"
+        readonly property string store: python + "/store.py"
+        readonly property string thawb: python + "/thawb.py"
+        readonly property string thumbnails: python + "/thumbnails.py"
+        readonly property string ytDlp: python + "/yt_dlp.py"
+
+        // Bash
+        readonly property string deleteOpencodeSessions: bash + "/delete_opencode_sessions.sh"
+        readonly property string getCursors: bash + "/get_cursors.sh"
+        readonly property string getFonts: bash + "/get_fonts.sh"
+        readonly property string getSounds: bash + "/get_sounds.sh"
+        readonly property string hyprZoom: bash + "/hypr_zoom.sh"
+        readonly property string pluginsHelper: bash + "/plugins_helper.sh"
+        readonly property string power: bash + "/power.sh"
+        readonly property string previewMermaid: bash + "/preview_mermaid.sh"
+        readonly property string record: bash + "/record.sh"
+        readonly property string reloadShell: bash + "/reload_shell.sh"
+        readonly property string sanitizeYoutubeUrl: bash + "/sanitize_youtube_url.sh"
+        readonly property string screenshotHelper: bash + "/screenshot_helper.sh"
+        readonly property string setFace: bash + "/set_face.sh"
+        readonly property string showDesktop: bash + "/show_desktop.sh"
+        readonly property string syncFonts: bash + "/sync_sys_fonts.sh"
+        readonly property string updateDistro: bash + "/update_distro.sh"
     }
 }

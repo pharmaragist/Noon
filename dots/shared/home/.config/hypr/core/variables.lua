@@ -3,13 +3,13 @@ home = os.getenv("HOME")
 shell_path = home .. "/.config/noon"
 scriptsDir = shell_path .. "/scripts"
 shell_cmd = "qs -c " .. shell_path
-ipc = scriptsDir .. "/npc call "
+ipc = scriptsDir .. "/bin/npc call "
 mainMod = "SUPER"
 
 -- Apps
 terminal = "kitty"
 terminal_alt = "foot"
-terminal_opacity = ""
+terminal_opacity = 0.75
 browser = "firefox"
 browser_alt = "hellium"
 editor = "zed"

@@ -43,7 +43,7 @@ Singleton {
             }
         };
         const all = ["standard", "services", "wallpapers", "plugins"];
-        all.forEach(gp => batchCreate(gp))
+        all.forEach(gp => batchCreate(gp));
 
         p.methods.mkdir([p.venv, p.shellConfigs]);
         console.warn("Paths Are Set");
@@ -59,7 +59,7 @@ Singleton {
         const config = Paths.methods.trim(Paths.standard.config);
 
         Paths.methods.createFileWith(config + "/hypr/xdph.conf", `
-            screencopy { custom_picker_binary = ${config}/noon/scripts/screen_share_watcher }
+ screencopy { custom_picker_binary = ${Paths.scripts.screenShareWatcher} }
         `);
         console.warn("Screen Sharing Hack is Set");
     }

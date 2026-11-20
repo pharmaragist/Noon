@@ -17,7 +17,7 @@ Singleton {
     readonly property bool developmentMode: true
     readonly property bool enablePlugins: true
     readonly property list<string> plugins: allPlugins.map(plugin => plugin.group)
-
+    readonly property list<string> cmd: [Paths.scripts.pluginsHelper]
     // available from the Noon-Plugins GitHub index
     property var hubPlugins: []
 
@@ -94,26 +94,26 @@ Singleton {
     }
 
     function disable(group, name) {
-        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "disable", group, name];
+        actionProc.command = [...root.cmd, "disable", group, name];
         actionProc.running = true;
     }
     function enable(group, name) {
-        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "enable", group, name];
+        actionProc.command = [...root.cmd, "enable", group, name];
         actionProc.running = true;
     }
     function install(zip = root.selectedLocation) {
-        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "install", zip];
+        actionProc.command = [...root.cmd, "install", zip];
         actionProc.running = true;
     }
     function remove(group, name) {
-        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", "remove", group, name];
+        actionProc.command = [...root.cmd, "remove", group, name];
         actionProc.running = true;
     }
 
     function action(plugin, action) {
         if (!plugin)
             return;
-        actionProc.command = [Paths.scriptsDir + "/plugins_helper.sh", action, plugin];
+        actionProc.command = [...root.cmd, action, plugin];
         actionProc.running = true;
     }
 

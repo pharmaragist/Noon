@@ -22,13 +22,15 @@ Rectangle {
     property real materialIconSize: size * materialIconScale
     property real appIconSize: size * appIconScale
     property real smallAppIconSize: size * smallAppIconScale
+    readonly property var status: loader._item?.status
 
     implicitWidth: size
     implicitHeight: size
     radius: Rounding.full
     color: Colors.colSecondaryContainer
 
-    Loader {
+    StyledLoader {
+        id: loader
         anchors.fill: parent
         sourceComponent: {
             if (root.image !== "")

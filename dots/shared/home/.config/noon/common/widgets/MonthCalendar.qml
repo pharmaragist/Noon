@@ -90,7 +90,6 @@ ColumnLayout {
                 isToday: root.calendarLayout[row][col].today
                 dateString: root.calendarLayout[row][col].day + "/" + (root.viewingDate.getMonth() + 1) + "/" + root.viewingDate.getFullYear()
                 hasEvents: root.calendarLayout[row][col].today !== -1 && CalendarService.getTasksOfDate(dateString).length > 0
-                releaseAction: () => CalendarService.pull()
             }
         }
     }

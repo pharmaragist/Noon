@@ -34,14 +34,6 @@ JsonAdapter {
                 "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx": "~/.u2net/u2net.onnx",
                 "https://github.com/microsoft/onnxruntime/releases/download/v1.24.4/onnxruntime-linux-x64-1.24.4.tgz": "~/.u2net/libonnxruntime.so.1.24.4"
             }
-        },
-        {
-            "name": "stt",
-            "icon": "transcribe",
-            "description": "Dependencies for Speech Service",
-            "type": "python",
-            "dependencies": ["numpy", "piper-tts", "sounddevice", "faster_whisper"],
-            "postInstallCommands": [[Paths.scriptsDir + "/stt_service.py", "--stt"]]
         }
     ]
 }

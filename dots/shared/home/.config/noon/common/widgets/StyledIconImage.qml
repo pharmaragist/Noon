@@ -9,7 +9,7 @@ Item {
 
     property real tint: 0.6
     property bool colorize: Mem.options.appearance.icons.tint
-    property color tintColor: Colors.m3.m3surfaceTint
+    property color tintColor: Colors.methods.transparentize(Colors.m3.m3surfaceTint, 1- tint)
     property int implicitSize: 24
     property string _source: ""
     property string source: ""
@@ -28,17 +28,17 @@ Item {
 
     IconImage {
         id: icon
-
-        anchors.fill: parent
+        implicitSize: root.implicitSize
+        anchors.centerIn: parent
         source: root.resolvedSource
     }
 
     Loader {
-        anchors.fill: parent
+        anchors.fill: icon
         active: root.colorize
 
         sourceComponent: ColorOverlay {
-            anchors.fill: parent
+            anchors.fill: icon
             source: icon
             color: root.tintColor
         }

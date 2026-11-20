@@ -118,20 +118,14 @@ hl.bind(
 )
 
 -- Recording
-m_bind("ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/record_service.sh"))
-hl.bind("CTRL+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/record_service.sh --fullscreen"))
-m_bind("SHIFT+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/record_service.sh --fullscreen-sound"))
+m_bind("ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/bash/record.sh"))
+hl.bind("CTRL+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/bash/record.sh --fullscreen"))
+m_bind("SHIFT+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/bash/record.sh --fullscreen-sound"))
 
--- AI primary buffer query
-hl.bind(
-    mainMod .. "+SHIFT+ALT+mouse:273",
-    hl.dsp.exec_cmd("~/.config/ags/scripts/ai/primary-buffer-query.sh"),
-    { mouse = true }
-)
 
 -- Zoom
-m_bind("minus", hl.dsp.exec_cmd(scriptsDir .. "/hypr_zoom.sh decrease 0.1"), { repeating = true })
-m_bind("equal", hl.dsp.exec_cmd(scriptsDir .. "/hypr_zoom.sh increase 0.1"), { repeating = true })
+m_bind("minus", hl.dsp.exec_cmd(scriptsDir .. "/bash/hypr_zoom.sh decrease 0.1"), { repeating = true })
+m_bind("equal", hl.dsp.exec_cmd(scriptsDir .. "/bash/hypr_zoom.sh increase 0.1"), { repeating = true })
 
 -- Apps
 m_bind("T", hl.dsp.exec_cmd(terminal))
@@ -154,9 +148,9 @@ end
 
 -- Move active window to workspace
 for i = 1, 10 do
-    m_bind("+ALT+" .. i % 10,  hl.dsp.window.move({ workspace = i }))
+    m_bind("+ALT+" .. i % 10, hl.dsp.window.move({ workspace = i }))
 end
 
 for i = 1, 10 do
-    m_bind("+CTRL+" .. i % 10,  hl.dsp.exec_cmd(ipc .. " sidebar reveal_no " .. i))
+    m_bind("+CTRL+" .. i % 10, hl.dsp.exec_cmd(ipc .. " sidebar reveal_no " .. i))
 end

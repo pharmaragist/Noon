@@ -24,8 +24,8 @@ BarGroup {
     readonly property bool genericSymbols: Mem.options.bar.workspaces.genericSymbols ?? false
 
     readonly property int workspaceButtonWidth: 26
-    readonly property real baseIconSize: workspaceButtonWidth * 0.69
-    readonly property real shrinkedIconSize: workspaceButtonWidth * 0.55
+    readonly property real baseIconSize: workspaceButtonWidth * 0.7
+    readonly property real shrinkedIconSize: workspaceButtonWidth * 0.5
     readonly property real shrinkedIconMargin: -4
     readonly property int buttonMargin: 2
     readonly property real iconSpacing: 3
@@ -236,7 +236,8 @@ BarGroup {
                                     Layout.alignment: Qt.AlignVCenter
 
                                     StyledIconImage {
-                                        anchors.fill: parent
+                                        implicitSize: button.iconSize
+                                        anchors.centerIn: parent
                                         visible: genericSymbol === ""
                                         source: windowData?.class ? NoonUtils.iconPath(desktopEntry?.genericIcon || desktopEntry?.icon || "applications-system") : ""
                                         tint: 0.4

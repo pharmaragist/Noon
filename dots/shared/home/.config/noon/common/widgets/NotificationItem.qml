@@ -1,14 +1,8 @@
 import qs.common
 import qs.services
-import "notification_utils.js" as NotificationUtils
-import Qt5Compat.GraphicalEffects
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Widgets
-import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 
 Item {
@@ -19,135 +13,110 @@ Item {
     property bool popup: false
     property real fontSize: Fonts.sizes.small
     property real padding: onlyNotification ? 0 : 8
-
     property real dragConfirmThreshold: 70
     property real dismissOvershoot: notificationIcon.implicitWidth + 20
-    property var qmlParent: root?.parent?.parent
-    property var parentDragIndex: qmlParent?.dragIndex ?? -1
-    property var parentDragDistance: qmlParent?.dragDistance ?? 0
-    property var dragIndexDiff: Math.abs(parentDragIndex - index)
-    property real xOffset: dragIndexDiff == 0 ? Math.max(0, parentDragDistance) : parentDragDistance > dragConfirmThreshold ? 0 : dragIndexDiff == 1 ? Math.max(0, parentDragDistance * 0.3) : dragIndexDiff == 2 ? Math.max(0, parentDragDistance * 0.1) : 0
+
+    readonly property var qmlParent: parent?.parent ?? null
+    readonly property int dragIndexDiff: Math.abs((qmlParent?.dragIndex ?? -1) - index)
+    readonly property real dragDistance: qmlParent?.dragDistance ?? 0
+    readonly property real xOffset: {
+        if (dragIndexDiff === 0) return Math.max(0, dragDistance);
+        if (dragDistance > dragConfirmThreshold) return 0;
+        if (dragIndexDiff === 1) return Math.max(0, dragDistance * 0.3);
+        if (dragIndexDiff === 2) return Math.max(0, dragDistance * 0.1);
+        return 0;
+    }
+    readonly property string formattedBody: {
+        const body = notificationObject?.body ?? "";
+        const app = (notificationObject?.appName || notificationObject?.summary || "").toLowerCase();
+        const browsers = ["brave", "chrome", "chromium", "vivaldi", "opera", "microsoft edge"];
+
+        if (browsers.some(b => app.includes(b))) {
+            const lines = body.split("\n\n");
+            if (lines.length > 1 && lines[0].startsWith("<a"))
+                return lines.slice(1).join("\n\n").replace(/\n/g, "<br/>");
+        }
+        return body.replace(/\n/g, "<br/>");
+    }
 
     implicitHeight: background.implicitHeight
 
-    function processNotificationBody(body, appName) {
-        let processedBody = body;
-
-
-        if (appName) {
-            const lowerApp = appName.toLowerCase();
-            const chromiumBrowsers = ["brave", "chrome", "chromium", "vivaldi", "opera", "microsoft edge"];
-
-            if (chromiumBrowsers.some(name => lowerApp.includes(name))) {
-                const lines = body.split('\n\n');
-
-                if (lines.length > 1 && lines[0].startsWith('<a')) {
-                    processedBody = lines.slice(1).join('\n\n');
-                }
-            }
-        }
-
-        return processedBody;
-    }
-
     function destroyWithAnimation() {
-        root.qmlParent.resetDrag();
+        qmlParent?.resetDrag();
         background.anchors.leftMargin = background.anchors.leftMargin;
-        destroyAnimation.running = true;
+        destroyAnimation.start();
     }
 
     SequentialAnimation {
         id: destroyAnimation
-        running: false
-
         Anim {
             target: background.anchors
             property: "leftMargin"
             to: root.width + root.dismissOvershoot
         }
-        onFinished: () => {
-            if (root.popup)
-                Notifications.omitNotification(notificationObject.notificationId);
-            else
-                Notifications.dismissNotification(notificationObject.notificationId);
-        }
+        onFinished: root.popup
+            ? Notifications.omitNotification(notificationObject.notificationId)
+            : Notifications.dismissNotification(notificationObject.notificationId)
     }
 
     DragManager {
         id: dragManager
         anchors.fill: root
         anchors.leftMargin: root.expanded ? -notificationIcon.implicitWidth : 0
-        interactive: expanded
+        interactive: root.expanded
         automaticallyReset: false
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
         onClicked: mouse => {
-            if (mouse.button === Qt.MiddleButton) {
-                root.destroyWithAnimation();
-            }
+            if (mouse.button === Qt.MiddleButton) root.destroyWithAnimation();
         }
-
-        onDraggingChanged: () => {
-            if (dragging) {
+        onDraggingChanged: {
+            if (dragging && root.qmlParent)
                 root.qmlParent.dragIndex = root.index ?? root.parent.children.indexOf(root);
-            }
         }
-
-        onDragDiffXChanged: () => {
-            root.qmlParent.dragDistance = dragDiffX;
-        }
-
-        onDragReleased: (diffX, diffY) => {
-            if (diffX > root.dragConfirmThreshold)
-                root.destroyWithAnimation();
-            else
-                dragManager.resetDrag();
-        }
+        onDragDiffXChanged: if (root.qmlParent) root.qmlParent.dragDistance = dragDiffX
+        onDragReleased: diffX => diffX > root.dragConfirmThreshold ? root.destroyWithAnimation() : resetDrag()
     }
 
     NotificationAppIcon {
         id: notificationIcon
-        opacity: (!onlyNotification && notificationObject.image != "" && expanded) ? 1 : 0
+        anchors {
+            right: background.left
+            top: background.top
+            rightMargin: 10
+        }
+        image: notificationObject?.image ?? ""
+        opacity: !root.onlyNotification && image !== "" && root.expanded ? 1 : 0
         visible: opacity > 0
 
-        Behavior on opacity {
-            Anim {}
-        }
-
-        image: notificationObject.image
-        anchors.right: background.left
-        anchors.top: background.top
-        anchors.rightMargin: 10
+        Behavior on opacity { Anim {} }
     }
 
     Rectangle {
         id: background
         width: parent.width
         anchors.left: parent.left
-        radius: Rounding.small
         anchors.leftMargin: root.xOffset
-
-        Behavior on anchors.leftMargin {
-            enabled: !dragManager.dragging
-            Anim {}
+        radius: Rounding.small
+        implicitHeight: root.expanded ? contentColumn.implicitHeight + root.padding * 2 : summaryRow.implicitHeight
+        color: {
+            if (!root.expanded || root.onlyNotification)
+                return Colors.methods.transparentize(Colors.colSurfaceContainerHighest);
+            return notificationObject?.urgency === NotificationUrgency.Critical
+                ? Colors.methods.mix(Colors.colSecondaryContainer, Colors.colLayer2, 0.35)
+                : Colors.colSurfaceContainerHigh;
         }
 
-        color: (expanded && !onlyNotification) ? (notificationObject.urgency == NotificationUrgency.Critical) ? Colors.methods.mix(Colors.colSecondaryContainer, Colors.colLayer2, 0.35) : (Colors.colSurfaceContainerHigh) : Colors.methods.transparentize(Colors.colSurfaceContainerHighest)
-
-        implicitHeight: expanded ? (contentColumn.implicitHeight + padding * 2) : summaryRow.implicitHeight
-        Behavior on implicitHeight {
-            Anim {}
-        }
+        Behavior on anchors.leftMargin { enabled: !dragManager.dragging; Anim {} }
+        Behavior on implicitHeight { Anim {} }
 
         ColumnLayout {
             id: contentColumn
             anchors.fill: parent
-            anchors.margins: expanded ? root.padding : 0
+            anchors.margins: root.expanded ? root.padding : 0
             spacing: 3
 
-            Behavior on anchors.margins {
-                Anim {}
-            }
+            Behavior on anchors.margins { Anim {} }
 
             RowLayout {
                 id: summaryRow
@@ -161,47 +130,38 @@ Item {
                     font.pixelSize: root.fontSize
                     color: Colors.colOnLayer2
                     elide: Text.ElideRight
-                    text: root.notificationObject.summary || ""
+                    text: root.notificationObject?.summary ?? ""
                 }
+
                 StyledText {
+                    Layout.fillWidth: true
                     opacity: !root.expanded ? 1 : 0
                     visible: opacity > 0
-                    Layout.fillWidth: true
-                    Behavior on opacity {
-                        Anim {}
-                    }
                     font.pixelSize: root.fontSize
                     color: Colors.colSubtext
                     elide: Text.ElideRight
                     wrapMode: Text.Wrap
                     maximumLineCount: 1
                     textFormat: Text.StyledText
-                    text: {
-                        return processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>");
-                    }
+                    text: root.formattedBody
+
+                    Behavior on opacity { Anim {} }
                 }
             }
 
             ColumnLayout {
-
                 Layout.fillWidth: true
                 opacity: root.expanded ? 1 : 0
                 visible: opacity > 0
 
                 StyledText {
-                    id: notificationBodyText
-                    Behavior on opacity {
-                        Anim {}
-                    }
                     Layout.fillWidth: true
                     font.pixelSize: root.fontSize
                     color: Colors.colSubtext
                     wrapMode: Text.Wrap
                     elide: Text.ElideRight
                     textFormat: Text.RichText
-                    text: {
-                        return `<style>img{max-width:${300 /* binding to notificationBodyText.width would cause a binding loop */}px;}</style>` + `${processNotificationBody(notificationObject.body, notificationObject.appName || notificationObject.summary).replace(/\n/g, "<br/>")}`;
-                    }
+                    text: `<style>img{max-width:300px;}</style>${root.formattedBody}`
 
                     onLinkActivated: link => {
                         Qt.openUrlExternally(link);
@@ -216,58 +176,48 @@ Item {
                     Layout.fillWidth: true
                     implicitHeight: actionRowLayout.implicitHeight
                     contentWidth: actionRowLayout.implicitWidth
-                    clip: !onlyNotification
-
-                    Behavior on opacity {
-                        Anim {}
-                    }
-                    Behavior on height {
-                        Anim {}
-                    }
-                    Behavior on implicitHeight {
-                        Anim {}
-                    }
+                    clip: !root.onlyNotification
 
                     RowLayout {
                         id: actionRowLayout
-                        Layout.alignment: Qt.AlignBottom
+                        readonly property bool noActions: (notificationObject?.actions?.length ?? 0) === 0
+                        readonly property color iconColor: notificationObject?.urgency === NotificationUrgency.Critical
+                            ? Colors.m3.m3onSurfaceVariant
+                            : Colors.m3.m3onSurface
 
                         NotificationActionButton {
                             Layout.fillWidth: true
                             buttonText: "Close"
                             urgency: notificationObject.urgency
-                            implicitWidth: (notificationObject.actions.length == 0) ? ((actionsFlickable.width - actionRowLayout.spacing) / 2) : (contentItem.implicitWidth + leftPadding + rightPadding)
-
-                            onClicked: {
-                                root.destroyWithAnimation();
-                            }
+                            implicitWidth: actionRowLayout.noActions
+                                ? (actionsFlickable.width - actionRowLayout.spacing) / 2
+                                : contentItem.implicitWidth + leftPadding + rightPadding
+                            onClicked: root.destroyWithAnimation()
 
                             contentItem: Symbol {
                                 font.pixelSize: Fonts.sizes.large
                                 horizontalAlignment: Text.AlignHCenter
-                                color: (notificationObject.urgency == NotificationUrgency.Critical) ? Colors.m3.m3onSurfaceVariant : Colors.m3.m3onSurface
+                                color: actionRowLayout.iconColor
                                 text: "close"
                             }
                         }
 
                         Repeater {
-                            id: actionRepeater
-                            model: notificationObject.actions
+                            model: notificationObject?.actions ?? []
                             NotificationActionButton {
                                 Layout.fillWidth: true
                                 buttonText: modelData.text
                                 urgency: notificationObject.urgency
-                                onClicked: {
-                                    Notifications.attemptInvokeAction(notificationObject.notificationId, modelData.identifier);
-                                }
+                                onClicked: Notifications.attemptInvokeAction(notificationObject.notificationId, modelData.identifier)
                             }
                         }
 
                         NotificationActionButton {
                             Layout.fillWidth: true
                             urgency: notificationObject.urgency
-                            implicitWidth: (notificationObject.actions.length == 0) ? ((actionsFlickable.width - actionRowLayout.spacing) / 2) : (contentItem.implicitWidth + leftPadding + rightPadding)
-
+                            implicitWidth: actionRowLayout.noActions
+                                ? (actionsFlickable.width - actionRowLayout.spacing) / 2
+                                : contentItem.implicitWidth + leftPadding + rightPadding
                             onClicked: {
                                 Quickshell.clipboardText = notificationObject.body;
                                 copyIcon.text = "inventory";
@@ -277,17 +227,14 @@ Item {
                             Timer {
                                 id: copyIconTimer
                                 interval: 1500
-                                repeat: false
-                                onTriggered: {
-                                    copyIcon.text = "content_copy";
-                                }
+                                onTriggered: copyIcon.text = "content_copy"
                             }
 
                             contentItem: Symbol {
                                 id: copyIcon
                                 font.pixelSize: Fonts.sizes.large
                                 horizontalAlignment: Text.AlignHCenter
-                                color: (notificationObject.urgency == NotificationUrgency.Critical) ? Colors.m3.m3onSurfaceVariant : Colors.m3.m3onSurface
+                                color: actionRowLayout.iconColor
                                 text: "content_copy"
                             }
                         }

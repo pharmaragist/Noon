@@ -52,12 +52,6 @@ SidebarItemContainer {
         AccountInfoSection {
             color: "transparent"
             Layout.margins: Padding.large
-
-            account: ({
-                    name: SysInfoService.username,
-                    image: SysInfoService.userPfp,
-                    handler: SysInfoService.distroId
-                })
         }
 
         StyledListView {

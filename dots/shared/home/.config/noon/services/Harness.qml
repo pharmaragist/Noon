@@ -23,16 +23,14 @@ Singleton {
     readonly property string currentModelId: states.model
     readonly property string currentEffortId: states.effort ?? ""
     readonly property string currentAgentId: states.agent ?? "plan"
-    readonly property var skills: states.skills
-    readonly property string baseCmd: Paths.scriptsDir + "/rust/ai/harness"
+    property var skills: []
+    readonly property string baseCmd: Paths.scripts.harness
     readonly property int maxLoadedMessages: 200
-    readonly property string systemPrompt: states.systemPrompt
     readonly property var bridgeEnv: ({
             "SESSION_DIR": root.states.sessionDir,
             "XDG_CONFIG_HOME": root.sideConfigHome
         })
     readonly property string sideConfigHome: root.cleanDir(root.states.sessionDir) + "/config"
-    readonly property string sideAgentFile: root.sideConfigHome + "/opencode/agents/noon.md"
     readonly property int chatBatch: Math.max(1, Math.min(50, states?.recallLimit ?? 10))
     readonly property var effortList: ["minimal", "low", "medium", "high", "xhigh"]
     readonly property var modeFallback: ["build", "plan"]
@@ -63,9 +61,7 @@ Singleton {
     property var _pendingSend: []
     property var _pendingAnnotations: []
     property bool _waitingForScreenshot: false
-    property bool _sysDirty: false
     property bool _sessDirty: false
-    property string _lastSyncedPrompt: ""
     property string _loadingSession: ""
     property int _idSeq: 0
     property int _liveCount: 0
@@ -86,7 +82,6 @@ Singleton {
     }
 
     onStatesChanged: root.maybePreload()
-    onSystemPromptChanged: root.scheduleSystemSync()
     onSessionsChanged: root._rebuildCwdMap()
 
     onPermissionAsked: text => {
@@ -135,33 +130,14 @@ Singleton {
         });
     }
 
-    function shellEscape(s) {
-        return String(s ?? "").replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\$/g, "\\$").replace(/`/g, "\\`");
-    }
-
     function syncSystemPrompt() {
         const m = Paths.methods;
-        const prompt = root.systemPrompt;
-        root._lastSyncedPrompt = prompt;
-        const body = "---\ndescription: Noon sidebar\nmode: primary\n---\n\n" + prompt;
-        m.createFileWith(root.sideAgentFile, root.shellEscape(body));
         const globalCfg = m.trim(Paths.standard.config) + "/opencode/opencode.jsonc";
         const sideDir = root.sideConfigHome + "/opencode";
         NoonUtils.inlineStdProc([root.baseCmd, "sync-config", globalCfg, sideDir], text => {
             if (text !== "ok")
                 root.addMessage("Error: sidebar config sync failed (" + text + ")", "interface");
         });
-    }
-
-    function scheduleSystemSync() {
-        if (root._sysDirty)
-            return;
-        root._sysDirty = true;
-        NoonUtils.inlineTimer(() => {
-            root._sysDirty = false;
-            if (root.systemPrompt !== root._lastSyncedPrompt)
-                root.syncSystemPrompt();
-        }, 200);
     }
 
     function _newId() {
@@ -897,7 +873,7 @@ Singleton {
     function showStatus() {
         const tc = root.tokenCount;
         const cu = root.contextUsage;
-        const lines = ["Session: " + (root.currentSessionId || "(none)"), "Model: " + (root.currentModelId || "(none)") + (root.modelList.length > 0 ? "" : "  [server list not loaded yet]"), "Effort: " + (root.currentEffortId || "(none)") + (root.effortOptions.length > 0 ? "  (server offers: " + root.effortOptions.join(", ") + ")" : "  [server offers none for this model]"), "Agent mode: " + root.currentAgentId + (root.modeOptions.length > 0 ? "  (server offers: " + root.modeOptions.join(", ") + ")" : "  [server modes not loaded yet]"), "Skill: " + (root.pendingSkill || "(none armed)"), "Auto-approve: " + (root.autoApproveSession ? "on (this session)" : "off"), "Last turn tokens: " + ((tc && tc.total >= 0) ? ("in " + tc.input + " / out " + tc.output + " / total " + tc.total) : "(none yet)"), "Context window: " + (cu && cu.size > 0 ? (cu.used + " / " + cu.size + " (" + Math.round(100 * cu.used / cu.size) + "%)") : "(unknown)")];
+        const lines = ["Session: " + (root.currentSessionId || "(none)"), "Model: " + (root.currentModelId || "(none)") + (root.modelList.length > 0 ? "" : "  [server list not loaded yet]"), "Effort: " + (root.currentEffortId || "(none)") + (root.effortOptions.length > 0 ? "  (server offers: " + root.effortOptions.join(", ") + ")" : "  [server offers none for this model]"), "Agent mode: " + root.currentAgentId + (root.modeOptions.length > 0 ? "  (server offers: " + root.modeOptions.join(", ") + ")" : "  [server modes not loaded yet]"), "Auto-approve: " + (root.autoApproveSession ? "on (this session)" : "off"), "Last turn tokens: " + ((tc && tc.total >= 0) ? ("in " + tc.input + " / out " + tc.output + " / total " + tc.total) : "(none yet)"), "Context window: " + (cu && cu.size > 0 ? (cu.used + " / " + cu.size + " (" + Math.round(100 * cu.used / cu.size) + "%)") : "(unknown)")];
         root.addMessage(lines.join("\n"), "interface");
     }
 
@@ -1276,7 +1252,7 @@ Singleton {
         environment: root.bridgeEnv
         onStreamFinished: {
             if (Array.isArray(skillsFetcher.data))
-                root.states.skills = skillsFetcher.data;
+                root.skills = skillsFetcher.data;
         }
     }
 

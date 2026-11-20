@@ -28,7 +28,7 @@ NpcHandler {
 
     //* respawn — full shell restart via reload_shell.sh.
     function respawn(): void {
-        NoonUtils.execDetached([Paths.scriptsDir + "/reload_shell.sh"]);
+    NoonUtils.execDetached([Paths.scripts.reloadShell]);
     }
 
     //* dino — open the dino easter-egg dialog.
@@ -219,7 +219,6 @@ NpcHandler {
 
     //* gen_opencode_tools — generates agent tools for opencode from ipc .
     function gen_opencode_tools() {
-        Harness.runToolsHelper(Paths.shellDir)
+        Harness.runToolsHelper(Paths.shellDir);
     }
-
 }

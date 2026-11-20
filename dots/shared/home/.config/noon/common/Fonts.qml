@@ -21,7 +21,7 @@ Singleton {
         property string iconMaterial: "Material Symbols Rounded"
     }
     readonly property QtObject candidates: QtObject {
-        property list<string> display: ["Eat Boy", "Modak", "Badeen Display", "Bagel Fat One" ,"Climate Crisis"]
+        property list<string> display: ["Eat Boy", "Modak", "Badeen Display", "Bagel Fat One", "Climate Crisis"]
     }
     readonly property QtObject sizes: QtObject {
         property real scale: 1
@@ -118,7 +118,7 @@ Singleton {
     }
 
     function changeSystemFont(family) {
-        Quickshell.execDetached([Paths.scriptsDir + "/sync_sys_fonts.sh", "--family", family, "--size", 10]);
+        Quickshell.execDetached([Paths.scripts.syncFonts, "--family", family, "--size", 10]);
         Mem.hypr.font_main = family;
         root.family.main = family;
     }

@@ -829,12 +829,6 @@ QtObject {
             "shell": "Global",
             "items": [
                 {
-                    "visible": Mem.options.sidebar.content.apis,
-                    "type": "field",
-                    "store": "ai",
-                    "key": "systemPrompt"
-                },
-                {
                     "icon": "hearing",
                     "name": "System Sounds",
                     "hint": "Play audio feedback on actions",
@@ -885,7 +879,7 @@ QtObject {
                     "releaseAction": () => {
                         NoonUtils.trash(Mem.optionsView.path);
                         NoonUtils.inlineTimer(() => {
-                            NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh");
+                            NoonUtils.reload();
                         }, 500);
                     }
                 }

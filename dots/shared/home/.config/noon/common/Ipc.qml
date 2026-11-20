@@ -88,6 +88,6 @@ Singleton {
         }
 
         // it with real argv, no shell round-trip, no quoting games.
-        Quickshell.execDetached([(Paths.scriptsDir + "/npc"), "call", ...parts.map(String)]);
+        Quickshell.execDetached([Paths.scripts.npc, "call", ...parts.map(String)]);
     }
 }

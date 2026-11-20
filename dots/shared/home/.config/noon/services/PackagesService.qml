@@ -10,7 +10,7 @@ Singleton {
     id: root
     readonly property bool firstRun: Mem.states.desktop.firstRun
     readonly property var list: Mem.pkgs.list
-    readonly property string backend: Paths.scriptsDir + "/packages_service.py"
+    readonly property string backend: Paths.scripts.packages
     property var status: ({})
 
     signal progress(string group, int percent, string message)

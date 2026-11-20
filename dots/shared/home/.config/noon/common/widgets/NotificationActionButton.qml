@@ -1,29 +1,25 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import Quickshell
 import Quickshell.Services.Notifications
 import qs.common
-import qs.services
 
 RippleButton {
     id: button
 
     property string buttonText
-    property string urgency
-
+    property int urgency
+    readonly property bool isCritical: urgency === NotificationUrgency.Critical
+    implicitWidth: contentItem?.contentWidth + leftPadding + rightPadding
     implicitHeight: 30
     leftPadding: 15
     rightPadding: 15
     buttonRadius: Rounding.small
-    colBackground: (urgency == NotificationUrgency.Critical) ? Colors.colSecondaryContainer : Colors.colSurfaceContainerHighest
-    colBackgroundHover: (urgency == NotificationUrgency.Critical) ? Colors.colSecondaryContainerHover : Colors.colSurfaceContainerHighestHover
-    colRipple: (urgency == NotificationUrgency.Critical) ? Colors.colSecondaryContainerActive : Colors.colSurfaceContainerHighestActive
+    colBackground: isCritical ? Colors.colSecondaryContainer : Colors.colSurfaceContainerHighest
+    colBackgroundHover: isCritical ? Colors.colSecondaryContainerHover : Colors.colSurfaceContainerHighestHover
+    colRipple: isCritical ? Colors.colSecondaryContainerActive : Colors.colSurfaceContainerHighestActive
 
     contentItem: StyledText {
         horizontalAlignment: Text.AlignHCenter
-        text: buttonText
-        color: (urgency == NotificationUrgency.Critical) ? Colors.m3.m3onSurfaceVariant : Colors.m3.m3onSurface
+        text: button.buttonText
+        color: button.isCritical ? Colors.m3.m3onSurfaceVariant : Colors.m3.m3onSurface
     }
-
 }

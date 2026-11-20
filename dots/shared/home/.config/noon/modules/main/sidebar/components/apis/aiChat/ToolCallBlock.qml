@@ -1,6 +1,7 @@
 import qs.services
 import qs.common
 import qs.common.widgets
+import qs.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -129,7 +130,7 @@ Item {
                     truncate: true
                     Layout.rightMargin: Padding.large
                     Layout.alignment: Qt.AlignLeft
-                    text: this.methods.capitalizeFirstLetter(root.tool)
+                    text: TextUtils.capitalizeFirstLetter(root.tool)
                     font: Fonts.request("mono", "normal")
                 }
             }

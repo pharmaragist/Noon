@@ -72,7 +72,7 @@ import qs.services                // PaletteService, WallpaperService, PluginsMa
 1. Copy the folder to `~/.noon_plugins/<group>/<name>/` — the shell picks it up (hot reload in dev mode).
 2. Zip it (`<name>/manifest.json` at zip root, max depth 2) and validate:
    ```
-   ~/.config/noon/scripts/plugins_helper.sh install <name>.zip
+   ~/.config/noon/scripts/bash/plugins_helper.sh install <name>.zip
    ```
    Same check the Store runs. Remove with `plugins_helper.sh remove <group> <name>`.
 
@@ -101,4 +101,4 @@ Hub repo: `pharmaragist/Noon-Plugins`. Publishing = pull request adding four thi
 
 Users get it via the Store app or `PluginsManager.installFromHub(id)`. The
 store reads `https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/plugins.json`
-directly through `scripts/store_service.py`; there is no provider config file.
+directly through `scripts/python/store.py`; there is no provider config file.

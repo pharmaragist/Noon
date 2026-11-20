@@ -1,0 +1,6 @@
+click
+loguru
+numpy
+pillow
+tqdm
+yt-dlp

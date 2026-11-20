@@ -3,7 +3,7 @@ home = os.getenv("HOME")
 shell_path = home .. "/.config/noon"
 scriptsDir = shell_path .. "/scripts"
 shell_cmd = "qs -c " .. shell_path
-ipc = scriptsDir .. "/npc call "
+ipc = scriptsDir .. "/bin/npc call "
 mainMod = "SUPER"
 
 -- Apps

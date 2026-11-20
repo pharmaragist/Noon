@@ -145,7 +145,7 @@ StyledRect {
             title: "Restart",
             description: "For changes to take Effect",
             acceptText: "Accept",
-            onAccepted: () => NoonUtils.execDetached(Paths.scriptsDir + "/reload_shell.sh")
+                                    onAccepted: () => NoonUtils.reload()
         });
     }
 

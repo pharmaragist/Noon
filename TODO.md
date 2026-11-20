@@ -1,7 +1,7 @@
 # Rust harness migration — TODO
 
 Plan: `/home/pharmaracist/.opencode/plan`
-Crate: `dots/shared/home/.config/noon/scripts/rust/ai/`
+Crate: `dots/shared/home/.config/noon/scripts/rust/harness/`
 Go reference (dormant later): `dots/shared/home/.config/noon/scripts/go/ai/`
 
 ## Locked decisions
@@ -12,7 +12,7 @@ Go reference (dormant later): `dots/shared/home/.config/noon/scripts/go/ai/`
       pendings, auto-error Responders, `serde_json/preserve_order` changes key order). Raw JSON-RPC
       2.0 over `futures::io` lines instead; SDK dep removed. Revision to the original decision.
 - [x] Custom `smol::process::Command` spawn + SDK-style `futures::io` line transport
-- [x] Binary at `scripts/rust/ai/harness`
+- [x] Binary at `scripts/rust/harness/harness`
 - [x] Go harness stays in `scripts/go/ai/` — **revised by user**: no move, no deletion.
       Only `Harness.qml:25` changes; Go remains as an on-disk reference.
 - [x] Wire parity + UTF-8-safe truncation
@@ -42,7 +42,7 @@ Go reference (dormant later): `dots/shared/home/.config/noon/scripts/go/ai/`
 
 ## Phase 3 — CLI + DB parity
 
-- [x] `cargo build --release` → `scripts/rust/ai/harness` (3.1 MB stripped)
+- [x] `cargo build --release` → `scripts/bin/harness` (3.1 MB stripped)
 - [x] Diff all stateless commands against goldens — **8/8 OK**
 - [x] Fix divergences (negative offset clap, tool `input` raw passthrough, JSON key order)
 - [x] `sync-config` byte-for-byte parity on temp copies (global + scoped)
@@ -58,7 +58,7 @@ Go reference (dormant later): `dots/shared/home/.config/noon/scripts/go/ai/`
 
 - [x] Supervisor review of all changed files — 8 findings, all fixed (see below)
 - [x] One real smoke test against `opencode` v2.3.2 (ready/list/session only) — replay MATCH
-- [x] `Harness.qml:25` → `Paths.scriptsDir + "/rust/ai/harness"` — **cutover done**
+- [x] `Harness.qml:27` → `Paths.scripts.harness` — **cutover done**
 - [ ] Reload shell; smoke-test sidebar (sessions, chat, send, permission, model/effort/mode)
 - [x] Final verification: `diff.sh --all` → 8/8 OK + ACP REPLAY MATCH on shipped binary
 
@@ -100,4 +100,4 @@ events::HarnessCommand                        // #[serde(tag = "cmd", rename_all
 - Reload the Quickshell session to pick up the QML change, then smoke-test the sidebar:
   session list, chat history, send, permission approve, model/effort/mode change.
 - `scripts/go/ai/` — do not touch (user decision: leave in place).
-- Do not commit until you ask; the whole `scripts/rust/ai/` tree is currently untracked.
+- Do not commit until you ask; the whole `scripts/rust/harness/` tree is currently untracked.

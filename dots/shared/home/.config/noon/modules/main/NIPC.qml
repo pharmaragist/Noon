@@ -95,7 +95,7 @@ Scope {
         }
         //* Full shell restart via reload script.
         function reload() {
-            NoonUtils.execDetached(["bash", Paths.scriptsDir + "/reload_shell.sh"]);
+            NoonUtils.execDetached([Paths.scripts.reloadShell]);
         }
     }
 

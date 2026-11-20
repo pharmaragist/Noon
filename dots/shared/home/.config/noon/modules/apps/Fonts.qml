@@ -242,6 +242,6 @@ FloatingWindow {
 
     Fetcher {
         id: fetcher
-        command: ["bash", "-c", Paths.scriptsDir + "/get_fonts.sh"]
+        command: ["bash", "-c", Paths.scripts.getFonts]
     }
 }

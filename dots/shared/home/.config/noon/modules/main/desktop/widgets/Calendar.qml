@@ -15,7 +15,6 @@ WidgetContainer {
     property var calendarLayout: CalendarUtils.getCalendarLayout(viewingDate, monthShift === 0)
     property var viewingDate: CalendarUtils.getDateInXMonthsTime(monthShift)
     readonly property string today: DateTimeService.request("d/M/yyyy")
-    Component.onCompleted: CalendarService.pull()
 
     small: ColumnLayout {
         anchors.fill: parent

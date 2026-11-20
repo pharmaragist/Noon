@@ -100,7 +100,7 @@ Singleton {
         const clock = Mem.states.desktop.clock;
         const aspect = Math.min(5, Math.max(0.2, Globals.clockAspect || (clock.horizontal ? 1.9 : 0.48)));
         posProc.running = false;
-        posProc.command = ["python3", Paths.scriptsDir + "/position_clock.py", clean(currentFgPath), String(aspect)];
+        posProc.command = ["python3", Paths.scripts.positionClock, clean(currentFgPath), String(aspect)];
         posProc.running = true;
     }
 
@@ -119,7 +119,7 @@ Singleton {
     function generateThumbnails(directory) {
         if (thumbnailGenerator.running)
             return;
-        const cmd = ["python3", Paths.wallpapers.thumbScript, "-d", clean(directory)];
+        const cmd = ["python3", Paths.scripts.thumbnails, "-d", clean(directory)];
         thumbnailGenerator.command = cmd;
         thumbnailGenerator.running = true;
     }
@@ -146,7 +146,7 @@ Singleton {
     function _cmd(...args) {
         if (mainProc.running)
             mainProc.running = false;
-        mainProc.command = ["python3", Paths.wallpapers.colGenScript, ...args];
+        mainProc.command = ["python3", Paths.scripts.colors, ...args];
         mainProc.running = true;
     }
 

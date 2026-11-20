@@ -11,10 +11,6 @@ if test -f ~/.env
     source ~/.env
 end
 
-# if test -f ~/.local/state/noon/user/generated/terminal/sequences.txt
-#     printf "%b" (cat ~/.local/state/noon/user/generated/terminal/sequences.txt)
-# end
-
 if test "$USE_POKEMON" = true
     pokemon-colorscripts-go --no-title
 end

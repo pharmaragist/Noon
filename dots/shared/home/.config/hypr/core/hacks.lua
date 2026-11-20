@@ -7,7 +7,7 @@ function m_bind(key,action)
 end
 
 function reload_shell()
-    return hl.dsp.exec_cmd(scriptsDir .. "/reload_shell.sh")
+    return hl.dsp.exec_cmd(scriptsDir .. "/bash/reload_shell.sh")
 end
 
 function loop_ipc(tuple, prefix, mod)

@@ -2,7 +2,6 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import qs.common
 import Quickshell
-import Quickshell.Io
 import QtQuick
 
 Singleton {
@@ -19,8 +18,6 @@ Singleton {
     readonly property var store: Mem.todo
     readonly property var statusNames: ["Not Started", "In Progress", "Final Touches", "Finished"]
     readonly property var statusLabels: ["todo", "in_progress", "final_touches", "done"]
-    readonly property bool useGoogleTasks: Mem.options.services.integrations?.googleTasks ?? false
-    Component.onCompleted: Qt.callLater(pull)
 
     function _extractTags(text) {
         var tags = [];
@@ -64,7 +61,6 @@ Singleton {
             updated.push(_insertTask(cleanDesc, status, date, children, tags));
         }
         store.tasks = updated;
-        Qt.callLater(push);
     }
 
     function editItem(index, newContent) {
@@ -73,14 +69,12 @@ Singleton {
         var parsed = _extractTags(newContent);
         store.tasks[index].content = parsed.content;
         store.tasks[index].tags = parsed.tags;
-        Qt.callLater(push);
     }
 
     function setStatus(index, status) {
         if (index < 0 || index >= store.tasks.length || status < 0)
             return;
         store.tasks[index].status = status;
-        Qt.callLater(push);
     }
 
     function nextStatus(index) {
@@ -101,7 +95,6 @@ Singleton {
         var updated = store.tasks.slice();
         updated.splice(index, 1);
         store.tasks = updated;
-        Qt.callLater(push);
     }
 
     function removeDone() {
@@ -136,26 +129,5 @@ Singleton {
             }
         }
         return output;
-    }
-
-    function push() {
-        if (useGoogleTasks)
-            _cmd("push");
-    }
-
-    function pull() {
-        if (useGoogleTasks)
-            _cmd("pull");
-    }
-
-    function _cmd(action) {
-        if (mainProc.running)
-            mainProc.running = false;
-        mainProc.command = ["uv", "--directory", Paths.venv, "run", Paths.scriptsDir + "/gtasks_sync.py", action];
-        mainProc.running = true;
-    }
-
-    Process {
-        id: mainProc
     }
 }

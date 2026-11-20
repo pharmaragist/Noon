@@ -1,6 +1,5 @@
 alias ls 'eza --icons'
-alias sw "python3 ~/.config/noon/scripts/appearance_service.py"
-alias pw "sh ~/.config/noon/scripts/power_service.sh"
+alias pw "sh ~/.config/noon/scripts/bash/power.sh"
 alias clear "printf '\033[2J\033[3J\033[1;1H'"
 alias noon 'qs -c ~/.config/noon'
 alias noonc 'nvim ~/.noon/options.json'
