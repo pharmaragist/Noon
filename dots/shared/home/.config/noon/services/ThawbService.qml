@@ -19,7 +19,7 @@ Singleton {
     Process {
         id: installer
 
-        command: ["uv", "run", Paths.scripts.thawb, root.url]
+        command: [Paths.scripts.thawb, root.url]
 
         onStarted: {
             NoonUtils.toast({

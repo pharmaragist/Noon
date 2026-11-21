@@ -10,7 +10,7 @@ Singleton {
 
     readonly property var availableIconThemes: Mem.store.services.icons.availableIconThemes ?? []
     readonly property var availableIconThemeIds: availableIconThemes.map(theme => theme.id)
-    readonly property list<string> baseCmd: ["uv", "run", Paths.scripts.icons]
+    readonly property list<string> baseCmd: [Paths.scripts.icons]
     readonly property string currentIconTheme: Mem.options.desktop.icons.currentIconTheme
 
     onCurrentIconThemeChanged: setIconTheme(currentIconTheme)

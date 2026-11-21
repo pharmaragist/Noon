@@ -13,7 +13,7 @@ import qs.common.functions
 Singleton {
     id: root
 
-    readonly property list<string> cmd: ["python3", Paths.scripts.dlpHelper]
+    readonly property list<string> cmd: ["python3", Paths.scripts.dlp]
 
     function toast(info) {
         NoonUtils.toast({

@@ -69,29 +69,6 @@ _write_qmldir() {
     echo "  Created qmldir for module $module"
 }
 
-_ensure_python_requirements() {
-    local plugin_dir="$1"
-    local manifest="$plugin_dir/manifest.json"
-
-    [[ -f "$manifest" ]] || return
-
-    local reqs
-    reqs=$(jq -r '.pythonRequirements // [] | .[]' "$manifest")
-    [[ -n "$reqs" ]] || return
-
-    [[ -n "$SHELL_VENV" ]] || { echo "  [python] SHELL_VENV is not set, skipping python requirements"; return; }
-    [[ -d "$SHELL_VENV" ]] || { echo "  [python] SHELL_VENV directory '$SHELL_VENV' does not exist, skipping"; return; }
-
-    local pkg_list=()
-    while IFS= read -r pkg; do
-        pkg_list+=("$pkg")
-    done <<< "$reqs"
-
-    echo "  [python] Installing ${#pkg_list[@]} package(s): ${pkg_list[*]}"
-    uv --directory "$SHELL_VENV" pip install "${pkg_list[@]}"
-    echo "  [python] Done installing python requirements"
-}
-
 _ensure_qml_setup() {
     local plugin_dir="$1"
     local manifest="$plugin_dir/manifest.json"
@@ -139,48 +116,10 @@ disable() {
 }
 
 install() {
-    TARGET="${TARGET/#\~/$HOME}"
-    [[ -e "$TARGET" ]] || { echo "Source '$TARGET' not found"; exit 1; }
-
-    local name group tmp mf manifest_file
-    case "$TARGET" in
-        *.tar.gz|*.tar|*.zip)
-            tmp=$(mktemp -d)
-            if [[ "$TARGET" == *.zip ]]; then
-                unzip -q "$TARGET" -d "$tmp"
-            else
-                tar -xf "$TARGET" -C "$tmp"
-            fi
-            mf=$(find "$tmp" -maxdepth 2 -name manifest.json | head -1)
-            [[ -f "$mf" ]] || { rm -rf "$tmp"; echo "No manifest.json in archive"; exit 1; }
-            name=$(jq -r '.name' "$mf")
-            group=$(jq -r '.pluginGroup // empty' "$mf")
-            [[ -n "$GROUP_OVERRIDE" ]] && group="$GROUP_OVERRIDE"
-            [[ -n "$group" ]] || { rm -rf "$tmp"; echo "No pluginGroup in manifest, use -g to specify"; exit 1; }
-            mkdir -p "$PLUGINS_DIR/$group"
-            cp -r "$(dirname "$mf")" "$PLUGINS_DIR/$group/$name"
-            rm -rf "$tmp"
-            ;;
-        *)
-            if [[ -d "$TARGET" ]]; then
-                manifest_file="$TARGET/manifest.json"
-                [[ -f "$manifest_file" ]] || { echo "No manifest.json in '$TARGET'"; exit 1; }
-                name=$(jq -r '.name' "$manifest_file")
-                group=$(jq -r '.pluginGroup // empty' "$manifest_file")
-                [[ -n "$GROUP_OVERRIDE" ]] && group="$GROUP_OVERRIDE"
-                [[ -n "$group" ]] || { echo "No pluginGroup in manifest, use -g to specify"; exit 1; }
-                mkdir -p "$PLUGINS_DIR/$group"
-                cp -r "$TARGET" "$PLUGINS_DIR/$group/$name"
-            else
-                echo "Unsupported format. Use a directory, .tar, .tar.gz, or .zip"
-                exit 1
-            fi
-            ;;
-    esac
-
-    _ensure_python_requirements "$PLUGINS_DIR/$group/$name"
-    _ensure_qml_setup "$PLUGINS_DIR/$group/$name"
-    echo "Installed $group/$name"
+    local args=(install "$TARGET")
+    [[ -n "$GROUP_OVERRIDE" ]] && args+=(-g "$GROUP_OVERRIDE")
+    [[ "$FORCE" -eq 1 ]] && args+=(-f)
+    exec "$(dirname "$0")/../bin/store" "${args[@]}"
 }
 
 remove() {

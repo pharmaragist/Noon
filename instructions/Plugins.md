@@ -101,4 +101,4 @@ Hub repo: `pharmaragist/Noon-Plugins`. Publishing = pull request adding four thi
 
 Users get it via the Store app or `PluginsManager.installFromHub(id)`. The
 store reads `https://raw.githubusercontent.com/pharmaragist/Noon-Plugins/dist/plugins.json`
-directly through `scripts/python/store.py`; there is no provider config file.
+directly through `scripts/bin/store`; there is no provider config file.

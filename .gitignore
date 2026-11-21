@@ -12,12 +12,17 @@ dist/
 
 # autogen
 *colors.lua
-
-# Rust harness binary (rebuilt via cargo build --release in scripts/rust/harness)
-dots/shared/home/.config/noon/scripts/rust/harness/target/
-dots/shared/home/.config/noon/scripts/bin/harness
-dots/shared/home/.config/hypr/colors.lua
 dots/shared/home/.config/hypr/hyprtoolkit.conf
+
+# Compiled build artifacts (shipped binaries in scripts/bin are tracked)
+dots/shared/home/.config/noon/scripts/rust/target/
+dots/shared/home/.config/noon/scripts/rust/harness/target/
+dots/shared/home/.config/noon/scripts/go/pkg/
+dots/shared/home/.config/noon/scripts/go/bin/
+dots/shared/home/.config/noon/scripts/.crates.toml
+dots/shared/home/.config/noon/scripts/.crates2.json
+*.o
+*.a
 
 # agent
 /graphify-out

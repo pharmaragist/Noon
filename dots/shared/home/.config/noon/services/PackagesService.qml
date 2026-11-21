@@ -21,7 +21,7 @@ Singleton {
     }
 
     function getStatus(onDone) {
-        run(["python3", backend, "--status"], statusProc, () => {
+        run([backend, "--status"], statusProc, () => {
             try {
                 root.status = JSON.parse(statusProc.output);
             } catch (_) {}
@@ -38,10 +38,10 @@ Singleton {
             return;
         }
         if (inTerminal) {
-            NoonUtils.runInTerminal("python3 '" + backend + "' --install " + group);
+            NoonUtils.runInTerminal("'" + backend + "' --install " + group);
             return;
         }
-        run(["python3", backend, "--install", group], installProc, null);
+        run([backend, "--install", group], installProc, null);
     }
 
     function checkIfInstalled(group, onDone) {
@@ -50,7 +50,7 @@ Singleton {
                 onDone(false);
             return;
         }
-        run(["python3", backend, "--check", group], checkProc, exitCode => {
+        run([backend, "--check", group], checkProc, exitCode => {
             if (onDone)
                 onDone(exitCode === 0);
         });

@@ -5,27 +5,6 @@ JsonAdapter {
     id: root
     property var list: [
         {
-            "name": "ai",
-            "icon": "cognition_2",
-            "description": "Commonly used dependencies for AI runtime",
-            "type": "python",
-            "dependencies": ["numpy", "onnxruntime", "faster_whisper"]
-        },
-        {
-            "name": "google",
-            "icon": "auto_awesome",
-            "description": "For Oauth, Tasks, Calendar",
-            "type": "python",
-            "dependencies": ["requests_oauth2client", "urllib3"]
-        },
-        {
-            "name": "misc",
-            "icon": "tune",
-            "description": "For some tertiary features and Qol",
-            "type": "python",
-            "dependencies": ["feedparser"]
-        },
-        {
             "name": "image",
             "icon": "image",
             "type": "fetch",

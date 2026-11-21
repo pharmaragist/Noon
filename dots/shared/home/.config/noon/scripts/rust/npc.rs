@@ -1,159 +1,254 @@
-use std::{
-    cmp::Reverse,
-    collections::HashMap,
-    env, fs,
-    io::{self, BufReader, Read, Write},
-    os::unix::{fs::MetadataExt, net::UnixStream, process::CommandExt},
-    path::{Path, PathBuf},
-    process::{exit, Command},
-    thread::sleep,
-    time::Duration,
-};
+// Quickshell Ipc interface
 
-fn put(buf: &mut Vec<u8>, s: &str) {
-    let bytes: Vec<u8> = s.encode_utf16().flat_map(u16::to_be_bytes).collect();
-    buf.extend((bytes.len() as u32).to_be_bytes());
-    buf.extend(bytes);
+use std::cmp::Reverse;
+use std::fs;
+use std::io::{self, BufReader, BufWriter, Read, Write};
+use std::os::unix::fs::MetadataExt;
+use std::os::unix::net::UnixStream;
+use std::path::{Path, PathBuf};
+use std::process::ExitCode;
+use std::thread::sleep;
+use std::time::{Duration, SystemTime};
+
+use anyhow::{bail, Context, Result};
+use clap::{Parser, Subcommand};
+
+const RETRIES: usize = 3;
+const RETRY_DELAY: Duration = Duration::from_millis(200);
+
+#[derive(Parser)]
+#[command(about = "Call a Quickshell IPC function")]
+struct Args {
+    #[arg(long, global = true)]
+    socket: Option<PathBuf>,
+    #[arg(long, global = true)]
+    pid: Option<PathBuf>,
+    #[arg(long, global = true)]
+    id: Option<PathBuf>,
+    #[arg(short = 'c', long, global = true)]
+    config: Option<PathBuf>,
+    #[arg(long, global = true)]
+    path: Option<PathBuf>,
+    #[arg(long, default_value_t = 2000, global = true)]
+    timeout: u64,
+
+    #[command(subcommand)]
+    command: Verb,
 }
 
-fn read<const N: usize>(r: &mut impl Read) -> io::Result<[u8; N]> {
-    let mut buf = [0; N];
-    r.read_exact(&mut buf)?;
-    Ok(buf)
+#[derive(Subcommand)]
+enum Verb {
+    Call {
+        target: String,
+        function: String,
+        args: Vec<String>,
+    },
 }
 
-fn read_string(r: &mut impl Read) -> io::Result<String> {
-    let len = u32::from_be_bytes(read(r)?);
-    if len == u32::MAX {
+fn write_qstring(writer: &mut impl Write, text: &str) -> io::Result<()> {
+    let bytes: Vec<u8> = text.encode_utf16().flat_map(u16::to_be_bytes).collect();
+    writer.write_all(&(bytes.len() as u32).to_be_bytes())?;
+    writer.write_all(&bytes)
+}
+
+fn read_qstring(reader: &mut impl Read) -> io::Result<String> {
+    let mut length = [0; 4];
+    reader.read_exact(&mut length)?;
+    let length = u32::from_be_bytes(length);
+    if length == u32::MAX {
         return Ok(String::new());
     }
-    if len > 1 << 20 || len % 2 != 0 {
-        return Err(io::Error::other(format!("bad QString length {len}")));
+    if length > 1 << 20 || length % 2 != 0 {
+        return Err(io::Error::other(format!("bad QString length {length}")));
     }
-    let mut bytes = vec![0; len as usize];
-    r.read_exact(&mut bytes)?;
-    let units: Vec<u16> = bytes.chunks_exact(2).map(|c| u16::from_be_bytes([c[0], c[1]])).collect();
-    Ok(String::from_utf16_lossy(&units))
+    let mut bytes = vec![0; length as usize];
+    reader.read_exact(&mut bytes)?;
+    Ok(String::from_utf16_lossy(
+        &bytes
+            .chunks_exact(2)
+            .map(|pair| u16::from_be_bytes([pair[0], pair[1]]))
+            .collect::<Vec<_>>(),
+    ))
 }
 
-fn call(sock: &Path, target: &str, function: &str, args: &[String], timeout: Duration) -> io::Result<(String, i32)> {
-    let mut conn = UnixStream::connect(sock)?;
-    conn.set_read_timeout(Some(timeout))?;
-    let mut req = vec![3];
-    put(&mut req, target);
-    put(&mut req, function);
-    req.extend((args.len() as u32).to_be_bytes());
-    args.iter().for_each(|a| put(&mut req, a));
-    conn.write_all(&req)?;
-    let mut r = BufReader::new(conn);
-    Ok(match read::<1>(&mut r)?[0] {
-        5 => (if read::<1>(&mut r)?[0] != 0 { String::new() } else { read_string(&mut r)? }, 0),
-        1 => ("IPC not ready".into(), 1),
-        2 => (format!("Target not found: {target}"), 2),
-        3 => (format!("Function not found: {target} {function}"), 3),
-        4 => (format!("Argument mismatch calling {target} {function}"), 4),
-        n => (format!("unexpected response index {n}"), 1),
-    })
+#[derive(Debug)]
+enum Response {
+    Completed(Option<String>),
+    NotReady,
+    TargetNotFound,
+    FunctionNotFound,
+    ArgumentMismatch,
+    Unknown(u8),
 }
 
-fn candidates(sock: Option<&Path>, pid: Option<&str>, id: Option<&str>) -> Vec<PathBuf> {
-    if let Some(sock) = sock {
-        return vec![sock.into()];
+impl Response {
+    fn from_byte(index: u8, reader: &mut impl Read) -> Result<Self> {
+        Ok(match index {
+            5 => {
+                let mut void = [0; 1];
+                reader.read_exact(&mut void)?;
+                Self::Completed((void[0] == 0).then(|| read_qstring(reader)).transpose()?)
+            }
+            1 => Self::NotReady,
+            2 => Self::TargetNotFound,
+            3 => Self::FunctionNotFound,
+            4 => Self::ArgumentMismatch,
+            other => Self::Unknown(other),
+        })
     }
-    let root = env::var_os("XDG_RUNTIME_DIR")
-        .filter(|d| !d.is_empty())
-        .map(PathBuf::from)
-        .unwrap_or_else(|| format!("/run/user/{}", fs::metadata("/proc/self").map_or(0, |m| m.uid())).into())
-        .join("quickshell");
-    if let Some(pid) = pid {
+
+    fn code(&self) -> u8 {
+        match self {
+            Self::Completed(_) => 0,
+            Self::NotReady => 1,
+            Self::TargetNotFound => 2,
+            Self::FunctionNotFound => 3,
+            Self::ArgumentMismatch => 4,
+            Self::Unknown(_) => 1,
+        }
+    }
+
+    fn message(&self, target: &str, function: &str) -> String {
+        match self {
+            Self::NotReady => "IPC not ready".into(),
+            Self::TargetNotFound => format!("Target not found: {target}"),
+            Self::FunctionNotFound => format!("Function not found: {target} {function}"),
+            Self::ArgumentMismatch => format!("Argument mismatch calling {target} {function}"),
+            Self::Unknown(n) => format!("unexpected response index {n}"),
+            Self::Completed(_) => String::new(),
+        }
+    }
+}
+
+struct Client {
+    reader: BufReader<UnixStream>,
+    writer: BufWriter<UnixStream>,
+}
+
+impl Client {
+    fn connect(socket: &Path, timeout: Duration) -> Result<Self> {
+        let stream = UnixStream::connect(socket)
+            .with_context(|| format!("connecting to {}", socket.display()))?;
+        stream.set_read_timeout(Some(timeout))?;
+        stream.set_write_timeout(Some(timeout))?;
+        Ok(Self {
+            reader: BufReader::new(stream.try_clone()?),
+            writer: BufWriter::new(stream),
+        })
+    }
+
+    fn call(&mut self, target: &str, function: &str, args: &[String]) -> Result<Response> {
+        self.writer.write_all(&[3])?;
+        write_qstring(&mut self.writer, target)?;
+        write_qstring(&mut self.writer, function)?;
+        self.writer.write_all(&(args.len() as u32).to_be_bytes())?;
+        for arg in args {
+            write_qstring(&mut self.writer, arg)?;
+        }
+        self.writer.flush()?;
+
+        let mut index = [0; 1];
+        self.reader.read_exact(&mut index)?;
+        Response::from_byte(index[0], &mut self.reader)
+    }
+}
+
+fn runtime_dir() -> PathBuf {
+    if let Some(dir) = dirs::runtime_dir() {
+        return dir.join("quickshell");
+    }
+    let uid = fs::metadata("/proc/self").map(|m| m.uid()).unwrap_or(0);
+    PathBuf::from(format!("/run/user/{uid}/quickshell"))
+}
+
+fn candidates(args: &Args) -> Vec<PathBuf> {
+    if let Some(socket) = &args.socket {
+        return vec![socket.clone()];
+    }
+    let root = runtime_dir();
+    if let Some(pid) = &args.pid {
         return vec![root.join("by-pid").join(pid).join("ipc.sock")];
     }
+
     let by_id = root.join("by-id");
-    let Ok(entries) = fs::read_dir(&by_id) else { return vec![] };
-    let names = entries.flatten().filter_map(|e| e.file_name().into_string().ok());
-    if let Some(id) = id {
-        let matched: Vec<_> = names.filter(|n| n.contains(id)).collect();
-        return match matched.as_slice() {
-            [only] => vec![by_id.join(only).join("ipc.sock")],
-            _ => vec![],
-        };
+    let Ok(entries) = fs::read_dir(&by_id) else {
+        return vec![];
+    };
+    let names: Vec<_> = entries
+        .flatten()
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .collect();
+
+    if let Some(id) = &args.id {
+        let id = id.to_string_lossy();
+        return names
+            .into_iter()
+            .filter(|name| name.contains(id.as_ref()))
+            .map(|name| by_id.join(name).join("ipc.sock"))
+            .collect();
     }
-    let mut socks: Vec<_> = names
-        .filter_map(|n| {
-            let path = by_id.join(n).join("ipc.sock");
-            Some((fs::metadata(&path).ok()?.modified().ok()?, path))
+
+    let mut sockets: Vec<(SystemTime, PathBuf)> = names
+        .into_iter()
+        .filter_map(|name| {
+            let socket = by_id.join(name).join("ipc.sock");
+            Some((fs::metadata(&socket).ok()?.modified().ok()?, socket))
         })
         .collect();
-    socks.sort_by_key(|(modified, _)| Reverse(*modified));
-    socks.into_iter().map(|(_, path)| path).collect()
+    sockets.sort_by_key(|(modified, _)| Reverse(*modified));
+    sockets.into_iter().map(|(_, socket)| socket).collect()
 }
 
-fn usage() -> ! {
-    eprintln!("usage: npc [--socket P] [--pid N] [--id S] [--config C] [--path P] [--timeout MS] call <target> <function> [args...]");
-    exit(1)
-}
-
-fn main() {
-    let mut flags: HashMap<String, String> = HashMap::new();
-    let mut argv = env::args().skip(1);
-    let mut rest = vec![];
-    while let Some(a) = argv.next() {
-        let name = a.trim_start_matches('-').to_owned();
-        if a.starts_with('-') && ["socket", "pid", "id", "config", "c", "path", "timeout"].contains(&name.as_str()) {
-            let Some(value) = argv.next() else { usage() };
-            flags.insert(if name == "c" { "config".into() } else { name }, value);
-        } else {
-            rest.push(a);
-            rest.extend(argv.by_ref());
-        }
-    }
-    let [verb, target, function, args @ ..] = rest.as_slice() else { usage() };
-    if verb != "call" || target.is_empty() || function.is_empty() {
-        usage();
-    }
-
-    let get = |key: &str| flags.get(key).map(String::as_str);
-    let (sock, pid, id) = (get("socket").map(Path::new), get("pid"), get("id"));
-    let pinned = sock.is_some() || pid.is_some() || id.is_some();
-    let timeout = Duration::from_millis(get("timeout").and_then(|t| t.parse().ok()).unwrap_or(2000));
-
+fn run(args: Args) -> Result<u8> {
+    let Verb::Call {
+        target,
+        function,
+        args: call_args,
+    } = &args.command;
+    let timeout = Duration::from_millis(args.timeout);
+    let pinned = args.socket.is_some() || args.pid.is_some() || args.id.is_some();
     let mut answered = false;
-    for attempt in 0..3 {
+
+    for attempt in 0..RETRIES {
         if attempt > 0 {
-            sleep(Duration::from_millis(200));
+            sleep(RETRY_DELAY);
         }
-        let socks = candidates(sock, pid, id);
-        for s in &socks {
-            let Ok((out, code)) = call(s, target, function, args, timeout) else { continue };
+        for socket in candidates(&args) {
+            let Ok(mut client) = Client::connect(&socket, timeout) else {
+                continue;
+            };
+            let Ok(response) = client.call(target, function, call_args) else {
+                continue;
+            };
             answered = true;
+            let code = response.code();
             if code == 2 && !pinned {
                 continue;
             }
-            if !out.is_empty() {
-                if code == 0 {
-                    println!("{out}");
-                } else {
-                    eprintln!("ipc: {out}");
-                }
+            match response {
+                Response::Completed(Some(value)) => println!("{value}"),
+                Response::Completed(None) => {}
+                other => eprintln!("ipc: {}", other.message(target, function)),
             }
-            exit(code);
+            return Ok(code);
         }
-        if answered || socks.is_empty() {
+        if answered {
             break;
         }
     }
     if answered {
-        eprintln!("ipc: target not found: {target}");
-        exit(2);
+        bail!("target not found: {target}");
     }
 
-    let mut qs = Command::new("qs");
-    for (flag, key) in [("-c", "config"), ("-p", "path"), ("--pid", "pid"), ("--id", "id")] {
-        if let Some(value) = get(key) {
-            qs.arg(flag).arg(value);
+    bail!("no running Quickshell IPC instance found")
+}
+
+fn main() -> ExitCode {
+    match run(Args::parse()) {
+        Ok(code) => ExitCode::from(code),
+        Err(error) => {
+            eprintln!("ipc: {error:#}");
+            ExitCode::from(1)
         }
     }
-    let err = qs.args(["ipc", "call"]).arg(target).arg(function).args(args).exec();
-    eprintln!("ipc: no running instance and qs failed to start: {err}");
-    exit(1);
 }

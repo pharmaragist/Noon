@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.common
 
-// Thin QML adapter over scripts/python/store.py. The store only knows the
+// Thin QML adapter over scripts/bin/store. The store only knows the
 // Noon-Plugins GitHub index: list plugins, install one, done.
 Singleton {
     id: root
@@ -141,7 +141,7 @@ Singleton {
         id: proc
         running: true
         stdinEnabled: true
-        command: ["python3", "-u", Paths.scripts.store]
+        command: [Paths.scripts.store]
         stdout: SplitParser {
             onRead: data => root.handleLine(data)
         }
