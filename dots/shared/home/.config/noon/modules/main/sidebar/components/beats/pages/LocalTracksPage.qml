@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQml.Models
 import qs.common
 import qs.common.widgets
 import qs.common.functions
@@ -18,38 +19,32 @@ StyledRect {
     property bool expanded
     property string debouncedQuery
 
+    Timer {
+        id: debounceTimer
+        interval: 200
+        repeat: false
+        onTriggered: root.debouncedQuery = controls.inputArea.text
+    }
+
     Connections {
         target: controls.inputArea
         function onTextChanged() {
-            NoonUtils.inlineTimer(() => {
-                root.debouncedQuery = controls.inputArea.text;
-            }, 200);
+            debounceTimer.restart();
         }
-    }
-
-    function shuffle(list) {
-        const arr = list.slice();
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            const tmp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = tmp;
-        }
-        return arr;
     }
 
     ScriptModel {
         id: filteredModel
         values: {
-            const query = (root.debouncedQuery ?? "").trim().toLowerCase();
-            const shuffleEnabled = Mem.states?.services?.beats?.shuffleTracks ?? false;
+            const query = root.debouncedQuery.trim().toLowerCase();
+            const shuffleEnabled = Boolean(Mem.states && Mem.states.services && Mem.states.services.beats && Mem.states.services.beats.shuffleTracks);
             const all = BeatsService.library || [];
             const startsMatches = [];
             const includesMatches = [];
 
             for (let i = 0; i < all.length; i++) {
                 const t = all[i];
-                if (!t || typeof t !== "object" || !(t.title || t.file))
+                if (!t || (!t.title && !t.file))
                     continue;
 
                 if (query.length === 0) {
@@ -57,8 +52,8 @@ StyledRect {
                     continue;
                 }
 
-                const title = (t.title ?? "").toLowerCase();
-                const artist = (t.artist ?? "").toLowerCase();
+                const title = (t.title || "").toLowerCase();
+                const artist = (t.artist || "").toLowerCase();
 
                 if (title.startsWith(query) || artist.startsWith(query))
                     startsMatches.push(t);
@@ -66,8 +61,15 @@ StyledRect {
                     includesMatches.push(t);
             }
 
-            if (query.length === 0 && shuffleEnabled)
-                return root.shuffle(startsMatches);
+            if (query.length === 0 && shuffleEnabled) {
+                for (let i = startsMatches.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    const tmp = startsMatches[i];
+                    startsMatches[i] = startsMatches[j];
+                    startsMatches[j] = tmp;
+                }
+                return startsMatches;
+            }
 
             return startsMatches.concat(includesMatches);
         }
@@ -81,11 +83,15 @@ StyledRect {
         id: controls
     }
 
+    TrackContextMenu {
+        id: sharedMenu
+    }
+
     function createPlaylistFromModel() {
-        var playlist = [];
-        var values = filteredModel.values || [];
-        for (var i = 0; i < values.length; i++) {
-            var item = values[i];
+        const playlist = [];
+        const values = filteredModel.values || [];
+        for (let i = 0; i < values.length; i++) {
+            const item = values[i];
             if (item && item.title)
                 playlist.push(item.title);
         }
@@ -93,57 +99,57 @@ StyledRect {
     }
 
     function playResults() {
-        if (controls.inputArea.text.length > 0) {
+        if (controls.inputArea.text.length > 0)
             BeatsService.playCustomPlaylist(createPlaylistFromModel());
-        }
     }
 
     function createPlaylist(fileName) {
-        if (fileName) {
+        if (fileName)
             BeatsService.playTrackByFile(fileName);
-        }
     }
 
     radius: Rounding.verylarge
     color: "transparent"
-    colors: MediaPlayerService?.colors
+    colors: MediaPlayerService ? MediaPlayerService.colors : undefined
 
     StyledGridView {
         id: grid
         clip: true
         anchors.fill: parent
         anchors.margins: Padding.large
-        reuseItems: false
+        reuseItems: true
+        cacheBuffer: 400
         model: filteredModel
-        readonly property int columns: controls.listMode ? 1 : root.expanded ? 4 : 2
+        readonly property int columns: controls.listMode ? 1 : (root.expanded ? 4 : 2)
         cellWidth: width / columns
         cellHeight: controls.listMode ? 110 : cellWidth
-        property string libPath: (Mem.beats?.directory ?? "") + "/"
+        property string libPath: (Mem.beats && Mem.beats.directory ? Mem.beats.directory : "") + "/"
+
+        add: null
+        addDisplaced: null
+        remove: null
+        removeDisplaced: null
 
         delegate: TrackItem {
-            listMode: controls?.listMode ?? false
+            listMode: controls.listMode
             implicitHeight: grid.cellHeight - margins
             implicitWidth: grid.cellWidth - margins
-            title: modelData?.title ?? ""
-            artist: modelData?.artist ?? ""
-            coverArt: modelData?.cover ? (grid.libPath + modelData.cover) : ""
+            title: modelData ? (modelData.title || "") : ""
+            artist: modelData ? (modelData.artist || "") : ""
+            coverArt: (modelData && modelData.cover) ? (grid.libPath + modelData.cover) : ""
 
             eventArea.onClicked: event => {
                 if (!modelData)
                     return;
                 if (event.button === Qt.LeftButton) {
-                    root.createPlaylist(modelData?.file);
+                    root.createPlaylist(modelData.file);
                 } else if (event.button === Qt.MiddleButton) {
                     root.playResults();
                 } else if (event.button === Qt.RightButton) {
-                    menu.popup();
+                    sharedMenu.trackPath = modelData.file ? (grid.libPath + modelData.file) : "";
+                    sharedMenu.trackName = modelData.title || "";
+                    sharedMenu.popup();
                 }
-            }
-
-            TrackContextMenu {
-                id: menu
-                trackPath: modelData?.file ? (grid.libPath + modelData.file) : ""
-                trackName: modelData?.title ?? ""
             }
         }
     }

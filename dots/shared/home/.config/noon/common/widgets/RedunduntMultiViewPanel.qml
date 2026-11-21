@@ -73,8 +73,8 @@ SidebarItemContainer {
             currentIndex: root.selectedTabIndex
             onCurrentIndexChanged: root.selectedTabIndex = currentIndex
             spacing: Padding.normal
-            clip: true
-            radius: Rounding.verylarge
+            clip: root.clip
+            radius: root.radius
 
             Repeater {
                 model: tabButtonList.map(item => item.component)

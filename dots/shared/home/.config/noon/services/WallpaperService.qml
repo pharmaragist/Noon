@@ -9,7 +9,6 @@ import qs.common.functions
 Singleton {
     id: root
 
-    property var thumbnailsData: ({})
     property bool fgReady: false
     property string lastPositionedFg: ""
     readonly property bool depthMode: Mem.options.desktop.bg.depthMode
@@ -54,20 +53,6 @@ Singleton {
                 root.wallpaperRevision++;
         }
     }
-    readonly property FileView thumbsView: FileView {
-        watchChanges: true
-        blockWrites: true
-        path: root.currentFolderPath + "/.thumbnails.json"
-        onFileChanged: {
-            const out = this.text();
-            try {
-                root.thumbnailsData = JSON.parse(out);
-            } catch (e) {
-                console.error("Thumbnails: Failed to parse " + this.path);
-            }
-        }
-    }
-
     onCurrentWallpaperChanged: Qt.callLater(syncFg)
 
     Timer {
@@ -127,12 +112,8 @@ Singleton {
     function getThumbnailPath(fileUrl) {
         if (!fileUrl)
             return "";
-        const cleanPath = clean(fileUrl);
-        const cleanDir = clean(currentFolderPath);
-        if (!cleanPath.startsWith(cleanDir + "/"))
-            return "";
-        const rel = cleanPath.slice(cleanDir.length + 1);
-        return (root.thumbnailsData?.files ?? {})[rel]?.thumbnailUri ?? "";
+        const cacheDir = clean(Paths.standard.cache);
+        return cacheDir + "/media/thumbnails/wallpapers/" + Qt.md5(String(fileUrl)) + ".png";
     }
 
     function updateScheme(selectedMode) {

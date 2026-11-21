@@ -123,10 +123,6 @@ hl.bind("CTRL+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/bash/record.sh --fullscree
 m_bind("SHIFT+ALT+R", hl.dsp.exec_cmd(scriptsDir .. "/bash/record.sh --fullscreen-sound"))
 
 
--- Zoom
-m_bind("minus", hl.dsp.exec_cmd(scriptsDir .. "/bash/hypr_zoom.sh decrease 0.1"), { repeating = true })
-m_bind("equal", hl.dsp.exec_cmd(scriptsDir .. "/bash/hypr_zoom.sh increase 0.1"), { repeating = true })
-
 -- Apps
 m_bind("T", hl.dsp.exec_cmd(terminal))
 m_bind("C", hl.dsp.exec_cmd(editor .. " " .. shell_path))

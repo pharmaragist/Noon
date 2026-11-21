@@ -783,7 +783,7 @@ QtObject {
                     "name": "Home Page Style",
                     "type": "combobox",
                     "store": "beats",
-                    "values": ["PixelPlayer", "MaterialNoon"],
+                    "values": ["Seamless", "PixelPlayer", "MaterialNoon"],
                     "key": "options.homePageStyle"
                 },
                 {

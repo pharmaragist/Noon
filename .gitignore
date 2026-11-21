@@ -16,6 +16,7 @@ dots/shared/home/.config/hypr/hyprtoolkit.conf
 
 # Compiled build artifacts (shipped binaries in scripts/bin are tracked)
 dots/shared/home/.config/noon/scripts/rust/target/
+dots/shared/home/.config/noon/scripts/rust/beats/target/
 dots/shared/home/.config/noon/scripts/rust/harness/target/
 dots/shared/home/.config/noon/scripts/go/pkg/
 dots/shared/home/.config/noon/scripts/go/bin/

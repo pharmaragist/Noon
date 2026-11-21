@@ -9,8 +9,10 @@ RedunduntMultiViewPanel {
     path: Qt.resolvedUrl("./")
     readonly property string currentPagePath: "pages/" + (Mem.beats.options.homePageStyle ?? "MaterialNoon")
     colors: MediaPlayerService?.colors
-    padding: Padding.huge
-    clip: false
+    clip: true
+    radius: Rounding.normal
+    padding: Padding.large
+
     tabButtonList: [
         {
             "icon": "music_note",
@@ -38,10 +40,10 @@ RedunduntMultiViewPanel {
             "name": "Eq",
             "component": "pages/Eq"
         },
-
     ]
     Rectangle {
         id: backdrop
+        visible: Mem.beats.options.homePageStyle !== "Seamless"
         anchors.fill: parent
         z: -1
         opacity: 0.25

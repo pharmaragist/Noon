@@ -67,7 +67,6 @@ Singleton {
 
         // Language roots
         readonly property string bin: base + "/bin"
-        readonly property string python: base + "/python"
         readonly property string bash: base + "/bash"
 
         // Binaries
@@ -84,11 +83,9 @@ Singleton {
         readonly property string packages: bin + "/packages"
         readonly property string store: bin + "/store"
 
-        // Python
-        readonly property string dlp: python + "/dlp.py"
-
         // Bash
         readonly property string deleteOpencodeSessions: bash + "/delete_opencode_sessions.sh"
+        readonly property string dlp: bash + "/dlp.sh"
         readonly property string getCursors: bash + "/get_cursors.sh"
         readonly property string getFonts: bash + "/get_fonts.sh"
         readonly property string getSounds: bash + "/get_sounds.sh"

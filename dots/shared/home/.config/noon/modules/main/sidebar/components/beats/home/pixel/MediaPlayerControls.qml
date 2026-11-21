@@ -97,7 +97,7 @@ Item {
 
                 value: root.player ? Math.max(0, Math.min(1, (root.player.position ?? 0) / Math.max(1, root.player.length ?? 1))) : 0
                 highlightColor: root.trackColors.colPrimary
-                trackColor: root.trackColors.colSecondaryContainer
+                trackColor: root.trackColors.colSecondaryContainerHover
                 highlightHeight: 36
                 showDot: true
                 valueBarHeight: 12

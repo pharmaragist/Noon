@@ -23,7 +23,8 @@ StyledText {
     }
 
     Behavior on opacity {
-        Anim {}
+        Anim {
+        }
     }
 
     Behavior on fill {

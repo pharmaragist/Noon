@@ -1,4 +1,3 @@
-import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -13,61 +12,123 @@ import qs.services
 StyledPopup {
     id: popup
 
-    active: HyprlandService.isHyprland && hoverTarget && hoverTarget.containsMouse
+    property alias workspaceId: root.targetWorkspaceId
+    active: hoverTarget && hoverTarget.containsMouse
+
+    contentMargins: 0
+    popupBackgroundColor: "transparent"
+    popupBackgroundBorders: false
 
     Item {
         id: root
 
-        readonly property var focusedScreen: MonitorsInfo.focused
-        readonly property var focusedWindow: Hyprland.focusedWindow
-        readonly property var toplevel: Hyprland.toplevelForAddress(focusedWindow.address)
-        readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
-        readonly property string windowAppId: activeWindow.appId ?? ""
-        readonly property var iconPath: DesktopEntries.byId(windowAppId).icon
-        readonly property size mainSize: Qt.size(380.444, 214)
+        property int targetWorkspaceId: 1
+        readonly property var monitor: MonitorsInfo.focused
+        readonly property var monitorData: HyprlandService.monitors.find(m => m.name === monitor?.name) ?? null
 
-        clip: true
-        anchors.fill: parent
-        implicitHeight: preview.implicitHeight
-        implicitWidth: preview.implicitWidth
-        visible: preview.hasContent
+        readonly property real monitorWidth: monitorData ? (monitorData.transform % 2 === 1 ? monitorData.height : monitorData.width) : 1920
+        readonly property real monitorHeight: monitorData ? (monitorData.transform % 2 === 1 ? monitorData.width : monitorData.height) : 1080
+
+        readonly property real scaleX: implicitWidth / monitorWidth
+        readonly property real scaleY: implicitHeight / monitorHeight
+        anchors.centerIn: parent
+        implicitWidth: 380
+        implicitHeight: 214
 
         StyledRect {
-            clip: true
-            color: "transparent"
+            anchors.fill: parent
+            color: Colors.colBackground
             radius: Rounding.verylarge
+            clip: true
 
-            anchors {
-                fill: parent
-                margins: Padding.normal
-                topMargin: Padding.small
-                bottomMargin: Padding.small
+            StyledRect {
+                z: 0
+                clip: true
+                color: "transparent"
+                anchors.fill: parent
+                anchors.margins: Padding.small
+                radius: parent.radius - anchors.margins
+
+                StyledImage {
+                    anchors.fill: parent
+                    source: WallpaperService.currentWallpaper
+                }
             }
 
-            StyledScreencopyView {
-                id: preview
+            Repeater {
+                model: ScriptModel {
+                    id: clientModel
+                    readonly property var filteredWindows: ToplevelManager?.toplevels ? ToplevelManager.toplevels.values.filter(t => {
+                        const win = HyprlandService.windowByAddress[`0x${t.HyprlandToplevel.address}`];
+                        return win && win.workspace && win.workspace.id === root.targetWorkspaceId;
+                    }) : []
+                    values: clientModel.filteredWindows
+                }
 
-                anchors.fill: parent
-                constraintSize: root.mainSize
-                captureSource: root.focusedScreen
-                clip: true
-                smooth: true
-                radius: Rounding.verylarge
+                delegate: StyledRect {
+                    id: winRect
+                    required property var modelData
+                    readonly property string address: `0x${modelData.HyprlandToplevel.address}`
+                    readonly property var winData: HyprlandService.windowByAddress[address]
 
-                IconImage {
-                    id: appIcon
+                    x: ((winData?.at[0] ?? 0) - (root.monitorData?.x ?? 0)) * root.scaleX
+                    y: ((winData?.at[1] ?? 0) - (root.monitorData?.y ?? 0)) * root.scaleY
+                    z: 1
+                    implicitWidth: Math.max(1, (winData?.size[0] ?? 0) * root.scaleX)
+                    implicitHeight: Math.max(1, (winData?.size[1] ?? 0) * root.scaleY)
 
-                    readonly property var iconSize: Math.min(preview.width, preview.height) * 0.13
+                    color: "transparent"
+                    radius: Rounding.normal
+                    enableBorders: true
+                    clip: true
 
-                    mipmap: true
-                    source: root.iconPath
-                    width: iconSize
-                    height: iconSize
+                    StyledScreencopyView {
+                        anchors.fill: parent
+                        paintCursor: false
+                        constraintSize: Qt.size(winRect.width, winRect.height)
+                        captureSource: winRect.modelData
+                        live: true
+                    }
+                    RowLayout {
+                        height: 30
+                        width: Math.min(winRect.width - Padding.huge, 140 )
+                        anchors.bottom: parent.bottom
+                        anchors.left: parent.left
+                        anchors.margins: Padding.huge
+                        spacing: Padding.large
 
-                    anchors {
-                        bottom: parent.bottom
-                        right: parent.right
-                        margins: 18
+                        StyledIconImage {
+                            id: winRectIcon
+                            _source: AppSearch.guessIcon(winRect.winData?.class)
+                            implicitSize: Math.min(winRect.width, winRect.height) * 0.2
+                            Layout.alignment:Qt.AlignVCenter
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.maximumHeight: 25
+                            Layout.maximumWidth: 100
+                            Layout.alignment:Qt.AlignVCenter
+                            spacing: 2
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: winRect.winData?.class
+                                font: Fonts.request("main",winRectIcon.implicitSize / 3)
+                                color:Colors.colOnLayer0
+                                truncate:true
+                                Layout.maximumHeight: 15
+                            }
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: winRect.winData?.title
+                                font: Fonts.request("main",winRectIcon.implicitSize / 3.25)
+                                color:Colors.colOnSurface
+                                truncate:true
+                                Layout.maximumHeight: 15
+                            }
+                        }
                     }
                 }
             }
