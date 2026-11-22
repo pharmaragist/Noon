@@ -5,6 +5,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
+use std::sync::OnceLock;
+use std::time::SystemTime;
 
 use anyhow::Result;
 use lofty::picture::MimeType;
@@ -13,6 +15,8 @@ use rayon::prelude::*;
 
 use super::library::get_library;
 use super::store;
+
+static MPRIS_ART: OnceLock<Mutex<HashMap<String, (Option<SystemTime>, PathBuf)>>> = OnceLock::new();
 
 fn cover_ok(music_dir: &str, cover: &str) -> bool {
     if cover.is_empty() {
@@ -39,6 +43,33 @@ fn extract_cover(abs: &Path) -> Option<(Vec<u8>, String)> {
     let png =
         picture.mime_type() == Some(&MimeType::Png) || data.starts_with(&[0x89, b'P', b'N', b'G']);
     Some((data.to_vec(), if png { "png" } else { "jpg" }.to_string()))
+}
+
+pub fn art_path(dir: &str, rel: &str) -> Option<PathBuf> {
+    let abs = Path::new(dir).join(rel);
+    let mtime = fs::metadata(&abs).and_then(|m| m.modified()).ok();
+    let cache = MPRIS_ART.get_or_init(|| Mutex::new(HashMap::new()));
+    if let Ok(map) = cache.lock() {
+        if let Some((stamped, path)) = map.get(rel) {
+            if stamped == &mtime && path.is_file() {
+                return Some(path.clone());
+            }
+        }
+    }
+    let (data, ext) = extract_cover(&abs)?;
+    let out_dir = store::mpris_art_dir();
+    let name = format!("{:x}", md5::compute(rel.as_bytes()));
+    let path = out_dir.join(format!("{name}.{ext}"));
+    if !path.is_file() {
+        fs::create_dir_all(&out_dir).ok()?;
+        let tmp = path.with_extension(format!("tmp-{}", std::process::id()));
+        fs::write(&tmp, &data).ok()?;
+        fs::rename(&tmp, &path).ok()?;
+    }
+    if let Ok(mut map) = cache.lock() {
+        map.insert(rel.to_string(), (mtime, path.clone()));
+    }
+    Some(path)
 }
 
 pub fn build_covers(music_dir: &str) -> Result<()> {

@@ -21,6 +21,8 @@ ureq = { version = "3.5.2", features = ["json"] }
 url = "2.5.9"
 walkdir = "2.5.0"
 zbus = "6.5.0"
+tokio = { version = "1", features = ["rt-multi-thread", "time", "net"] }
+ytmusicapi = "0.5.0"
 
 [profile.release]
 lto = true

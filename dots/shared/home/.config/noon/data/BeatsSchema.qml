@@ -17,5 +17,6 @@ JsonAdapter {
     property JO hits: JO {
         property var searchResults: []
         property var feed: []
+        property string recommendationsMode: "tracks"
     }
 }

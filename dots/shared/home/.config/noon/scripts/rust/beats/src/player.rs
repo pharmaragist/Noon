@@ -5,7 +5,7 @@ use libmpv::events::{Event, EventContext, PropertyData};
 use libmpv::{mpv_end_file_reason, Format, Mpv};
 use std::collections::HashMap;
 use std::ffi::CString;
-use std::path::{Component, Path, PathBuf};
+use std::path::Path;
 use std::ptr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Condvar, Mutex, RwLock};
@@ -88,22 +88,6 @@ fn new_handle(null_audio: bool) -> Result<Arc<Mpv>> {
 
 fn is_remote(s: &str) -> bool {
     s.starts_with("http://") || s.starts_with("https://") || s.starts_with("ytdl://")
-}
-
-pub(crate) fn clean(path: &Path) -> PathBuf {
-    let mut out = PathBuf::new();
-    for c in path.components() {
-        match c {
-            Component::CurDir => {}
-            Component::ParentDir => {
-                if !out.pop() {
-                    out.push("..");
-                }
-            }
-            other => out.push(other.as_os_str()),
-        }
-    }
-    out
 }
 
 fn rel_path(dir: &str, abs: &str) -> String {

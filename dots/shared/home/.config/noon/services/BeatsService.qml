@@ -27,7 +27,6 @@ Singleton {
     property string hitsQuery: ""
     property int _hitsLimit: opts.options.fetchLimit
 
-
     Component.onCompleted: _daemonCmd(["init"])
 
     function search(query, more = false) {
@@ -61,7 +60,6 @@ Singleton {
             return []; // empty read before async load finishes is normal at startup
         }
     }
-
 
     function fetchLyrics() {
         lyricText = "";
@@ -143,7 +141,6 @@ Singleton {
         }
     }
 
-
     FileView {
         id: lyricsFile
         path: Qt.resolvedUrl(root.tracksDir) + "/.beats/lyrics.json"
@@ -161,5 +158,14 @@ Singleton {
         preload: true
         blockWrites: true
         onFileChanged: libraryFile.reload()
+    }
+    FolderListModel {
+        folder: Qt.resolvedUrl(root.tracksDir)
+        nameFilters: NameFilters.music
+        showDirs: false
+        showFiles: true
+        onCountChanged: if (count > 0) {
+            BeatsService.fetchLibrary();
+        }
     }
 }

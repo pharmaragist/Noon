@@ -14,7 +14,7 @@ use zbus::interface;
 use zbus::object_server::SignalEmitter;
 use zbus::wire::{ObjectPath, OwnedObjectPath, OwnedVariant, Variant};
 
-use super::player::{clean, Player};
+use super::player::Player;
 
 const BUS_NAME: &str = "org.mpris.MediaPlayer2.noon";
 const PATH: &str = "/org/mpris/MediaPlayer2";
@@ -113,31 +113,10 @@ fn cover_url(dir: &str, rel: &str) -> String {
     if rel.is_empty() {
         return String::new();
     }
-    let Ok(index) = crate::library::track_index(dir) else {
-        return String::new();
-    };
-    let Some(track) = index.get(rel) else {
-        return String::new();
-    };
-    if track.cover.is_empty() {
-        return String::new();
+    match crate::covers::art_path(dir, rel) {
+        Some(path) if path.is_file() => format!("file://{}", path.to_string_lossy()),
+        _ => String::new(),
     }
-    let full = if Path::new(&track.cover).is_absolute() {
-        clean(Path::new(&track.cover))
-    } else {
-        clean(&Path::new(dir).join(&track.cover))
-    };
-    let base = clean(Path::new(dir));
-    let Ok(rel_path) = full.strip_prefix(&base) else {
-        return String::new();
-    };
-    if rel_path == Path::new("..") || rel_path.starts_with("..") {
-        return String::new();
-    }
-    if !full.is_file() {
-        return String::new();
-    }
-    format!("file://{}", full.to_string_lossy())
 }
 
 fn metadata(shared: &Shared) -> HashMap<String, OwnedVariant> {

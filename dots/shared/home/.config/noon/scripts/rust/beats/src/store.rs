@@ -21,6 +21,14 @@ pub fn log_path() -> PathBuf {
     beats_dir().join("daemon.log")
 }
 
+pub fn hits_art_dir() -> PathBuf {
+    beats_dir().join("hits")
+}
+
+pub fn mpris_art_dir() -> PathBuf {
+    beats_dir().join("mpris")
+}
+
 pub fn cmd_path(music_dir: &str) -> PathBuf {
     PathBuf::from(music_dir).join(".beats/cmd.json")
 }
