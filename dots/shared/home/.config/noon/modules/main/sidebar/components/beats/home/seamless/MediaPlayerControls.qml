@@ -167,6 +167,7 @@ Item {
             IconButton {
                 size: 74
                 iconSize: 70
+                fill: 0
                 icon: root.isPlaying ? "pause" : "play_arrow"
                 enabled: !!root.player
                 onClicked: root.player.togglePlaying()

@@ -1,3 +1,7 @@
+# Secrets
+# dots/shared/home/.env
+dots/shared/home/.secrets
+
 # Python
 __pycache__/
 *.pyc
@@ -22,6 +26,7 @@ dots/shared/home/.config/noon/scripts/go/pkg/
 dots/shared/home/.config/noon/scripts/go/bin/
 dots/shared/home/.config/noon/scripts/.crates.toml
 dots/shared/home/.config/noon/scripts/.crates2.json
+
 *.o
 *.a
 

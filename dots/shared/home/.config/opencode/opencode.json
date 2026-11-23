@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "figma": {
+        "type": "remote",
+        "url": "https://mcp.figma.com/mcp"
+      },
+      "composio": {
+        "type": "remote",
+        "url": "https://connect.composio.dev/mcp"
+      }
+    }
+  }
+}
