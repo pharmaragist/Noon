@@ -1,0 +1,7 @@
+{
+  "socket_path": "",
+  "ignore": ["playerctld"],
+  "trigger_players": ["ringtone", "alarm", "call", "phone"],
+  "trigger_timeout_ms": 0,
+  "resume_grace_ms": 1500
+}
