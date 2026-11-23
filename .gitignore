@@ -17,6 +17,19 @@ dist/
 # autogen
 *colors.lua
 dots/shared/home/.config/hypr/hyprtoolkit.conf
+dots/shared/home/.config/gtk*
+current-theme.conf
+kdeglobals
+dots/shared/home/.config/gtk-3.0/gtk.css
+dots/shared/home/.config/gtk-4.0/gtk.css
+dots/shared/home/.config/gtkrc
+dots/shared/home/.config/gtkrc-2.0
+dots/shared/home/.config/hypr/colors.lua
+dots/shared/home/.config/kdeglobals
+dots/shared/home/.config/kitty/current-theme.conf
+dots/shared/home/.config/zed/themes/noon.json
+dots/shared/home/.config/kitty/themes/Noon.conf
+dots/shared/home/.config/foot/colors.ini
 
 # Compiled build artifacts (shipped binaries in scripts/bin are tracked)
 dots/shared/home/.config/noon/scripts/rust/target/
