@@ -38,6 +38,7 @@ Singleton {
     function feed(reset = true) {
         if (reset)
             opts.hits.feed = [];
+        hitsQuery = "";
         const kind = Mem.states.services.beats.discoverMode ? "discover" : "recommend";
         _hitsCmd(kind, ["--limit", opts.options.fetchLimit]);
     }
@@ -75,8 +76,10 @@ Singleton {
         opts.directory = folder;
     }
 
-    function playTrackByFile(file) {
-        _daemonCmd(["play-by-name", "--name", file]);
+    function playFiles(files) {
+        if (!files || files.length === 0)
+            return;
+        _daemonCmd(["play-files", "--file", ...files]);
     }
 
     function playTrackByPath(path) {
@@ -85,10 +88,6 @@ Singleton {
 
     function fetchLibrary() {
         NoonUtils.execDetached([...baseCmd, "fetch"]);
-    }
-
-    function playCustomPlaylist(...args) {
-        _daemonCmd(["build-playlist", "--list", args.join(",")]);
     }
 
     function _daemonCmd(args) {

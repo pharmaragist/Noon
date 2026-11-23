@@ -26,6 +26,13 @@ StyledRect {
             BeatsService.feed(false);
     }
 
+    function playFrom(track) {
+        const items = grid._model || [];
+        const urls = items.map(t => t && t.url).filter(u => !!u);
+        const at = Math.max(0, urls.indexOf(track && track.url));
+        BeatsService.playFiles(urls.slice(at).concat(urls.slice(0, at)));
+    }
+
     ScrollEdgeFade {
         target: grid
     }
@@ -70,7 +77,7 @@ StyledRect {
                     menu.popup();
                     return;
                 }
-                BeatsService.previewURL(modelData.url);
+                root.playFrom(modelData);
                 delegated.animate();
             }
             StyledMenu {
@@ -98,7 +105,7 @@ StyledRect {
                         "materialIcon": "play_arrow",
                         "action": () => {
                             if (modelData && modelData.url) {
-                                BeatsService.previewURL(modelData.url);
+                                root.playFrom(modelData);
                             }
                         }
                     }
