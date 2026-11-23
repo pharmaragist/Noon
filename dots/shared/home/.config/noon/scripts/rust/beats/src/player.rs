@@ -22,6 +22,7 @@ const OBS_SPEED: u64 = 8;
 const OBS_LOOP_PLAYLIST: u64 = 9;
 const OBS_LOOP_FILE: u64 = 10;
 const OBS_DURATION: u64 = 11;
+const OBS_EOF: u64 = 12;
 
 pub struct ChangeSignal {
     gen: Mutex<u64>,
@@ -304,6 +305,10 @@ impl Player {
                     change,
                     ..
                 })) => {
+                    if reply_userdata == OBS_EOF && p_bool(&change) {
+                        self.on_eof();
+                        continue;
+                    }
                     self.apply_prop(reply_userdata, &change);
                 }
                 Some(Ok(Event::EndFile(reason))) => {
@@ -673,7 +678,7 @@ fn expand_home(s: &str) -> String {
 }
 
 fn observe_all(ctx: &mut EventContext<'_>) -> Result<()> {
-    let props: [(u64, &str, Format); 11] = [
+    let props: [(u64, &str, Format); 12] = [
         (OBS_PLAYLIST, "playlist", Format::Node),
         (OBS_POS, "playlist-pos", Format::Node),
         (OBS_IDLE, "idle-active", Format::Node),
@@ -685,6 +690,7 @@ fn observe_all(ctx: &mut EventContext<'_>) -> Result<()> {
         (OBS_LOOP_PLAYLIST, "loop-playlist", Format::Node),
         (OBS_LOOP_FILE, "loop-file", Format::Node),
         (OBS_DURATION, "duration", Format::Node),
+        (OBS_EOF, "eof-reached", Format::Node),
     ];
     for (id, name, format) in props {
         ctx.observe_property(name, format, id)
