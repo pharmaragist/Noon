@@ -2,19 +2,26 @@
 
 use super::models::Item;
 use crate::store;
+use rayon::prelude::*;
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::fs;
+use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
 use std::time::Duration;
 use ytmusicapi::YTMusicClient;
 
+const MAX_ART_FILES: usize = 500;
+
 static ART_AGENT: OnceLock<ureq::Agent> = OnceLock::new();
+static ART_PRUNED: OnceLock<()> = OnceLock::new();
+static ART_TMP: AtomicU64 = AtomicU64::new(0);
 
 fn art_agent() -> &'static ureq::Agent {
     ART_AGENT.get_or_init(|| {
         let config = ureq::config::Config::builder()
-            .timeout_global(Some(Duration::from_secs(10)))
+            .timeout_global(Some(Duration::from_secs(3)))
             .build();
         ureq::Agent::new_with_config(config)
     })
@@ -105,11 +112,27 @@ fn thumbnail(v: &Value) -> String {
     String::new()
 }
 
+fn prune_art(dir: &Path) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    let mut files: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
+    if files.len() <= MAX_ART_FILES {
+        return;
+    }
+    files.sort_by_key(|f| f.metadata().and_then(|m| m.modified()).ok());
+    let excess = files.len() - MAX_ART_FILES;
+    for file in files.into_iter().take(excess) {
+        let _ = fs::remove_file(file.path());
+    }
+}
+
 fn cached_thumb(url: String) -> String {
     if url.is_empty() {
         return url;
     }
-    let path = store::hits_art_dir().join(format!("{:x}.jpg", md5::compute(url.as_bytes())));
+    let dir = store::hits_art_dir();
+    let path = dir.join(format!("{:x}.jpg", md5::compute(url.as_bytes())));
     if !path.exists() {
         if let Ok(mut response) = art_agent().get(&url).call() {
             let bytes = response
@@ -118,11 +141,14 @@ fn cached_thumb(url: String) -> String {
                 .limit(2 * 1024 * 1024)
                 .read_to_vec();
             if let Ok(bytes) = bytes {
-                let _ = fs::create_dir_all(store::hits_art_dir());
-                let tmp = path.with_extension(format!("tmp-{}", std::process::id()));
+                let _ = fs::create_dir_all(&dir);
+                let seq = ART_TMP.fetch_add(1, Ordering::Relaxed);
+                let tmp = path.with_extension(format!("tmp-{}-{seq}", std::process::id()));
                 if fs::write(&tmp, bytes).is_ok() {
                     let _ = fs::rename(&tmp, &path);
+                    let _ = fs::remove_file(&tmp);
                 }
+                ART_PRUNED.get_or_init(|| prune_art(&dir));
             }
         }
     }
@@ -207,13 +233,7 @@ fn responsive_item(v: &Value) -> Option<Item> {
         || page_type == "MUSIC_PAGE_TYPE_PLAYLIST"
         || id.starts_with("VL")
         || id.starts_with("MPREb");
-    make_item(
-        title,
-        subtitle,
-        id.to_string(),
-        cached_thumb(thumbnail(v)),
-        is_playlist,
-    )
+    make_item(title, subtitle, id.to_string(), thumbnail(v), is_playlist)
 }
 
 fn row_item(v: &Value) -> Option<Item> {
@@ -246,23 +266,21 @@ fn row_item(v: &Value) -> Option<Item> {
         || page_type == "MUSIC_PAGE_TYPE_PLAYLIST"
         || id.starts_with("VL")
         || id.starts_with("MPREb");
-    make_item(
-        title,
-        subtitle,
-        id.to_string(),
-        cached_thumb(thumbnail(v)),
-        is_playlist,
-    )
+    make_item(title, subtitle, id.to_string(), thumbnail(v), is_playlist)
 }
 
 fn finish(nodes: Vec<&Value>, limit: i64) -> Vec<Item> {
     let mut seen = HashSet::new();
-    nodes
+    let mut items: Vec<Item> = nodes
         .into_iter()
         .filter_map(|v| responsive_item(v).or_else(|| row_item(v)))
         .filter(|item| seen.insert(item.video_id.clone()))
         .take(limit.max(0) as usize)
-        .collect()
+        .collect();
+    items.par_iter_mut().for_each(|item| {
+        item.thumbnail = cached_thumb(std::mem::take(&mut item.thumbnail));
+    });
+    items
 }
 
 pub fn search(query: &str, limit: i64) -> Vec<Item> {

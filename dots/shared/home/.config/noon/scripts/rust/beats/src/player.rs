@@ -22,7 +22,6 @@ const OBS_SPEED: u64 = 8;
 const OBS_LOOP_PLAYLIST: u64 = 9;
 const OBS_LOOP_FILE: u64 = 10;
 const OBS_DURATION: u64 = 11;
-const OBS_EOF: u64 = 12;
 
 pub struct ChangeSignal {
     gen: Mutex<u64>,
@@ -305,10 +304,6 @@ impl Player {
                     change,
                     ..
                 })) => {
-                    if reply_userdata == OBS_EOF && p_bool(&change) {
-                        self.on_eof();
-                        continue;
-                    }
                     self.apply_prop(reply_userdata, &change);
                 }
                 Some(Ok(Event::EndFile(reason))) => {
@@ -428,13 +423,11 @@ impl Player {
     }
 
     fn replace_and_play(&self, paths: &[String]) {
-        self.cmd("playlist_clear", &[]);
         self.hist.lock().unwrap().clear();
+        let mut first = true;
         for f in paths {
-            self.cmd("loadfile", &[f, "append"]);
-        }
-        if !paths.is_empty() {
-            self.play_pos(0);
+            self.cmd("loadfile", &[f, if first { "replace" } else { "append" }]);
+            first = false;
         }
     }
 
@@ -564,7 +557,7 @@ impl Player {
         self.cmd("stop", &["keep-playlist"]);
     }
 
-    pub fn seek(&self, seconds: f64, relative: bool) {
+    pub fn seek(&self, seconds: f64, relative: bool) -> f64 {
         let (base, dur) = {
             let st = self.st.read().unwrap();
             (st.time_pos, st.duration)
@@ -577,6 +570,7 @@ impl Player {
             target = 0.0;
         }
         self.cmd("seek", &[&target.to_string(), "absolute", "keyframes"]);
+        target
     }
 
     pub fn set_volume(&self, volume: i64) {
@@ -603,6 +597,10 @@ impl Player {
 
     pub fn shuffle(&self) -> bool {
         self.shuffle.load(Ordering::Relaxed)
+    }
+
+    pub fn music_dir(&self) -> String {
+        self.music_dir.read().unwrap().clone()
     }
 
     pub fn next(&self) {
@@ -675,7 +673,7 @@ fn expand_home(s: &str) -> String {
 }
 
 fn observe_all(ctx: &mut EventContext<'_>) -> Result<()> {
-    let props: [(u64, &str, Format); 12] = [
+    let props: [(u64, &str, Format); 11] = [
         (OBS_PLAYLIST, "playlist", Format::Node),
         (OBS_POS, "playlist-pos", Format::Node),
         (OBS_IDLE, "idle-active", Format::Node),
@@ -687,7 +685,6 @@ fn observe_all(ctx: &mut EventContext<'_>) -> Result<()> {
         (OBS_LOOP_PLAYLIST, "loop-playlist", Format::Node),
         (OBS_LOOP_FILE, "loop-file", Format::Node),
         (OBS_DURATION, "duration", Format::Node),
-        (OBS_EOF, "eof-reached", Format::Node),
     ];
     for (id, name, format) in props {
         ctx.observe_property(name, format, id)

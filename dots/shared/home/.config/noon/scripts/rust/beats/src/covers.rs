@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::sync::OnceLock;
 use std::time::SystemTime;
@@ -16,7 +16,9 @@ use rayon::prelude::*;
 use super::library::get_library;
 use super::store;
 
-static MPRIS_ART: OnceLock<Mutex<HashMap<String, (Option<SystemTime>, PathBuf)>>> = OnceLock::new();
+static MPRIS_ART: OnceLock<Mutex<HashMap<String, ((Option<SystemTime>, Option<u64>), PathBuf)>>> =
+    OnceLock::new();
+static ART_TMP: AtomicU64 = AtomicU64::new(0);
 
 fn cover_ok(music_dir: &str, cover: &str) -> bool {
     if cover.is_empty() {
@@ -47,27 +49,38 @@ fn extract_cover(abs: &Path) -> Option<(Vec<u8>, String)> {
 
 pub fn art_path(dir: &str, rel: &str) -> Option<PathBuf> {
     let abs = Path::new(dir).join(rel);
-    let mtime = fs::metadata(&abs).and_then(|m| m.modified()).ok();
+    let key = abs.to_string_lossy().into_owned();
+    let meta = fs::metadata(&abs).ok();
+    let stamp = (
+        meta.as_ref().and_then(|m| m.modified().ok()),
+        meta.as_ref().map(|m| m.len()),
+    );
     let cache = MPRIS_ART.get_or_init(|| Mutex::new(HashMap::new()));
     if let Ok(map) = cache.lock() {
-        if let Some((stamped, path)) = map.get(rel) {
-            if stamped == &mtime && path.is_file() {
+        if let Some((cached_stamp, path)) = map.get(&key) {
+            if cached_stamp == &stamp && path.is_file() {
                 return Some(path.clone());
             }
         }
     }
     let (data, ext) = extract_cover(&abs)?;
     let out_dir = store::mpris_art_dir();
-    let name = format!("{:x}", md5::compute(rel.as_bytes()));
+    let name = format!("{:x}", md5::compute(key.as_bytes()));
     let path = out_dir.join(format!("{name}.{ext}"));
     if !path.is_file() {
         fs::create_dir_all(&out_dir).ok()?;
-        let tmp = path.with_extension(format!("tmp-{}", std::process::id()));
-        fs::write(&tmp, &data).ok()?;
-        fs::rename(&tmp, &path).ok()?;
+        let seq = ART_TMP.fetch_add(1, Ordering::Relaxed);
+        let tmp = path.with_extension(format!("tmp-{}-{seq}", std::process::id()));
+        if fs::write(&tmp, &data).is_ok() {
+            let _ = fs::rename(&tmp, &path);
+            let _ = fs::remove_file(&tmp);
+        }
+        if !path.is_file() {
+            return None;
+        }
     }
     if let Ok(mut map) = cache.lock() {
-        map.insert(rel.to_string(), (mtime, path.clone()));
+        map.insert(key, (stamp, path.clone()));
     }
     Some(path)
 }
