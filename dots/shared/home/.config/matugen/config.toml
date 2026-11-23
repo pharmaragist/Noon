@@ -43,7 +43,7 @@ input_path = '~/.config/matugen/templates/starship.toml'
 output_path = '~/.config/starship.toml'
 
 [templates.nvim]
-enabled = false
+enabled = true
 input_path = '~/.config/matugen/templates/applications/nvim.lua'
 output_path = '~/.config/nvim/lua/noon/colors.lua'
 post_hook = 'pkill -SIGUSR1 nvim'

@@ -1,22 +1,42 @@
 #!/usr/bin/env bash
-set -e
+set -Eeuo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTS_DIR="$REPO_DIR/dots"
-UV_WORKING_DIR="$HOME/.local/state/noon"
 
-SUDO="sudo"
-if [[ -n "${SUDO_PASS:-}" ]]; then
-  SUDO="echo \"$SUDO_PASS\" | sudo -S"
-elif [[ "$EUID" -eq 0 ]]; then
-  SUDO=""
-fi
+FAILURES=0
+
+die() {
+  echo "[ERROR]: $*" >&2
+  exit 1
+}
+
+warn() {
+  echo "[WARN]: $*" >&2
+  FAILURES=$((FAILURES + 1))
+}
+
+trap 'die "failed at line $LINENO"' ERR
+
+# Keep sudo arguments in an array; never interpolate SUDO_PASS into a command
+# string. The password is written directly to sudo's stdin instead.
+sudo_run() {
+  if (( EUID == 0 )); then
+    "$@"
+  elif [[ -n "${SUDO_PASS:-}" ]]; then
+    printf '%s\n' "$SUDO_PASS" | sudo -S "$@"
+  else
+    sudo "$@"
+  fi
+}
 
 FORCE=false
 NVIDIA=false
 REMOVE=false
 ALL=false
 BUILD_LIBQT=true
+METHOD=copy
+ONLYDOTS=false
 
 declare -a SELECTED=(core)
 add_conf() {
@@ -44,6 +64,11 @@ Options:
   --ai             Install local AI tooling
   --nvidia         Install NVIDIA packages
   --no-libqt       Skip building and installing Noon-libqt
+  --onlydots       Install shared dotfiles only (skip packages, libqt, wrapper)
+  --method copy|link
+                   Install shared files by copying from the repo (default) or
+                   symlinking them to the repo (directories stay real, files
+                   become links)
   --remove         Remove Noon system files (QML modules and the noon wrapper)
   -h, --help       Show this help
 EOF
@@ -61,13 +86,39 @@ while [[ $# -gt 0 ]]; do
     --gaming)     add_conf gaming ;;
     --ai)         add_conf ai ;;
     --no-libqt)   BUILD_LIBQT=false ;;
+    --onlydots)   ONLYDOTS=true ;;
+    --method)
+      [[ $# -ge 2 ]] || die "--method requires copy or link"
+      case "$2" in
+        copy|link) METHOD="$2" ;;
+        *)         die "invalid --method: $2 (expected copy or link)" ;;
+      esac
+      shift 2
+      continue
+      ;;
+    --method=*)
+      value="${1#--method=}"
+      case "$value" in
+        copy|link) METHOD="$value" ;;
+        *)         die "invalid --method: $value (expected copy or link)" ;;
+      esac
+      ;;
     -h|--help)    usage; exit 0 ;;
     *)            echo "Unknown option: $1" >&2; usage; exit 1 ;;
   esac
   shift
 done
 
+# --onlydots wins over package/libqt related flags regardless of argument order.
+if $ONLYDOTS; then
+  ALL=false
+  NVIDIA=false
+  BUILD_LIBQT=false
+  SELECTED=()
+fi
+
 detect_distro() {
+  # shellcheck source=/dev/null
   . /etc/os-release
   case "$ID" in
     fedora) echo fedora ;;
@@ -84,21 +135,24 @@ detect_distro() {
 
 DISTRO=$(detect_distro)
 
-case "$DISTRO" in
-  fedora)
-    PKG_CMD="$SUDO dnf install --skip-file-locks -y"
-    ;;
-  arch)
-    if command -v yay &>/dev/null; then
-      AUR_HELPER="yay"
-    elif command -v paru &>/dev/null; then
-      AUR_HELPER="paru"
-    else
-      AUR_HELPER="$SUDO pacman"
-    fi
-    PKG_CMD="$AUR_HELPER -S --needed --noconfirm"
-    ;;
-esac
+AUR_HELPER=""
+if [[ "$DISTRO" == arch ]]; then
+  if command -v yay &>/dev/null; then
+    AUR_HELPER="yay"
+  elif command -v paru &>/dev/null; then
+    AUR_HELPER="paru"
+  fi
+fi
+
+pkg_install() {
+  if [[ "$DISTRO" == fedora ]]; then
+    sudo_run dnf install --skip-file-locks -y "$@"
+  elif [[ -n "$AUR_HELPER" ]]; then
+    "$AUR_HELPER" -S --needed --noconfirm "$@"
+  else
+    sudo_run pacman -S --needed --noconfirm "$@"
+  fi
+}
 
 qml_install_dir() {
   local dir=""
@@ -123,7 +177,7 @@ remove_stale_qml() {
   for module in Network Devices Blobs Scrcpy QR; do
     if [[ -e "$qml_dir/Noon/$module" ]]; then
       echo "  Removing stale QML module $module"
-      $SUDO rm -rf "$qml_dir/Noon/$module"
+      sudo_run rm -rf "$qml_dir/Noon/$module"
     fi
   done
 }
@@ -143,14 +197,14 @@ install_libqt() {
     echo "[libqt] Noon-libqt not found, cloning into $clone_dir"
     mkdir -p "$(dirname "$clone_dir")"
     if ! git clone --depth 1 https://github.com/pharmaragist/Noon-libqt.git "$clone_dir"; then
-      echo "[WARN]: could not clone Noon-libqt; C++ QML modules will be missing"
+      warn "could not clone Noon-libqt; C++ QML modules will be missing"
       return 0
     fi
     libqt_dir="$clone_dir"
   fi
 
   if ! command -v cmake &>/dev/null; then
-    echo "[WARN]: cmake not found; skipping Noon-libqt build"
+    warn "cmake not found; skipping Noon-libqt build"
     return 0
   fi
 
@@ -167,26 +221,30 @@ install_libqt() {
   cmake --build "$build_dir" -j"$(nproc)"
 
   echo "[libqt] Installing"
-  $SUDO cmake --install "$build_dir"
+  sudo_run cmake --install "$build_dir"
 
   remove_stale_qml
 }
 
 # ---- Fedora-specific repos ----
-if [[ "$DISTRO" == fedora ]]; then
+if ! $ONLYDOTS && [[ "$DISTRO" == fedora ]]; then
   if $FORCE || ! rpm -q rpmfusion-free-release rpmfusion-nonfree-release &>/dev/null; then
-    $SUDO dnf install --nogpgcheck --skip-file-locks \
-      https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
-      https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
+    sudo_run dnf install --nogpgcheck --skip-file-locks \
+      https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm \
+      https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-"$(rpm -E %fedora)".noarch.rpm -y
   fi
 
   if $FORCE || ! rpm -q terra-release &>/dev/null; then
-    if dnf repolist 2>/dev/null | grep -q "^terra"; then
+    # Capture first: grep -q can close the pipe early and trip pipefail.
+    dnf_repos="$(dnf repolist 2>/dev/null || true)"
+    if grep -q "^terra" <<<"$dnf_repos"; then
       echo "[WARN]: terra repo already configured, skipping"
     else
-      $SUDO dnf install --nogpgcheck --skip-file-locks \
+      # dnf expands $releasever itself; keep the literal string.
+      # shellcheck disable=SC2016
+      sudo_run dnf install --nogpgcheck --skip-file-locks \
         --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' \
-        terra-release -y || echo "[WARN]: terra repo setup failed"
+        terra-release -y || warn "terra repo setup failed"
     fi
   fi
 fi
@@ -201,21 +259,24 @@ flush_block() {
         echo "[WARN]: COPR not supported on $DISTRO, skipping"
         return
       fi
+      # Capture first: grep -q can close the pipe early and trip pipefail.
+      local copr_listing
+      copr_listing="$(dnf copr list 2>/dev/null || true)"
       for repo in "${items[@]}"; do
-        if $FORCE || ! dnf copr list 2>/dev/null | grep -qc "$repo"; then
-          $SUDO dnf copr enable "$repo" -y || echo "[WARN]: failed to enable COPR $repo"
+        if $FORCE || ! grep -q "$repo" <<<"$copr_listing"; then
+          sudo_run dnf copr enable "$repo" -y || warn "failed to enable COPR $repo"
         fi
       done
       ;;
     pkgs)
-      $PKG_CMD "${items[@]}" || echo "[WARN]: some packages failed to install"
+      pkg_install "${items[@]}" || warn "some packages failed to install"
       ;;
     python)
-      uv pip install --system "${items[@]}" || echo "[WARN]: some python packages failed to install"
+      uv pip install --system "${items[@]}" || warn "some python packages failed to install"
       ;;
     script)
       for s in "${items[@]}"; do
-        bash "$DOTS_DIR/$DISTRO/$s" || echo "[WARN]: script $s failed"
+        bash "$DOTS_DIR/$DISTRO/$s" || warn "script $s failed"
       done
       ;;
   esac
@@ -225,7 +286,7 @@ process_config() {
   local conf="$1"
   [[ ! -f "$conf" ]] && return
   local -a copr_list=() pkgs_list=() python_list=() script_list=()
-  local block_type= block_items=()
+  local block_type="" block_items=()
   while IFS= read -r line; do
     line="${line#"${line%%[! ]*}"}"
     [[ -z "$line" || "$line" =~ ^# ]] && continue
@@ -270,9 +331,9 @@ if $REMOVE; then
   echo "Removing Noon system files..."
   qml_dir="$(qml_install_dir)"
   if [[ -n "$qml_dir" && -d "$qml_dir/Noon" ]]; then
-    $SUDO rm -rf "$qml_dir/Noon"
+    sudo_run rm -rf "$qml_dir/Noon"
   fi
-  $SUDO rm -f /usr/local/bin/noon
+  sudo_run rm -f /usr/local/bin/noon
   echo "Removed system files. User dotfiles were left untouched."
   exit 0
 fi
@@ -296,7 +357,7 @@ for name in "${SELECTED[@]}"; do
     echo "==> Installing $name packages"
     process_config "$conf"
   elif [[ "$name" == "core" ]]; then
-    echo "[WARN]: missing $conf; install the shell dependencies manually"
+    warn "missing $conf; install the shell dependencies manually"
   fi
 done
 
@@ -314,9 +375,10 @@ shopt -s dotglob nullglob
 if [[ -d "$SHARED_DIR" ]]; then
   for component in "$SHARED_DIR"/*/; do
     [[ -d "$component" ]] || continue
+    component="${component%/}"
     config="$component/INSTALLER_CONFIG"
     [[ -f "$config" ]] || continue
-    dest_path= type_name=
+    dest_path="" type_name=""
     while IFS='=' read -r key value; do
       key="${key#"${key%%[! ]*}"}"
       value="${value#"${value%%[! ]*}"}"
@@ -328,16 +390,22 @@ if [[ -d "$SHARED_DIR" ]]; then
     done < "$config"
     if [[ -n "$dest_path" && -n "$type_name" ]]; then
       dest_path="${dest_path/#\$HOME/$HOME}"
-      echo "[$type_name] Installing..."
-      cmd_prefix="$SUDO"
-      [[ "$dest_path" == "$HOME"* ]] && cmd_prefix=""
-      $cmd_prefix mkdir -p "$dest_path"
+      echo "[$type_name] Installing ($METHOD)..."
+      # HOME destinations are written as the user; system destinations go through sudo.
+      dest_cmd=()
+      [[ "$dest_path" == "$HOME"* ]] || dest_cmd=(sudo_run)
+      # -a preserves metadata. -s turns files into links back into the repo;
+      # directories stay real so files the user adds there are not hidden.
+      # --remove-destination keeps switch back from link from writing into the repo.
+      cp_flags=(-a --remove-destination)
+      [[ "$METHOD" == link ]] && cp_flags=(-afs)
+      "${dest_cmd[@]}" mkdir -p "$dest_path"
       for item in "$component"/*; do
         [[ "$(basename "$item")" == "INSTALLER_CONFIG" ]] && continue
-        $cmd_prefix cp -a "$item" "$dest_path/" || echo "[WARN]: failed to install $(basename "$item")"
+        "${dest_cmd[@]}" cp "${cp_flags[@]}" "$item" "$dest_path/" || warn "failed to install $(basename "$item")"
       done
       if [[ "$type_name" == "fonts" ]]; then
-        $SUDO fc-cache -f 2>/dev/null || true
+        sudo_run fc-cache -f 2>/dev/null || true
       fi
     fi
   done
@@ -345,6 +413,16 @@ fi
 shopt -u dotglob nullglob
 
 # The session starts the shell through /usr/local/bin/noon.
-$SUDO bash "$DOTS_DIR/install-binary.sh"
+if ! $ONLYDOTS; then
+  sudo_run bash "$DOTS_DIR/install-binary.sh"
+fi
 
-echo "All packages installed"
+if (( FAILURES > 0 )); then
+  die "$FAILURES operation(s) failed; see the [WARN] lines above"
+fi
+
+if $ONLYDOTS; then
+  echo "Dotfiles installed"
+else
+  echo "All packages installed"
+fi

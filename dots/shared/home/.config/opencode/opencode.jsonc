@@ -1,18 +1,22 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [],
-  "permission": {
-    "*": "ask",
-    "question": "allow",
-    "read": "allow",
-  },
   "mcp": {
     "servers": {
       "github": {
-        "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+        "command": [
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
         "disabled": false,
-        "type": "local",
-      },
-    },
+        "type": "local"
+      }
+    }
   },
+  "permission": {
+    "*": "ask",
+    "question": "allow",
+    "read": "allow"
+  }
 }

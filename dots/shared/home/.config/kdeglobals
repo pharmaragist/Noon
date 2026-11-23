@@ -137,8 +137,8 @@ DirSelectDialog Size=848,593
 Splitter State=\x00\x00\x00\xff\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\xa8\x00\x00\x02\xa8\x00\xff\xff\xff\xff\x01\x00\x00\x00\x01\x00
 
 [General]
-ColorScheme=Noon
-ColorSchemeHash=a5360690624a72fe34a3e78faa94ae8700fa3dff
+ColorScheme=Noon2
+ColorSchemeHash=b9fe89fed378084ab68941b5ca5289e9775749b3
 LastUsedCustomAccentColor=233,61,88
 XftAntialias=true
 XftHintStyle=hintfull
