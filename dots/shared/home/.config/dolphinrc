@@ -1,3 +1,11 @@
+MenuBar=Disabled
+
+[CompactMode]
+PreviewSize=112
+
+[DetailsMode]
+PreviewSize=64
+
 [General]
 Version=202
 ViewPropsTimestamp=2025,12,27,1,6,29.103
@@ -7,10 +15,16 @@ PreviewSize=160
 
 [KFileDialog Settings]
 Places Icons Auto-resize=false
-Places Icons Static Size=22
+Places Icons Static Size=48
 
 [MainWindow]
 MenuBar=Disabled
 
 [MainWindow][Toolbar mainToolBar]
+ToolButtonStyle=IconOnly
+
+[PlacesPanel]
+IconSize=48
+
+[Toolbar mainToolBar]
 ToolButtonStyle=IconOnly

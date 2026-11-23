@@ -5,8 +5,11 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use super::models::Command;
+
+static JSON_TMP: AtomicU64 = AtomicU64::new(0);
 
 fn beats_dir() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
@@ -19,6 +22,18 @@ pub fn pid_path() -> PathBuf {
 
 pub fn log_path() -> PathBuf {
     beats_dir().join("daemon.log")
+}
+
+pub fn lock_path() -> PathBuf {
+    beats_dir().join("daemon.lock")
+}
+
+pub fn hits_art_dir() -> PathBuf {
+    beats_dir().join("hits")
+}
+
+pub fn mpris_art_dir() -> PathBuf {
+    beats_dir().join("mpris")
 }
 
 pub fn cmd_path(music_dir: &str) -> PathBuf {
@@ -47,7 +62,8 @@ pub fn write_json<T: Serialize>(path: &Path, value: &T) -> Result<()> {
         .ok_or_else(|| anyhow!("no parent directory"))?;
     fs::create_dir_all(dir)?;
     let data = serde_json::to_vec(value)?;
-    let tmp = dir.join(format!(".json-{}", std::process::id()));
+    let seq = JSON_TMP.fetch_add(1, Ordering::Relaxed);
+    let tmp = dir.join(format!(".json-{}-{seq}", std::process::id()));
     fs::write(&tmp, &data)?;
     #[cfg(unix)]
     {

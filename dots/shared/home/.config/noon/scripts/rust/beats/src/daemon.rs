@@ -2,11 +2,13 @@
 
 use anyhow::{anyhow, Result};
 use std::fs::{self, OpenOptions};
+#[cfg(unix)]
+use std::os::unix::io::AsRawFd;
 use std::os::unix::process::CommandExt;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -31,7 +33,7 @@ struct PreviewState {
 
 struct Daemon {
     player: Arc<Player>,
-    music_dir: String,
+    music_dir: RwLock<String>,
     lyrics: Mutex<LyricsState>,
     preview: Mutex<PreviewState>,
 }
@@ -55,8 +57,35 @@ fn pid_alive(pid: i32) -> bool {
     ret == 0 || (ret < 0 && std::io::Error::last_os_error().raw_os_error() == Some(libc::EPERM))
 }
 
+fn open_lock() -> Result<fs::File> {
+    let path = store::lock_path();
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let file = OpenOptions::new().create(true).write(true).open(path)?;
+    #[cfg(unix)]
+    unsafe {
+        libc::flock(file.as_raw_fd(), libc::LOCK_EX);
+    }
+    Ok(file)
+}
+
 pub fn serve() -> Result<()> {
+    if live_pid().is_some() {
+        eprintln!("beats daemon already running.");
+        return Ok(());
+    }
     let music_dir = config::music_dir_or_fail();
+    let pid_path = store::pid_path();
+    if let Some(parent) = pid_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(&pid_path, format!("{}\n", std::process::id()))?;
+    let _lock = open_lock()?;
+    let own_pid = std::process::id() as i32;
+    if live_pid().map(|pid| pid != own_pid).unwrap_or(false) {
+        return Ok(());
+    }
     let player = Player::new(&music_dir)?;
     let prune_dir = music_dir.clone();
     thread::spawn(move || {
@@ -64,7 +93,7 @@ pub fn serve() -> Result<()> {
             eprintln!("beats: prune: {e}");
         }
     });
-    let mpris = match super::mpris::Mpris::start(Arc::clone(&player), music_dir.clone()) {
+    let mpris = match super::mpris::Mpris::start(Arc::clone(&player)) {
         Ok(m) => {
             println!("beats → mpris");
             Some(m)
@@ -74,12 +103,6 @@ pub fn serve() -> Result<()> {
             None
         }
     };
-    let pid_path = store::pid_path();
-    if let Some(parent) = pid_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::write(&pid_path, format!("{}\n", std::process::id()))?;
-
     unsafe {
         libc::signal(libc::SIGINT, on_signal as *const () as usize);
         libc::signal(libc::SIGTERM, on_signal as *const () as usize);
@@ -87,7 +110,7 @@ pub fn serve() -> Result<()> {
 
     let d = Arc::new(Daemon {
         player,
-        music_dir,
+        music_dir: RwLock::new(music_dir),
         lyrics: Mutex::new(LyricsState {
             file: String::new(),
             title: String::new(),
@@ -132,6 +155,15 @@ pub fn init() -> Result<()> {
         eprintln!("beats daemon already running.");
         return Ok(());
     }
+    let lock = open_lock()?;
+    let settle = Instant::now() + Duration::from_millis(100);
+    while live_pid().is_none() && Instant::now() < settle {
+        thread::sleep(Duration::from_millis(10));
+    }
+    if live_pid().is_some() {
+        eprintln!("beats daemon already running.");
+        return Ok(());
+    }
     eprintln!("Starting beats daemon...");
     let log_path = store::log_path();
     if let Some(parent) = log_path.parent() {
@@ -158,6 +190,7 @@ pub fn init() -> Result<()> {
     };
     // why: the detached child outlives its parent, so do not wait for it here.
     let _ = child.try_wait();
+    drop(lock);
 
     let deadline = Instant::now() + Duration::from_secs(5);
     while Instant::now() < deadline {
@@ -183,9 +216,7 @@ pub fn kill() -> Result<()> {
         }
         let _ = fs::remove_file(store::pid_path());
     }
-    let _ = Command::new("pkill")
-        .args(["-f", "--title=beats-preview"])
-        .status();
+    let _ = Command::new("pkill").args(["-f", "beats-preview"]).status();
     thread::sleep(Duration::from_secs(1));
     eprintln!("All stopped.");
     Ok(())
@@ -197,14 +228,28 @@ fn cmd_loop(d: Arc<Daemon>) {
             return;
         }
         thread::sleep(Duration::from_millis(100));
-        let cmd = match store::consume_cmd(&d.music_dir) {
-            Ok(Some(cmd)) => cmd,
-            Ok(None) => continue,
-            Err(e) => {
-                eprintln!("beats: {e}");
-                continue;
-            }
+        let current = d.music_dir.read().unwrap().clone();
+        let configured = config::music_dir().unwrap_or_else(|_| current.clone());
+        let dirs = if configured == current {
+            vec![current]
+        } else {
+            vec![current, configured]
         };
+        let found = dirs.iter().find_map(|dir| {
+            store::consume_cmd(dir)
+                .ok()
+                .flatten()
+                .map(|cmd| (dir.clone(), cmd))
+        });
+        let Some((dir, cmd)) = found else {
+            continue;
+        };
+        if dir != d.music_dir.read().unwrap().as_str()
+            && config::music_dir().ok().as_deref() == Some(dir.as_str())
+        {
+            d.player.refresh_config();
+            *d.music_dir.write().unwrap() = dir;
+        }
         if cmd.command == "preview" {
             d.handle_preview(&cmd);
             continue;
@@ -322,11 +367,20 @@ impl Daemon {
             }
             "stop" => p.stop(),
             "previewStop" => self.stop_preview(true),
-            "seekBy" => p.seek(f64_arg(a), true),
-            "seekTo" => p.seek(f64_arg(a), false),
+            "seekBy" => {
+                p.seek(f64_arg(a), true);
+            }
+            "seekTo" => {
+                p.seek(f64_arg(a), false);
+            }
             "setVolume" => p.set_volume(i64_arg(a)),
             "setRepeat" => p.set_repeat(bool_arg(a)),
-            "refreshConfig" => p.refresh_config(),
+            "refreshConfig" => {
+                p.refresh_config();
+                if let Ok(dir) = config::music_dir() {
+                    *self.music_dir.write().unwrap() = dir;
+                }
+            }
             "lyricsRefetch" => self.reset_lyrics_key(),
             other => eprintln!("beats: unknown command '{other}'"),
         }
@@ -375,20 +429,36 @@ impl Daemon {
         drop(preview);
 
         let d = Arc::clone(self);
-        thread::spawn(move || {
-            let mut preview = d.preview.lock().unwrap();
-            let Some((cid, child)) = preview.child.as_mut() else {
-                return;
-            };
-            if *cid != id {
-                return;
+        thread::spawn(move || loop {
+            {
+                let mut preview = d.preview.lock().unwrap();
+                let Some((cid, child)) = preview.child.as_mut() else {
+                    return;
+                };
+                if *cid != id {
+                    return;
+                }
+                match child.try_wait() {
+                    Ok(Some(_)) => {
+                        preview.child = None;
+                        if preview.paused_main {
+                            preview.paused_main = false;
+                            d.player.pause(false);
+                        }
+                        return;
+                    }
+                    Ok(None) => {}
+                    Err(_) => {
+                        preview.child = None;
+                        if preview.paused_main {
+                            preview.paused_main = false;
+                            d.player.pause(false);
+                        }
+                        return;
+                    }
+                }
             }
-            let _ = child.wait();
-            preview.child = None;
-            if preview.paused_main {
-                preview.paused_main = false;
-                d.player.pause(false);
-            }
+            thread::sleep(Duration::from_millis(50));
         });
     }
 
@@ -451,14 +521,15 @@ impl Daemon {
             artist: artist.clone(),
             text: String::new(),
         };
-        if let Err(e) = store::write_json(&store::lyrics_path(&self.music_dir), &blank) {
+        let music_dir = self.music_dir.read().unwrap().clone();
+        if let Err(e) = store::write_json(&store::lyrics_path(&music_dir), &blank) {
             eprintln!("beats: lyrics: {e}");
         }
         if is_remote(&file) {
             return;
         }
         let d = Arc::clone(self);
-        let dir = self.music_dir.clone();
+        let dir = music_dir;
         let fetch_file = file.clone();
         thread::spawn(move || {
             let text = lyrics::get_lyrics(&title, &artist, &dir, &fetch_file, duration);

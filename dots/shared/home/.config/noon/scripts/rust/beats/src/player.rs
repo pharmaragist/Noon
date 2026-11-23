@@ -5,7 +5,7 @@ use libmpv::events::{Event, EventContext, PropertyData};
 use libmpv::{mpv_end_file_reason, Format, Mpv};
 use std::collections::HashMap;
 use std::ffi::CString;
-use std::path::{Component, Path, PathBuf};
+use std::path::Path;
 use std::ptr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Condvar, Mutex, RwLock};
@@ -88,22 +88,6 @@ fn new_handle(null_audio: bool) -> Result<Arc<Mpv>> {
 
 fn is_remote(s: &str) -> bool {
     s.starts_with("http://") || s.starts_with("https://") || s.starts_with("ytdl://")
-}
-
-pub(crate) fn clean(path: &Path) -> PathBuf {
-    let mut out = PathBuf::new();
-    for c in path.components() {
-        match c {
-            Component::CurDir => {}
-            Component::ParentDir => {
-                if !out.pop() {
-                    out.push("..");
-                }
-            }
-            other => out.push(other.as_os_str()),
-        }
-    }
-    out
 }
 
 fn rel_path(dir: &str, abs: &str) -> String {
@@ -444,13 +428,11 @@ impl Player {
     }
 
     fn replace_and_play(&self, paths: &[String]) {
-        self.cmd("playlist_clear", &[]);
         self.hist.lock().unwrap().clear();
+        let mut first = true;
         for f in paths {
-            self.cmd("loadfile", &[f, "append"]);
-        }
-        if !paths.is_empty() {
-            self.play_pos(0);
+            self.cmd("loadfile", &[f, if first { "replace" } else { "append" }]);
+            first = false;
         }
     }
 
@@ -580,7 +562,7 @@ impl Player {
         self.cmd("stop", &["keep-playlist"]);
     }
 
-    pub fn seek(&self, seconds: f64, relative: bool) {
+    pub fn seek(&self, seconds: f64, relative: bool) -> f64 {
         let (base, dur) = {
             let st = self.st.read().unwrap();
             (st.time_pos, st.duration)
@@ -593,6 +575,7 @@ impl Player {
             target = 0.0;
         }
         self.cmd("seek", &[&target.to_string(), "absolute", "keyframes"]);
+        target
     }
 
     pub fn set_volume(&self, volume: i64) {
@@ -619,6 +602,10 @@ impl Player {
 
     pub fn shuffle(&self) -> bool {
         self.shuffle.load(Ordering::Relaxed)
+    }
+
+    pub fn music_dir(&self) -> String {
+        self.music_dir.read().unwrap().clone()
     }
 
     pub fn next(&self) {

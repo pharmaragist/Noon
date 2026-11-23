@@ -1,0 +1,1 @@
+/home/pharmaracist/kitty-plugins/scripts/show_hotkeys.sh

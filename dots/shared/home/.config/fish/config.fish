@@ -11,6 +11,22 @@ if test -f ~/.env
     source ~/.env
 end
 
+# if test -f ~/.local/state/noon/user/generated/terminal/sequences.txt
+#     printf "%b" (cat ~/.local/state/noon/user/generated/terminal/sequences.txt)
+# end
+
 if test "$USE_POKEMON" = true
-    pokemon-colorscripts-go --no-title
+    pokemon-colorscripts --no-title -r
 end
+
+# if test -n "$KITTY_WINDOW_ID"; and test -n "$TERMINAL_OPACITY"
+#     kitten @ set-background-opacity $TERMINAL_OPACITY
+# end
+
+fish_add_path /home/pharmaracist/.spicetify
+
+# opencode
+fish_add_path /home/pharmaracist/.opencode/bin
+
+# Hermes Agent command
+fish_add_path "$HOME/.local/bin"

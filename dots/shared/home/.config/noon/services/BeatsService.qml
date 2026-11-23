@@ -27,7 +27,6 @@ Singleton {
     property string hitsQuery: ""
     property int _hitsLimit: opts.options.fetchLimit
 
-
     Component.onCompleted: _daemonCmd(["init"])
 
     function search(query, more = false) {
@@ -39,6 +38,7 @@ Singleton {
     function feed(reset = true) {
         if (reset)
             opts.hits.feed = [];
+        hitsQuery = "";
         const kind = Mem.states.services.beats.discoverMode ? "discover" : "recommend";
         _hitsCmd(kind, ["--limit", opts.options.fetchLimit]);
     }
@@ -62,7 +62,6 @@ Singleton {
         }
     }
 
-
     function fetchLyrics() {
         lyricText = "";
         _daemonCmd(["lyrics-refetch"]);
@@ -77,8 +76,10 @@ Singleton {
         opts.directory = folder;
     }
 
-    function playTrackByFile(file) {
-        _daemonCmd(["play-by-name", "--name", file]);
+    function playFiles(files) {
+        if (!files || files.length === 0)
+            return;
+        _daemonCmd(["play-files", "--file", ...files]);
     }
 
     function playTrackByPath(path) {
@@ -87,10 +88,6 @@ Singleton {
 
     function fetchLibrary() {
         NoonUtils.execDetached([...baseCmd, "fetch"]);
-    }
-
-    function playCustomPlaylist(...args) {
-        _daemonCmd(["build-playlist", "--list", args.join(",")]);
     }
 
     function _daemonCmd(args) {
@@ -143,7 +140,6 @@ Singleton {
         }
     }
 
-
     FileView {
         id: lyricsFile
         path: Qt.resolvedUrl(root.tracksDir) + "/.beats/lyrics.json"
@@ -161,5 +157,14 @@ Singleton {
         preload: true
         blockWrites: true
         onFileChanged: libraryFile.reload()
+    }
+    FolderListModel {
+        folder: Qt.resolvedUrl(root.tracksDir)
+        nameFilters: NameFilters.music
+        showDirs: false
+        showFiles: true
+        onCountChanged: if (count > 0) {
+            BeatsService.fetchLibrary();
+        }
     }
 }

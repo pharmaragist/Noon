@@ -87,25 +87,11 @@ StyledRect {
         id: sharedMenu
     }
 
-    function createPlaylistFromModel() {
-        const playlist = [];
+    function playFrom(track) {
         const values = filteredModel.values || [];
-        for (let i = 0; i < values.length; i++) {
-            const item = values[i];
-            if (item && item.title)
-                playlist.push(item.title);
-        }
-        return playlist.join(",");
-    }
-
-    function playResults() {
-        if (controls.inputArea.text.length > 0)
-            BeatsService.playCustomPlaylist(createPlaylistFromModel());
-    }
-
-    function createPlaylist(fileName) {
-        if (fileName)
-            BeatsService.playTrackByFile(fileName);
+        const files = values.map(t => t && t.file).filter(f => !!f);
+        const at = Math.max(0, files.indexOf(track && track.file));
+        BeatsService.playFiles(files.slice(at).concat(files.slice(0, at)));
     }
 
     radius: Rounding.verylarge
@@ -142,9 +128,7 @@ StyledRect {
                 if (!modelData)
                     return;
                 if (event.button === Qt.LeftButton) {
-                    root.createPlaylist(modelData.file);
-                } else if (event.button === Qt.MiddleButton) {
-                    root.playResults();
+                    root.playFrom(modelData);
                 } else if (event.button === Qt.RightButton) {
                     sharedMenu.trackPath = modelData.file ? (grid.libPath + modelData.file) : "";
                     sharedMenu.trackName = modelData.title || "";

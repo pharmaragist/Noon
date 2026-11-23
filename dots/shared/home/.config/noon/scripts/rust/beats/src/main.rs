@@ -12,14 +12,13 @@ mod mpris;
 mod player;
 mod store;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::io::Write;
 
-const NOT_RUNNING: &str = "beats daemon is not running (start it with 'serve' or 'init').";
 const USAGE: &str = "Usage: beats [-d|--directory DIR] <command> [options]\n\n\
 Lifecycle:\n  serve                          run daemon in foreground\n  init                           start daemon detached\n  kill                           stop daemon\n\n\
-Playback (require running daemon):\n  play-file --file PATH\n  play-url --url URL\n  play-by-name --name NAME\n  play-pause\n  next\n  prev\n  stop\n  seek [--seconds SECONDS]\n  volume [--volume N]\n  build-playlist --list TITLES\n  refresh-config\n  lyrics-refetch\n  preview --url URL\n  preview-stop\n\n\
+Playback (starts daemon if needed):\n  play-file --file PATH\n  play-files --file PATH [PATH ...]\n  play-url --url URL\n  play-by-name --name NAME\n  play-pause\n  next\n  prev\n  stop\n  seek [--seconds SECONDS]\n  volume [--volume N]\n  build-playlist --list TITLES\n  refresh-config\n  lyrics-refetch\n  preview --url URL\n  preview-stop\n\n\
 Reads:\n  library\n  list-artists\n  list-albums\n  list-genres\n\n\
 Maintenance:\n  fetch\n  fetch-all-lyrics [--limit N] [--workers N]\n\n\
 Hits:\n  search --query Q [--limit N]\n  recommend [--limit N]\n  discover [--limit N]\n\n\
@@ -47,6 +46,11 @@ enum Cmd {
     PlayFile {
         #[arg(long)]
         file: String,
+    },
+    #[command(name = "play-files")]
+    PlayFiles {
+        #[arg(long = "file", num_args = 1.., required = true)]
+        files: Vec<String>,
     },
     #[command(name = "play-url")]
     PlayUrl {
@@ -125,10 +129,10 @@ fn print_json<T: serde::Serialize>(value: &T) {
 }
 
 fn send_cmd(name: &str, a: Option<serde_json::Value>) -> Result<()> {
-    if !daemon::live_pid().is_some() {
-        return Err(anyhow!("{NOT_RUNNING}"));
-    }
     let dir = config::music_dir_or_fail();
+    if daemon::live_pid().is_none() {
+        daemon::init()?;
+    }
     let cmd = models::Command {
         command: name.into(),
         a,
@@ -155,6 +159,7 @@ fn run() -> Result<()> {
         Cmd::Init => daemon::init(),
         Cmd::Kill => daemon::kill(),
         Cmd::PlayFile { file } => send_cmd("playFile", Some(serde_json::json!(file))),
+        Cmd::PlayFiles { files } => send_cmd("playFiles", Some(serde_json::json!(files))),
         Cmd::PlayUrl { url } => send_cmd("playUrl", Some(serde_json::json!(url))),
         Cmd::PlayByName { name } => send_cmd("playByName", Some(serde_json::json!(name))),
         Cmd::PlayPause => send_cmd("playPause", None),

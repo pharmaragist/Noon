@@ -4,6 +4,9 @@ use anyhow::{anyhow, Result};
 use serde_json::{Map, Value};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static JSON_TMP: AtomicU64 = AtomicU64::new(0);
 
 pub fn conf_path() -> Result<PathBuf> {
     let home = std::env::var("HOME").map_err(|_| anyhow!("cannot determine home directory"))?;
@@ -36,7 +39,8 @@ pub fn save(value: &Value) -> Result<()> {
     fs::create_dir_all(dir)?;
     let mut text = serde_json::to_string_pretty(value)?;
     text.push('\n');
-    let tmp = dir.join(format!(".beats.json.{}", std::process::id()));
+    let seq = JSON_TMP.fetch_add(1, Ordering::Relaxed);
+    let tmp = dir.join(format!(".beats.json.{}-{seq}", std::process::id()));
     fs::write(&tmp, text)?;
     #[cfg(unix)]
     {

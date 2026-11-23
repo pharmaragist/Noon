@@ -14,7 +14,7 @@ use zbus::interface;
 use zbus::object_server::SignalEmitter;
 use zbus::wire::{ObjectPath, OwnedObjectPath, OwnedVariant, Variant};
 
-use super::player::{clean, Player};
+use super::player::Player;
 
 const BUS_NAME: &str = "org.mpris.MediaPlayer2.noon";
 const PATH: &str = "/org/mpris/MediaPlayer2";
@@ -22,7 +22,7 @@ const PLAYER_IFACE: &str = "org.mpris.MediaPlayer2.Player";
 const TRACK_PREFIX: &str = "/org/mpris/MediaPlayer2/Track/";
 const TAKEN_NOTICE: &str = "MPRIS name org.mpris.MediaPlayer2.noon already taken; continuing.";
 const MICROS: f64 = 1_000_000.0;
-const POSITION_INTERVAL: Duration = Duration::from_millis(500);
+const POSITION_INTERVAL: Duration = Duration::from_millis(100);
 
 fn bits(f: f64) -> u64 {
     f.to_bits()
@@ -39,7 +39,6 @@ fn round3(f: f64) -> f64 {
 #[derive(Clone)]
 struct Shared {
     player: Arc<Player>,
-    music_dir: String,
     rate: Arc<AtomicU64>,
 }
 
@@ -113,31 +112,10 @@ fn cover_url(dir: &str, rel: &str) -> String {
     if rel.is_empty() {
         return String::new();
     }
-    let Ok(index) = crate::library::track_index(dir) else {
-        return String::new();
-    };
-    let Some(track) = index.get(rel) else {
-        return String::new();
-    };
-    if track.cover.is_empty() {
-        return String::new();
+    match crate::covers::art_path(dir, rel) {
+        Some(path) if path.is_file() => format!("file://{}", path.to_string_lossy()),
+        _ => String::new(),
     }
-    let full = if Path::new(&track.cover).is_absolute() {
-        clean(Path::new(&track.cover))
-    } else {
-        clean(&Path::new(dir).join(&track.cover))
-    };
-    let base = clean(Path::new(dir));
-    let Ok(rel_path) = full.strip_prefix(&base) else {
-        return String::new();
-    };
-    if rel_path == Path::new("..") || rel_path.starts_with("..") {
-        return String::new();
-    }
-    if !full.is_file() {
-        return String::new();
-    }
-    format!("file://{}", full.to_string_lossy())
 }
 
 fn metadata(shared: &Shared) -> HashMap<String, OwnedVariant> {
@@ -177,7 +155,7 @@ fn metadata(shared: &Shared) -> HashMap<String, OwnedVariant> {
     );
     if !file.is_empty() && !is_remote(&file) {
         if let Some(art) =
-            Option::from(cover_url(&shared.music_dir, &file)).filter(|s| !s.is_empty())
+            Option::from(cover_url(&shared.player.music_dir(), &file)).filter(|s| !s.is_empty())
         {
             map.insert("mpris:artUrl".into(), str_variant(&art));
         }
@@ -251,8 +229,7 @@ impl MprisPlayer {
         _track_id: OwnedObjectPath,
         #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
     ) {
-        self.shared.player.seek(offset as f64 / MICROS, true);
-        let pos = (self.shared.player.snapshot().position * MICROS) as i64;
+        let pos = (self.shared.player.seek(offset as f64 / MICROS, true) * MICROS) as i64;
         let _ = Self::seeked(&emitter, pos).await;
     }
     async fn set_position(
@@ -261,8 +238,7 @@ impl MprisPlayer {
         position: i64,
         #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
     ) {
-        self.shared.player.seek(position as f64 / MICROS, false);
-        let pos = (self.shared.player.snapshot().position * MICROS) as i64;
+        let pos = (self.shared.player.seek(position as f64 / MICROS, false) * MICROS) as i64;
         let _ = Self::seeked(&emitter, pos).await;
     }
     fn open_uri(&self, uri: &str) {
@@ -363,7 +339,7 @@ impl MprisPlayer {
 }
 
 impl Mpris {
-    pub fn start(player: Arc<Player>, music_dir: String) -> Result<Self> {
+    pub fn start(player: Arc<Player>) -> Result<Self> {
         let conn = zbus::block_on(zbus::Connection::session())?;
         let proxy = zbus::block_on(DBusProxy::new(&conn))?;
         let reply = zbus::block_on(proxy.request_name(
@@ -376,7 +352,6 @@ impl Mpris {
 
         let shared = Shared {
             player,
-            music_dir,
             rate: Arc::new(AtomicU64::new(bits(1.0))),
         };
         let closed = Arc::new(AtomicBool::new(false));
@@ -407,13 +382,15 @@ impl Mpris {
                         return;
                     }
                     let mut next = changed_props(&tick_shared, &mut last_meta);
+                    let transport = last.get("PlaybackStatus") != next.get("PlaybackStatus");
                     let mut changed = next != last;
                     if changed {
                         last = next.clone();
                     }
                     let snap = tick_shared.player.snapshot();
                     if snap.state != crate::models::STATE_STOP
-                        && last_pos.map_or(true, |t| t.elapsed() >= POSITION_INTERVAL)
+                        && (transport
+                            || last_pos.map_or(true, |t| t.elapsed() >= POSITION_INTERVAL))
                     {
                         next.insert("Position", variant((snap.position * MICROS) as i64));
                         last_pos = Some(Instant::now());
