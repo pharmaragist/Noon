@@ -1,0 +1,1 @@
+/home/pharmaracist/kitty-plugins/plugins/save_session.py
