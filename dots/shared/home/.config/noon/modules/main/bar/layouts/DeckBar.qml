@@ -31,6 +31,9 @@ StyledPanel {
     mask: Region {
         item: bg
     }
+    blur: Region {
+        item: bg
+    }
 
     MouseArea {
         anchors.fill: parent

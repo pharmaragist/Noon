@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.common
@@ -18,7 +17,7 @@ SidebarItemContainer {
     readonly property string windowDataPath: "/var/tmp/cast-window-data"
     readonly property var allScreens: Quickshell.screens
     readonly property var allWindows: ToplevelManager?.toplevels?.values ?? []
-    property var portalWindows: []  
+    property var portalWindows: []
 
     Process {
         id: writer
@@ -154,7 +153,7 @@ SidebarItemContainer {
                 bottomRadius: index === windowList.count - 1 ? Rounding.large : Rounding.tiny
 
                 readonly property var pw: root.portalWindows[index] ?? null
-                readonly property var winInfo: HyprlandService.windowByAddress["0x" + (modelData?.HyprlandToplevel?.address ?? "")] ?? null
+                readonly property var winInfo: Compositor.windowByAddress["0x" + (modelData?.HyprlandToplevel?.address ?? "")] ?? null
 
                 windowTitle: pw?.title ?? winInfo?.title ?? modelData?.title ?? "Unknown"
                 windowClass: pw?.class ?? winInfo?.class ?? ""

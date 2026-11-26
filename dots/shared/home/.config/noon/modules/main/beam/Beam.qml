@@ -20,12 +20,12 @@ Variants {
         name: "noanim_blurred_layer"
         required property var modelData
         readonly property string revealReason: Globals.main.beam.reason
-        readonly property bool reveal: Globals.main.beam.show || Globals.main.beam.pinned
+        readonly property bool pinned: Globals.main.beam.pinned
+        readonly property bool reveal: Globals.main.beam.show || pinned
         readonly property int elevationValue: Sizes.elevationMargin + (BarData.position === "bottom" ? BarData.currentInfo.appearance.size : 0)
         readonly property var currentModeData: contentMap[revealReason]
         readonly property var contentMap: BeamData?.contentMap ?? ({})
 
-        visible: true
         exclusiveZone: -1
         fill: true
         keyboardFocus: reveal
@@ -33,6 +33,59 @@ Variants {
         focusHandler.onCleared: root.hide()
         screen: modelData
         _layer: "Overlay"
+
+        // autoHide: true
+        // revealed: reveal
+        // hideDelay: bg.animationDuration + 50
+
+        dismissArea.target: bg
+        dismissArea.active: root.reveal && !root.pinned
+
+        // Blur follows the settled geometry, not the spring-animated bg.
+        // Tracking bg would send a new blur region to the compositor every frame.
+        Item {
+            id: blurTarget
+            visible: false
+            property int radius: bg.bottomRadius
+            property int topLeftRadius: bg.topRadius
+            property int topRightRadius: bg.topRadius
+            property int bottomLeftRadius: bg.bottomRadius
+            property int bottomRightRadius: bg.bottomRadius
+            x: (root.width - bg.width) / 2
+            y: root.height - bg.height - root.elevationValue
+            width: bg.width
+            height: bg.height
+        }
+
+        Item {
+            id: popupBlurTarget
+            visible: false
+            readonly property int popupHeight: {
+                if (!popup.shown)
+                    return 0;
+                return Math.max(100, Math.min(600, popup.contentHeight));
+            }
+            property int radius: popup.bottomRadius
+            property int topLeftRadius: popup.topRadius
+            property int topRightRadius: popup.topRadius
+            property int bottomLeftRadius: popup.bottomRadius
+            property int bottomRightRadius: popup.bottomRadius
+            x: blurTarget.x
+            y: blurTarget.y - popupHeight - 2
+            width: blurTarget.width
+            height: popupHeight
+        }
+
+        // blur: Region {
+        //     Region {
+        //         enabled: bg.morphed && popupBlurTarget.height > 0
+        //         target: popupBlurTarget
+        //     }
+        //     Region {
+        //         enabled: bg.morphed
+        //         target: blurTarget
+        //     }
+        // }
 
         mask: Region {
             Region {
@@ -49,6 +102,10 @@ Variants {
             Region {
                 enabled: popup.opacity > 0
                 target: popup
+            }
+            Region {
+                width: dismissArea.visible ? root.width : 0
+                height: dismissArea.visible ? root.height : 0
             }
         }
 

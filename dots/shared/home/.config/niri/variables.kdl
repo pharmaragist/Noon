@@ -1,0 +1,66 @@
+
+layout {
+    gaps 10
+
+    border {
+        off
+        width 0
+    }
+
+    shadow {
+        off
+        softness 35
+        spread 3
+        offset x=0 y=5
+    }
+}
+
+cursor {
+    xcursor-theme "GoogleDot-White"
+    xcursor-size 25
+    hide-when-typing
+    hide-after-inactive-ms 3000
+}
+
+overview {
+    zoom 0.85
+
+    workspace-shadow {
+        off
+        softness 35
+        spread 3
+        offset x=0 y=10
+        color "#00000050"
+    }
+}
+
+blur {
+    on
+    passes 4
+    offset 2
+    noise 0.03
+}
+
+binds {
+    Super+T { spawn-sh r#"kitty"#; }
+    Super+C { spawn-sh r#"zed /home/pharmaracist/.config/noon"#; }
+    Super+Return { spawn-sh r#"foot"#; }
+    Super+E { spawn-sh r#"dolphin"#; }
+    Super+B { spawn-sh r#"firefox"#; }
+    Super+Shift+B { spawn-sh r#"hellium"#; }
+    Ctrl+Shift+Escape {
+        spawn-sh r#"/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal TaskManager"#;
+    }
+    Ctrl+Super+Shift+Escape { spawn-sh r#"kitty fish -c "nvtop""#; }
+}
+
+window-rule {
+    match app-id="^.*"
+    geometry-corner-radius 24
+    clip-to-geometry true
+    background-effect {
+        blur true
+        noise 3
+        xray true
+    }
+}

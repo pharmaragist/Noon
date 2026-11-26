@@ -52,8 +52,12 @@ post_hook = 'pkill -SIGUSR1 nvim'
 input_path = '~/.config/matugen/templates/hyprland/colors.lua'
 output_path = '~/.config/hypr/colors.lua'
 
+[templates.niri]
+input_path = '~/.config/matugen/templates/niri/colors.kdl'
+output_path = '~/.config/niri/colors.kdl'
+post_hook = 'niri msg action load-config-file'
+
 [templates.hyprtoolkit]
-enabled = false
 input_path = '~/.config/matugen/templates/hyprland/hyprtoolkit.conf'
 output_path = '~/.config/hypr/hyprtoolkit.conf'
 
@@ -149,7 +153,3 @@ enabled = true
 input_path = '~/.config/matugen/templates/applications/ghostty'
 output_path = '~/.config/ghostty/themes/Noon'
 post_hook = 'pkill -SIGUSR2 ghostty'
-
-[templates.sddm]
-input_path = '~/.config/matugen/templates/sddm.conf'
-output_path = '/var/tmp/sddm_colors.conf'

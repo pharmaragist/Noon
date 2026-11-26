@@ -43,11 +43,11 @@ Scope {
                     rowSpacing: Padding.small
 
                     Repeater {
-                        model: HyprlandService.bridge?.keyboardLayouts ?? []
+                        model: Compositor.keyboardLayouts
                         delegate: StyledRect {
                             required property var modelData
                             required property int index
-                            readonly property bool isSelected: modelData === HyprlandService.currentKeyboardLayout
+                            readonly property bool isSelected: modelData === Compositor.currentKeyboardLayout
                             color: isSelected ? Colors.colLayer3Active : Colors.colLayer3
                             radius: Rounding.verylarge
 

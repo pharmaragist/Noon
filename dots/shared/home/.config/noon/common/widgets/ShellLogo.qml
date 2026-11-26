@@ -13,7 +13,8 @@ StyledRect {
         readonly property var options: {
             "distro": distroComp,
             "symbol": symbolComp,
-            "profile": profileComp
+            "profile": profileComp,
+            "wm": wmComp
         }
         sourceComponent: options[Mem.options.desktop.branding.logo] ?? symbolComp
     }
@@ -39,5 +40,18 @@ StyledRect {
         source: SysInfoService.distroIcon
         colorize: true
         color: Colors.colPrimary
+    }
+
+    readonly property Component wmComp: StyledImage {
+        id: icon
+        anchors.centerIn: parent
+        implicitSize: root.implicitSize - Padding.huge
+        source: "file://" + Compositor.currentInfo.icon
+
+        ColorOverlay {
+            anchors.fill: icon
+            source: icon
+            color: Colors.colPrimary
+        }
     }
 }

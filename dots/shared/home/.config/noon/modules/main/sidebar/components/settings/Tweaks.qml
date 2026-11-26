@@ -13,7 +13,7 @@ SidebarItemContainer {
     ScriptModel {
         id: itemsModel
         values: {
-            var data = tweaksData?.tweaks;
+            var data = tweaksData?.tweaks.filter(i => (i.visible ?? true));
 
             if (root.currentCategory.length > 0) {
                 data = data.filter(cat => cat.section === root.currentCategory);

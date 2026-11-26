@@ -1,0 +1,27 @@
+input {
+    keyboard {
+        xkb {
+            layout "us,eg"
+            options "grp:caps_toggle"
+        }
+        repeat-delay 250
+        repeat-rate 35
+        numlock
+    }
+
+    touchpad {
+        tap
+        dwt
+        natural-scroll
+        click-method "clickfinger"
+        scroll-factor 0.5
+    }
+
+    mouse {
+        accel-speed 0.0
+    }
+
+    mod-key "Super"
+    mod-key-nested "Super"
+    focus-follows-mouse
+}

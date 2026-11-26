@@ -10,7 +10,7 @@ BarGroup {
 
     readonly property real defaultSize: maxWorkspaces * Padding.veryhuge
     readonly property int maxWorkspaces: Mem.options.bar.workspaces.number || 6
-    readonly property int workspaceIndexInGroup: (MonitorsInfo.monitorFor(bar.screen).activeWorkspace?.id - 1) % maxWorkspaces
+    readonly property int workspaceIndexInGroup: ((MonitorsInfo.monitorFor(bar.screen)?.activeWorkspace?.id ?? 1) - 1) % maxWorkspaces
 
     clip: false
     implicitWidth: defaultSize
@@ -21,9 +21,9 @@ BarGroup {
         acceptedButtons: Qt.BackButton
         onWheel: event => {
             if (event.angleDelta.y < 0)
-                HyprlandService.focusWs("r+1");
+                Compositor.focusWs("r+1");
             else if (event.angleDelta.y > 0)
-                HyprlandService.focusWs("r-1");
+                Compositor.focusWs("r-1");
         }
     }
 

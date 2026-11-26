@@ -24,7 +24,9 @@ StyledPanel {
     mask: Region {
         item: contentItem
     }
-
+    blur: Region {
+        item: contentItem
+    }
     margins {
         left: Padding.large
         right: Padding.large

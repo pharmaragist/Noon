@@ -1,0 +1,35 @@
+[global]
+
+new_is_master = 1
+default_master_factor = 0.6
+default_master_count = 1
+smart_gaps = 0
+
+dwindle_smart_split = 0
+dwindle_preserve_split = 1
+dwindle_drop_simple_split = 1
+dwindle_horizontal_split = 1
+dwindle_vertical_split = 1
+
+scroller_structs = 20
+scroller_default_proportion = 0.5
+scroller_default_proportion_single = 1.0
+scroller_focus_center = 0
+scroller_prefer_center = 1
+scroller_proportion_preset = [0.33, 0.5, 0.66, 1.0]
+edge_scroller_pointer_focus = 1
+
+overview_gap_inner = 25
+overview_gap_outer = 100
+enable_hotarea = 0
+hotarea_size = 10
+hotarea_disable_on_fullscreen = 1
+
+tag_num = 9
+single_scratchpad = 1
+scratchpad_width_ratio = 0.8
+scratchpad_height_ratio = 0.9
+
+[[rule.tag_rule]]
+id = "*"
+layout_name = "tile"

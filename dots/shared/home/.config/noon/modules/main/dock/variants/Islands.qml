@@ -7,7 +7,6 @@ import qs.modules.main.dock
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 Scope {

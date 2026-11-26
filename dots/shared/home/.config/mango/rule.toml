@@ -1,0 +1,147 @@
+[[rule.window_rule]]
+app_id = "^firefox.*"
+tags = 2
+
+[[rule.window_rule]]
+app_id = "^(wl-clipboard|wl-copy|wl-paste)$"
+is_floating = 1
+is_open_silent = 1
+
+[[rule.window_rule]]
+app_id = "^org.telegram.desktop$"
+is_floating = 1
+width = 380
+height = 0.98
+offset_x = -100
+
+[[rule.window_rule]]
+app_id = "^localsend$"
+is_floating = 1
+width = 380
+height = 0.98
+offset_x = -100
+
+[[rule.window_rule]]
+app_id = "^org.quickshell.*"
+is_floating = 1
+width = 0.5
+height = 0.55
+
+[[rule.window_rule]]
+app_id = "^org.kde.kclock.*"
+is_floating = 1
+width = 0.5
+height = 0.55
+
+[[rule.window_rule]]
+app_id = "^hyprland-share-picker.*"
+is_floating = 1
+width = 0.25
+height = 0.4
+
+[[rule.window_rule]]
+app_id = "^pavucontrol-qt$"
+is_floating = 1
+width = 0.6
+height = 0.65
+
+[[rule.window_rule]]
+app_id = "^nm-connection-editor$"
+is_floating = 1
+width = 0.45
+height = 0.37
+
+[[rule.window_rule]]
+title = "^satty"
+is_floating = 1
+width = 0.65
+height = 0.65
+
+[[rule.window_rule]]
+app_id = "^kcm_.*"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = ".*plasmawindowed.*"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = ".*org.kde.kdeconnect.daemon.*"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^org.kde.polkit-kde-authentication-agent-1$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^org.kde.ark$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^blueberry\\.py$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^blueman-manager$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^nm-applet$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^nwg-look$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^qt[56]ct$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^guifetch$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^vlc$"
+is_floating = 1
+
+[[rule.window_rule]]
+app_id = "^plasma-changeicons$"
+is_floating = 1
+is_open_silent = 1
+
+[[rule.window_rule]]
+app_id = "^klook$"
+is_floating = 1
+is_open_silent = 1
+
+[[rule.window_rule]]
+title = "^([Pp]icture[-\\s]?[Ii]n[-\\s]?[Pp]icture).*"
+is_floating = 1
+width = 0.25
+height = 0.25
+offset_x = 100
+offset_y = 100
+
+[[rule.window_rule]]
+title = ".*\\.exe.*"
+force_fake_maximize = 1
+
+[[rule.layer_rule]]
+layer_name = "noon:noanim_blurred_layer"
+no_animation = 1
+
+[[rule.layer_rule]]
+layer_name = "noon:popup_layer"
+animation_type_open = "slide"
+animation_type_close = "slide"
+
+[[rule.layer_rule]]
+layer_name = "noon:fade_layer"
+animation_type_open = "fade"
+animation_type_close = "fade"
+
+[[rule.layer_rule]]
+layer_name = "^selection$"
+no_blur = 1
+no_animation = 1

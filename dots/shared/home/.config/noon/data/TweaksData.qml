@@ -161,7 +161,7 @@ QtObject {
                     "hint": "Logo of the system",
                     "key": "desktop.branding.logo",
                     "type": "combobox",
-                    "values": ["distro", "symbol", "profile"]
+                    "values": ["distro", "wm" , "symbol", "profile"]
                 },
                 {
                     "icon": "palette",
@@ -293,11 +293,12 @@ QtObject {
             "section": "Compositor",
             "icon": "dashboard",
             "shell": "Global",
+            // "visible": Compositor.isHyprland,
             "items": [
                 {
                     "icon": "rounded_corner",
                     "name": "Window Rounding",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "rounding",
                     "type": "spin"
                 },
@@ -309,79 +310,79 @@ QtObject {
                     "stepValue": 1,
                     "minValue": 1,
                     "maxValue": 4,
-                    "store": "hypr"
+                    "store": "wm"
                 },
                 {
                     "icon": "blur_on",
                     "name": "Blur",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "blur"
                 },
                 {
                     "icon": "blur_on",
                     "name": "Blur Passes",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "blur_passes",
                     "type": "spin"
                 },
                 {
                     "icon": "blur_on",
                     "name": "Blur Size",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "blur_size",
                     "type": "spin"
                 },
                 {
                     "icon": "blur_on",
                     "name": "X Ray",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "xray"
                 },
                 {
                     "icon": "grain",
                     "name": "Noise",
                     "type": "spin",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "noise"
                 },
                 {
                     "icon": "dark_mode",
                     "name": "Shadows",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "shadows"
                 },
                 {
                     "icon": "collapse_content",
                     "name": "Shadows Range",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "shadows_range",
                     "type": "spin"
                 },
                 {
                     "icon": "collapse_content",
                     "name": "Shadows Power",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "shadows_power",
                     "type": "spin"
                 },
                 {
                     "icon": "expand_content",
                     "name": "Gaps Out",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "gaps_out",
                     "type": "spin"
                 },
                 {
                     "icon": "collapse_content",
                     "name": "Gaps In",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "gaps_in",
                     "type": "spin"
                 },
                 {
                     "icon": "border_all",
                     "name": "Border Width",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "borders",
                     "type": "sliderStops",
                     "stepValue": 1,
@@ -392,7 +393,7 @@ QtObject {
                     "icon": "dashboard",
                     "name": "Tiling Layout",
                     "type": "combobox",
-                    "store": "hypr",
+                    "store": "wm",
                     "values": ["master", "dwindle", "scrolling", "monocle"],
                     "key": "layout"
                 },
@@ -400,22 +401,22 @@ QtObject {
                     "icon": "blur_on",
                     "name": "Animation Style",
                     "type": "combobox",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "animation_style",
-                    "values": HyprlandService?.availableAnimations ?? []
+                    "values": Compositor?.availableAnimations ?? []
                 },
                 {
                     "icon": "blur_on",
                     "name": "Animation Scale",
                     "type": "text",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "animation_scale"
                 },
                 {
                     "icon": "monitor",
                     "name": "External Monitor Profile",
                     "type": "combobox",
-                    "store": "hypr",
+                    "store": "wm",
                     "key": "external_monitor_mode",
                     "values": MonitorsInfo?.availableResolutions ?? []
                 }
@@ -829,6 +830,14 @@ QtObject {
             "shell": "Global",
             "items": [
                 {
+                    "icon": "dashboard",
+                    "name": "Compositor",
+                    "type": "combobox",
+                    "store": "env",
+                    "values": Compositor.compositors.map(i => i.name),
+                    "key": "COMPOSITOR"
+                },
+                {
                     "icon": "hearing",
                     "name": "System Sounds",
                     "hint": "Play audio feedback on actions",
@@ -892,42 +901,42 @@ QtObject {
             "items": [
                 {
                     "icon": "folder_open",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "File Manager",
                     "key": "file_manager",
                     "type": "text"
                 },
                 {
                     "icon": "language",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "Browser",
                     "key": "browser",
                     "type": "text"
                 },
                 {
                     "icon": "web",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "Browser Alt",
                     "key": "browser_alt",
                     "type": "text"
                 },
                 {
                     "icon": "terminal",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "Terminal",
                     "key": "terminal",
                     "type": "text"
                 },
                 {
                     "icon": "code",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "Terminal Alt",
                     "key": "terminal_alt",
                     "type": "text"
                 },
                 {
                     "icon": "edit_note",
-                    "store": "hypr",
+                    "store": "wm",
                     "name": "Editor",
                     "key": "editor",
                     "type": "text"

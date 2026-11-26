@@ -56,11 +56,11 @@ m_bind("D", hl.dsp.window.fullscreen({ mode = "maximized" }))
 m_bind("F", hl.dsp.window.fullscreen())
 m_bind("ALT+F", hl.dsp.exec_cmd("hyprctl dispatch fullscreenstate 0 3"))
 
--- Focus
-m_bind("right", hl.dsp.focus({ direction = "r" }))
-m_bind("left", hl.dsp.focus({ direction = "l" }))
-m_bind("up", hl.dsp.focus({ direction = "u" }))
-m_bind("down", hl.dsp.focus({ direction = "d" }))
+-- Focus: niri-style — left/right between columns, up/down inside a column.
+m_bind("right", hl.dsp.layout("focus r"))
+m_bind("left", hl.dsp.layout("focus l"))
+m_bind("up", hl.dsp.layout("focus u"))
+m_bind("down", hl.dsp.layout("focus d"))
 
 -- Mouse move/resize
 m_bind("mouse:272", hl.dsp.window.drag(), { mouse = true })

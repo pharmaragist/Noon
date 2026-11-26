@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.common
@@ -24,7 +23,7 @@ StyledPopup {
 
         property int targetWorkspaceId: 1
         readonly property var monitor: MonitorsInfo.focused
-        readonly property var monitorData: HyprlandService.monitors.find(m => m.name === monitor?.name) ?? null
+        readonly property var monitorData: Compositor.monitors.find(m => m.name === monitor?.name) ?? null
 
         readonly property real monitorWidth: monitorData ? (monitorData.transform % 2 === 1 ? monitorData.height : monitorData.width) : 1920
         readonly property real monitorHeight: monitorData ? (monitorData.transform % 2 === 1 ? monitorData.width : monitorData.height) : 1080
@@ -58,8 +57,9 @@ StyledPopup {
             Repeater {
                 model: ScriptModel {
                     id: clientModel
-                    readonly property var filteredWindows: ToplevelManager?.toplevels ? ToplevelManager.toplevels.values.filter(t => {
-                        const win = HyprlandService.windowByAddress[`0x${t.HyprlandToplevel.address}`];
+                    readonly property var filteredWindows: (Compositor.isHyprland && ToplevelManager?.toplevels) ? ToplevelManager.toplevels.values.filter(t => {
+                        const addr = t.HyprlandToplevel ? `0x${t.HyprlandToplevel.address}` : null;
+                        const win = addr ? Compositor.windowByAddress[addr] : null;
                         return win && win.workspace && win.workspace.id === root.targetWorkspaceId;
                     }) : []
                     values: clientModel.filteredWindows
@@ -69,7 +69,7 @@ StyledPopup {
                     id: winRect
                     required property var modelData
                     readonly property string address: `0x${modelData.HyprlandToplevel.address}`
-                    readonly property var winData: HyprlandService.windowByAddress[address]
+                    readonly property var winData: Compositor.windowByAddress[address]
 
                     x: ((winData?.at[0] ?? 0) - (root.monitorData?.x ?? 0)) * root.scaleX
                     y: ((winData?.at[1] ?? 0) - (root.monitorData?.y ?? 0)) * root.scaleY

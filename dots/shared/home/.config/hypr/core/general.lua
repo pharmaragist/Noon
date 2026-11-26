@@ -15,11 +15,14 @@ hl.config({
 		["col.nogroup_border_active"] = secondary_container,
 	},
 
+	-- Mirror niri's appearance.kdl: center-focused-column "never",
+	-- default-column-width 0.5 and the same four preset widths.
 	scrolling = {
-		fullscreen_on_one_column = true,
+		fullscreen_on_one_column = false,
 		follow_focus = true,
+		follow_min_visible = 0,
 		focus_fit_method = 1,
-		explicit_column_widths = "0.33, 0.5, 0.66, 1.0",
+		explicit_column_widths = "0.33333, 0.5, 0.66667, 1.0",
 		column_width = 0.5,
 		direction = "right",
 	},
@@ -47,6 +50,10 @@ hl.config({
 		gesture = {
 			"3, " .. direction .. ", workspace",
 			"4, vertical, dispatcher, scrolloverview:overview, toggle",
+		},
+		-- niri does not warp the pointer when a swipe lands on a column.
+		scrolling = {
+			move_snap_cursor = false,
 		},
 	},
 
@@ -172,4 +179,11 @@ hl.config({
 	debug = {
 		overlay = debug_overlay,
 	},
+})
+
+-- niri: three-finger horizontal swipe scrolls the tiling view.
+hl.gesture({
+	fingers = 3,
+	direction = "horizontal",
+	action = "scroll_move",
 })

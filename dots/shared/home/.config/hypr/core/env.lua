@@ -10,7 +10,6 @@ local envs = {
     -- KDE
     XDG_MENU_PREFIX = "plasma-",
     PLASMA_USE_QT_SCALING = 1,
-    KDE_FULL_SESSION = "true",
     -- Qt & Electron
     ELECTRON_OZONE_PLATFORM_HINT = "wayland",
     QT_QPA_PLATFORM = "wayland;xcb",

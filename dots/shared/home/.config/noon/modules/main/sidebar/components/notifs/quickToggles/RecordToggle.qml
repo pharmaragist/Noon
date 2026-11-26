@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import qs.common
 import qs.common.functions
 import qs.common.widgets
@@ -8,6 +7,7 @@ import qs.services
 
 QuickToggleButton {
     id: root
+    visible: Mem.store.misc.systemCommands.indexOf("gpu-screen-recorder") !== -1
     dialogName: "Record"
     buttonName: RecordingService.isRecording ? "Recording " + RecordingService.getFormattedDuration() : "Record"
     toggled: RecordingService.isRecording

@@ -32,6 +32,7 @@ dots/shared/home/.config/kitty/themes/Noon.conf
 dots/shared/home/.config/foot/colors.ini
 
 # Compiled build artifacts (shipped binaries in scripts/bin are tracked)
+tui/target/
 dots/shared/home/.config/noon/scripts/rust/target/
 dots/shared/home/.config/noon/scripts/rust/beats/target/
 dots/shared/home/.config/noon/scripts/rust/harness/target/

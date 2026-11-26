@@ -26,6 +26,11 @@ StyledPanel {
     fill: true
     anchors.left: pos === "left"
     anchors.right: pos === "right"
+
+    blur: Region {
+        item: bg
+    }
+
     mask: Region {
         Region {
             item: bg

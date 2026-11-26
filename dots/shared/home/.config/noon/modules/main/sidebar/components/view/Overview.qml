@@ -6,16 +6,15 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 SidebarItemContainer {
     id: root
 
     readonly property var monitor: MonitorsInfo.focused
-    readonly property var monitorData: HyprlandService.monitors.find(m => m.name === monitor?.name) ?? null
-    readonly property var windowByAddress: HyprlandService.windowByAddress
-    readonly property int activeWorkspaceId: HyprlandService.activeWorkspace?.id ?? 1
+    readonly property var monitorData: Compositor.monitors.find(m => m.name === monitor?.name) ?? null
+    readonly property var windowByAddress: Compositor.windowByAddress
+    readonly property int activeWorkspaceId: Compositor.activeWorkspace?.id ?? 1
 
     readonly property real viewScale: 0.185
     readonly property real workspaceSpacing: Padding.small
@@ -56,7 +55,8 @@ SidebarItemContainer {
     }
 
     function dispatch(lua) {
-        Hyprland.dispatch(lua);
+        if (Compositor.isHyprland)
+            Compositor.dispatch(lua);
     }
 
     GridLayout {
@@ -104,7 +104,7 @@ SidebarItemContainer {
                     acceptedButtons: Qt.LeftButton
                     onClicked: {
                         if (root.draggingTargetWorkspace === -1)
-                            root.dispatch(`hl.dsp.focus({ workspace = ${parent.wsValue} })`);
+                            Compositor.focusWs(parent.wsValue);
                     }
                 }
 
@@ -133,12 +133,12 @@ SidebarItemContainer {
         Repeater {
             model: ScriptModel {
                 values: ToplevelManager?.toplevels.values.filter(t => {
-                    const win = root.windowByAddress[`0x${t.HyprlandToplevel.address}`];
+                    const win = Compositor.windowForToplevel(t);
                     const id = win?.workspace?.id;
                     return id > 0 && id > root.workspaceGroup * root.workspacesShown && id <= (root.workspaceGroup + 1) * root.workspacesShown;
                 }).sort((a, b) => {
-                    const wa = root.windowByAddress[`0x${a.HyprlandToplevel.address}`];
-                    const wb = root.windowByAddress[`0x${b.HyprlandToplevel.address}`];
+                    const wa = Compositor.windowForToplevel(a);
+                    const wb = Compositor.windowForToplevel(b);
                     return ((wb?.size[0] ?? 0) * (wb?.size[1] ?? 0)) - ((wa?.size[0] ?? 0) * (wa?.size[1] ?? 0));
                 })
             }
@@ -147,7 +147,7 @@ SidebarItemContainer {
                 id: window
                 required property var modelData
 
-                readonly property string address: `0x${modelData.HyprlandToplevel.address}`
+                readonly property string address: Compositor.windowForToplevel(modelData)?.address ?? ""
                 readonly property var winData: root.windowByAddress[address]
                 readonly property int wsId: winData?.workspace?.id ?? -1
                 readonly property bool atInitPos: initX === x && initY === y
@@ -204,8 +204,8 @@ SidebarItemContainer {
                         window.Drag.active = false;
                         root.draggingFromWorkspace = -1;
 
-                        if (target !== -1 && window.wsId !== -1 && target !== window.wsId) {
-                            root.dispatch(`hl.dsp.window.move({ workspace = ${target}, window = "address:${window.address}", silent = true })`);
+                        if (target !== -1 && window.wsId !== -1 && target !== window.wsId && window.address) {
+                            Compositor.moveWindowToTag(window.address, target);
                             updatePos.restart();
                         } else {
                             window.x = window.initX;
@@ -217,9 +217,9 @@ SidebarItemContainer {
                         if (!window.winData)
                             return;
                         if (event.button === Qt.LeftButton)
-                            root.dispatch(`hl.dsp.exec_raw("focuswindow address:${window.address}")`);
+                            Compositor.focusWindow(window.address);
                         else if (event.button === Qt.MiddleButton)
-                            root.dispatch(`hl.dsp.window.close({ window = "address:${window.address}" })`);
+                            Compositor.closeWindow(window.address);
                         event.accepted = true;
                     }
 

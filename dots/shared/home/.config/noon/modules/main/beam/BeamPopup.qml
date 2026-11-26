@@ -14,6 +14,7 @@ PanelRect {
     readonly property bool isPlugin: BeamData?.config?.isPlugin ?? false
     readonly property bool morphed: (target?.grow ?? 1) > 0.85
     readonly property bool shown: reveal && morphed && (hintText.length > 0)
+    readonly property int contentHeight: popupText.contentHeight
     readonly property string hintText: BeamData.activeHint ?? ""
     readonly property var appEntry: BeamData.suggestedApp
     z: target.z - 1

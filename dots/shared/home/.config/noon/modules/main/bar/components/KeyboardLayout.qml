@@ -12,7 +12,7 @@ BarGroup {
     StyledText {
         id: text
         anchors.centerIn: parent
-        text: HyprlandService.keyboardLayoutShortName
+        text: Compositor.keyboardLayoutShortName
         animateChange: true
         font: Fonts.request("mono", "normal", { weight: 900 })
         color: Colors.colSecondary
@@ -20,6 +20,6 @@ BarGroup {
     }
     MouseArea {
         anchors.fill: parent
-        onClicked: HyprlandService.switchKeyboardLayout()
+        onClicked: Compositor.switchKeyboardLayout()
     }
 }

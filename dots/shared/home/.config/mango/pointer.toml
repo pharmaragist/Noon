@@ -1,0 +1,23 @@
+[mousebind.default]
+"SUPER+btn_left" = "moveresize,curmove"
+"SUPER+btn_middle" = "moveresize,curmove"
+"SUPER+btn_right" = "moveresize,curresize"
+"CTRL+SUPER+btn_left" = "moveresize,curresize"
+
+[axisbind.default]
+"SUPER+UP" = "viewtoright"
+"SUPER+DOWN" = "viewtoleft"
+"SUPER+SHIFT+UP" = "tagtoright"
+"SUPER+SHIFT+DOWN" = "tagtoleft"
+"ALT+UP" = "tagtoright"
+"ALT+DOWN" = "tagtoleft"
+"CTRL+SUPER+UP" = "viewtoright"
+"CTRL+SUPER+DOWN" = "viewtoleft"
+
+[gesturebind.default]
+"none+up+3" = "viewtoright"
+"none+down+3" = "viewtoleft"
+"none+left+3" = "focusdir,left"
+"none+right+3" = "focusdir,right"
+"none+up+4" = "spawn,$ipc noon reveal_beam music"
+"none+down+4" = "toggle_special_tag"

@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import qs.common
 import qs.services
 import qs.common.widgets
@@ -11,8 +10,11 @@ BarGroup {
     property var bar
 
     readonly property int maxWorkspaces: Mem.options.bar.workspaces.number ?? 6
-    readonly property int workspaceGroup: Math.floor((monitor.activeWorkspace?.id - 1) / maxWorkspaces)
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(bar.screen)
+    readonly property int workspaceGroup: Math.floor(((monitor?.activeWorkspace?.id ?? 1) - 1) / maxWorkspaces)
+    readonly property var monitor: {
+        const _ = Compositor.monitors;
+        return Compositor.monitorFor(bar.screen);
+    }
     readonly property string mode: Mem.options.bar.workspaces?.unicodeMode ?? "unicode"
     readonly property var modeMap: {
         "unicode": unicodeComp,
@@ -26,7 +28,7 @@ BarGroup {
         anchors.fill: parent
         onWheel: event => {
             const dir = event.angleDelta.y < 0 ? "+1" : "-1";
-            HyprlandService.focusWs(`r${dir}`);
+            Compositor.focusWs(`r${dir}`);
         }
     }
 
@@ -44,7 +46,7 @@ BarGroup {
                 sourceComponent: modeMap[root.mode]
                 onLoaded: {
                     _item.wsId = Qt.binding(() => root.workspaceGroup * root.maxWorkspaces + index + 1);
-                    _item.isActive = Qt.binding(() => root.monitor.activeWorkspace?.id === _item.wsId);
+                    _item.isActive = Qt.binding(() => root.monitor?.activeWorkspace?.id === _item.wsId);
                     _item.isVertical = Qt.binding(() => root.vertical);
                 }
             }
@@ -63,7 +65,7 @@ BarGroup {
         text: Mem.options.bar.workspaces.unicodeChar
         MouseArea {
             anchors.fill: parent
-            onClicked: HyprlandService.focusWs(wsId)
+            onClicked: Compositor.focusWs(wsId)
         }
     }
     readonly property Component rectComp: StyledRect {
@@ -82,7 +84,7 @@ BarGroup {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: HyprlandService.focusWs(wsId)
+            onClicked: Compositor.focusWs(wsId)
         }
     }
 }

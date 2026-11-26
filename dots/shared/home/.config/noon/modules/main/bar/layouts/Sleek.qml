@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
 import qs.data
@@ -22,6 +21,9 @@ StyledPanel {
     anchors.top: pos === "top"
 
     mask: Region {
+        item: bg
+    }
+    blur: Region {
         item: bg
     }
 
@@ -105,11 +107,11 @@ StyledPanel {
             spacing: Padding.small
 
             Repeater {
-                model: Math.min(Math.max(...Hyprland.workspaces.values.map(ws => ws.id), 2), 10)
+                model: Math.min(Math.max(...Compositor.workspaces.map(ws => ws.id), 2), 10)
 
                 Rectangle {
-                    readonly property bool isActive: Hyprland.monitorFor(root.bar.screen).activeWorkspace?.id === (index + 1)
-                    readonly property bool isOccupied: Hyprland.workspaces.values.some(ws => ws.id === (index + 1))
+                    readonly property bool isActive: Compositor.monitorFor(root.bar.screen)?.activeWorkspace?.id === (index + 1)
+                    readonly property bool isOccupied: Compositor.workspaces.some(ws => ws.id === (index + 1))
 
                     implicitWidth: isActive ? 40 : 10
                     implicitHeight: 10
@@ -124,7 +126,7 @@ StyledPanel {
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: HyprlandService.focusWs(index + 1);
+                        onClicked: Compositor.focusWs(index + 1);
                         cursorShape: Qt.PointingHandCursor
                     }
                 }
@@ -132,7 +134,7 @@ StyledPanel {
         }
 
         WheelHandler {
-            onWheel: event => HyprlandService.focusWs(`${event.angleDelta.y < 0 ? '+1' : '-1'}`)
+            onWheel: event => Compositor.focusWs(`${event.angleDelta.y < 0 ? '+1' : '-1'}`)
         }
         MouseArea {
             id: _bg_event_area

@@ -103,7 +103,7 @@ StyledRect {
         clip: true
         anchors.fill: parent
         anchors.margins: Padding.large
-        reuseItems: true
+        reuseItems: false
         cacheBuffer: 400
         model: filteredModel
         readonly property int columns: controls.listMode ? 1 : (root.expanded ? 4 : 2)

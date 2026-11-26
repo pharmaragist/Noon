@@ -1,0 +1,44 @@
+
+# Generated from Mem.wm. Sourced before binds and last so these values win.
+
+[var]
+term = 'kitty'
+term_alt = 'foot'
+editor = 'zed'
+files = 'dolphin'
+browser = 'firefox'
+browser_alt = 'hellium'
+shell_dir = '/home/pharmaracist/.config/noon'
+scripts = '/home/pharmaracist/.config/noon/scripts'
+ipc = '/home/pharmaracist/.config/noon/scripts/bin/npc call'
+
+[env]
+TERMINAL = 'kitty'
+BROWSER = 'firefox'
+EDITOR = 'zed'
+FILE_MANAGER = 'dolphin'
+
+[global]
+gap_inner_horizontal = 5
+gap_inner_vertical = 5
+gap_outer_horizontal = 18
+gap_outer_vertical = 18
+border_px = 0
+border_radius = 24
+focused_opacity = 1
+unfocused_opacity = 1
+shadows = 0
+layer_shadows = 0
+shadows_size = 35
+shadows_blur = 3
+blur = 1
+blur_layer = 1
+blur_optimized = 1
+blur_params_num_passes = 5
+blur_params_radius = 2
+blur_params_noise = 0.03
+zoom_initial_ratio = 0.85
+zoom_end_ratio = 0.85
+cursor_theme = 'GoogleDot-White'
+cursor_size = 25
+allow_tearing = 0

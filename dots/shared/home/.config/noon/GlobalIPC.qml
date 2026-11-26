@@ -51,6 +51,11 @@ NpcHandler {
         Globals.main.showScreenshot = !Globals.main.showScreenshot;
     }
 
+    //* toggle_beam — show/hide the beam launcher overlay.
+    function toggle_beam(): void {
+        Ipc.call(["noon", "toggle_beam"]);
+    }
+
     //* trigger_autostart_apps — run all user autoExecAppsList commands.
     function trigger_autostart_apps(): void {
         Mem.options.services.autoExecAppsList.forEach(cmd => {

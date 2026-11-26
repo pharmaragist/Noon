@@ -1,0 +1,28 @@
+[global]
+
+repeat_rate = 35
+repeat_delay = 250
+numlock_on = 1
+xkb_rules_layout = "us,eg"
+xkb_rules_options = "grp:caps_toggle"
+
+mouse_accel_profile = 2
+mouse_accel_speed = 0.105
+mouse_click_method = 2
+
+tap_to_click = 1
+tap_and_drag = 1
+drag_lock = 1
+trackpad_natural_scrolling = 1
+trackpad_disable_while_typing = 1
+trackpad_click_method = 2
+trackpad_scroll_factor = 0.5
+
+# Gestures: lower distance/ratio = less resistance to commit a swipe
+gesture_swipe_distance = 180
+gesture_swipe_cancel_ratio = 0.35
+gesture_swipe_min_speed_to_force = 6
+
+[[rule.device_rule]]
+name = "epic-mouse-v1"
+accel_speed = 0.0

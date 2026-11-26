@@ -16,7 +16,6 @@ Singleton {
     readonly property string shellDir: methods.trim(standard.config + "/noon")
     readonly property string scriptsDir: shellDir + "/scripts"
 
-
     readonly property QtObject standard: QtObject {
         readonly property string home: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
         readonly property string config: StandardPaths.standardLocations(StandardPaths.ConfigLocation)[0]
@@ -29,7 +28,6 @@ Singleton {
         readonly property string documents: StandardPaths.standardLocations(StandardPaths.DocumentsLocation)[0]
         readonly property string videos: StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0]
     }
-
 
     readonly property QtObject services: QtObject {
         readonly property string latex: methods.trim(standard.cache + "/media/latex")
@@ -44,7 +42,6 @@ Singleton {
         readonly property string onlineWallThumbs: methods.trim(standard.cache + "/media/online-wallpapers/thumbs")
         readonly property string harnessDir: methods.trim(standard.state + "/harness")
     }
-
 
     readonly property QtObject wallpapers: QtObject {
         readonly property string defaultBg: methods.trim(root.assets + "/images/default_wallpaper.png")
@@ -99,5 +96,6 @@ Singleton {
         readonly property string setFace: bash + "/set_face.sh"
         readonly property string syncFonts: bash + "/sync_sys_fonts.sh"
         readonly property string updateDistro: bash + "/update_distro.sh"
+        readonly property string killSession: bash + "/kill_session.sh"
     }
 }

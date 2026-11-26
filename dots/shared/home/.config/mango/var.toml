@@ -1,0 +1,10 @@
+[var]
+term = "kitty"
+term_alt = "foot"
+editor = "zed"
+files = "dolphin"
+browser = "firefox"
+browser_alt = "hellium"
+shell_dir = "/home/pharmaracist/.config/noon"
+scripts = "/home/pharmaracist/.config/noon/scripts"
+ipc = "/home/pharmaracist/.config/noon/scripts/bin/npc call"

@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Hyprland
 import qs.data
 import qs.services
 import qs.common
@@ -33,7 +32,7 @@ Item {
     readonly property bool parallaxMouseEnabled: Mem.options.desktop.bg.parallax.mouseEnabled
     readonly property real effectiveParallaxLevel: Mem.options.desktop.bg.parallax.parallaxLevel / 50
     readonly property real mouseSens: 2
-    readonly property real focusedWorkspaceId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+    readonly property real focusedWorkspaceId: Compositor.focusedWorkspace ? Compositor.focusedWorkspace.id : 1
     readonly property real wallpaperScale: effectiveParallaxLevel + 1
     readonly property real effectiveWallpaperScale: (enableParallax || parallaxMouseEnabled) ? wallpaperScale : 1.0
     readonly property real effectiveMovableXSpace: (effectiveWallpaperScale - 1) * 0.5 * screen.width
@@ -63,7 +62,7 @@ Item {
             const range = lastId - firstId;
             return range > 0 ? Math.max(0, Math.min(1, (focusedWorkspaceId - firstId) / range)) : 0.5;
         }
-        const values = Hyprland.workspaces.values;
+        const values = Compositor.workspaces;
         let minId = Infinity;
         let maxId = -Infinity;
         for (let i = 0; i < values.length; ++i) {
@@ -91,7 +90,7 @@ Item {
     }
     readonly property real bgParallaxX: {
         const mouseDelta = mouseOffset(mouseFactorX, effectiveMovableXSpace, mouseShare);
-        if (Mem.hypr.vertical) {
+        if (Mem.hypr?.vertical) {
             return calculateWidgetMargin() + mouseDelta;
         }
         const wsDelta = panOffset(parallaxFactor, effectiveMovableXSpace, wsShare);
@@ -99,7 +98,7 @@ Item {
     }
     readonly property real bgParallaxY: {
         const mouseDelta = mouseOffset(mouseFactorY, effectiveMovableYSpace, mouseShare);
-        if (Mem.hypr.vertical) {
+        if (Mem.hypr?.vertical) {
             const wsDelta = panOffset(parallaxFactor, effectiveMovableYSpace, wsShare);
             return wsDelta + mouseDelta;
         }

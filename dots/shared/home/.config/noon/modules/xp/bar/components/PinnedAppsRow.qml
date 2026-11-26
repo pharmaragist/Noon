@@ -2,7 +2,6 @@ import "../../common"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Qt5Compat.GraphicalEffects
 import qs.services
 import qs.common

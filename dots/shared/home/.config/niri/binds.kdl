@@ -1,0 +1,182 @@
+binds {
+    Super+Page_Up { focus-workspace-up; }
+    Super+Page_Down { focus-workspace-down; }
+    Ctrl+Super+BracketLeft { focus-workspace-up; }
+    Ctrl+Super+BracketRight { focus-workspace-down; }
+    Ctrl+Super+Up { focus-workspace-up; }
+    Ctrl+Super+Down { focus-workspace-down; }
+    Ctrl+Super+Page_Up { focus-workspace-up; }
+    Ctrl+Super+Page_Down { focus-workspace-down; }
+    Ctrl+Super+Alt+Left { focus-monitor-left; }
+    Ctrl+Super+Alt+Right { focus-monitor-right; }
+
+    Super+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+    Super+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Ctrl+Super+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+    Ctrl+Super+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+
+    Super+Alt+WheelScrollUp cooldown-ms=150 { move-window-to-workspace-up; }
+    Super+Alt+WheelScrollDown cooldown-ms=150 { move-window-to-workspace-down; }
+    Super+Shift+WheelScrollUp cooldown-ms=150 { move-window-to-workspace-up; }
+    Super+Shift+WheelScrollDown cooldown-ms=150 { move-window-to-workspace-down; }
+    Super+Alt+Page_Up { move-window-to-workspace-up; }
+    Super+Alt+Page_Down { move-window-to-workspace-down; }
+    Super+Shift+Page_Up { move-window-to-workspace-up; }
+    Super+Shift+Page_Down { move-window-to-workspace-down; }
+    Ctrl+Shift+Super+Left { move-column-to-workspace-up; }
+    Ctrl+Shift+Super+Right { move-column-to-workspace-down; }
+
+    Super+S { switch-focus-between-floating-and-tiling; }
+    Super+Alt+S { spawn-sh "/home/pharmaracist/.config/niri/toggle-float.sh"; }
+    Super+G { toggle-column-tabbed-display; }
+    Super+Ctrl+Tab { focus-window-down; }
+    Super+Q repeat=false { close-window; }
+    Super+Alt+Space { spawn-sh "/home/pharmaracist/.config/niri/toggle-float.sh 1280 800"; }
+
+    Super+Shift+Left { move-column-left; }
+    Super+Shift+Right { move-column-right; }
+    Super+Shift+Up { move-window-up; }
+    Super+Shift+Down { move-window-down; }
+    Super+Left { focus-column-left; }
+    Super+Right { focus-column-right; }
+    Super+Up { focus-window-up; }
+    Super+Down { focus-window-down; }
+
+    Super+D { maximize-column; }
+    Super+F { fullscreen-window; }
+    Super+Alt+F { toggle-windowed-fullscreen; }
+
+    Super+BracketRight { move-column-right; }
+    Super+BracketLeft { move-column-left; }
+    Super+Alt+Right { set-column-width "+200"; }
+    Super+Alt+Left { set-column-width "-200"; }
+    Super+Equal { set-column-width "+10%"; }
+    Super+Minus { set-column-width "-10%"; }
+    Super+Home { focus-column-first; }
+    Super+End { focus-column-last; }
+
+    Super+Shift+S { screenshot; }
+    Super+Shift+T {
+        spawn-sh r##"grim -g "$(slurp $SLURP_ARGS)" "tmp.png" && tesseract "tmp.png" - | wl-copy && rm "tmp.png""##;
+    }
+    Super+Shift+C { spawn-sh "niri msg pick-color | awk '{print $NF}' | wl-copy"; }
+    Print { spawn-sh "grim - | wl-copy"; }
+    Ctrl+Print { screenshot-screen; }
+
+    Super+Alt+R { spawn-sh "~/.config/noon/scripts/bash/record.sh"; }
+    Ctrl+Alt+R { spawn-sh "~/.config/noon/scripts/bash/record.sh --fullscreen"; }
+    Super+Shift+Alt+R { spawn-sh "~/.config/noon/scripts/bash/record.sh --fullscreen-sound"; }
+
+    Super+T { spawn "kitty"; }
+    Super+C { spawn "zed" "/home/pharmaracist/.config/noon"; }
+    Super+Return { spawn "foot"; }
+    Super+E { spawn "dolphin"; }
+    Super+B { spawn "firefox"; }
+    Super+Shift+B { spawn "hellium"; }
+    Super+Shift+L allow-when-locked=true { spawn-sh "sleep 0.1 && systemctl suspend || loginctl suspend"; }
+    Ctrl+Super+V { spawn "pavucontrol-qt"; }
+    Ctrl+Shift+Escape { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal TaskManager"; }
+    Ctrl+Super+Shift+Escape { spawn-sh r#"kitty fish -c "nvtop""#; }
+    Ctrl+Shift+Alt+Super+Delete { spawn-sh "systemctl poweroff || loginctl poweroff"; }
+
+    Super+1 { focus-workspace 1; }
+    Super+2 { focus-workspace 2; }
+    Super+3 { focus-workspace 3; }
+    Super+4 { focus-workspace 4; }
+    Super+5 { focus-workspace 5; }
+    Super+6 { focus-workspace 6; }
+    Super+7 { focus-workspace 7; }
+    Super+8 { focus-workspace 8; }
+    Super+9 { focus-workspace 9; }
+    Super+0 { focus-workspace 10; }
+
+    Super+Alt+1 { move-column-to-workspace 1; }
+    Super+Alt+2 { move-column-to-workspace 2; }
+    Super+Alt+3 { move-column-to-workspace 3; }
+    Super+Alt+4 { move-column-to-workspace 4; }
+    Super+Alt+5 { move-column-to-workspace 5; }
+    Super+Alt+6 { move-column-to-workspace 6; }
+    Super+Alt+7 { move-column-to-workspace 7; }
+    Super+Alt+8 { move-column-to-workspace 8; }
+    Super+Alt+9 { move-column-to-workspace 9; }
+    Super+Alt+0 { move-column-to-workspace 10; }
+
+    Super+Ctrl+1 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 1"; }
+    Super+Ctrl+2 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 2"; }
+    Super+Ctrl+3 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 3"; }
+    Super+Ctrl+4 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 4"; }
+    Super+Ctrl+5 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 5"; }
+    Super+Ctrl+6 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 6"; }
+    Super+Ctrl+7 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 7"; }
+    Super+Ctrl+8 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 8"; }
+    Super+Ctrl+9 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 9"; }
+    Super+Ctrl+0 { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_no 10"; }
+
+    Super+Ctrl+R { spawn-sh "~/.config/noon/scripts/bash/reload_shell.sh"; }
+    Super+Ctrl+Period { spawn-sh "wl-paste -p | xargs -0 /home/pharmaracist/.config/noon/scripts/bin/npc call noon translate"; }
+    Super+L { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global lock"; }
+    Super+Shift+R { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global pick_random_wall"; }
+    Super+Alt+D { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global toggle_dormant_state"; }
+
+    XF86AudioPlay allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global toggle_playing"; }
+    XF86AudioPrev allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global previous_track || playerctl previous"; }
+    XF86AudioNext allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global next_track || playerctl next"; }
+    XF86AudioPause allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global pause_all_players"; }
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global volume_up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global volume_down"; }
+    XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_SINK@ toggle"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global inc_brightness || brightnessctl set +5%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global dec_brightness || brightnessctl set 5%-"; }
+
+    Super+Tab repeat=false { toggle-overview; }
+    Super+Backslash { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global toggle_beam"; }
+    Super_L { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call global toggle_beam"; }
+    Super+R { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call xp toggle_run"; }
+    Super+Comma { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call nobuntu toggle_db"; }
+    Super+Ctrl+Shift+X { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon toggle_zen"; }
+    Super+Alt+P { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon toggle_beam_pin"; }
+    Super+Ctrl+X { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon toggle_bar_mode"; }
+    Super+Alt+X { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon swap_bar_position"; }
+
+    Super+Alt+M { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon reveal_beam music"; }
+    Super+Alt+Slash { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon reveal_beam hints"; }
+    Super+Ctrl+S { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon reveal_beam appearance"; }
+    Super+Ctrl+G { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call noon reveal_beam tools"; }
+
+    Super+Space { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Apps"; }
+    Super+W { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Walls"; }
+    Super+J { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Downloads"; }
+    Super+M { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Beats"; }
+    Super+A { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal AI"; }
+    Super+V { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal History"; }
+    Super+Period { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Emojis"; }
+    Super+Grave { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Sounds"; }
+    Super+Alt+Tab { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Widgets"; }
+    Super+Z { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Shelf"; }
+    Super+I { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Tweaks"; }
+    Super+N { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Notifs"; }
+    Super+Alt+W { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Web"; }
+    Super+P { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Plugins"; }
+    Super+Ctrl+T { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Tasks"; }
+    Super+Ctrl+N { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Notes"; }
+    Super+Escape { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal Session"; }
+
+    Super+Shift+Space { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Apps"; }
+    Super+Shift+W { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Walls"; }
+    Super+Shift+Ctrl+Tab { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux View"; }
+    Super+Shift+J { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Downloads"; }
+    Super+Shift+M { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Beats"; }
+    Super+Shift+A { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux AI"; }
+    Super+Shift+V { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux History"; }
+    Super+Shift+Period { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Emojis"; }
+    Super+Shift+Grave { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Sounds"; }
+    Super+Shift+Alt+Tab { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Widgets"; }
+    Super+Shift+Z { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Shelf"; }
+    Super+Shift+I { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Tweaks"; }
+    Super+Shift+N { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Notifs"; }
+    Super+Shift+Alt+W { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Web"; }
+    Super+Shift+P { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Plugins"; }
+    Super+Shift+Ctrl+T { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Tasks"; }
+    Super+Shift+Ctrl+N { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Notes"; }
+    Super+Shift+Escape { spawn-sh "/home/pharmaracist/.config/noon/scripts/bin/npc call sidebar reveal_aux Session"; }
+}

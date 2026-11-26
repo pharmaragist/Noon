@@ -13,7 +13,7 @@ QuickToggleButton {
             root.toggled = answer;
         });
     }
-
+    visible: Mem.store.misc.systemCommands.indexOf("easyeffects") !== -1
     buttonName: "EasyEffects"
     buttonIcon: "graphic_eq"
     onClicked: {
@@ -23,16 +23,6 @@ QuickToggleButton {
         } else {
             toggled = !toggled;
             NoonUtils.execDetached(["easyeffects", "--gapplication-service"]);
-        }
-    }
-
-    Process {
-        id: fetchAvailability
-
-        running: true
-        command: ["bash", "-c", "command -v easyeffects"]
-        onExited: (exitCode, exitStatus) => {
-            root.visible = exitCode === 0;
         }
     }
 }

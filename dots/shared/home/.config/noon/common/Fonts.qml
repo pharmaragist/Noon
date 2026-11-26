@@ -119,7 +119,7 @@ Singleton {
 
     function changeSystemFont(family) {
         Quickshell.execDetached([Paths.scripts.syncFonts, "--family", family, "--size", 10]);
-        Mem.hypr.font_main = family;
+        Mem.wm.font_main = family;
         root.family.main = family;
     }
 }

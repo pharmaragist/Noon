@@ -1,5 +1,4 @@
 import Quickshell
-import Quickshell.Hyprland
 import qs.common
 import qs.common.functions
 import qs.common.widgets

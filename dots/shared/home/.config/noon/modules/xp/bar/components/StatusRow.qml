@@ -2,7 +2,6 @@ import "../../common"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Qt5Compat.GraphicalEffects
 import qs.services
 import qs.common
@@ -24,7 +23,7 @@ StyledRect {
             id: desktopMouse
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: HyprlandService.focusWs("special")
+            onClicked: Compositor.focusWs("special")
         }
     }
     StyledRect {

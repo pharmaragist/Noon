@@ -32,12 +32,27 @@ Scope {
             focusHandler.active: root.pinned || root.show
             focusHandler.onCleared: !root.pinned ? root.hide() : null
 
+            dismissArea.target: bg
+            dismissArea.active: root.show && !root.pinned
+
+            // autoHide: true
+            // revealed: reveal
+            // hideDelay: bg.animationDuration + 50
+
+            blur: Region {
+                target: bg
+            }
+
             mask: Region {
                 Region {
                     item: hoverArea
                 }
                 Region {
                     item: bg
+                }
+                Region {
+                    width: dismissArea.visible ? root.width : 0
+                    height: dismissArea.visible ? root.height : 0
                 }
             }
 
@@ -72,7 +87,8 @@ Scope {
             property int dragWidth: 0
             property bool resizing: false
             onSelectedCategoryChanged: dragWidth = 0
-            onExpandedChanged: if (!root.resizing) dragWidth = 0
+            onExpandedChanged: if (!root.resizing)
+                dragWidth = 0
             readonly property int auxWidth: content.auxVisible && !hoverMode ? SidebarData.currentSize(false, false, content.auxCategory) : 0
             readonly property int hoverDetectArea: 2
             readonly property int elevation: Sizes.frameThickness + Sizes.hyprland.gapsOut
@@ -133,7 +149,6 @@ Scope {
                 anchors.right: root.rightMode ? parent.right : undefined
             }
 
-
             StyledRectangularShadow {
                 target: bg
                 // show: Math.max(bg.anchors.leftMargin, bg.anchors.leftMargin) > -root.sidebarWidth
@@ -167,7 +182,7 @@ Scope {
                         PropertyChanges {
                             target: bg
                             radius: root.rounding
-                            enableBorders: true
+                            enableBorders: false
                             border.color: content.rail.color
                             anchors.topMargin: root.elevation
                             anchors.bottomMargin: root.elevation

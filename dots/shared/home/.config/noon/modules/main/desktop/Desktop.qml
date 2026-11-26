@@ -13,9 +13,9 @@ Scope {
     id: root
     readonly property var opts: Mem.options.desktop
 
-    ScreenCorners {}
-    DialogPanel {}
-    OverlayLayer {}
+    // ScreenCorners {}
+    // DialogPanel {}
+    // OverlayLayer {}
     WidgetLoader {
         enabled: opts.icons.enabled
         DesktopIcons {}

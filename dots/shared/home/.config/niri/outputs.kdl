@@ -1,0 +1,16 @@
+output "eDP-1" {
+    mode "1920x1080@60"
+    scale 1
+    variable-refresh-rate
+    background-color "#121318"
+}
+
+output "DP-4" {
+    mode "1920x1080@75"
+    scale 1
+    variable-refresh-rate
+    background-color "#121318"
+}
+debug {
+    render-drm-device "/dev/dri/renderD128"
+}

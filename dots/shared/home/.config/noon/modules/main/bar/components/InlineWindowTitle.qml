@@ -3,13 +3,12 @@ import qs.common
 import qs.common.widgets
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 StyledText {
     id: title
     property var bar
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(bar?.screen)
+    readonly property var monitor: Compositor.monitorFor(bar?.screen)
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
 
     MouseArea {

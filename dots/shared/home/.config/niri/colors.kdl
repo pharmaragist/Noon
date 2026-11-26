@@ -1,0 +1,44 @@
+layout {
+	background-color "#101319"
+
+    focus-ring {
+        active-color "#a6c8ff"
+        inactive-color "#8b919d"
+        urgent-color   "#ffb4ab"
+    }
+
+    border {
+        active-color   "#a6c8ff"
+        inactive-color "#8b919d"
+        urgent-color   "#ffb4ab"
+    }
+
+    shadow {
+        color "#00000070"
+    }
+
+    tab-indicator {
+        active-color   "#a6c8ff"
+        inactive-color "#8b919d"
+        urgent-color   "#ffb4ab"
+    }
+
+    insert-hint {
+        color "#a6c8ff80"
+    }
+}
+
+overview {
+	backdrop-color "#101319"
+
+	workspace-shadow {
+        color "#101319"
+    }
+}
+
+recent-windows {
+    highlight {
+        active-color "#a6c8ff"
+        urgent-color "#ffb4ab"
+    }
+}

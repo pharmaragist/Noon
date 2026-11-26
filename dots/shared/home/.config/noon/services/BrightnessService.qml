@@ -5,7 +5,6 @@ pragma ComponentBehavior: Bound
 
 
 import Quickshell
-import Quickshell.Hyprland
 import QtQuick
 import qs.common
 import qs.common.utils
@@ -17,7 +16,7 @@ Singleton {
     id: root
 
     signal brightnessChanged
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
+    property var focusedScreen: Quickshell.screens.find(s => s.name === Compositor.focusedMonitor?.name)
     property var ddcMonitors: []
     readonly property list<BrightnessMonitor> monitors: Quickshell.screens.map(screen => monitorComp.createObject(root, {
             screen
@@ -28,14 +27,14 @@ Singleton {
     }
 
     function increaseBrightness(): void {
-        const focusedName = Hyprland.focusedMonitor.name;
+        const focusedName = Compositor.focusedMonitor?.name ?? "";
         const monitor = monitors.find(m => focusedName === m.screen.name);
         if (monitor)
             monitor.setBrightness(monitor.brightness + 0.05);
     }
 
     function decreaseBrightness(): void {
-        const focusedName = Hyprland.focusedMonitor.name;
+        const focusedName = Compositor.focusedMonitor?.name ?? "";
         const monitor = monitors.find(m => focusedName === m.screen.name);
         if (monitor)
             monitor.setBrightness(monitor.brightness - 0.05);

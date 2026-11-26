@@ -41,7 +41,9 @@ SidebarItemContainer {
 
     function todayStr() {
         var d = new Date();
-        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return d.getFullYear() + "-" + month + "-" + day;
     }
 
     function formatTime(secs) {
@@ -60,10 +62,17 @@ SidebarItemContainer {
     }
 
     function refreshData() {
+        const manager = ScreenTimeService;
+        if (!manager) {
+            dayData = [];
+            return;
+        }
         var range = timeRanges[activeRange];
         timeFrom = range.from;
         timeTo = range.to;
-        var raw = timeFrom === 0 && timeTo === 86400 ? HyprlandService.screenTimeManager.getDayTotals(currentDay) : HyprlandService.screenTimeManager.getDayTimeline(currentDay, timeFrom, timeTo);
+        var raw = timeFrom === 0 && timeTo === 86400
+            ? manager.getDayTotals(currentDay)
+            : manager.getDayTimeline(currentDay, timeFrom, timeTo);
         raw.sort(function (a, b) {
             return b.timeSeconds - a.timeSeconds;
         });
@@ -95,7 +104,7 @@ SidebarItemContainer {
     Component.onCompleted: loadDay(todayStr())
 
     Connections {
-        target: HyprlandService.screenTimeManager
+        target: ScreenTimeService
         function onAppTimesChanged() {
             if (currentDay === todayStr())
                 refreshData();

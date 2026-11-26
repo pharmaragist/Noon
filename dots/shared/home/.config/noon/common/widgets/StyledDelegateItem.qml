@@ -3,7 +3,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Qt.labs.folderlistmodel
-import Quickshell.Hyprland
 import qs.common
 import qs.common.widgets
 import qs.services

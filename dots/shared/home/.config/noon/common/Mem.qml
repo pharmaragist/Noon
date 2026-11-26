@@ -4,6 +4,7 @@ import QtQuick
 import Noon.Utils
 import Noon.Hypr
 import qs.common.utils
+import qs.common.functions
 import qs.data
 
 Singleton {
@@ -21,16 +22,34 @@ Singleton {
     readonly property var colors: colorsView.data
     readonly property var beats: beatsView.data
     readonly property var pkgs: pkgsView.data
+    readonly property var wm: wmView.data
+
 
     readonly property var hypr: hyprView.variables
     readonly property var env: envView.data
+
+    function wmBindings() {
+        const bindings = {};
+        const wm = root.wm ?? {};
+        for (const key of Object.keys(ObjectUtils.toPlainObject(wm)))
+            bindings[key] = () => root.wm?.[key];
+        return bindings;
+    }
 
     readonly property EnvManager envView: EnvManager {
         path: Paths.standard.home + "/.env"
     }
 
     readonly property HyprParser hyprView: HyprParser {
+        id: hyprParser
         path: Paths.methods.trim(Paths.standard.config + "/hypr/core/variables.lua")
+
+        // Mem.wm is the source of truth. Bind it into the parser so variables.lua
+        // always reflects shell settings, regardless of the active compositor.
+        readonly property BatchBinding binds: BatchBinding {
+            target: hyprParser.variables
+            data: root.wmBindings()
+        }
     }
 
     readonly property ConfigFileView optionsView: ConfigFileView {
@@ -104,5 +123,10 @@ Singleton {
         parentDir: "user/"
         fileName: "packages"
         PackagesSchema {}
+    }
+
+    readonly property ConfigFileView wmView: ConfigFileView {
+        fileName: "wm"
+        WmSchema {}
     }
 }

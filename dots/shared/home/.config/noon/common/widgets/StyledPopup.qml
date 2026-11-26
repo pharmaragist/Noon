@@ -5,7 +5,6 @@ import qs.common.functions
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 LazyLoader {

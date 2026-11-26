@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import qs.common
 import qs.common.widgets
 import "./../common"
@@ -25,11 +24,11 @@ StyledRect {
         spacing: Padding.small
 
         Repeater {
-            model: Math.min(Math.max(...Hyprland.workspaces.values.map(ws => ws.id), 2), 10)
+            model: Math.min(Math.max(...Compositor.workspaces.map(ws => ws.id), 2), 10)
 
             Rectangle {
-                readonly property bool isActive: Hyprland.monitorFor(root.bar.screen).activeWorkspace?.id === (index + 1)
-                readonly property bool isOccupied: Hyprland.workspaces.values.some(ws => ws.id === (index + 1))
+                readonly property bool isActive: Compositor.monitorFor(root.bar.screen)?.activeWorkspace?.id === (index + 1)
+                readonly property bool isOccupied: Compositor.workspaces.some(ws => ws.id === (index + 1))
 
                 implicitWidth: isActive ? 40 : 10
                 implicitHeight: 10
@@ -44,7 +43,7 @@ StyledRect {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: HyprlandService.focusWs(index + 1)
+                    onClicked: Compositor.focusWs(index + 1)
                     cursorShape: Qt.PointingHandCursor
                 }
             }
@@ -52,7 +51,7 @@ StyledRect {
     }
 
     WheelHandler {
-        onWheel: event => HyprlandService.focusWs(`r${event.angleDelta.y < 0 ? '+1' : '-1'}`)
+        onWheel: event => Compositor.focusWs(`r${event.angleDelta.y < 0 ? '+1' : '-1'}`)
     }
     MouseArea {
         id: _bg_event_area

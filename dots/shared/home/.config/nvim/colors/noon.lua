@@ -12,9 +12,9 @@ local function hi(g, o) vim.api.nvim_set_hl(0, g, o) end
 -- base
 hi("Normal", { fg = c.fg, bg = T })
 hi("NormalNC", { fg = c.fg_dim, bg = T })
-hi("NormalFloat", { fg = c.fg, bg = c.bg_dim })
-hi("FloatBorder", { fg = c.border, bg = c.bg_dim })
-hi("FloatTitle", { fg = c.accent, bg = c.bg_dim, bold = true })
+hi("NormalFloat", { fg = c.fg, bg = T })
+hi("FloatBorder", { fg = c.border, bg = T })
+hi("FloatTitle", { fg = c.accent, bg = T, bold = true })
 hi("WinSeparator", { fg = c.border, bg = T })
 hi("SignColumn", { bg = T })
 hi("FoldColumn", { fg = c.fg_dim, bg = T })
@@ -25,11 +25,11 @@ hi("CursorColumn", { bg = c.bg_alt })
 hi("CursorLineNr", { fg = c.accent, bg = T, bold = true })
 hi("LineNr", { fg = c.fg_dim, bg = T })
 hi("Visual", { bg = c.bg_sel })
-hi("Search", { fg = c.bg, bg = c.accent })
-hi("IncSearch", { fg = c.bg, bg = c.accent_alt })
+hi("Search", { fg = c.accent_dim_fg, bg = c.accent_dim })
+hi("IncSearch", { fg = c.accent_fg, bg = c.accent })
 hi("CurSearch", { link = "IncSearch" })
 hi("MatchParen", { fg = c.accent, bg = c.bg_sel, bold = true })
-hi("Pmenu", { fg = c.fg, bg = c.bg_dim })
+hi("Pmenu", { fg = c.fg, bg = c.bg_float })
 hi("PmenuSel", { fg = c.accent_fg, bg = c.accent })
 hi("PmenuSbar", { bg = c.bg_alt })
 hi("PmenuThumb", { bg = c.border })
@@ -45,8 +45,8 @@ hi("SpecialKey", { fg = c.border })
 hi("Whitespace", { fg = c.border })
 hi("WinBar", { fg = c.fg, bg = T })
 hi("WinBarNC", { fg = c.fg_dim, bg = T })
-hi("Question", { fg = c.accent })
-hi("MoreMsg", { fg = c.accent })
+hi("Question", { fg = c.info })
+hi("MoreMsg", { fg = c.info })
 hi("ModeMsg", { fg = c.fg, bold = true })
 hi("WarningMsg", { fg = c.warn })
 hi("ErrorMsg", { fg = c.error })
@@ -69,7 +69,7 @@ hi("Type", { fg = c.tertiary })
 hi("Special", { fg = c.accent_alt })
 hi("Delimiter", { fg = c.fg_dim })
 hi("Error", { fg = c.error })
-hi("Todo", { fg = c.bg, bg = c.accent_alt, bold = true })
+hi("Todo", { fg = c.accent_alt_fg, bg = c.accent_alt, bold = true })
 
 -- treesitter
 hi("@variable", { fg = c.fg })
@@ -111,7 +111,7 @@ hi("DiagnosticError", { fg = c.error })
 hi("DiagnosticWarn", { fg = c.warn })
 hi("DiagnosticInfo", { fg = c.info })
 hi("DiagnosticHint", { fg = c.hint })
-hi("DiagnosticOk", { fg = c.tertiary })
+hi("DiagnosticOk", { fg = c.ok })
 hi("DiagnosticUnderlineError", { undercurl = true, sp = c.error })
 hi("DiagnosticUnderlineWarn", { undercurl = true, sp = c.warn })
 hi("DiagnosticUnderlineInfo", { undercurl = true, sp = c.info })
@@ -122,16 +122,16 @@ hi("DiagnosticVirtualTextInfo", { fg = c.info, bg = T })
 hi("DiagnosticVirtualTextHint", { fg = c.hint, bg = T })
 
 -- diff/git
-hi("DiffAdd", { bg = "#1f3026" })
-hi("DiffChange", { bg = "#2a2430" })
-hi("DiffDelete", { bg = "#301f22" })
-hi("DiffText", { bg = c.bg_sel })
-hi("GitSignsAdd", { fg = c.tertiary })
-hi("GitSignsChange", { fg = c.accent })
-hi("GitSignsDelete", { fg = c.error })
-hi("Added", { fg = c.tertiary })
-hi("Changed", { fg = c.accent })
-hi("Removed", { fg = c.error })
+hi("DiffAdd", { bg = c.diff_add })
+hi("DiffChange", { bg = c.diff_change })
+hi("DiffDelete", { bg = c.diff_delete })
+hi("DiffText", { bg = c.diff_text })
+hi("GitSignsAdd", { fg = c.git_add })
+hi("GitSignsChange", { fg = c.git_change })
+hi("GitSignsDelete", { fg = c.git_delete })
+hi("Added", { fg = c.git_add })
+hi("Changed", { fg = c.git_change })
+hi("Removed", { fg = c.git_delete })
 
 -- common plugins (LazyVim stack)
 hi("SnacksNormal", { fg = c.fg, bg = T })
@@ -166,29 +166,21 @@ hi("BlinkCmpMenu", { fg = c.fg, bg = c.bg_dim })
 hi("BlinkCmpMenuBorder", { fg = c.border, bg = c.bg_dim })
 hi("BlinkCmpMenuSelection", { fg = c.accent_fg, bg = c.accent })
 hi("BlinkCmpLabelMatch", { fg = c.accent, bold = true })
-hi("MiniIconsAzure", { fg = c.info })
-hi("MiniIconsBlue", { fg = c.accent })
-hi("MiniIconsCyan", { fg = c.accent_alt })
-hi("MiniIconsGreen", { fg = c.tertiary })
-hi("MiniIconsOrange", { fg = c.warn })
-hi("MiniIconsPurple", { fg = c.accent_alt })
-hi("MiniIconsRed", { fg = c.error })
-hi("MiniIconsYellow", { fg = c.warn })
 
 -- terminal
-vim.g.terminal_color_0 = c.bg
+vim.g.terminal_color_0 = c.bg_dim
 vim.g.terminal_color_1 = c.error
-vim.g.terminal_color_2 = c.tertiary
+vim.g.terminal_color_2 = c.git_add
 vim.g.terminal_color_3 = c.warn
 vim.g.terminal_color_4 = c.accent
 vim.g.terminal_color_5 = c.accent_alt
-vim.g.terminal_color_6 = c.accent_alt
+vim.g.terminal_color_6 = c.info
 vim.g.terminal_color_7 = c.fg
 vim.g.terminal_color_8 = c.fg_dim
 vim.g.terminal_color_9 = c.error
-vim.g.terminal_color_10 = c.tertiary
+vim.g.terminal_color_10 = c.git_add
 vim.g.terminal_color_11 = c.warn
 vim.g.terminal_color_12 = c.accent
 vim.g.terminal_color_13 = c.accent_alt
-vim.g.terminal_color_14 = c.accent_alt
+vim.g.terminal_color_14 = c.info
 vim.g.terminal_color_15 = c.fg

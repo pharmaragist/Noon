@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import Quickshell
 import qs.services
@@ -12,7 +11,7 @@ import "./../components"
 StyledPanel {
     id: root
     name: "blurred_layer"
-     exclusiveZone: bg.implicitWidth
+    exclusiveZone: bg.implicitWidth
     fill: true
     _layer: "Bottom"
     readonly property string pos: BarData.position
@@ -22,6 +21,9 @@ StyledPanel {
     anchors.right: isRight
 
     mask: Region {
+        item: bg
+    }
+    blur: Region {
         item: bg
     }
 
@@ -39,23 +41,24 @@ StyledPanel {
             implicitWidth: 25
             color: {
                 if (!BatteryService.available)
-                    return Colors.colLayer0
+                    return Colors.colLayer0;
                 else if (BatteryService.isLow && !BatteryService.isCharging)
-                    return Colors.colOnError
+                    return Colors.colOnError;
                 else if (BatteryService.isCritical && !BatteryService.isCharging)
-                    return Colors.colError
-                else return Colors.colLayer0
+                    return Colors.colError;
+                else
+                    return Colors.colLayer0;
             }
 
             Ws {
                 id: ws
-                bar:root
+                bar: root
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: -Padding.massive * 2
             }
 
             StyledText {
-                anchors.top:parent.top
+                anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.topMargin: Padding.massive * 1.5
                 color: Colors.colOnSurface
@@ -70,7 +73,7 @@ StyledPanel {
             visible: bg.showCorners
             anchors.top: bg?.top
             anchors.topMargin: Sizes.frameThickness
-            color:bg.color
+            color: bg.color
 
             anchors.left: !isRight ? bg?.right : undefined
             anchors.right: isRight ? bg?.left : undefined
@@ -82,7 +85,7 @@ StyledPanel {
             id: c2
             anchors.bottom: bg?.bottom
             anchors.bottomMargin: Sizes.frameThickness
-            color:bg.color
+            color: bg.color
 
             corner: isRight ? RoundCorner.BottomRight : RoundCorner.BottomLeft
             visible: bg.showCorners
@@ -91,7 +94,7 @@ StyledPanel {
         }
     }
 
-    component Ws:StyledRect {
+    component Ws: StyledRect {
         id: root
         required property var bar
         property bool showClock: false
@@ -107,11 +110,11 @@ StyledPanel {
             spacing: Padding.small
 
             Repeater {
-                model: Math.min(Math.max(...Hyprland.workspaces.values.map(ws => ws.id), 2), 10)
+                model: Math.min(Math.max(...Compositor.workspaces.map(ws => ws.id), 2), 10)
 
                 Rectangle {
-                    readonly property bool isActive: Hyprland.monitorFor(root.bar.screen).activeWorkspace?.id === (index + 1)
-                    readonly property bool isOccupied: Hyprland.workspaces.values.some(ws => ws.id === (index + 1))
+                    readonly property bool isActive: Compositor.monitorFor(root.bar.screen)?.activeWorkspace?.id === (index + 1)
+                    readonly property bool isOccupied: Compositor.workspaces.some(ws => ws.id === (index + 1))
 
                     implicitHeight: isActive ? 40 : 10
                     implicitWidth: 10
@@ -126,7 +129,7 @@ StyledPanel {
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: HyprlandService.focusWs(index + 1);
+                        onClicked: Compositor.focusWs(index + 1)
                         cursorShape: Qt.PointingHandCursor
                     }
                 }
@@ -134,7 +137,7 @@ StyledPanel {
         }
 
         WheelHandler {
-            onWheel: event =>  HyprlandService.focusWs(`${event.angleDelta.y < 0 ? '+1' : '-1'}`)
+            onWheel: event => Compositor.focusWs(`${event.angleDelta.y < 0 ? '+1' : '-1'}`)
         }
         MouseArea {
             id: _bg_event_area

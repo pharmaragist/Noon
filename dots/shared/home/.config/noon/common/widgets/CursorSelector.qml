@@ -102,7 +102,7 @@ Item {
                         hoverEnabled: true
                         onClicked: {
                             carousel.currentIndex = delegateItem.index;
-                            Mem.hypr.cursor_theme = modelData.trim();
+                            Mem.wm.cursor_theme = modelData.trim();
                         }
                     }
                 }
@@ -166,7 +166,7 @@ Item {
                     onClicked: {
                         carousel.decrementCurrentIndex();
                         if (carousel.currentItem?.modelData) {
-                            Mem.hypr.cursor_theme = carousel.currentItem.modelData.trim();
+                            Mem.wm.cursor_theme = carousel.currentItem.modelData.trim();
                         }
                     }
                 }
@@ -188,7 +188,7 @@ Item {
                     onClicked: {
                         carousel.incrementCurrentIndex();
                         if (carousel.currentItem?.modelData) {
-                            Mem.hypr.cursor_theme = carousel.currentItem.modelData.trim();
+                            Mem.wm.cursor_theme = carousel.currentItem.modelData.trim();
                         }
                     }
                 }
@@ -211,7 +211,7 @@ Item {
                 from: 15
                 to: 50
                 value: Mem.hypr.cursor_size
-                onValueChanged: Mem.hypr.cursor_size = value
+                onValueChanged: Mem.wm.cursor_size = value
             }
         }
     }

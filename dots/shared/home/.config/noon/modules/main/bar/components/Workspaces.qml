@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 
 import qs.data
 import qs.services
@@ -14,9 +13,12 @@ BarGroup {
     property var bar
     property list<bool> workspaceOccupied: []
 
-    readonly property HyprlandMonitor monitor: Hyprland.monitorFor(bar?.screen)
-    readonly property int workspaceGroup: Math.floor((monitor?.activeWorkspace?.id - 1) / number)
-    readonly property int workspaceIndexInGroup: (monitor?.activeWorkspace?.id - 1) % number
+    readonly property var monitor: {
+        const _ = Compositor.monitors;
+        return Compositor.monitorFor(bar?.screen);
+    }
+    readonly property int workspaceGroup: Math.floor(((monitor?.activeWorkspace?.id ?? 1) - 1) / number)
+    readonly property int workspaceIndexInGroup: ((monitor?.activeWorkspace?.id ?? 1) - 1) % number
 
 
     readonly property int number: Mem.options.bar.workspaces.number
@@ -50,27 +52,27 @@ BarGroup {
     function updateWorkspaceOccupied() {
         workspaceOccupied = Array.from({
             length: number
-        }, (_, i) => Hyprland.workspaces.values.some(ws => ws.id === workspaceGroup * number + i + 1));
+        }, (_, i) => Compositor.workspaces.some(ws => ws.id === workspaceGroup * number + i + 1));
     }
 
     Component.onCompleted: updateWorkspaceOccupied()
 
     Connections {
-        target: Hyprland.workspaces
-        function onValuesChanged() {
+        target: Compositor
+        function onWorkspacesChanged() {
             updateWorkspaceOccupied();
         }
     }
 
     WheelHandler {
-        onWheel: event => HyprlandService.focusWs(`r${event.angleDelta.y < 0 ? '+' : '-'}1`)
+        onWheel: event => Compositor.focusWs(`r${event.angleDelta.y < 0 ? '+' : '-'}1`)
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
     }
 
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.BackButton
-        onPressed: HyprlandService.focusWs("special")
+        onPressed: Compositor.focusWs("special")
     }
 
     Repeater {
@@ -79,9 +81,9 @@ BarGroup {
         StyledRect {
             readonly property var targetButton: buttonsRepeater?.itemAt(index ?? 0)
             readonly property int workspaceId: root.workspaceGroup * root.number + index + 1
-            readonly property bool isOccupied: HyprlandService.windowList.some(w => w.workspace?.id === workspaceId)
-            readonly property bool adjacentOccupiedLeft: index === 0 ? false : HyprlandService.windowList.some(w => w.workspace?.id === workspaceId - 1)
-            readonly property bool adjacentOccupiedRight: index === root.number - 1 ? false : HyprlandService.windowList.some(w => w.workspace?.id === workspaceId + 1)
+            readonly property bool isOccupied: Compositor.windowList.some(w => w.workspace?.id === workspaceId)
+            readonly property bool adjacentOccupiedLeft: index === 0 ? false : Compositor.windowList.some(w => w.workspace?.id === workspaceId - 1)
+            readonly property bool adjacentOccupiedRight: index === root.number - 1 ? false : Compositor.windowList.some(w => w.workspace?.id === workspaceId + 1)
 
             z: 1
             height: 34 * 0.8
@@ -135,10 +137,10 @@ BarGroup {
                 readonly property int workspaceValue: root.workspaceGroup * root.number + index + 1
                 readonly property string displayText: WsData.getDisplayText(workspaceValue)
                 readonly property string currentMode: WsData.currentMode
-                readonly property bool isActive: monitor.activeWorkspace?.id === workspaceValue
+                readonly property bool isActive: monitor?.activeWorkspace?.id === workspaceValue
 
                 readonly property var windows: {
-                    const inWs = HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue && w.class);
+                    const inWs = Compositor.windowList.filter(w => w.workspace?.id === workspaceValue && w.class);
                     if (root.showBigAppOnly) {
                         const counts = {};
                         for (const w of inWs)
@@ -163,14 +165,14 @@ BarGroup {
                 }
 
                 readonly property int windowCount: windows.length
-                readonly property var windowCountFor: (cls) => cls ? HyprlandService.windowList.filter(w => w.workspace?.id === workspaceValue && w.class === cls).length : 0
+                readonly property var windowCountFor: (cls) => cls ? Compositor.windowList.filter(w => w.workspace?.id === workspaceValue && w.class === cls).length : 0
                 readonly property bool showNumber: Mem.options.bar.workspaces.alwaysShowNumbers || Globals.superHeld || windowCount === 0
                 readonly property real iconSize: showNumber ? root.shrinkedIconSize : root.baseIconSize
                 readonly property real buttonWidth: Math.max(root.workspaceButtonWidth, windowCount * iconSize + Math.max(0, windowCount - 1) * (showNumber ? 0 : root.iconSpacing) + root.buttonHPadding) + (windowCount > 1 ? root.bgPadding : 0)
 
                 Layout.fillHeight: true
                 width: buttonWidth
-                onPressed: HyprlandService.focusWs(workspaceValue)
+                onPressed: Compositor.focusWs(workspaceValue)
 
                 background: Item {
                     implicitWidth: button.buttonWidth

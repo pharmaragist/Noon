@@ -1,0 +1,45 @@
+# mangowm — port of ~/.config/hypr
+# Validate: mango -c ~/.config/mango/config.toml -p
+# Apply:    mmsg dispatch reload_config
+
+[global]
+source = [
+    "./var.toml",
+    "./variables.toml", # generated vars for binds
+    "./env.toml",
+    "./appearance.toml",
+    "./layout.toml",
+    "./input.toml",
+    "./monitor.toml",
+    "./rule.toml",
+    "./bind.toml",
+    "./pointer.toml",
+    "./animations.toml",
+    "./variables.toml", # generated visual overrides
+]
+
+exec_once = [
+    "systemctl --user --no-block start graphical-session.target",
+    "noon -d -n",
+    "/home/pharmaracist/.config/noon/scripts/bin/npc call global trigger_autostart_apps",
+    "dbus-update-activation-environment --systemd --all",
+    "systemctl --user import-environment QT_QPA_PLATFORMTHEME",
+    "systemctl --user restart xdg-desktop-portal",
+    "kdeconnectd",
+    "foot --server",
+    "kwalletd6",
+    "gnome-keyring-daemon --start --components=secrets",
+    "nm-applet",
+    "wl-paste --watch cliphist store",
+]
+
+focus_on_activate = 0
+sloppy_focus = 1
+warp_cursor = 1
+focus_cross_monitor = 0
+focus_cross_tag = 0
+axis_bind_apply_timeout = 100
+enable_floating_snap = 0
+snap_distance = 30
+drag_tile_to_tile = 1
+xwayland_persistence = 1

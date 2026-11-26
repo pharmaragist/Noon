@@ -18,15 +18,15 @@ Singleton {
             icon: "backlight_high"
         })
 
-    Component.onCompleted: pollProc.running = true
 
     Process {
         id: pollProc
-        command: ["brightnessctl", "-d", root.deviceName, "-m", "g"]
+        running: true
+        command: ["brightnessctl", "-d", root.deviceName, "-m"]
 
         stdout: SplitParser {
             onRead: data => {
-                let parsed = root.parseLine(data);
+                const parsed = root.parseLine(data);
                 if (parsed) {
                     root.stats = parsed;
                 }
@@ -40,11 +40,11 @@ Singleton {
 
         stdout: SplitParser {
             onRead: data => {
-                let lines = data.trim().split('\n');
-                let deviceList = [];
+                const lines = data.trim().split('\n');
+                const deviceList = [];
 
                 lines.forEach(line => {
-                    let parts = line.split(',');
+                    const parts = line.split(',');
                     if (parts.length >= 5) {
                         deviceList.push({
                             "name": parts[0],
@@ -67,7 +67,7 @@ Singleton {
 
         stdout: SplitParser {
             onRead: data => {
-                let parsed = root.parseLine(data);
+                const parsed = root.parseLine(data);
                 if (parsed) {
                     root.stats = parsed;
                 }
@@ -93,7 +93,7 @@ Singleton {
         if (isNaN(max) || max <= 0)
             max = 2;
 
-        let nextLevel = (current + 1) % (max + 1);
+        const nextLevel = (current + 1) % (max + 1);
         set(nextLevel);
     }
 
@@ -109,6 +109,10 @@ Singleton {
             return null;
 
         const currentVal = parseInt(i[2]);
+        const maxVal = parseInt(i[4]);
+        if (isNaN(currentVal))
+            return null;
+
         const pctStr = i[3].replace('%', '');
         const pctVal = parseFloat(pctStr) / 100;
 
@@ -117,7 +121,7 @@ Singleton {
             type: i[1],
             current: currentVal,
             percentage: isNaN(pctVal) ? 0 : pctVal,
-            max: parseInt(i[4]),
+            max: isNaN(maxVal) ? 2 : maxVal,
             icon: root.getIcon(currentVal)
         };
     }

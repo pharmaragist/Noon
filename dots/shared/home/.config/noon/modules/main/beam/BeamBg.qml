@@ -141,6 +141,8 @@ Item {
     }
     // ball -> panel leg; doubles as the content/popup fade driver.
     property real grow: ss(1, 2, root.morph)
+    // spring stops within epsilon of 2, so don't wait for an exact 1
+    readonly property bool morphed: root.grow > 0.98
     // geometry-clamped twin: width/height freeze at target the moment we
     // land, so mask raster and layout stop churning through the settle.
     property real growC: Math.min(1, root.grow)

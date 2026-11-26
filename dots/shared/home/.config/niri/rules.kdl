@@ -1,0 +1,125 @@
+window-rule {
+    geometry-corner-radius 24
+    clip-to-geometry true
+}
+
+window-rule {
+    open-maximized false
+}
+
+window-rule {
+    match app-id="^.*"
+    background-effect {
+        blur false
+    }
+}
+
+window-rule {
+    match app-id=r#"^(wl-clipboard|wl-copy|wl-paste)$"#
+    open-floating true
+    open-focused false
+}
+
+window-rule {
+    match app-id=r#"^org\.telegram\.desktop$"#
+    match app-id="^localsend$"
+    open-floating true
+    default-column-width { fixed 380; }
+    default-window-height { fixed 1070; }
+    default-floating-position x=110 y=5
+}
+
+window-rule {
+    match app-id=r#"^org\.quickshell.*$"#
+    open-floating true
+    default-column-width { proportion 0.5; }
+    default-window-height { proportion 0.55; }
+}
+
+window-rule {
+    match app-id=r#"^org\.kde\.kclock.*$"#
+    open-floating true
+    default-column-width { proportion 0.5; }
+    default-window-height { proportion 0.55; }
+}
+
+window-rule {
+    match app-id="^hyprland-share-picker.*$"
+    open-floating true
+    default-column-width { proportion 0.25; }
+    default-window-height { proportion 0.4; }
+}
+
+window-rule {
+    match app-id="^pavucontrol-qt$"
+    open-floating true
+    default-column-width { proportion 0.6; }
+    default-window-height { proportion 0.65; }
+}
+
+window-rule {
+    match app-id="^nm-connection-editor$"
+    open-floating true
+    default-column-width { proportion 0.45; }
+    default-window-height { proportion 0.37; }
+}
+
+window-rule {
+    match title="^satty$"
+    open-floating true
+    default-column-width { proportion 0.65; }
+    default-window-height { proportion 0.65; }
+}
+
+window-rule {
+    match app-id="^kcm_.*$"
+    match app-id="^.*plasmawindowed.*$"
+    match app-id=r#"^.*org\.kde\.kdeconnect\.daemon.*$"#
+    match app-id=r#"^org\.kde\.polkit-kde-authentication-agent-1$"#
+    match app-id=r#"^org\.kde\.ark$"#
+    match app-id=r#"^blueberry\.py$"#
+    match app-id="^blueman-manager$"
+    match app-id="^nm-applet$"
+    match app-id="^nwg-look$"
+    match app-id="^qt[56]ct$"
+    match app-id="^guifetch$"
+    match app-id="^vlc$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^plasma-changeicons$"
+    open-floating true
+    open-focused false
+    default-floating-position x=65535 y=65535
+}
+
+window-rule {
+    match app-id="klook"
+    open-floating true
+    open-focused false
+}
+
+window-rule {
+    match title=r#"^[Pp]icture[-\s]?[Ii]n[-\s]?[Pp]icture.*$"#
+    open-floating true
+    default-column-width { proportion 0.25; }
+    default-window-height { proportion 0.25; }
+    default-floating-position x=1402 y=778
+}
+
+window-rule {
+    match title=r#".*\.exe*"#
+    open-fullscreen true
+}
+
+window-rule {
+    match app-id="^hyprland-run$"
+    open-floating true
+    default-floating-position x=20 y=120 relative-to="bottom-left"
+}
+
+layer-rule {
+    match namespace="backdrop*"
+    place-within-backdrop true
+}

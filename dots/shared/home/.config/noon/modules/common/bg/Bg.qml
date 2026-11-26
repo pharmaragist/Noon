@@ -25,4 +25,26 @@ Scope {
             BgView {}
         }
     }
+    Variants {
+        model: Compositor.isNiri ? MonitorsInfo.all : []
+
+        StyledPanel {
+            id: backdrop
+            required property var modelData
+            screen: modelData
+            name: "backdrop"
+            _layer: "Background"
+            color: "transparent"
+            exclusiveZone: -1
+            fill: true
+
+            BlurredImage {
+                anchors.fill: parent
+                source: WallpaperService.currentWallpaper
+                blurSize: 2
+                blurMax: 50
+                blur:true
+            }
+        }
+    }
 }

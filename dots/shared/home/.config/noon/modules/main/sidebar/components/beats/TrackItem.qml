@@ -123,7 +123,7 @@ StyledRect {
         }
 
         StyledImage {
-            z: 9999
+            z: 99999
             anchors.fill: parent
             source: Qt.resolvedUrl(root?.coverArt) || ""
         }
@@ -134,13 +134,13 @@ StyledRect {
     SequentialAnimation {
         id: feedAnim
         running: false
-        NumberAnimation {
+        Anim {
             target: root
             property: "scale"
             to: 0.94
             duration: 150
         }
-        NumberAnimation {
+        Anim {
             target: root
             property: "scale"
             to: 1

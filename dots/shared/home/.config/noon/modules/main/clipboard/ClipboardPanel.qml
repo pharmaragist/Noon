@@ -34,6 +34,12 @@ Variants {
         anchors.right: true
         focusHandler.active: active
         focusHandler.onCleared: content.dismiss()
+
+        blur: Region {
+            enabled: root.active
+            target: bg
+        }
+
         onActiveChanged: if (active)
             Qt.callLater(() => content.currentItem.focusView())
 

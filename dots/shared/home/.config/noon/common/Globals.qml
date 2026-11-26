@@ -2,7 +2,6 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.common.utils
@@ -14,9 +13,8 @@ Singleton {
 
     property bool deload: false
     property real clockAspect: 0
-    property bool superPressed: superHeldShortcut.pressed
+    readonly property bool superHeld: false // superHeldShortcut.pressed
     readonly property var topLevel: ToplevelManager.activeToplevel
-    readonly property bool superHeld: superHeldShortcut.pressed
     readonly property var exclusions: Exclusions
     readonly property QtObject common: QtObject {
         readonly property QtObject toasts: QtObject {
@@ -87,19 +85,22 @@ Singleton {
         }
     }
 
-    Component.onCompleted: if (!!Mem.ready) {
-        NoonUtils.playSound("device-added");
-        TimerService.reload();
-        ClipboardService.refresh();
-        EqService.init();
-        // FirstRunService.init(false);
+    Component.onCompleted: {
+        NightLightService.apply();
+        if (!!Mem.ready) {
+            NoonUtils.playSound("device-added");
+            TimerService.reload();
+            ClipboardService.refresh();
+            EqService.init();
+            // FirstRunService.init(false);
+        }
     }
 
-    CustomShortcut {
-        id: superHeldShortcut
-        enabled: false
-        name: "superHeld"
-    }
+    // CustomShortcut {
+    //     id: superHeldShortcut
+    //     enabled: false
+    //     name: "superHeld"
+    // }
 
     Connections {
         target: Quickshell
